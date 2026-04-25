@@ -49,11 +49,11 @@
 
   /* Semantic Colors */
   --color-background: var(--background);
+  --color-theme-bg: var(--background);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-border: var(--border);
-
   /* Fonts */
   --font-heading: "Ara Hamah Alislam", cursive;
   --font-primary: "Maven Pro", sans-serif;
