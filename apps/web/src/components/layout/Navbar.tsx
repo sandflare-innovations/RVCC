@@ -19,9 +19,9 @@ export const Navbar = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      setIsScrolled(currentScrollY > 100);
+      setIsScrolled(currentScrollY > window.innerHeight);
 
-      if (currentScrollY > lastScrollY.current && currentScrollY > 150) {
+      if (currentScrollY > lastScrollY.current && currentScrollY > window.innerHeight) {
         setIsVisible(false);
       } else {
         setIsVisible(true);
