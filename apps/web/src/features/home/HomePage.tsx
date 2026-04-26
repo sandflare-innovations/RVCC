@@ -7,6 +7,7 @@ import { MajorProject } from "./MajorProject";
 import { OurWorks } from "./OurWorks";
 import { RecentProjects } from "./RecentProjects";
 import { ScrollingText } from "./ScrollingText";
+import { Leaders } from "./Leaders";
 import { Services } from "./Services";
 
 export const HomePage = () => {
@@ -20,6 +21,7 @@ export const HomePage = () => {
       {/* Main Content Sections - Scroll over the Hero */}
       <div className="bg-background relative z-10 w-full shadow-[0_-20px_50px_rgba(0,0,0,0.1)]">
         <AboutUs />
+        <Leaders />
         <Services />
         <MajorProject />
         <RecentProjects />
