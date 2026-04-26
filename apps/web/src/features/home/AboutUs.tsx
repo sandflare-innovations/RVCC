@@ -82,8 +82,7 @@ const Counter = ({ from = 0, to }: { from?: number; to: number }) => {
     <motion.span
       ref={ref}
       className={cn(
-        "tabular-nums",
-        isComplete ? "text-brand-blue transition-colors duration-700" : "text-foreground"
+        "tabular-nums mx-8 text-black"
       )}
     >
       {rounded}
