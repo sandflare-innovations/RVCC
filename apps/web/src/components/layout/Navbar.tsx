@@ -50,7 +50,7 @@ export const Navbar = () => {
             onClick={() => setIsOpen(true)}
             className={cn(
               "group relative z-50 flex items-center space-x-3 transition-all",
-              isScrolled ? "text-foreground" : "text-white"
+              isScrolled ? "text-brand-blue" : "text-white"
             )}
           >
             <div className="flex flex-col space-y-1.5">
@@ -86,15 +86,15 @@ export const Navbar = () => {
                   href={`#${link.toLowerCase().replace(" ", "-")}`}
                   className={cn(
                     "group relative flex flex-col py-1 text-[12px] font-bold tracking-[0.3em] transition-colors",
-                    isScrolled ? "text-foreground/70" : "text-white/70"
+                    isScrolled ? "text-brand-blue/70" : "text-white/70"
                   )}
                 >
-                  <span className={cn("transition-colors", isScrolled ? "group-hover:text-foreground" : "group-hover:text-white")}>
+                  <span className={cn("transition-colors", isScrolled ? "group-hover:text-brand-blue" : "group-hover:text-white")}>
                     {link}
                   </span>
                   <span className={cn(
                     "absolute bottom-0 h-[2px] w-full scale-x-0 transition-transform duration-300 origin-right group-hover:scale-x-100 group-hover:origin-left",
-                    isScrolled ? "bg-foreground" : "bg-white"
+                    isScrolled ? "bg-brand-blue" : "bg-white"
                   )} />
                 </Link>
               ))}
@@ -104,7 +104,7 @@ export const Navbar = () => {
               href="#contact"
               className={cn(
                 "h-10 min-w-[140px] px-6 text-[9px]",
-                isScrolled ? "border-foreground text-foreground" : "border-white text-white"
+                isScrolled ? "border-brand-blue text-brand-blue" : "border-white text-white"
               )}
             >
               Contact
