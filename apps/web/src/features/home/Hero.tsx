@@ -88,7 +88,7 @@ export const Hero = () => {
       {/* Main Content with AnimatePresence */}
       <div className="container relative z-30 flex h-full flex-col justify-center px-6 md:px-12">
         <AnimatePresence mode="wait">
-          <motion.div
+          <motion.div 
             key={currentIndex}
             initial="hidden"
             animate="visible"
@@ -100,8 +100,6 @@ export const Hero = () => {
             }}
             className="max-w-4xl"
           >
-
-
             <h1 className="mb-8 flex flex-col -space-y-4 font-bold leading-[0.75] text-white md:-space-y-12">
               <div className="overflow-hidden">
                 <motion.span
@@ -109,7 +107,7 @@ export const Hero = () => {
                     hidden: { y: "100%" },
                     visible: { y: 0, transition: { duration: 0.8, ease: [0.19, 1, 0.22, 1] } }
                   }}
-                  className="block text-5xl uppercase tracking-tight md:text-8xl lg:text-[10rem] "
+                  className="block text-5xl uppercase tracking-tight md:text-8xl lg:text-[10rem]"
                 >
                   {content.title1}
                 </motion.span>
@@ -127,7 +125,7 @@ export const Hero = () => {
               </div>
             </h1>
 
-            <motion.p
+            <motion.p 
               variants={{
                 hidden: { opacity: 0, y: 20 },
                 visible: { opacity: 1, y: 0, transition: { duration: 0.8, delay: 0.4 } }
@@ -137,7 +135,7 @@ export const Hero = () => {
               {content.description}
             </motion.p>
 
-            <motion.div
+            <motion.div 
               variants={{
                 hidden: { opacity: 0, y: 20 },
                 visible: { opacity: 1, y: 0, transition: { duration: 0.8, delay: 0.6 } }

@@ -1,11 +1,11 @@
 "use client";
 
-import { ReactNode, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@lib/utils";
 
 interface ButtonProps {
-  children: ReactNode;
+  children: React.ReactNode;
   className?: string;
   href?: string;
   onClick?: () => void;
@@ -23,7 +23,7 @@ export const Button = ({
   const [direction, setDirection] = useState<"initial" | "enter" | "exit">("initial");
   const MotionComponent = motion[href ? "a" : "button"] as any;
 
-  const baseStyles = "group relative inline-flex h-[54px] min-w-[180px] items-center justify-center overflow-hidden border-[1px] px-8 py-4 uppercase tracking-[0.2em] text-[10px] font-bold transition-all duration-300";
+  const baseStyles = "group relative inline-flex h-[54px] min-w-[180px] items-center justify-center overflow-hidden border-[2px] px-8 py-4 uppercase tracking-[0.2em] text-[10px] font-bold transition-all duration-300";
 
   const variants = {
     primary: "bg-brand-blue text-white border-brand-blue",
@@ -62,7 +62,7 @@ export const Button = ({
         animate={{
           y: isHovered ? -2 : 0,
         }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
       >
         {children}
       </motion.span>

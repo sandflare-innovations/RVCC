@@ -85,7 +85,7 @@ export const Navbar = () => {
                   key={link}
                   href={`#${link.toLowerCase().replace(" ", "-")}`}
                   className={cn(
-                    "group relative flex flex-col py-1 text-[10px] font-bold tracking-[0.3em] transition-colors",
+                    "group relative flex flex-col py-1 text-[12px] font-bold tracking-[0.3em] transition-colors",
                     isScrolled ? "text-foreground/70" : "text-white/70"
                   )}
                 >
@@ -93,7 +93,7 @@ export const Navbar = () => {
                     {link}
                   </span>
                   <span className={cn(
-                    "absolute bottom-0 h-[1px] w-full scale-x-0 transition-transform duration-300 origin-right group-hover:scale-x-100 group-hover:origin-left",
+                    "absolute bottom-0 h-[2px] w-full scale-x-0 transition-transform duration-300 origin-right group-hover:scale-x-100 group-hover:origin-left",
                     isScrolled ? "bg-foreground" : "bg-white"
                   )} />
                 </Link>
@@ -154,7 +154,7 @@ export const Navbar = () => {
             >
               <span className="uppercase">{link}</span>
               <span className="text-[10px] text-brand-blue/30 group-hover:text-brand-blue transition-colors">0{idx + 1}</span>
-              
+
               {/* SpaceX-style underline for menu links */}
               <span className="absolute bottom-0 left-0 h-[2px] w-full scale-x-0 bg-brand-blue transition-transform duration-500 origin-right group-hover:scale-x-100 group-hover:origin-left" />
             </Link>
@@ -164,14 +164,14 @@ export const Navbar = () => {
         {/* Menu Footer - Compact */}
         <div className="mt-auto space-y-6 border-t border-border pt-10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-8">
               {[<Icons.Linkedin key="li" />, <Icons.Instagram key="ig" />, <Icons.Facebook key="fb" />].map((icon, i) => (
                 <a key={i} href="#" className="text-brand-blue transition-all hover:scale-110 hover:opacity-70">
                   {icon}
                 </a>
               ))}
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
               <AnimatedThemeToggler />
               <button className="text-[10px] font-black tracking-[0.3em] text-brand-blue hover:opacity-70 uppercase">AR</button>
             </div>
