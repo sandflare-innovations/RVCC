@@ -1,9 +1,7 @@
 "use client";
 
-import { ReactNode } from "react";
-
-import { Icons } from "@repo/ui";
-
+import { ReactNode, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@lib/utils";
 
 interface ButtonProps {
@@ -11,6 +9,7 @@ interface ButtonProps {
   className?: string;
   href?: string;
   onClick?: () => void;
+  variant?: "primary" | "secondary" | "outline";
 }
 
 export const Button = ({
@@ -18,42 +17,73 @@ export const Button = ({
   className,
   href,
   onClick,
-  transparent,
-}: ButtonProps & { transparent?: boolean }) => {
-  const Component = href ? "a" : "button";
+  variant = "primary",
+}: ButtonProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [direction, setDirection] = useState<"initial" | "enter" | "exit">("initial");
+  const MotionComponent = motion[href ? "a" : "button"] as any;
+
+  const baseStyles = "group relative inline-flex h-[54px] min-w-[180px] items-center justify-center overflow-hidden border-[1px] px-8 py-4 uppercase tracking-[0.2em] text-[10px] font-bold transition-all duration-300";
+
+  const variants = {
+    primary: "bg-brand-blue text-white border-brand-blue",
+    secondary: "bg-white text-black border-white",
+    outline: "bg-transparent text-white border-white",
+  };
+
+  const fillColors = {
+    primary: "bg-white",
+    secondary: "bg-brand-blue",
+    outline: "bg-white",
+  };
+
+  const hoverTextColors = {
+    primary: "group-hover:text-brand-blue",
+    secondary: "group-hover:text-white",
+    outline: "group-hover:text-black",
+  };
 
   return (
-    <Component
+    <MotionComponent
       href={href}
       onClick={onClick}
-      className={cn(
-        "group bg-brand-blue text-foreground border-background relative inline-flex h-12 w-[180px] items-center overflow-hidden rounded-full border-2 p-0.5 transition-transform"
-      )}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        setDirection("enter");
+      }}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setDirection("exit");
+      }}
+      className={cn(baseStyles, variants[variant], className)}
     >
-      {/* Dynamic Section */}
-      <div
-        className={cn(
-          "bg-background flex h-full w-80 items-center justify-center rounded-full px-6 transition-all duration-500 ease-in-out group-hover:w-full"
-        )}
+      <motion.span
+        className={cn("relative z-10 transition-colors duration-300", hoverTextColors[variant])}
+        animate={{
+          y: isHovered ? -2 : 0,
+        }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
       >
-        <span
-          className={cn(
-            "font-primary text-brand-blue text-sm font-black tracking-tight",
-            "whitespace-nowrap"
-          )}
-        >
-          {children}
-        </span>
-      </div>
+        {children}
+      </motion.span>
 
-      {/* Icon Section */}
-      <div
-        className={cn(
-          "text-background flex h-full w-20 items-center justify-center overflow-hidden transition-all duration-300 ease-in-out group-hover:w-0 group-hover:opacity-0"
-        )}
-      >
-        <Icons.ChevronRight className="h-5 w-5 flex-shrink-0" />
-      </div>
-    </Component>
+      {/* SpaceX-style snappy vertical fill animation */}
+      <motion.div
+        className={cn("absolute inset-0 z-0", fillColors[variant])}
+        initial={{ y: "100%" }}
+        animate={{
+          y: direction === "enter" ? "0%" : (direction === "exit" ? "-100%" : "100%")
+        }}
+        transition={{
+          duration: direction === "initial" ? 0 : 0.4,
+          ease: [0.19, 1, 0.22, 1]
+        }}
+        onAnimationComplete={() => {
+          if (direction === "exit") {
+            setDirection("initial");
+          }
+        }}
+      />
+    </MotionComponent>
   );
 };

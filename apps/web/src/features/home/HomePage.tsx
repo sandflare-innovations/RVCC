@@ -1,6 +1,4 @@
-import FinalLogo from "@/components/layout/FinalLogo";
 import { Footer } from "@/components/layout/Footer";
-
 import { AboutUs } from "./AboutUs";
 import { CSRSection } from "./CSRSection";
 import { Hero } from "./Hero";
@@ -27,3 +25,4 @@ export const HomePage = () => {
     </div>
   );
 };
+

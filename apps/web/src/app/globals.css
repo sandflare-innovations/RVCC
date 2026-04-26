@@ -139,6 +139,7 @@
     font-family: var(--font-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    cursor: auto !important;
   }
 
   h1,

@@ -1,17 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
 import Image from "next/image";
 import Link from "next/link";
-
 import { useTheme } from "next-themes";
-
 import { Icons } from "@repo/ui";
-
 import { AnimatedThemeToggler } from "@ui/AnimatedThemeToggler";
 import { Button } from "@ui/Button";
-
 import { cn } from "@lib/utils";
 
 export const Navbar = () => {
@@ -24,19 +19,13 @@ export const Navbar = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
-      // Handle background and styling change
       setIsScrolled(currentScrollY > 100);
 
-      // Handle hide/show logic based on scroll direction
       if (currentScrollY > lastScrollY.current && currentScrollY > 150) {
-        // Scrolling down
         setIsVisible(false);
       } else {
-        // Scrolling up or at top
         setIsVisible(true);
       }
-
       lastScrollY.current = currentScrollY;
     };
 
@@ -51,109 +40,142 @@ export const Navbar = () => {
       <header
         className={cn(
           "fixed top-0 right-0 left-0 z-[100] transition-all duration-500 ease-in-out",
-          isScrolled ? "bg-background py-2 shadow-sm" : "bg-transparent py-4",
+          isScrolled ? "bg-background/90 py-4 shadow-lg backdrop-blur-md" : "bg-transparent py-8",
           isVisible ? "translate-y-0" : "-translate-y-full"
         )}
       >
-        <div className="relative container flex items-center justify-between">
-          {/* Nav Box - Left */}
+        <div className="container relative flex items-center justify-between">
+          {/* Menu Button - Left */}
           <button
             onClick={() => setIsOpen(true)}
-            className="group bg-background hover:bg-foreground hover:text-background border-border text-brand-blue relative z-50 flex items-center space-x-3 rounded-full border px-6 py-2 transition-all"
+            className={cn(
+              "group relative z-50 flex items-center space-x-3 transition-all",
+              isScrolled ? "text-foreground" : "text-white"
+            )}
           >
-            <Icons.Menu className="h-4 w-4" />
-            <span className="text-xs font-bold tracking-widest uppercase">Menu</span>
+            <div className="flex flex-col space-y-1.5">
+              <span className="h-[1px] w-6 bg-current transition-all group-hover:w-8" />
+              <span className="h-[1px] w-6 bg-current transition-all group-hover:w-4" />
+            </div>
+            <div className="relative flex flex-col">
+              <span className="text-[10px] font-bold tracking-[0.4em] uppercase">Menu</span>
+              <span className="absolute -bottom-1 h-[1px] w-full scale-x-0 bg-current transition-transform duration-300 origin-right group-hover:scale-x-100 group-hover:origin-left" />
+            </div>
           </button>
 
           {/* Logo - Center */}
-          <Link href="/" className="absolute bottom-4 left-1/2 z-50 -translate-x-1/2">
+          <Link href="/" className="absolute left-1/2 z-50 -translate-x-1/2 transform transition-transform hover:scale-105">
             <Image
               src="/images/logo/logo.png"
               alt="Logo"
-              width={200}
-              height={200}
-              className={cn("w-25")}
+              width={160}
+              height={160}
+              className={cn(
+                "w-28 md:w-32 transition-all duration-500",
+                !isScrolled || resolvedTheme === "dark" ? "brightness-0 invert" : "brightness-100 invert-0"
+              )}
             />
           </Link>
 
           {/* Actions - Right */}
-          <div className="relative z-50 flex items-center space-x-4">
-            <Button href="#contact" className="h-8 w-[120px] bg-white text-sm text-[#0073bc]">
-              Get started
+          <div className="relative z-50 flex items-center space-x-8">
+            <nav className="hidden items-center space-x-8 lg:flex">
+              {menuLinks.slice(0, 3).map((link) => (
+                <Link
+                  key={link}
+                  href={`#${link.toLowerCase().replace(" ", "-")}`}
+                  className={cn(
+                    "group relative flex flex-col py-1 text-[10px] font-bold tracking-[0.3em] transition-colors",
+                    isScrolled ? "text-foreground/70" : "text-white/70"
+                  )}
+                >
+                  <span className={cn("transition-colors", isScrolled ? "group-hover:text-foreground" : "group-hover:text-white")}>
+                    {link}
+                  </span>
+                  <span className={cn(
+                    "absolute bottom-0 h-[1px] w-full scale-x-0 transition-transform duration-300 origin-right group-hover:scale-x-100 group-hover:origin-left",
+                    isScrolled ? "bg-foreground" : "bg-white"
+                  )} />
+                </Link>
+              ))}
+            </nav>
+            <Button
+              variant="outline"
+              href="#contact"
+              className={cn(
+                "h-10 min-w-[140px] px-6 text-[9px]",
+                isScrolled ? "border-foreground text-foreground" : "border-white text-white"
+              )}
+            >
+              Contact
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Centered Menu Modal */}
+      {/* SpaceX Style Side Menu Overlay */}
       <div
         className={cn(
-          "bg-background fixed top-1/2 left-1/2 z-[200] flex h-[95vh] w-[calc(100%-2rem)] max-w-[500px] -translate-x-1/2 flex-col rounded-[3rem] p-6 shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.85,0,0.15,1)]",
-          isOpen ? "-translate-y-1/2 opacity-100" : "translate-y-[100vh] opacity-0"
+          "fixed inset-0 z-[150] bg-black/40 backdrop-blur-sm transition-opacity duration-500",
+          isOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        )}
+        onClick={() => setIsOpen(false)}
+      />
+
+      {/* SpaceX Style Side Menu Box */}
+      <div
+        className={cn(
+          "bg-background fixed top-0 left-0 z-[200] flex h-full w-full max-w-[400px] flex-col p-12 transition-transform duration-500 ease-out",
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Subtle Background Pattern (SVG Curves) */}
-        <div className="pointer-events-none absolute inset-0 z-0 opacity-10">
-          <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <path
-              d="M100 0 C 80 20, 90 80, 50 100"
-              stroke="currentColor"
-              fill="none"
-              strokeWidth="0.1"
-            />
-            <path
-              d="M100 20 C 70 40, 80 90, 40 100"
-              stroke="currentColor"
-              fill="none"
-              strokeWidth="0.1"
-            />
-          </svg>
-        </div>
-
-        {/* Menu Header */}
-        <div className="relative z-10 flex items-center justify-between p-4">
-          <Image src="/images/logo/logo.png" alt="Logo" width={120} height={40} className="w-32" />
+        {/* Close Button */}
+        <div className="flex justify-start">
           <button
             onClick={() => setIsOpen(false)}
-            className="border-brand-blue bg-background text-brand-blue hover:bg-brand-blue flex h-12 w-12 items-center justify-center rounded-full border transition-all hover:text-white"
+            className="text-brand-blue group flex items-center space-x-4 transition-all duration-500"
           >
-            <Icons.Close className="h-6 w-6" />
+            <Icons.Close className="h-8 w-8 transition-transform duration-500 group-hover:rotate-180 group-hover:scale-110" />
+            <span className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-0 transition-opacity duration-500 group-hover:opacity-100">Close</span>
           </button>
         </div>
 
-        {/* Menu Links */}
-        <nav className="relative z-10 flex flex-1 flex-col items-center justify-center space-y-4">
-          {menuLinks.map((link) => (
+        {/* Menu Links - Optimized for 100vh visibility */}
+        <nav className="mt-12 flex flex-1 flex-col justify-center space-y-6">
+          {menuLinks.map((link, idx) => (
             <Link
               key={link}
               href={`#${link.toLowerCase().replace(" ", "-")}`}
               onClick={() => setIsOpen(false)}
-              className="font-heading text-brand-blue text-4xl transition-transform hover:scale-105 md:text-5xl"
+              className={cn(
+                "group relative border-b border-border pb-4 text-2xl font-bold tracking-[0.2em] text-brand-blue transition-all",
+                "flex items-center justify-between"
+              )}
             >
-              {link}
+              <span className="uppercase">{link}</span>
+              <span className="text-[10px] text-brand-blue/30 group-hover:text-brand-blue transition-colors">0{idx + 1}</span>
+              
+              {/* SpaceX-style underline for menu links */}
+              <span className="absolute bottom-0 left-0 h-[2px] w-full scale-x-0 bg-brand-blue transition-transform duration-500 origin-right group-hover:scale-x-100 group-hover:origin-left" />
             </Link>
           ))}
         </nav>
 
-        {/* Menu Footer (Socials & Theme) */}
-        <div className="relative z-10 flex items-center justify-center space-x-6 py-10">
-          {[
-            { icon: <Icons.Linkedin className="h-5 w-5" />, href: "#" },
-            { icon: <Icons.Instagram className="h-5 w-5" />, href: "#" },
-            { icon: <Icons.Facebook className="h-5 w-5" />, href: "#" },
-          ].map((social, i) => (
-            <a
-              key={i}
-              href={social.href}
-              className="border-brand-blue text-brand-blue bg-background hover:bg-brand-blue flex h-12 w-12 items-center justify-center rounded-full border transition-all hover:text-white"
-            >
-              {social.icon}
-            </a>
-          ))}
-          <AnimatedThemeToggler />
-          <button className="border-brand-blue text-brand-blue bg-background hover:bg-brand-blue flex h-12 w-12 items-center justify-center rounded-full border text-xs font-bold transition-all hover:text-white">
-            AR
-          </button>
+        {/* Menu Footer - Compact */}
+        <div className="mt-auto space-y-6 border-t border-border pt-10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-6">
+              {[<Icons.Linkedin key="li" />, <Icons.Instagram key="ig" />, <Icons.Facebook key="fb" />].map((icon, i) => (
+                <a key={i} href="#" className="text-brand-blue transition-all hover:scale-110 hover:opacity-70">
+                  {icon}
+                </a>
+              ))}
+            </div>
+            <div className="flex items-center space-x-4">
+              <AnimatedThemeToggler />
+              <button className="text-[10px] font-black tracking-[0.3em] text-brand-blue hover:opacity-70 uppercase">AR</button>
+            </div>
+          </div>
         </div>
       </div>
     </>

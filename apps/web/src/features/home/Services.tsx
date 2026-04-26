@@ -1,6 +1,7 @@
-import Image from "next/image";
+"use client";
 
-import { Button } from "@/components/ui/Button";
+import Image from "next/image";
+import { Button } from "@ui/Button";
 
 const SERVICES_DATA = [
   {
@@ -29,57 +30,27 @@ const SERVICES_DATA = [
   },
 ];
 
-const ServiceImageMask = () => (
-  <svg width="0" height="0" className="absolute">
-    <defs>
-      <clipPath id="service-image-mask" clipPathUnits="objectBoundingBox">
-        <path
-          d="
-            M 0 0 
-            L 0.15 0 
-            C 0.2 0, 0.22 0.05, 0.28 0.05 
-            L 0.72 0.05 
-            C 0.78 0.05, 0.8 0, 0.85 0 
-            L 1 0 
-            L 1 1 
-            L 0.85 1 
-            C 0.8 1, 0.78 0.95, 0.72 0.95 
-            L 0.28 0.95 
-            C 0.22 0.95, 0.2 1, 0.15 1 
-            L 0 1 
-            Z
-          "
-        />
-      </clipPath>
-    </defs>
-  </svg>
-);
-
 export const Services = () => {
   return (
-    <section className="bg-background relative w-full px-8 py-24 md:px-16 lg:px-24">
-      <ServiceImageMask />
-
+    <section className="bg-background relative w-full px-8 py-24 md:px-16 lg:px-24" id="services">
       <div className="mx-auto max-w-7xl">
         {/* Header Section */}
-        <div className="mb-20 flex flex-col items-start justify-between gap-8 md:flex-row md:items-start">
+        <div className="mb-20 flex flex-col items-start justify-between gap-8 md:flex-row">
           <div className="flex-1">
-            <h2 className="text-brand-blue flex flex-col text-[4rem] leading-[0.6] tracking-tighter md:text-[5.5rem]">
-              <span className="font-medium">
-                Our <br /> Services
-              </span>
+            <h2 className="text-brand-blue text-5xl font-bold uppercase tracking-[0.4em] md:text-7xl">
+              Our <br /> Services
             </h2>
           </div>
 
           <div className="max-w-sm flex-1 pt-4">
-            <p className="text-sm leading-relaxed font-medium text-gray-700">
+            <p className="text-xs font-medium leading-relaxed tracking-wider text-gray-700 uppercase">
               Discover our comprehensive range of architectural and construction services, designed
               to bring your most ambitious visions to life with unparalleled expertise.
             </p>
           </div>
 
           <div className="flex flex-1 justify-end pt-4">
-            <Button href="#contact" className="bg-brand-blue h-12 w-[180px]">
+            <Button variant="outline" href="#contact">
               Contact Us
             </Button>
           </div>
@@ -90,32 +61,30 @@ export const Services = () => {
           {SERVICES_DATA.map((service, index) => (
             <div
               key={service.id}
-              className="flex flex-col items-center gap-12 border-b border-gray-200 py-16 md:flex-row"
+              className="group flex flex-col items-center gap-12 border-b border-gray-200 py-16 md:flex-row"
             >
               {/* Text Content */}
-              <div className="flex flex-1 flex-col items-start gap-6">
-                <h3 className="text-brand-blue text-3xl font-medium tracking-tight md:text-6xl">
+              <div className="flex flex-1 flex-col items-start gap-8">
+                <div className="text-[10px] font-bold text-brand-blue tracking-[0.5em] uppercase">0{index + 1}</div>
+                <h3 className="text-brand-blue text-3xl font-bold uppercase tracking-[0.2em] md:text-5xl">
                   {service.title}
                 </h3>
-                <p className="max-w-md text-lg leading-relaxed text-gray-600">
+                <p className="max-w-md text-sm leading-relaxed tracking-wide text-gray-600">
                   {service.description}
                 </p>
-                <Button href={`#${service.id}`} className="bg-brand-blue h-12 w-[160px]">
-                  View more
+                <Button variant="primary" href={`#${service.id}`} className="h-10 min-w-[150px] text-[9px]">
+                  Explore Service
                 </Button>
               </div>
 
               {/* Image */}
               <div className="w-full flex-1">
-                <div
-                  className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-gray-100"
-                  style={{ clipPath: "url(#service-image-mask)" }}
-                >
+                <div className="cursor-image-trigger relative aspect-[16/9] w-full bg-gray-100 overflow-hidden">
                   <Image
                     src="/images/home-hero.png"
                     alt={service.title}
                     fill
-                    className="object-cover transition-transform duration-700 hover:scale-105"
+                    className="object-cover grayscale transition-all duration-700 group-hover:scale-110 group-hover:grayscale-0"
                   />
                 </div>
               </div>

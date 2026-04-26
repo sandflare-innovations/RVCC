@@ -131,10 +131,10 @@ export const AboutUs = () => {
     <section className="bg-background py-section relative z-10 mx-auto max-w-7xl" id="about">
       <div className="container">
         {/* Header */}
-        <div className="mb-10 flex items-end justify-between">
+        <div className="mb-10 flex items-end justify-between border-b border-gray-200 pb-8">
           <div className="flex flex-col">
-            <h2 className="text-brand-blue/80 text-[10rem] leading-[0.8] tracking-tighter">
-              about us
+            <h2 className="text-brand-blue text-5xl font-bold uppercase tracking-[0.4em] md:text-8xl">
+              About Us
             </h2>
           </div>
         </div>
@@ -178,10 +178,7 @@ export const AboutUs = () => {
           </div>
 
           <div className="flex w-full flex-1 justify-end">
-            <div
-              className="relative aspect-[3.5/4] w-full max-w-md overflow-hidden rounded-2xl bg-gray-100"
-              style={{ clipPath: "url(#project-mask)" }}
-            >
+            <div className="cursor-image-trigger relative aspect-[3.5/4] w-full max-w-md bg-gray-100">
               <Image
                 src="/images/home-hero.png"
                 alt="About RVCC"
