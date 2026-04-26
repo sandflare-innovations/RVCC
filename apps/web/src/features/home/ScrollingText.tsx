@@ -68,7 +68,7 @@ function ParallaxText({ children, images, baseVelocity = 100 }: ParallaxProps) {
 
   return (
     <div className="parallax overflow-hidden whitespace-nowrap flex flex-nowrap">
-      <motion.div className="scroller flex whitespace-nowrap flex-nowrap text-[6rem] text-semibold font-normal uppercase tracking-tighter text-brand-blue" style={{ x }}>
+      <motion.div className="scroller flex whitespace-nowrap flex-nowrap text-[6rem] text-semibold font-normal uppercase tracking-tighter text-foreground" style={{ x }}>
         {[...Array(4)].map((_, i) => (
           <span key={i} className="mr-8 flex items-center gap-8">
             {words.slice(0, midIndex).join(" ")}
@@ -98,7 +98,7 @@ function ParallaxText({ children, images, baseVelocity = 100 }: ParallaxProps) {
 
 export const ScrollingText = () => {
   return (
-    <section className="bg-white py-10 overflow-hidden">
+    <section className="bg-background py-10 overflow-hidden mb-30">
       <ParallaxText baseVelocity={-3} images={["/images/home-hero.png", "/images/hero-bg.png"]}>
         Discover the world of Ray
       </ParallaxText>

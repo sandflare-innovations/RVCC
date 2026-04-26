@@ -110,7 +110,7 @@ export const RecentProjects = () => {
         </div>
 
         {/* Projects Slider Container */}
-        <div className="group relative min-h-[650px] md:min-h-[750px]">
+        <div className="group relative min-h-[650px]">
           {/* Side Navigation Buttons - Centered on Image Area (Top 35%) */}
           <button
             onClick={prevSlide}
