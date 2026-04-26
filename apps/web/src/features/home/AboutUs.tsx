@@ -127,19 +127,19 @@ export const AboutUs = () => {
   });
 
   return (
-    <section className="bg-background py-section relative z-10 mx-auto max-w-7xl" id="about">
+    <section className="bg-background relative z-10 mx-auto max-w-7xl py-30" id="about">
       <div className="container">
         {/* Header */}
-        <div className="mb-10 flex items-end justify-between">
+        <div className="flex items-end justify-between">
           <div className="flex flex-col">
-            <h2 className="text-brand-blue/80 text-[10rem] leading-[0.8] tracking-tighter">
+            <h2 className="text-brand-blue text-[8rem] font-normal leading-[0.8] tracking-tighter font-primary uppercase">
               about us
             </h2>
           </div>
         </div>
 
         {/* Scroll Reveal Text & Image */}
-        <div className="my-10 flex flex-col items-center justify-between md:flex-row">
+        <div className="flex flex-col items-center justify-between md:flex-row">
           <div ref={containerRef} className="max-w-4xl flex-[1.5]">
             <h3 className="font-primary flex flex-wrap justify-start text-left text-4xl leading-snug font-medium tracking-tight">
               {WORDS.map((word, i) => {
@@ -273,7 +273,7 @@ const ClientMarquee = () => {
   }, []);
 
   return (
-    <div className="w-full overflow-hidden py-20">
+    <div className="w-full overflow-hidden pt-20">
       <div ref={containerRef} className="flex w-max items-center gap-16 px-8">
         {CLIENT_IMAGES.map((src, i) => (
           <div key={i} className="relative h-42 w-42 flex-shrink-0 transition-all duration-300">
