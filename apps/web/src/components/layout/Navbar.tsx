@@ -45,23 +45,42 @@ export const Navbar = () => {
         )}
       >
         <div className="container relative flex items-center justify-between">
-          {/* Menu Button - Left */}
-          <button
-            onClick={() => setIsOpen(true)}
-            className={cn(
-              "group relative z-50 flex items-center space-x-3 transition-all",
-              isScrolled ? "text-brand-blue" : "text-white"
-            )}
-          >
-            <div className="flex flex-col space-y-1.5">
-              <span className="h-[1px] w-6 bg-current transition-all group-hover:w-8" />
-              <span className="h-[1px] w-6 bg-current transition-all group-hover:w-4" />
-            </div>
-            <div className="relative flex flex-col">
-              <span className="text-[10px] font-bold tracking-[0.4em] uppercase">Menu</span>
-              <span className="absolute -bottom-1 h-[1px] w-full scale-x-0 bg-current transition-transform duration-300 origin-right group-hover:scale-x-100 group-hover:origin-left" />
-            </div>
-          </button>
+          {/* Menu & Left Nav - Left */}
+          <div className="flex items-center space-x-12">
+            <button
+              onClick={() => setIsOpen(true)}
+              className={cn(
+                "group relative z-50 flex items-center space-x-3 transition-all",
+                isScrolled ? "text-brand-blue" : "text-white"
+              )}
+            >
+              <div className="flex flex-col space-y-2">
+                <span className="h-[2px] w-12 bg-current transition-all group-hover:w-12" />
+                <span className="h-[2px] w-12 bg-current transition-all group-hover:w-6" />
+              </div>
+            </button>
+
+            <nav className="hidden items-center space-x-8 lg:flex">
+              {menuLinks.slice(0, 3).map((link) => (
+                <Link
+                  key={link}
+                  href={`#${link.toLowerCase().replace(" ", "-")}`}
+                  className={cn(
+                    "group relative flex flex-col py-1 text-[12px] font-bold tracking-[0.3em] transition-colors",
+                    isScrolled ? "text-brand-blue/70" : "text-white/70"
+                  )}
+                >
+                  <span className={cn("transition-colors", isScrolled ? "group-hover:text-brand-blue" : "group-hover:text-white")}>
+                    {link}
+                  </span>
+                  <span className={cn(
+                    "absolute bottom-0 h-[2px] w-full scale-x-0 transition-transform duration-300 origin-right group-hover:scale-x-100 group-hover:origin-left",
+                    isScrolled ? "bg-brand-blue" : "bg-white"
+                  )} />
+                </Link>
+              ))}
+            </nav>
+          </div>
 
           {/* Logo - Center */}
           <Link href="/" className="absolute left-1/2 z-50 -translate-x-1/2 transform transition-transform hover:scale-105">
@@ -80,7 +99,7 @@ export const Navbar = () => {
           {/* Actions - Right */}
           <div className="relative z-50 flex items-center space-x-8">
             <nav className="hidden items-center space-x-8 lg:flex">
-              {menuLinks.slice(0, 3).map((link) => (
+              {menuLinks.slice(3).map((link) => (
                 <Link
                   key={link}
                   href={`#${link.toLowerCase().replace(" ", "-")}`}
