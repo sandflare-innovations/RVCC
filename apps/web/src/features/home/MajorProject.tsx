@@ -1,121 +1,190 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 import Image from "next/image";
 
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+
 import { Button } from "@/components/ui/Button";
 
-const MajorProjectMask = () => (
-  <svg width="0" height="0" className="absolute">
-    <defs>
-      <clipPath id="major-project-mask" clipPathUnits="objectBoundingBox">
-        <path
-          d="
-            M 0 0 
-            L 0.15 0 
-            C 0.2 0, 0.22 0.05, 0.28 0.05 
-            L 0.72 0.05 
-            C 0.78 0.05, 0.8 0, 0.85 0 
-            L 1 0 
-            L 1 1 
-            L 0.85 1 
-            C 0.8 1, 0.78 0.95, 0.72 0.95 
-            L 0.28 0.95 
-            C 0.22 0.95, 0.2 1, 0.15 1 
-            L 0 1 
-            Z
-          "
-        />
-      </clipPath>
-    </defs>
-  </svg>
-);
-
-const ImageSlider = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    let animationFrameId: number;
-    let position = 0;
-    const tick = () => {
-      position -= 0.5; // slow slide
-      const firstChild = container.firstElementChild as HTMLElement;
-      if (firstChild) {
-        const width = firstChild.offsetWidth + 16; // gap-4 = 16px
-        if (-position >= width) {
-          container.appendChild(firstChild);
-          position += width;
-        }
-      }
-      container.style.transform = `translate3d(${position}px, 0, 0)`;
-      animationFrameId = requestAnimationFrame(tick);
-    };
-    animationFrameId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, []);
-
-  return (
-    <div className="w-full max-w-lg overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-      <div ref={containerRef} className="flex w-max gap-4">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div
-            key={i}
-            className="relative h-24 w-36 flex-shrink-0 overflow-hidden rounded-xl border border-white/10"
-          >
-            <Image
-              src={`/images/home-hero.png`}
-              alt="Project thumbnail"
-              fill
-              className="object-cover"
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+const PROJECTS = [
+  {
+    id: "01",
+    title: "The Heritage Residences",
+    location: "RIYADH, KSA",
+    image: "/images/projects/major-left.png",
+    description:
+      "Ultra-luxury residential complex featuring traditional Najdi architectural elements.",
+  },
+  {
+    id: "02",
+    title: "KAFD Iconic Tower",
+    location: "RIYADH, KSA",
+    image: "/images/projects/major-center.png",
+    description: "Setting new benchmarks for luxury and sustainability in commercial architecture.",
+  },
+  {
+    id: "03",
+    title: "The Prism Commercial Hub",
+    location: "JEDDAH, KSA",
+    image: "/images/projects/major-right.png",
+    description: "A pinnacle of modern geometric design, redefining corporate environments.",
+  },
+];
 
 export const MajorProject = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"],
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001,
+  });
+
+  // Cards logic - Expansion only
+  const leftX = useTransform(smoothProgress, [0.1, 0.6], ["0%", "-120%"]);
+  const rightX = useTransform(smoothProgress, [0.1, 0.6], ["0%", "120%"]);
+
+  const centerWidth = useTransform(smoothProgress, [0.1, 0.6], ["33.33vw", "100vw"]);
+  const centerHeight = useTransform(smoothProgress, [0.1, 0.6], ["60vh", "100vh"]);
+
+  // Content Overlay Reveal
+  const overlayOpacity = useTransform(smoothProgress, [0.6, 0.8], [0, 1]);
+  const textY = useTransform(smoothProgress, [0.7, 0.9], [50, 0]);
+  const textOpacity = useTransform(smoothProgress, [0.7, 0.9], [0, 1]);
+
   return (
-    <section className="relative w-full bg-gray-100 py-12">
-      <MajorProjectMask />
+    <div className="bg-background">
+      {/* 1. Header Section - OUTSIDE the animation frame */}
+      <section className="container mx-auto px-4 pt-32 pb-16 md:px-8">
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-brand-blue font-primary text-[5rem] leading-[0.8] font-normal tracking-tighter uppercase md:text-[8rem]"
+        >
+          Major
+          <br /> Projects
+        </motion.h2>
+      </section>
 
-      <div
-        className="relative w-full overflow-hidden bg-zinc-900"
-        style={{ clipPath: "url(#major-project-mask)", height: "650px" }}
-      >
-        <Image src="/images/home-hero.png" alt="Major Project" fill className="object-cover" />
+      {/* 2. Sticky Animation Section - Takes Full Width/Height */}
+      <section ref={containerRef} className="relative h-[250vh]">
+        <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
+          {/* Animation Wrapper */}
+          <div className="relative flex h-full w-full items-center justify-center">
+            {/* Left Card */}
+            <motion.div
+              style={{ x: leftX }}
+              className="absolute left-0 z-10 h-[60vh] w-[33.33vw] px-2"
+            >
+              <div className="relative h-full w-full overflow-hidden">
+                <Image
+                  src={PROJECTS[0].image}
+                  alt={PROJECTS[0].title}
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute bottom-8 left-8 z-20 text-white">
+                  <span className="text-[10px] font-black tracking-widest uppercase opacity-60">
+                    {PROJECTS[0].location}
+                  </span>
+                  <h3 className="text-2xl font-light">{PROJECTS[0].title}</h3>
+                </div>
+                <div className="absolute inset-0 bg-black/20" />
+              </div>
+            </motion.div>
 
-        {/* Gradient Overlay for Text Readability */}
+            {/* Center Card - GROWS to Full Screen */}
+            <motion.div
+              style={{
+                width: centerWidth,
+                height: centerHeight,
+                zIndex: 30,
+              }}
+              className="relative overflow-hidden"
+            >
+              <Image
+                src={PROJECTS[1].image}
+                alt={PROJECTS[1].title}
+                fill
+                className="object-cover"
+                priority
+              />
 
-        <div className="absolute bottom-0 left-0 w-full p-8 md:px-16 md:pb-12">
-          {/* Top Divider */}
-          <div className="mb-8 h-[1px] w-full bg-white/20" />
+              <motion.div
+                style={{ opacity: overlayOpacity }}
+                className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/80"
+              />
 
-          <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-end">
-            <div className="flex-1">
-              <h2 className="text-background flex flex-col text-[4rem] leading-[0.6] tracking-tighter md:text-[8rem]">
-                <span className="font-medium">
-                  Major <br /> Projects
+              <motion.div
+                style={{ y: textY, opacity: textOpacity }}
+                className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center md:p-24"
+              >
+                <span className="text-brand-blue mb-4 text-[10px] font-black tracking-[0.6em] uppercase">
+                  Flagship Milestone
                 </span>
-              </h2>
-            </div>
+                <h3 className="mb-8 text-4xl font-light tracking-tight text-white md:text-7xl">
+                  {PROJECTS[1].title}
+                </h3>
+                <p className="mb-12 max-w-2xl text-lg leading-relaxed font-light text-zinc-300 md:text-2xl">
+                  {PROJECTS[1].description}
+                </p>
+                <div className="flex flex-col gap-6 md:flex-row">
+                  <Button variant="white" className="min-w-[240px] rounded-none">
+                    EXPLORE CASE STUDY
+                  </Button>
+                  <Button
+                    variant="brand-outline"
+                    className="min-w-[240px] rounded-none border-white text-white hover:bg-white hover:text-black"
+                  >
+                    VIEW ALL WORKS
+                  </Button>
+                </div>
+              </motion.div>
 
-            <div className="flex flex-1 justify-center md:justify-start">
-              <ImageSlider />
-            </div>
+              {/* Static Card Info */}
+              <motion.div
+                style={{ opacity: useTransform(smoothProgress, [0, 0.2], [1, 0]) }}
+                className="absolute bottom-8 left-8 z-20 text-white"
+              >
+                <span className="text-[10px] font-black tracking-widest uppercase opacity-60">
+                  {PROJECTS[1].location}
+                </span>
+                <h3 className="text-2xl font-light">{PROJECTS[1].title}</h3>
+              </motion.div>
+            </motion.div>
 
-            <div className="flex flex-1 justify-end pb-2">
-              <Button href="#contact" className="bg-brand-blue h-12 w-[180px] text-white">
-                Contact us
-              </Button>
-            </div>
+            {/* Right Card */}
+            <motion.div
+              style={{ x: rightX }}
+              className="absolute right-0 z-10 h-[60vh] w-[33.33vw] px-2"
+            >
+              <div className="relative h-full w-full overflow-hidden">
+                <Image
+                  src={PROJECTS[2].image}
+                  alt={PROJECTS[2].title}
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute bottom-8 left-8 z-20 text-white">
+                  <span className="text-[10px] font-black tracking-widest uppercase opacity-60">
+                    {PROJECTS[2].location}
+                  </span>
+                  <h3 className="text-2xl font-light">{PROJECTS[2].title}</h3>
+                </div>
+                <div className="absolute inset-0 bg-black/20" />
+              </div>
+            </motion.div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 };
