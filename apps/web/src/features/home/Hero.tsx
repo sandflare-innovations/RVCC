@@ -13,7 +13,6 @@ import { cn } from "@lib/utils";
 
 const HERO_CONTENT = [
   {
-    subtitle: "Excellence in Construction",
     title1: "Building",
     title2: "Legacy",
     description:
@@ -21,7 +20,6 @@ const HERO_CONTENT = [
     img: "/images/hero-bg.png",
   },
   {
-    subtitle: "Precision Engineering",
     title1: "Shaping",
     title2: "Reality",
     description:
@@ -29,7 +27,6 @@ const HERO_CONTENT = [
     img: "/images/home-hero.png",
   },
   {
-    subtitle: "Visionary Design",
     title1: "Beyond",
     title2: "Limits",
     description:
@@ -91,18 +88,6 @@ export const Hero = () => {
       {/* Main Content */}
       <div className="relative z-30 container flex h-full flex-col justify-center px-6 md:px-16 lg:px-24">
         <div className="max-w-5xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            key={`subtitle-${currentIndex}`}
-            className="mb-8 flex items-center gap-4"
-          >
-            <div className="bg-brand-blue h-[1px] w-12" />
-            <span className="text-brand-blue text-xs font-black tracking-[0.5em] uppercase">
-              {content.subtitle}
-            </span>
-          </motion.div>
-
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIndex}
@@ -148,7 +133,7 @@ export const Hero = () => {
                 </div>
               </h1>
 
-              <div className="mt-12 flex flex-col items-start gap-12 md:flex-row md:items-center">
+              <div className="mt-6 flex flex-col items-start gap-12">
                 <motion.p
                   variants={{
                     hidden: { opacity: 0, x: -20 },
