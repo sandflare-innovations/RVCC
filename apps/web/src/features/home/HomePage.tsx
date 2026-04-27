@@ -9,6 +9,8 @@ import { RecentProjects } from "./RecentProjects";
 import { ScrollingText } from "./ScrollingText";
 import { Leaders } from "./Leaders";
 import { Services } from "./Services";
+import Contact from "@components/common/Contact";
+import { FloatingContact } from "@/components/common/FloatingContact";
 
 export const HomePage = () => {
   return (
@@ -28,8 +30,10 @@ export const HomePage = () => {
         <ScrollingText />
         <OurWorks />
         <CSRSection />
+        <Contact />
         <Footer />
       </div>
+      <FloatingContact />
     </div>
   );
 };
