@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import React from "react";
+
 import { motion } from "framer-motion";
+
 import { cn } from "@lib/utils";
 
 interface ButtonProps {
@@ -9,7 +11,8 @@ interface ButtonProps {
   className?: string;
   href?: string;
   onClick?: () => void;
-  variant?: "primary" | "secondary" | "outline";
+  variant?: "primary" | "secondary" | "outline" | "white" | "brand-outline";
+  type?: "button" | "submit" | "reset";
 }
 
 export const Button = ({
@@ -18,72 +21,70 @@ export const Button = ({
   href,
   onClick,
   variant = "primary",
+  type = "button",
 }: ButtonProps) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [direction, setDirection] = useState<"initial" | "enter" | "exit">("initial");
-  const MotionComponent = motion[href ? "a" : "button"] as any;
-
-  const baseStyles = "group relative inline-flex h-[54px] min-w-[180px] items-center justify-center overflow-hidden border-[2px] px-8 py-4 uppercase tracking-[0.2em] text-[10px] font-bold transition-all duration-300";
+  const isLink = !!href;
+  const Tag = isLink ? motion.a : motion.button;
 
   const variants = {
     primary: "bg-brand-blue text-white border-brand-blue",
-    secondary: "bg-white text-black border-white",
+    secondary: "bg-white text-brand-blue border-white shadow-xl",
     outline: "bg-transparent text-white border-white",
+    white: "bg-white text-brand-blue border-white",
+    "brand-outline": "bg-transparent text-brand-blue border-brand-blue",
   };
 
   const fillColors = {
     primary: "bg-white",
     secondary: "bg-brand-blue",
-    outline: "bg-white",
+    outline: "bg-brand-blue", // Changed to brand-blue for better visibility on both dark/light backgrounds
+    white: "bg-brand-blue",
+    "brand-outline": "bg-brand-blue",
   };
 
   const hoverTextColors = {
     primary: "group-hover:text-brand-blue",
     secondary: "group-hover:text-white",
-    outline: "group-hover:text-black",
+    outline: "group-hover:text-white", // White text on blue fill
+    white: "group-hover:text-white",
+    "brand-outline": "group-hover:text-white",
   };
 
   return (
-    <MotionComponent
+    <Tag
       href={href}
       onClick={onClick}
-      onMouseEnter={() => {
-        setIsHovered(true);
-        setDirection("enter");
-      }}
-      onMouseLeave={() => {
-        setIsHovered(false);
-        setDirection("exit");
-      }}
-      className={cn(baseStyles, variants[variant], className)}
+      type={!isLink ? type : undefined}
+      className={cn(
+        "group relative inline-flex h-14 min-w-[200px] items-center justify-center overflow-hidden border-2 px-8 py-4 text-[10px] font-black tracking-[0.3em] uppercase transition-all duration-500",
+        variants[variant],
+        className
+      )}
+      whileHover="hover"
+      initial="initial"
     >
-      <motion.span
-        className={cn("relative z-10 transition-colors duration-300", hoverTextColors[variant])}
-        animate={{
-          y: isHovered ? -2 : 0,
-        }}
-        transition={{ duration: 0.5, ease: "easeInOut" }}
+      {/* Label */}
+      <span
+        className={cn(
+          "relative z-10 flex items-center gap-3 transition-colors duration-500",
+          hoverTextColors[variant]
+        )}
       >
         {children}
-      </motion.span>
+      </span>
 
-      {/* SpaceX-style snappy vertical fill animation */}
+      {/* Animation Fill */}
       <motion.div
         className={cn("absolute inset-0 z-0", fillColors[variant])}
-        initial={{ y: "100%" }}
-        animate={{
-          y: direction === "enter" ? "0%" : (direction === "exit" ? "-100%" : "100%")
+        variants={{
+          initial: { y: "100%" },
+          hover: { y: 0 },
         }}
         transition={{
-          duration: direction === "initial" ? 0 : 0.4,
-          ease: [0.19, 1, 0.22, 1]
-        }}
-        onAnimationComplete={() => {
-          if (direction === "exit") {
-            setDirection("initial");
-          }
+          duration: 0.4,
+          ease: [0.19, 1, 0.22, 1],
         }}
       />
-    </MotionComponent>
+    </Tag>
   );
 };
