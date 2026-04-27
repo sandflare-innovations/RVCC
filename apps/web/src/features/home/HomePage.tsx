@@ -1,16 +1,18 @@
+import { FloatingContact } from "@/components/common/FloatingContact";
 import { Footer } from "@/components/layout/Footer";
+
+import Contact from "@components/common/Contact";
 
 import { AboutUs } from "./AboutUs";
 import { CSRSection } from "./CSRSection";
 import { Hero } from "./Hero";
+import { Leaders } from "./Leaders";
 import { MajorProject } from "./MajorProject";
+import { NewsAndEvents } from "./NewsAndEvents";
 import { OurWorks } from "./OurWorks";
 import { RecentProjects } from "./RecentProjects";
 import { ScrollingText } from "./ScrollingText";
-import { Leaders } from "./Leaders";
 import { Services } from "./Services";
-import Contact from "@components/common/Contact";
-import { FloatingContact } from "@/components/common/FloatingContact";
 
 export const HomePage = () => {
   return (
@@ -30,6 +32,7 @@ export const HomePage = () => {
         <ScrollingText />
         <OurWorks />
         <CSRSection />
+        <NewsAndEvents />
         <Contact />
         <Footer />
       </div>
