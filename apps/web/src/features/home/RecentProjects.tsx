@@ -73,61 +73,6 @@ const PROJECTS = [
   },
 ];
 
-class Node {
-  title: string;
-  location: string;
-  year: string;
-  category: string;
-  type: string;
-  description: string;
-  image: string;
-  id: number;
-  next: Node | null = null;
-  prev: Node | null = null;
-
-  constructor(data: (typeof PROJECTS)[0], id: number) {
-    this.title = data.title;
-    this.location = data.location;
-    this.year = data.year;
-    this.category = data.category;
-    this.type = data.type;
-    this.description = data.description;
-    this.image = data.image;
-    this.id = id;
-  }
-}
-
-class CircularDoublyLinkedList {
-  head: Node | null = null;
-
-  constructor(projects: typeof PROJECTS) {
-    if (projects.length === 0) return;
-
-    const nodes = projects.map((p, i) => new Node(p, i));
-    const len = nodes.length;
-
-    for (let i = 0; i < len; i++) {
-      nodes[i].next = nodes[(i + 1) % len];
-      nodes[i].prev = nodes[(i - 1 + len) % len];
-    }
-    this.head = nodes[0];
-  }
-
-  getNodeAt(index: number): Node | null {
-    if (!this.head) return null;
-    let curr = this.head;
-    const len = PROJECTS.length;
-    const steps = ((index % len) + len) % len;
-
-    if (steps <= len / 2) {
-      for (let i = 0; i < steps; i++) curr = curr.next!;
-    } else {
-      for (let i = 0; i < len - steps; i++) curr = curr.prev!;
-    }
-    return curr;
-  }
-}
-
 export const RecentProjects = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -138,10 +83,7 @@ export const RecentProjects = () => {
   const yTransformEven = useTransform(scrollYProgress, [0, 0.5, 1], [100, 0, -100]);
   const yTransformOdd = useTransform(scrollYProgress, [0, 0.5, 1], [-100, 0, 100]);
 
-  // 1. Initialize formal Circular Doubly Linked List
-  const list = useMemo(() => new CircularDoublyLinkedList(PROJECTS), []);
-
-  // 2. Responsive items per view
+  // 1. Responsive items per view
   const [itemsPerView, setItemsPerView] = useState(3);
 
   useEffect(() => {
@@ -155,7 +97,7 @@ export const RecentProjects = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // 3. State for navigation
+  // 2. State for navigation
   const [startIndex, setStartIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(true);
 
@@ -170,28 +112,32 @@ export const RecentProjects = () => {
   };
 
   // Render a "window" of items based on the current startIndex
-  // We render 10 items to ensure we always have content during the slide
+  // We use simple modulo logic to create the infinite effect from a normal array
   const visibleItems = useMemo(() => {
     const items = [];
-    // Render enough items to handle the transition and off-screen buffers
     const buffer = 3;
+    const len = PROJECTS.length;
+
     for (let i = -buffer; i < itemsPerView + buffer; i++) {
       const virtualIndex = startIndex + i;
-      const node = list.getNodeAt(virtualIndex);
-      if (node) {
+      // Positive modulo formula for infinite array wrapping
+      const actualIndex = ((virtualIndex % len) + len) % len;
+      const project = PROJECTS[actualIndex];
+
+      if (project) {
         items.push({
-          node: node,
+          project,
           index: virtualIndex,
         });
       }
     }
     return items;
-  }, [startIndex, list, itemsPerView]);
+  }, [startIndex, itemsPerView]);
 
   return (
     <section
       ref={sectionRef}
-      className="bg-background relative w-full px-8 py-20 md:px-16 lg:px-24"
+      className="bg-background relative w-full overflow-hidden px-8 py-20 md:px-16 lg:px-24"
       id="projects"
     >
       <div className="mx-auto">
@@ -232,7 +178,7 @@ export const RecentProjects = () => {
 
           <div className="px-2">
             <div className="relative h-[650px] w-full">
-              {visibleItems.map(({ node, index }) => {
+              {visibleItems.map(({ project, index }) => {
                 const isEven = index % 2 === 0;
                 const yOffset = isEven ? yTransformEven : yTransformOdd;
 
@@ -260,8 +206,8 @@ export const RecentProjects = () => {
                       {/* Image Container with Hover Overlay */}
                       <div className="relative aspect-[4/5] w-full overflow-hidden bg-gray-100">
                         <Image
-                          src={node.image}
-                          alt={node.title}
+                          src={project.image}
+                          alt={project.title}
                           fill
                           className="object-cover transition-transform duration-1000 ease-out group-hover:scale-110"
                         />
@@ -269,10 +215,10 @@ export const RecentProjects = () => {
                         {/* Category Tags */}
                         <div className="absolute top-4 left-4 z-20 flex gap-2">
                           <span className="bg-white/20 px-3 py-1 text-[8px] font-bold tracking-widest text-white uppercase backdrop-blur-md">
-                            {node.category}
+                            {project.category}
                           </span>
                           <span className="bg-white/20 px-3 py-1 text-[8px] font-bold tracking-widest text-white uppercase backdrop-blur-md">
-                            {node.type}
+                            {project.type}
                           </span>
                         </div>
 
@@ -280,10 +226,10 @@ export const RecentProjects = () => {
                         <div className="bg-brand-blue absolute inset-0 z-30 flex translate-y-full flex-col justify-end p-8 shadow-2xl transition-transform duration-700 ease-[0.19,1,0.22,1] group-hover:translate-y-[25%]">
                           <div className="flex h-full flex-col justify-center gap-4">
                             <h3 className="text-background text-5xl font-black uppercase">
-                              {node.title}
+                              {project.title}
                             </h3>
                             <p className="text-background text-xs leading-relaxed font-medium">
-                              {node.description}
+                              {project.description}
                             </p>
                             <Button
                               variant="outline"
