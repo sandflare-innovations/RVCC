@@ -73,7 +73,7 @@ export const Navbar = () => {
           isVisible ? "translate-y-0" : "-translate-y-full"
         )}
       >
-        <div className="relative container flex items-center justify-between">
+        <div className="relative mx-auto flex max-w-7xl items-center justify-between">
           {/* Menu & Left Nav - Left */}
           <div className="flex items-center space-x-12">
             <button
