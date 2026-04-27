@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useSpring, useTransform } from "framer-motion";
 import { FaArrowRight, FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/Button";
@@ -38,8 +38,16 @@ export const Hero = () => {
   const [showContent, setShowContent] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollY } = useScroll();
+
+  // Parallax / Scroll Animations
+  const bgScale = useTransform(scrollY, [0, 1000], [1, 1.25]);
+  const contentY = useTransform(scrollY, [0, 800], [0, -150]);
+  const contentOpacity = useTransform(scrollY, [0, 600], [1, 0]);
+  const blurValue = useTransform(scrollY, [0, 800], [0, 4]);
+
   useEffect(() => {
-    // 1. Unified Growth Sequence
     const expandTimer = setTimeout(() => {
       setIsExpanded(true);
     }, 800);
@@ -54,7 +62,6 @@ export const Hero = () => {
     };
   }, []);
 
-  // 2. Carousel Logic
   useEffect(() => {
     if (!showContent) return;
     const interval = setInterval(() => {
@@ -69,60 +76,49 @@ export const Hero = () => {
 
   const content = HERO_CONTENT[currentIndex];
 
-  // Base card size
   const baseHeight = "75vh";
   const baseWidth = "calc(75vh * 3 / 4)";
-
-  // Expanded card size
   const expandedHeight = "100vh";
   const expandedWidth = "calc(100vh * 3 / 4)";
 
   return (
-    <section className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-black">
-      {/* 3D Container for Perspective */}
-      <div className="relative flex h-full w-full items-center justify-center [perspective:2000px]">
-        {/* Left Side Card - RotateY Entry */}
+    <section
+      ref={sectionRef}
+      className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-black"
+    >
+      {/* Background & Growth Layer */}
+      <div className="relative flex h-full w-full items-center justify-center">
+        {/* Left Side Card */}
         <motion.div
-          initial={{
-            y: "100vh",
-            x: "-120%",
-            rotateY: -45, // Rotated outward
-            width: baseWidth,
-            height: baseHeight,
-          }}
+          initial={{ y: "100vh", x: "-120%", width: baseWidth, height: baseHeight }}
           animate={{
             y: "0vh",
-            rotateY: 0, // Becomes flat when reaching position
             x: isExpanded ? "-220%" : "-120%",
             width: isExpanded ? expandedWidth : baseWidth,
             height: isExpanded ? expandedHeight : baseHeight,
+            opacity: isExpanded ? 0 : 1,
           }}
           transition={{
             y: { duration: 1.5, ease: [0.16, 1, 0.3, 1] },
-            rotateY: { duration: 1.5, ease: [0.16, 1, 0.3, 1] },
             x: { duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.8 },
             width: { duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.8 },
             height: { duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.8 },
+            opacity: { duration: 1.2, ease: "easeInOut", delay: 1.8 },
           }}
           className="absolute z-10 overflow-hidden"
-          style={{ transformStyle: "preserve-3d" }}
         >
           <Image src={HERO_CONTENT[1].img} alt="Side 1" fill className="object-cover" />
         </motion.div>
 
-        {/* Center Card */}
+        {/* Center Card / Parallax Background */}
         <motion.div
-          initial={{
-            y: "100vh",
-            x: "0%",
-            width: baseWidth,
-            height: baseHeight,
-          }}
+          initial={{ y: "100vh", x: "0%", width: baseWidth, height: baseHeight }}
           animate={{
             y: "0vh",
             width: isExpanded ? "100vw" : baseWidth,
             height: isExpanded ? "100vh" : baseHeight,
           }}
+          style={{ scale: isExpanded ? bgScale : 1 }}
           transition={{
             y: { duration: 1.5, ease: [0.16, 1, 0.3, 1], delay: 0.15 },
             width: { duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.8 },
@@ -131,7 +127,14 @@ export const Hero = () => {
           className="relative z-10 overflow-hidden"
         >
           <AnimatePresence mode="wait">
-            <motion.div key={currentIndex} className="absolute inset-0">
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.5 }}
+              className="absolute inset-0"
+            >
               <Image
                 src={content.img}
                 alt={content.title1}
@@ -139,23 +142,19 @@ export const Hero = () => {
                 className="object-cover"
                 priority
               />
-              <div className="absolute inset-0 bg-black/40" />
+              <motion.div
+                style={{ backdropFilter: `blur(${blurValue}px)` }}
+                className="absolute inset-0 bg-black/40"
+              />
             </motion.div>
           </AnimatePresence>
         </motion.div>
 
-        {/* Right Side Card - RotateY Entry */}
+        {/* Right Side Card */}
         <motion.div
-          initial={{
-            y: "100vh",
-            x: "120%",
-            rotateY: 45, // Rotated outward
-            width: baseWidth,
-            height: baseHeight,
-          }}
+          initial={{ y: "100vh", x: "120%", width: baseWidth, height: baseHeight }}
           animate={{
             y: "0vh",
-            rotateY: 0, // Becomes flat when reaching position
             x: isExpanded ? "220%" : "120%",
             width: isExpanded ? expandedWidth : baseWidth,
             height: isExpanded ? expandedHeight : baseHeight,
@@ -163,29 +162,27 @@ export const Hero = () => {
           }}
           transition={{
             y: { duration: 1.5, ease: [0.16, 1, 0.3, 1], delay: 0.3 },
-            rotateY: { duration: 1.5, ease: [0.16, 1, 0.3, 1], delay: 0.3 },
             x: { duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.8 },
             width: { duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.8 },
             height: { duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.8 },
             opacity: { duration: 1.2, ease: "easeInOut", delay: 1.8 },
           }}
           className="absolute z-10 overflow-hidden"
-          style={{ transformStyle: "preserve-3d" }}
         >
           <Image src={HERO_CONTENT[2].img} alt="Side 2" fill className="object-cover" />
         </motion.div>
       </div>
 
-      {/* Hero Content Overlay */}
+      {/* Hero Content Overlay with Scroll Parallax */}
       <AnimatePresence>
         {showContent && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.5, ease: [0.19, 1, 0.22, 1] }}
-            className="absolute z-30 container flex h-full flex-col justify-center px-6 md:px-16 lg:px-24"
+            style={{ y: contentY, opacity: contentOpacity }}
+            className="pointer-events-none absolute z-30 container flex h-full flex-col justify-center px-6 md:px-16 lg:px-24"
           >
-            <div className="max-w-5xl">
+            <div className="pointer-events-auto max-w-5xl">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentIndex}
@@ -224,7 +221,7 @@ export const Hero = () => {
             </div>
 
             {/* Navigation Controls */}
-            <div className="absolute right-12 bottom-12 z-50 flex gap-4 md:right-24 md:bottom-24">
+            <div className="pointer-events-auto absolute right-12 bottom-12 z-50 flex gap-4 md:right-24 md:bottom-24">
               <button
                 onClick={prevSlide}
                 className="group flex h-14 w-14 items-center justify-center border border-white/20 bg-white/5 backdrop-blur-sm transition-all hover:bg-white hover:text-black"
