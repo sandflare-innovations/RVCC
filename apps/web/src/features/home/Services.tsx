@@ -51,7 +51,7 @@ export const Services = () => {
                 <div
                   key={service.id}
                   onMouseEnter={() => setActiveId(service.id)}
-                  className={`group relative flex flex-1 cursor-pointer flex-col justify-center border-b border-black/5 rounded-xl p-8 transition-all duration-500 md:p-6 ${isActive ? "bg-brand-blue" : "bg-white"
+                  className={`group relative flex flex-1 cursor-pointer flex-col justify-center border-b border-black/5 p-8 transition-all duration-500 md:p-6 ${isActive ? "bg-brand-blue" : "bg-white"
                     }`}
                 >
                   <div className="flex flex-col items-start justify-between">
@@ -76,7 +76,7 @@ export const Services = () => {
           </div>
 
           {/* Right Column: Featured Image */}
-          <div className="relative h-64 overflow-hidden md:col-span-5 md:h-full rounded-xl">
+          <div className="relative h-64 overflow-hidden md:col-span-5 md:h-full">
             <motion.div
               key={activeId}
               initial={{ opacity: 0, scale: 1.1 }}
