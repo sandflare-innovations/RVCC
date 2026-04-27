@@ -67,7 +67,7 @@ export const MajorProject = () => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-brand-blue font-primary text-[5rem] leading-[0.8] font-normal tracking-tighter uppercase md:text-[8rem]"
+          className="text-brand-blue font-primary pt-20 text-[5rem] leading-[0.8] font-normal tracking-tighter uppercase md:text-[8rem]"
         >
           Major
           <br /> Projects
