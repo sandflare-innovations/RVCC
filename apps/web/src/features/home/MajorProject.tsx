@@ -80,7 +80,7 @@ const ImageSlider = () => {
 
 export const MajorProject = () => {
   return (
-    <section className="bg-background relative w-full py-12">
+    <section className="relative w-full bg-gray-100 py-12">
       <MajorProjectMask />
 
       <div
