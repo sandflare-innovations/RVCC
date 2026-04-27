@@ -200,8 +200,8 @@ export const CSRSection = () => {
                   </p>
                 </div>
 
-                <div className="absolute bottom-0 left-0 w-full bg-zinc-100/90 py-4 text-center backdrop-blur-md transition-colors group-hover:bg-white">
-                  <span className="text-[10px] font-black tracking-[0.3em] text-black uppercase">LEARN ABOUT THE INITIATIVE</span>
+                <div className="absolute bottom-0 left-0 w-full bg-gray-200 py-4 text-center transition-colors group-hover:bg-brand-blue">
+                  <span className="text-[10px] font-black tracking-[0.3em] text-foreground uppercase group-hover:text-background">LEARN ABOUT THE INITIATIVE</span>
                 </div>
               </div>
             </motion.div>
@@ -230,8 +230,8 @@ export const CSRSection = () => {
                   </p>
                 </div>
 
-                <div className="absolute bottom-0 left-0 w-full bg-zinc-100/90 py-4 text-center backdrop-blur-md transition-colors group-hover:bg-white ">
-                  <span className="text-[10px] font-black tracking-[0.3em] text-black uppercase">EXPLORE THE ACADEMY</span>
+                <div className="absolute bottom-0 left-0 w-full bg-gray-200 py-4 text-center transition-colors group-hover:bg-brand-blue">
+                  <span className="text-[10px] font-black tracking-[0.3em] text-foreground uppercase group-hover:text-background">Explore the academy</span>
                 </div>
               </div>
             </motion.div>
