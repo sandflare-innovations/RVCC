@@ -79,12 +79,7 @@ const Counter = ({ from = 0, to }: { from?: number; to: number }) => {
   }, [inView, count, to]);
 
   return (
-    <motion.span
-      ref={ref}
-      className={cn(
-        "tabular-nums mx-8 text-black"
-      )}
-    >
+    <motion.span ref={ref} className={cn("mx-8 text-black tabular-nums")}>
       {rounded}
     </motion.span>
   );
@@ -132,7 +127,7 @@ export const AboutUs = () => {
         {/* Header */}
         <div className="flex items-end justify-between">
           <div className="flex flex-col">
-            <h2 className="text-brand-blue text-[8rem] font-normal leading-[0.8] tracking-tighter font-primary uppercase">
+            <h2 className="text-brand-blue font-primary text-[8rem] leading-[0.8] font-normal tracking-tighter uppercase">
               about us
             </h2>
           </div>
@@ -177,9 +172,7 @@ export const AboutUs = () => {
           </div>
 
           <div className="flex w-full flex-1 justify-end">
-            <div
-              className="relative aspect-[3.5/4] w-full max-w-md overflow-hidden rounded-none bg-gray-100"
-            >
+            <div className="relative aspect-[3.5/4] w-full max-w-md overflow-hidden rounded-none bg-gray-100">
               <Image
                 src="/images/home-hero.png"
                 alt="About RVCC"
@@ -238,49 +231,31 @@ export const AboutUs = () => {
 };
 
 const ClientMarquee = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    let animationFrameId: number;
-    let position = 0;
-    const speed = 1.0; // Adjust for smoothness
-
-    const tick = () => {
-      position -= speed;
-      const firstChild = container.firstElementChild as HTMLElement;
-
-      if (firstChild) {
-        // Calculate the total width of the item plus the gap (gap-16 = 64px)
-        const totalWidth = firstChild.offsetWidth + 64;
-
-        if (-position >= totalWidth) {
-          // Linked list behavior: append the first node to the end
-          container.appendChild(firstChild);
-          // Adjust position so it doesn't jump
-          position += totalWidth;
-        }
-      }
-
-      container.style.transform = `translate3d(${position}px, 0, 0)`;
-      animationFrameId = requestAnimationFrame(tick);
-    };
-
-    animationFrameId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, []);
+  // Use a doubled array to create the infinite effect
+  const logos = [...CLIENT_IMAGES, ...CLIENT_IMAGES];
 
   return (
     <div className="w-full overflow-hidden pt-20">
-      <div ref={containerRef} className="flex w-max items-center gap-16 px-8">
-        {CLIENT_IMAGES.map((src, i) => (
-          <div key={i} className="relative h-42 w-42 flex-shrink-0 transition-all duration-300">
-            <Image src={src} alt={`Client ${i + 1}`} fill className="object-contain" />
+      <motion.div
+        className="flex w-max items-center gap-16 px-8"
+        animate={{
+          x: ["0%", "-50%"],
+        }}
+        transition={{
+          duration: 40,
+          ease: "linear",
+          repeat: Infinity,
+        }}
+      >
+        {logos.map((src, i) => (
+          <div
+            key={i}
+            className="relative h-42 w-42 flex-shrink-0 transition-all duration-300 hover:scale-110"
+          >
+            <Image src={src} alt={`Client logo`} fill className="object-contain" />
           </div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 };
