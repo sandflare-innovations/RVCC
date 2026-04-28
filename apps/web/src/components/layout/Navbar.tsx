@@ -171,8 +171,9 @@ export const Navbar = () => {
               variant="outline"
               href="#contact"
               className={cn(
-                "h-10 min-w-[140px] px-6 text-[9px]",
-                isLightAndScrolled ? "border-brand-blue text-brand-blue" : "border-white text-white"
+                "hover:text-brand-blue h-10 min-w-[140px] rounded-none border-white px-6 text-[9px] font-bold tracking-widest text-white uppercase transition-all duration-500 hover:bg-white",
+                isLightAndScrolled &&
+                  "border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white"
               )}
             >
               Contact
