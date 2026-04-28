@@ -202,6 +202,7 @@ export const CSRSection = () => {
                   alt="Daya Charitable Trust"
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>
               <div className="relative z-20 flex h-full flex-col justify-between p-12">
@@ -244,6 +245,7 @@ export const CSRSection = () => {
                   alt="Daya Academy"
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>
               <div className="relative z-20 flex h-full flex-col justify-between p-12">
