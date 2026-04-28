@@ -1,31 +1,33 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiPhone, FiMail, FiX, FiBook, FiMessageCircle } from "react-icons/fi";
+
+import { AnimatePresence, motion } from "framer-motion";
 import { FaWhatsapp } from "react-icons/fa";
+import { FiBook, FiMail, FiMessageCircle, FiPhone, FiX } from "react-icons/fi";
+
 import { cn } from "@lib/utils";
 
 const ACTIONS = [
   {
     icon: FiPhone,
     label: "Call Us",
-    href: "tel:+1234567890"
+    href: "tel:+1234567890",
   },
   {
     icon: FiBook,
     label: "Contact",
-    href: "#"
+    href: "#",
   },
   {
     icon: FaWhatsapp,
     label: "WhatsApp",
-    href: "https://wa.me/1234567890"
+    href: "https://wa.me/1234567890",
   },
   {
     icon: FiMail,
     label: "Email",
-    href: "mailto:info@example.com"
+    href: "mailto:info@example.com",
   },
 ];
 
@@ -55,8 +57,8 @@ export const FloatingContact = () => {
                     type: "spring",
                     stiffness: 260,
                     damping: 20,
-                    delay: (ACTIONS.length - index - 1) * 0.05
-                  }
+                    delay: (ACTIONS.length - index - 1) * 0.05,
+                  },
                 }}
                 exit={{
                   opacity: 0,
@@ -64,13 +66,13 @@ export const FloatingContact = () => {
                   y: 20,
                   transition: {
                     duration: 0.2,
-                    delay: index * 0.05
-                  }
+                    delay: index * 0.05,
+                  },
                 }}
                 whileHover={{ scale: 1.1, backgroundColor: "#0073BC" }}
                 whileTap={{ scale: 0.9 }}
                 className={cn(
-                  "flex h-14 w-14 items-center justify-center rounded-full text-white shadow-xl transition-colors duration-300 hover:bg-brand-blue border-2 border-brand-blue text-brand-blue hover:text-background",
+                  "bg-background hover:bg-brand-blue border-brand-blue text-brand-blue hover:text-background flex h-14 w-14 items-center justify-center rounded-full border-2 text-white shadow-xl transition-colors duration-300"
                 )}
                 aria-label={action.label}
               >
@@ -86,16 +88,16 @@ export const FloatingContact = () => {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className={cn(
-          "flex h-14 w-14 items-center justify-center rounded-full text-white shadow-2xl transition-all duration-500 border-brand-blue border-3 bg-brand-blue text-background",
+          "border-brand-blue bg-brand-blue text-background flex h-14 w-14 items-center justify-center rounded-full border-3 text-white shadow-2xl transition-all duration-500"
         )}
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
             <motion.div
               key="close"
-              initial={{ opacity: 0, rotate: -90 }}
+              initial={{ opacity: 0, rotate: 90 }}
               animate={{ opacity: 1, rotate: 0 }}
-              exit={{ opacity: 0, rotate: 90 }}
+              exit={{ opacity: 0, rotate: -90 }}
               transition={{ duration: 0.2 }}
             >
               <FiX className="h-8 w-8" />
