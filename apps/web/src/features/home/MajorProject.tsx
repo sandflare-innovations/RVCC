@@ -93,7 +93,13 @@ export const MajorProject = () => {
               className="absolute left-0 z-20 h-[80vh] w-[33.33vw] px-2"
             >
               <div className="relative h-full w-full overflow-hidden">
-                <Image src={PROJECTS[1].image} alt="Grid Left" fill className="object-cover" />
+                <Image
+                  src={PROJECTS[1].image}
+                  alt="Grid Left"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
                 <div className="absolute inset-0 bg-black/10" />
                 <div className="absolute bottom-8 left-8 text-white">
                   <h3 className="text-2xl font-light">{PROJECTS[1].title}</h3>
@@ -112,6 +118,7 @@ export const MajorProject = () => {
                 fill
                 className="object-cover"
                 priority
+                sizes="(max-width: 1200px) 100vw, 90vw"
               />
               <motion.div
                 style={{ opacity: p1ContentOpacity }}
@@ -167,7 +174,13 @@ export const MajorProject = () => {
               className="absolute right-0 z-20 h-[80vh] w-[33.33vw] px-2"
             >
               <div className="relative h-full w-full overflow-hidden">
-                <Image src={PROJECTS[2].image} alt="Grid Right" fill className="object-cover" />
+                <Image
+                  src={PROJECTS[2].image}
+                  alt="Grid Right"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
                 <div className="absolute inset-0 bg-black/10" />
                 <div className="absolute bottom-8 left-8 text-white">
                   <h3 className="text-2xl font-light">{PROJECTS[2].title}</h3>
@@ -181,7 +194,13 @@ export const MajorProject = () => {
             style={{ y: p2Y, zIndex: 50 }}
             className="absolute inset-0 flex h-screen w-full items-center justify-center overflow-hidden border-t border-white/5 bg-black"
           >
-            <Image src={PROJECTS[1].image} alt={PROJECTS[1].title} fill className="object-cover" />
+            <Image
+              src={PROJECTS[1].image}
+              alt={PROJECTS[1].title}
+              fill
+              className="object-cover"
+              sizes="100vw"
+            />
             <div className="absolute inset-0 z-10 bg-black/10" />
             <div className="relative z-20 container mx-auto px-4 md:px-8">
               <motion.div style={{ opacity: p2ContentOpacity }} className="max-w-4xl text-left">
@@ -220,7 +239,13 @@ export const MajorProject = () => {
             style={{ y: p3Y, zIndex: 60 }}
             className="absolute inset-0 flex h-screen w-full items-center justify-center overflow-hidden border-t border-white/5 bg-black"
           >
-            <Image src={PROJECTS[2].image} alt={PROJECTS[2].title} fill className="object-cover" />
+            <Image
+              src={PROJECTS[2].image}
+              alt={PROJECTS[2].title}
+              fill
+              className="object-cover"
+              sizes="100vw"
+            />
             <div className="absolute inset-0 z-10 bg-black/10" />
             <div className="relative z-20 container mx-auto px-4 md:px-8">
               <motion.div style={{ opacity: p3ContentOpacity }} className="max-w-4xl text-left">
