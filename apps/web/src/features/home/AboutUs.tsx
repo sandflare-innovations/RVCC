@@ -59,7 +59,7 @@ const STATS = [
   { value: 20, label: "SATISFIED CLIENTS" },
 ];
 
-const CLIENT_IMAGES = Array.from({ length: 18 }, (_, i) => `/images/clients/client${i + 1}.png`);
+const CLIENT_IMAGES = Array.from({ length: 18 }, (_, i) => `/images/clients/${i + 1}.png`);
 
 const Counter = ({ from = 0, to }: { from?: number; to: number }) => {
   const ref = useRef<HTMLSpanElement>(null);

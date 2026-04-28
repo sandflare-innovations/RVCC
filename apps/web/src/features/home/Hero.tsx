@@ -177,7 +177,7 @@ export const Hero = () => {
           initial={{ y: "100vh", x: "120%", width: baseWidth, height: baseHeight }}
           animate={{
             y: "0vh",
-            x: isExpanded ? "220%" : "-120%",
+            x: isExpanded ? "220%" : "120%",
             width: isExpanded ? expandedWidth : baseWidth,
             height: isExpanded ? expandedHeight : baseHeight,
             opacity: isExpanded ? 0 : 1,
@@ -302,38 +302,32 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1, duration: 1 }}
-            className="pointer-events-none absolute bottom-8 left-1/2 z-30 w-full -translate-x-1/2 overflow-hidden px-6 md:bottom-12"
+            className="pointer-events-none absolute bottom-8 left-1/2 z-30 flex w-full -translate-x-1/2 justify-center overflow-hidden px-6 md:bottom-6"
           >
-            <div className="mx-auto flex flex-col items-center gap-4">
-              <span className="text-[9px] font-bold tracking-[0.4em] text-white/30 uppercase">
-                Our Strategic Partners
-              </span>
-
-              {/* Infinite Logo Ticker */}
-              <div className="relative w-full max-w-xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)]">
-                <motion.div
-                  animate={{
-                    x: ["0%", "-50%"],
-                  }}
-                  transition={{
-                    duration: 30,
-                    ease: "linear",
-                    repeat: Infinity,
-                  }}
-                  className="flex w-max items-center gap-10 py-4"
-                >
-                  {[1, 2, 3, 4, 5, 6, 7].concat([1, 2, 3, 4, 5, 6, 7]).map((i, index) => (
-                    <div key={index} className="relative h-7 w-24 brightness-0 invert">
-                      <Image
-                        src={`/images/concern-companies/logos/${i}.png`}
-                        alt={`Partner Logo ${i}`}
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-                  ))}
-                </motion.div>
-              </div>
+            {/* Infinite Logo Ticker */}
+            <div className="relative w-full max-w-xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)]">
+              <motion.div
+                animate={{
+                  x: ["0%", "-50%"],
+                }}
+                transition={{
+                  duration: 30,
+                  ease: "linear",
+                  repeat: Infinity,
+                }}
+                className="flex w-max items-center gap-10"
+              >
+                {[1, 2, 3, 4, 5, 6, 7].concat([1, 2, 3, 4, 5, 6, 7]).map((i, index) => (
+                  <div key={index} className="relative h-24 w-24 brightness-0 invert">
+                    <Image
+                      src={`/images/clients/${i}.png`}
+                      alt={`Partner Logo ${i}`}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                ))}
+              </motion.div>
             </div>
           </motion.div>
         )}
