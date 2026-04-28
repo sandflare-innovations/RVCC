@@ -202,6 +202,7 @@ export const Footer = () => {
                 alt="RVCC Large Logo"
                 fill
                 className="object-contain"
+                sizes="(max-width: 768px) 100vw, 1200px"
               />
             </motion.div>
           </div>
