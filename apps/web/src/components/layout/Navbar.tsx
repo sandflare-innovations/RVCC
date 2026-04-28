@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useTheme } from "next-themes";
+import { FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa6";
 
 import { Icons } from "@repo/ui";
 
@@ -233,26 +234,29 @@ export const Navbar = () => {
         </nav>
 
         {/* Menu Footer - Compact */}
-        <div className="border-border mt-auto space-y-6 border-t pt-10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-8">
+        <div className="border-border mt-auto border-t pt-10">
+          <div className="flex w-full items-center justify-between gap-4">
+            {/* Social Icons */}
+            <div className="flex items-center gap-4">
               {[
-                <Icons.Linkedin key="li" />,
-                <Icons.Instagram key="ig" />,
-                <Icons.Facebook key="fb" />,
-              ].map((icon, i) => (
+                { icon: <FaLinkedinIn />, href: "#" },
+                { icon: <FaInstagram />, href: "#" },
+                { icon: <FaFacebookF />, href: "#" },
+              ].map((social, i) => (
                 <a
                   key={i}
-                  href="#"
-                  className="text-brand-blue transition-all hover:scale-110 hover:opacity-70"
+                  href={social.href}
+                  className="border-brand-blue/10 bg-brand-blue/5 text-brand-blue hover:bg-brand-blue flex h-12 w-12 items-center justify-center border transition-all duration-500 hover:text-white"
                 >
-                  {icon}
+                  <div className="text-xl">{social.icon}</div>
                 </a>
               ))}
             </div>
-            <div className="flex items-center space-x-6">
+
+            {/* Actions: Theme & Language */}
+            <div className="flex items-center gap-4">
               <AnimatedThemeToggler />
-              <button className="text-brand-blue text-[10px] font-black tracking-[0.3em] uppercase hover:opacity-70">
+              <button className="border-brand-blue/10 bg-brand-blue/5 text-brand-blue hover:bg-brand-blue flex h-12 w-12 items-center justify-center border text-[10px] font-black tracking-[0.1em] uppercase transition-all duration-500 hover:text-white">
                 AR
               </button>
             </div>
