@@ -1,18 +1,32 @@
+import dynamic from "next/dynamic";
+
 import { FloatingContact } from "@/components/common/FloatingContact";
 import { Footer } from "@/components/layout/Footer";
 
-import Contact from "@components/common/Contact";
-
+// Eager load AboutUs as it's the first section after scroll
 import { AboutUs } from "./AboutUs";
-import { CSRSection } from "./CSRSection";
 import { Hero } from "./Hero";
-import { Leaders } from "./Leaders";
-import { MajorProject } from "./MajorProject";
-import { NewsAndEvents } from "./NewsAndEvents";
-import { OurWorks } from "./OurWorks";
-import { RecentProjects } from "./RecentProjects";
-import { ScrollingText } from "./ScrollingText";
-import { Services } from "./Services";
+
+// Dynamically load heavy components below the fold
+const Leaders = dynamic(() => import("./Leaders").then((mod) => mod.Leaders), { ssr: true });
+const Services = dynamic(() => import("./Services").then((mod) => mod.Services), { ssr: true });
+const MajorProject = dynamic(() => import("./MajorProject").then((mod) => mod.MajorProject), {
+  ssr: true,
+});
+const RecentProjects = dynamic(() => import("./RecentProjects").then((mod) => mod.RecentProjects), {
+  ssr: true,
+});
+const ScrollingText = dynamic(() => import("./ScrollingText").then((mod) => mod.ScrollingText), {
+  ssr: true,
+});
+const OurWorks = dynamic(() => import("./OurWorks").then((mod) => mod.OurWorks), { ssr: true });
+const CSRSection = dynamic(() => import("./CSRSection").then((mod) => mod.CSRSection), {
+  ssr: true,
+});
+const NewsAndEvents = dynamic(() => import("./NewsAndEvents").then((mod) => mod.NewsAndEvents), {
+  ssr: true,
+});
+const Contact = dynamic(() => import("@components/common/Contact"), { ssr: true });
 
 export const HomePage = () => {
   return (
