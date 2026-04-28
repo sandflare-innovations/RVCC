@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
-      <body className="font-primary flex min-h-full flex-col" suppressHydrationWarning>
+      <body className="font-primary relative flex min-h-full flex-col" suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
@@ -33,7 +33,7 @@ export default function RootLayout({
           <LenisProvider>
             <LanguageProvider>
               <Navbar />
-              <main className="flex-grow">{children}</main>
+              <main className="relative flex-grow">{children}</main>
             </LanguageProvider>
           </LenisProvider>
         </ThemeProvider>

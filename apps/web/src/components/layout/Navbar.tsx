@@ -129,6 +129,7 @@ export const Navbar = () => {
               alt="Logo"
               width={160}
               height={160}
+              priority
               className={cn(
                 "w-28 transition-all duration-500 md:w-32",
                 forceWhiteTheme || !isScrolled || resolvedTheme === "dark"
