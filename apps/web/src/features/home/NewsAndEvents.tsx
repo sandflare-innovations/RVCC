@@ -10,33 +10,33 @@ import { Button } from "@/components/ui/Button";
 const NEWS_DATA = [
   {
     id: "01",
-    title: "Digital Excellence: Our New Online Presence",
-    date: "Dec 01, 2021",
+    title: "Community Landmark: The Lakes Park Project",
+    date: "April 15, 2024",
     excerpt:
-      "We are proud to present our new digital platform, designed to mirror the excellence we bring to every architectural landmark.",
-    image: "/images/news/website-launch.png",
-    category: "CORPORATE UPDATE",
-    edition: "Vol. 21 / Issue 04",
+      "A new standard for urban recreation. Our latest community project at Lakes Park reflects our commitment to sustainable public spaces.",
+    image: "/images/news/lakes-park.png",
+    category: "COMMUNITY DEVELOPMENT",
+    edition: "Vol. 24 / Issue 02",
   },
   {
     id: "02",
-    title: "Community First: The RVCC Cricket Invitational",
-    date: "March 10, 2022",
+    title: "Supportive Spirit: RVCC Cricket Auction",
+    date: "April 10, 2024",
     excerpt:
-      "A celebration of sportsmanship and community spirit. RVCC continues its commitment to social responsibility through sports.",
-    image: "/images/news/cricket.png",
-    category: "COMMUNITY ENGAGEMENT",
-    edition: "Vol. 22 / Issue 01",
+      "Empowering local sports through community-driven initiatives. The annual cricket auction continues to foster athletic talent in the region.",
+    image: "/images/news/cricket-auction.png",
+    category: "SPORTS ENGAGEMENT",
+    edition: "Vol. 24 / Issue 01",
   },
   {
     id: "03",
-    title: "Athletic Brilliance: Super Cup Championship",
-    date: "March 10, 2022",
+    title: "Athletic Excellence: Riyadh Football Cup",
+    date: "March 20, 2024",
     excerpt:
-      "Promoting athletic excellence in Riyadh. Our sponsorship reflects our dedication to empowering local talent.",
-    image: "/images/news/football.png",
+      "Celebrating teamwork and precision. Our sponsorship of the local football championship highlights our dedication to youth empowerment.",
+    image: "/images/news/football-match.png",
     category: "SPORTS SPONSORSHIP",
-    edition: "Vol. 22 / Issue 02",
+    edition: "Vol. 24 / Issue 03",
   },
 ];
 
