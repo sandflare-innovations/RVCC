@@ -61,7 +61,14 @@ export const NewsAndEvents = () => {
               Stay connected with the latest milestones and community initiatives from the heart of
               Riyadh's construction landscape.
             </p>
-            <Button variant="brand-outline" className="w-full md:w-auto">
+            <Button
+              borderColor="border-brand-blue"
+              textColor="text-brand-blue"
+              bgColor="bg-transparent"
+              hoverFillColor="bg-brand-blue"
+              hoverTextColor="group-hover:text-background"
+              className="w-full md:w-auto"
+            >
               VIEW ALL
             </Button>
           </div>

@@ -253,8 +253,11 @@ export const OurWorks = () => {
                     {works[index].description}
                   </p>
                   <Button
-                    variant="outline"
-                    className="border-white/30 text-white hover:border-white"
+                    borderColor="border-white/30"
+                    textColor="text-white"
+                    bgColor="bg-transparent"
+                    hoverFillColor="bg-white"
+                    hoverTextColor="group-hover:text-brand-blue"
                   >
                     {works[index].cta}
                   </Button>

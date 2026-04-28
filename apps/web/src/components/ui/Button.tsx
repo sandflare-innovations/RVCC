@@ -11,8 +11,14 @@ interface ButtonProps {
   className?: string;
   href?: string;
   onClick?: () => void;
-  variant?: "primary" | "secondary" | "outline" | "white" | "brand-outline";
+  variant?: "primary" | "secondary" | "outline" | "white" | "brand-outline" | "none";
   type?: "button" | "submit" | "reset";
+  // Custom Color Props
+  borderColor?: string;
+  textColor?: string;
+  bgColor?: string;
+  hoverFillColor?: string;
+  hoverTextColor?: string;
 }
 
 export const Button = ({
@@ -20,68 +26,100 @@ export const Button = ({
   className,
   href,
   onClick,
-  variant = "primary",
+  variant = "none",
   type = "button",
+  borderColor,
+  textColor,
+  bgColor,
+  hoverFillColor,
+  hoverTextColor,
 }: ButtonProps) => {
   const isLink = !!href;
   const Tag = isLink ? motion.a : motion.button;
 
-  const variants = {
-    primary: "bg-brand-blue text-white border-brand-blue",
-    secondary: "bg-white text-brand-blue border-white shadow-xl",
-    outline: "bg-transparent text-white border-white",
-    white: "bg-white text-brand-blue border-white",
-    "brand-outline": "bg-transparent text-brand-blue border-brand-blue",
+  // Defaults based on variant if custom props are not provided
+  const variantStyles = {
+    primary: {
+      border: "border-brand-blue",
+      text: "text-white",
+      bg: "bg-brand-blue",
+      fill: "bg-white",
+      hoverText: "group-hover:text-brand-blue",
+    },
+    secondary: {
+      border: "border-white",
+      text: "text-brand-blue",
+      bg: "bg-white",
+      fill: "bg-brand-blue",
+      hoverText: "group-hover:text-background",
+    },
+    outline: {
+      border: "border-white",
+      text: "text-white",
+      bg: "bg-transparent",
+      fill: "bg-white",
+      hoverText: "group-hover:text-brand-blue",
+    },
+    white: {
+      border: "border-white",
+      text: "text-brand-blue",
+      bg: "bg-white",
+      fill: "bg-brand-blue",
+      hoverText: "group-hover:text-background",
+    },
+    "brand-outline": {
+      border: "border-brand-blue",
+      text: "text-brand-blue",
+      bg: "bg-transparent",
+      fill: "bg-brand-blue",
+      hoverText: "group-hover:text-background",
+    },
+    none: {
+      border: "",
+      text: "",
+      bg: "",
+      fill: "",
+      hoverText: "",
+    },
   };
 
-  const fillColors = {
-    primary: "bg-white",
-    secondary: "bg-brand-blue",
-    outline: "bg-brand-blue", // Changed to brand-blue for better visibility on both dark/light backgrounds
-    white: "bg-brand-blue",
-    "brand-outline": "bg-brand-blue",
-  };
+  const currentStyles = variantStyles[variant];
 
-  const hoverTextColors = {
-    primary: "group-hover:text-brand-blue",
-    secondary: "group-hover:text-white",
-    outline: "group-hover:text-white", // White text on blue fill
-    white: "group-hover:text-white",
-    "brand-outline": "group-hover:text-white",
-  };
+  const [isHovered, setIsHovered] = React.useState(false);
 
   return (
     <Tag
       href={href}
       onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       type={!isLink ? type : undefined}
       className={cn(
         "group relative inline-flex h-14 min-w-[200px] items-center justify-center overflow-hidden border-2 px-8 py-4 text-[10px] font-black tracking-[0.3em] uppercase transition-all duration-500",
-        variants[variant],
+        borderColor || currentStyles.border,
+        textColor || currentStyles.text,
+        bgColor || currentStyles.bg,
         className
       )}
-      whileHover="hover"
-      initial="initial"
     >
       {/* Label */}
       <span
         className={cn(
           "relative z-10 flex items-center gap-3 transition-colors duration-500",
-          hoverTextColors[variant]
+          isHovered ? hoverTextColor || currentStyles.hoverText : ""
         )}
       >
         {children}
       </span>
 
-      {/* Animation Fill */}
+      {/* Animation Fill - Key reset ensures entry from bottom and exit from bottom to top */}
       <motion.div
-        className={cn("absolute inset-0 z-0", fillColors[variant])}
-        variants={{
-          initial: { y: "100%" },
-          hover: { y: 0 },
-        }}
+        key={isHovered ? "hover" : "exit"}
+        className={cn("absolute inset-0 z-0", hoverFillColor || currentStyles.fill)}
+        initial={{ clipPath: isHovered ? "inset(100% 0 0 0)" : "inset(0% 0 0% 0)" }}
+        animate={{ clipPath: isHovered ? "inset(0% 0 0% 0)" : "inset(0% 0 100% 0)" }}
         transition={{
-          duration: 0.4,
+          duration: 0.6,
           ease: [0.19, 1, 0.22, 1],
         }}
       />

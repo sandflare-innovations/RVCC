@@ -151,8 +151,12 @@ export const RecentProjects = () => {
           <div className="flex flex-1 justify-end pb-2">
             <Button
               href="#contact"
-              variant="outline"
-              className="border-brand-blue text-brand-blue h-14 w-[220px]"
+              borderColor="border-brand-blue"
+              textColor="text-brand-blue"
+              bgColor="bg-transparent"
+              hoverFillColor="bg-brand-blue"
+              hoverTextColor="group-hover:text-background"
+              className="h-14 w-[220px]"
             >
               EXPLORE ALL
             </Button>
@@ -233,8 +237,12 @@ export const RecentProjects = () => {
                               {project.description}
                             </p>
                             <Button
-                              variant="outline"
-                              className="border-background text-background hover:bg-background hover:text-brand-blue mt-2 h-12 w-full text-[10px] font-bold"
+                              borderColor="border-background"
+                              textColor="text-background"
+                              bgColor="bg-transparent"
+                              hoverFillColor="bg-background"
+                              hoverTextColor="group-hover:text-brand-blue"
+                              className="mt-2 h-12 w-full text-[10px] font-bold"
                             >
                               VIEW IN DETAIL
                             </Button>

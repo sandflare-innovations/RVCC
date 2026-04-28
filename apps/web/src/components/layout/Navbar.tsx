@@ -170,13 +170,13 @@ export const Navbar = () => {
               ))}
             </nav>
             <Button
-              variant="outline"
+              variant="none"
               href="#contact"
-              className={cn(
-                "hover:text-brand-blue h-10 min-w-[140px] rounded-none border-white px-6 text-[9px] font-bold tracking-widest text-white uppercase transition-all duration-500 hover:bg-white",
-                isLightAndScrolled &&
-                  "border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white"
-              )}
+              borderColor={isLightAndScrolled ? "border-brand-blue" : "border-white"}
+              textColor={isLightAndScrolled ? "text-brand-blue" : "text-white"}
+              hoverFillColor={isLightAndScrolled ? "bg-brand-blue" : "bg-white"}
+              hoverTextColor={isLightAndScrolled ? "group-hover:text-background" : "group-hover:text-brand-blue"}
+              className="h-10 min-w-[140px] rounded-none px-6 text-[9px] font-bold tracking-widest uppercase transition-all duration-500"
             >
               Contact
             </Button>

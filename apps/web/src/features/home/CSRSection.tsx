@@ -172,8 +172,12 @@ export const CSRSection = () => {
             <div className="flex flex-1 justify-end pb-2">
               <Button
                 href="#contact"
-                variant="outline"
-                className="border-brand-blue text-brand-blue h-14 w-[220px]"
+                borderColor="border-brand-blue"
+                textColor="text-brand-blue"
+                bgColor="bg-transparent"
+                hoverFillColor="bg-brand-blue"
+                hoverTextColor="group-hover:text-background"
+                className="h-14 w-[220px]"
               >
                 EXPLORE ALL
               </Button>
@@ -287,8 +291,12 @@ export const CSRSection = () => {
             <div className="flex flex-1 justify-end pb-2">
               <Button
                 href="#contact"
-                variant="outline"
-                className="border-brand-blue text-brand-blue h-14 w-[220px]"
+                borderColor="border-brand-blue"
+                textColor="text-brand-blue"
+                bgColor="bg-transparent"
+                hoverFillColor="bg-brand-blue"
+                hoverTextColor="group-hover:text-background"
+                className="h-14 w-[220px]"
               >
                 VIEW ALL
               </Button>
@@ -370,8 +378,12 @@ export const CSRSection = () => {
             <div className="flex flex-1 justify-end pb-2">
               <Button
                 href="#contact"
-                variant="outline"
-                className="border-brand-blue text-brand-blue h-14 w-[220px]"
+                borderColor="border-brand-blue"
+                textColor="text-brand-blue"
+                bgColor="bg-transparent"
+                hoverFillColor="bg-brand-blue"
+                hoverTextColor="group-hover:text-background"
+                className="h-14 w-[220px]"
               >
                 VIEW ALL
               </Button>

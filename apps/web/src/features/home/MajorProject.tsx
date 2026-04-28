@@ -145,14 +145,22 @@ export const MajorProject = () => {
                   </p>
                   <div className="flex flex-col gap-6 sm:flex-row">
                     <Button
-                      variant="white"
-                      className="h-16 rounded-none px-10 text-xs font-bold tracking-widest uppercase"
+                      borderColor="border-white"
+                      textColor="text-brand-blue"
+                      bgColor="bg-white"
+                      hoverFillColor="bg-brand-blue"
+                      hoverTextColor="group-hover:text-background"
+                      className="h-16 rounded-none px-10"
                     >
                       Explore Work
                     </Button>
                     <Button
-                      variant="brand-outline"
-                      className="h-16 rounded-none border-white px-10 text-white hover:bg-white hover:text-black"
+                      borderColor="border-white"
+                      textColor="text-white"
+                      bgColor="bg-transparent"
+                      hoverFillColor="bg-white"
+                      hoverTextColor="group-hover:text-brand-blue"
+                      className="h-16 rounded-none px-10"
                     >
                       View Portfolio
                     </Button>
@@ -219,14 +227,22 @@ export const MajorProject = () => {
                 </p>
                 <div className="flex flex-col gap-6 sm:flex-row">
                   <Button
-                    variant="white"
-                    className="h-16 rounded-none px-10 text-xs font-bold tracking-widest uppercase"
+                    borderColor="border-white"
+                    textColor="text-brand-blue"
+                    bgColor="bg-white"
+                    hoverFillColor="bg-brand-blue"
+                    hoverTextColor="group-hover:text-background"
+                    className="h-16 rounded-none px-10"
                   >
                     Explore Work
                   </Button>
                   <Button
-                    variant="brand-outline"
-                    className="h-16 rounded-none border-white px-10 text-white hover:bg-white hover:text-black"
+                    borderColor="border-white"
+                    textColor="text-white"
+                    bgColor="bg-transparent"
+                    hoverFillColor="bg-white"
+                    hoverTextColor="group-hover:text-brand-blue"
+                    className="h-16 rounded-none px-10"
                   >
                     View Portfolio
                   </Button>
@@ -264,14 +280,22 @@ export const MajorProject = () => {
                 </p>
                 <div className="flex flex-col gap-6 sm:flex-row">
                   <Button
-                    variant="white"
-                    className="h-16 rounded-none px-10 text-xs font-bold tracking-widest uppercase"
+                    borderColor="border-white"
+                    textColor="text-brand-blue"
+                    bgColor="bg-white"
+                    hoverFillColor="bg-brand-blue"
+                    hoverTextColor="group-hover:text-background"
+                    className="h-16 rounded-none px-10"
                   >
                     Explore Work
                   </Button>
                   <Button
-                    variant="brand-outline"
-                    className="h-16 rounded-none border-white px-10 text-white hover:bg-white hover:text-black"
+                    borderColor="border-white"
+                    textColor="text-white"
+                    bgColor="bg-transparent"
+                    hoverFillColor="bg-white"
+                    hoverTextColor="group-hover:text-brand-blue"
+                    className="h-16 rounded-none px-10"
                   >
                     View Portfolio
                   </Button>

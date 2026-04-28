@@ -242,7 +242,7 @@ export const Hero = () => {
                         <span className="block text-[15vw] tracking-tighter uppercase md:text-[8rem] lg:text-[10rem]">
                           {content.title1}
                         </span>
-                        <span className="text-brand-blue block text-[15vw] tracking-tighter uppercase italic md:text-[8rem] lg:text-[10rem]">
+                        <span className="text-brand-blue block text-[15vw] tracking-tighter uppercase md:text-[8rem] lg:text-[10rem]">
                           {content.title2}
                         </span>
                       </h1>
@@ -254,9 +254,12 @@ export const Hero = () => {
                       </p>
 
                       <Button
-                        variant="primary"
                         href="#projects"
-                        className="group hover:bg-brand-blue hover:border-brand-blue h-16 rounded-none border border-white bg-transparent px-10 text-white transition-all duration-500"
+                        borderColor="border-white"
+                        textColor="text-white"
+                        hoverFillColor="bg-white"
+                        hoverTextColor="group-hover:text-brand-blue"
+                        className="group h-16 rounded-none px-10"
                       >
                         <span className="flex items-center gap-3 text-xs font-bold tracking-widest uppercase">
                           Explore Works{" "}
