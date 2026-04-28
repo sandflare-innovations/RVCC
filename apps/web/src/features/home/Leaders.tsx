@@ -22,6 +22,7 @@ export const Leaders = () => {
                 alt="Founder"
                 fill
                 className="object-cover"
+                sizes="(max-width: 768px) 100vw, 33vw"
               />
             </motion.div>
             <div className="mt-8">
