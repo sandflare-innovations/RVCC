@@ -129,7 +129,14 @@ export const Hero = () => {
           }}
           className="absolute z-10 overflow-hidden"
         >
-          <Image src={HERO_CONTENT[1].img} alt="Side 1" fill className="object-cover" />
+          <Image
+            src={HERO_CONTENT[1].img}
+            alt="Side 1"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 33vw"
+            priority
+          />
         </motion.div>
 
         {/* Center Card / Parallax Background */}
@@ -163,6 +170,7 @@ export const Hero = () => {
                 fill
                 className="object-cover"
                 priority
+                sizes="(max-width: 1200px) 100vw, 90vw"
               />
               <motion.div
                 style={{ backdropFilter: `blur(${blurValue}px)` }}
@@ -191,7 +199,14 @@ export const Hero = () => {
           }}
           className="absolute z-10 overflow-hidden"
         >
-          <Image src={HERO_CONTENT[2].img} alt="Side 2" fill className="object-cover" />
+          <Image
+            src={HERO_CONTENT[2].img}
+            alt="Side 2"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 33vw"
+            priority
+          />
         </motion.div>
       </div>
 
@@ -324,6 +339,7 @@ export const Hero = () => {
                       alt={`Partner Logo ${i}`}
                       fill
                       className="object-contain"
+                      sizes="(max-width: 768px) 100px, 200px"
                     />
                   </div>
                 ))}
