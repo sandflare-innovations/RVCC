@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
 
-import { AnimatePresence, motion, useScroll, useSpring, useTransform } from "framer-motion";
-import { FaArrowRight, FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
+import { FaArrowRight } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/Button";
 
@@ -40,7 +40,7 @@ export const Hero = () => {
   const [showContent, setShowContent] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
-  const PROGRESS_DURATION = 5000; // 5 seconds per slide
+  const PROGRESS_DURATION = 5000;
 
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollY } = useScroll();
@@ -52,13 +52,8 @@ export const Hero = () => {
   const blurValue = useTransform(scrollY, [0, 800], [0, 4]);
 
   useEffect(() => {
-    const expandTimer = setTimeout(() => {
-      setIsExpanded(true);
-    }, 800);
-
-    const contentTimer = setTimeout(() => {
-      setShowContent(true);
-    }, 2800);
+    const expandTimer = setTimeout(() => setIsExpanded(true), 800);
+    const contentTimer = setTimeout(() => setShowContent(true), 2800);
 
     return () => {
       clearTimeout(expandTimer);
@@ -69,16 +64,16 @@ export const Hero = () => {
   useEffect(() => {
     if (!showContent) return;
 
-    let startTime = Date.now();
+    let startTime = performance.now();
     let animationFrame: number;
 
-    const updateProgress = () => {
-      const elapsed = Date.now() - startTime;
-      const newProgress = (elapsed / PROGRESS_DURATION) * 100;
+    const updateProgress = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const newProgress = Math.min((elapsed / PROGRESS_DURATION) * 100, 100);
 
       if (newProgress >= 100) {
         setCurrentIndex((prev) => (prev + 1) % HERO_CONTENT.length);
-        startTime = Date.now();
+        startTime = performance.now();
         setProgress(0);
       } else {
         setProgress(newProgress);
@@ -270,7 +265,7 @@ export const Hero = () => {
                   </motion.div>
                 </AnimatePresence>
 
-                {/* Line Based Navigation with Timer - Repositioned under content */}
+                {/* Line Based Navigation with Timer */}
                 <div className="pointer-events-auto mt-16 w-full max-w-sm">
                   <div className="grid grid-cols-3 gap-6">
                     {HERO_CONTENT.map((_, idx) => (
@@ -278,6 +273,7 @@ export const Hero = () => {
                         key={idx}
                         onClick={() => handleSlideChange(idx)}
                         className="group relative flex flex-col gap-3 py-2 text-left transition-all"
+                        aria-label={`Go to slide ${idx + 1}`}
                       >
                         <div className="flex items-center justify-between">
                           <span
@@ -292,9 +288,7 @@ export const Hero = () => {
                           </span>
                         </div>
 
-                        {/* Line Background - More Visible but Slimmer */}
                         <div className="relative h-px w-full bg-white/10">
-                          {/* Progress Indicator Line */}
                           {currentIndex === idx && (
                             <motion.div
                               className="bg-brand-blue absolute top-0 left-0 h-full"
@@ -322,27 +316,29 @@ export const Hero = () => {
             transition={{ delay: 1, duration: 1 }}
             className="pointer-events-none absolute bottom-8 left-1/2 z-30 flex w-full -translate-x-1/2 justify-center overflow-hidden px-6 md:bottom-6"
           >
-            {/* Infinite Logo Ticker */}
             <div className="relative w-full max-w-xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)]">
               <motion.div
                 animate={{
                   x: ["0%", "-50%"],
                 }}
                 transition={{
-                  duration: 30,
+                  duration: 40,
                   ease: "linear",
                   repeat: Infinity,
                 }}
-                className="flex w-max items-center gap-10"
+                className="flex w-max items-center gap-12 md:gap-16"
               >
                 {[1, 2, 3, 4, 5, 6, 7].concat([1, 2, 3, 4, 5, 6, 7]).map((i, index) => (
-                  <div key={index} className="relative h-24 w-24 brightness-0 invert">
+                  <div
+                    key={index}
+                    className="relative h-16 w-16 brightness-0 invert transition-opacity md:h-20 md:w-20"
+                  >
                     <Image
                       src={`/images/clients/${i}.png`}
                       alt={`Partner Logo ${i}`}
                       fill
                       className="object-contain"
-                      sizes="(max-width: 768px) 100px, 200px"
+                      sizes="(max-width: 768px) 64px, 80px"
                     />
                   </div>
                 ))}
