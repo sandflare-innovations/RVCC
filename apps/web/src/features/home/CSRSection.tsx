@@ -62,7 +62,7 @@ const CertificateCard = ({
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
-      className="group relative flex aspect-[3.5/4] w-full flex-col overflow-hidden rounded-none border border-brand-blue bg-brand-blue transition-all duration-500"
+      className="group border-brand-blue bg-brand-blue relative flex aspect-[3.5/4] w-full flex-col overflow-hidden rounded-none border transition-all duration-500"
     >
       <div className="relative w-full flex-1 p-12">
         <Image
@@ -82,7 +82,9 @@ const CertificateCard = ({
       </div>
 
       <div className="bg-white py-4 text-center">
-        <span className="text-[10px] font-black tracking-[0.2em] text-black uppercase">Verified Credential</span>
+        <span className="text-[10px] font-black tracking-[0.2em] text-black uppercase">
+          Verified Credential
+        </span>
       </div>
     </motion.div>
   );
@@ -163,12 +165,16 @@ export const CSRSection = () => {
         >
           <div className="mb-20 flex flex-col items-end justify-between gap-8 md:flex-row">
             <div className="flex-1">
-              <h2 className="text-brand-blue text-[4rem] font-medium leading-[0.9] tracking-tighter uppercase md:text-[6rem]">
+              <h2 className="text-brand-blue text-[4rem] leading-[0.9] font-medium tracking-tighter uppercase md:text-[6rem]">
                 Corporate Social <br /> Responsibility
               </h2>
             </div>
             <div className="flex flex-1 justify-end pb-2">
-              <Button href="#contact" variant="outline" className="h-14 w-[220px] border-brand-blue text-brand-blue">
+              <Button
+                href="#contact"
+                variant="outline"
+                className="border-brand-blue text-brand-blue h-14 w-[220px]"
+              >
                 EXPLORE ALL
               </Button>
             </div>
@@ -180,7 +186,16 @@ export const CSRSection = () => {
               variants={itemVariants}
               className="group relative h-[500px] cursor-pointer overflow-hidden rounded-none bg-zinc-950"
             >
-              <div className="absolute inset-0 bg-black/40 z-10 transition-colors group-hover:bg-black/20" />
+              {/* Shutter Reveal Overlay - Slides Up to reveal from bottom */}
+              <motion.div
+                initial={{ y: "0%" }}
+                whileInView={{ y: "-100%" }}
+                transition={{ duration: 1.5, ease: [0.19, 1, 0.22, 1] }}
+                viewport={{ once: true }}
+                className="bg-background absolute inset-0 z-30"
+              />
+
+              <div className="absolute inset-0 z-10 bg-black/40 transition-colors group-hover:bg-black/20" />
               <div className="absolute inset-0 transition-all duration-1000">
                 <Image
                   src="/images/home-hero.png"
@@ -191,17 +206,19 @@ export const CSRSection = () => {
               </div>
               <div className="relative z-20 flex h-full flex-col justify-between p-12">
                 <div className="space-y-4">
-                  <h3 className="text-4xl font-bold tracking-tight text-white uppercase leading-none">
+                  <h3 className="text-6xl leading-none font-bold text-white uppercase">
                     Daya <br /> Charitable Trust
                   </h3>
-                  <p className="max-w-xs text-sm font-medium leading-relaxed text-white/70">
+                  <p className="max-w-sm text-xl leading-relaxed font-medium text-white/70">
                     Empowering communities through education, healthcare, and sustainable living
                     initiatives.
                   </p>
                 </div>
 
-                <div className="absolute bottom-0 left-0 w-full bg-gray-200 py-4 text-center transition-colors group-hover:bg-brand-blue">
-                  <span className="text-[10px] font-black tracking-[0.3em] text-foreground uppercase group-hover:text-background">LEARN ABOUT THE INITIATIVE</span>
+                <div className="group-hover:bg-brand-blue absolute bottom-0 left-0 w-full bg-gray-200 py-4 text-center transition-colors">
+                  <span className="text-foreground group-hover:text-background text-[10px] font-black tracking-[0.3em] uppercase">
+                    LEARN ABOUT THE INITIATIVE
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -211,7 +228,16 @@ export const CSRSection = () => {
               variants={itemVariants}
               className="group relative h-[500px] cursor-pointer overflow-hidden rounded-none bg-zinc-950"
             >
-              <div className="absolute inset-0 bg-black/40 z-10 transition-colors group-hover:bg-black/20" />
+              {/* Shutter Reveal Overlay - Slides Up to reveal from bottom */}
+              <motion.div
+                initial={{ y: "0%" }}
+                whileInView={{ y: "-100%" }}
+                transition={{ duration: 1.5, ease: [0.19, 1, 0.22, 1] }}
+                viewport={{ once: true }}
+                className="bg-background absolute inset-0 z-30"
+              />
+
+              <div className="absolute inset-0 z-10 bg-black/40 transition-colors group-hover:bg-black/20" />
               <div className="absolute inset-0 transition-all duration-1000">
                 <Image
                   src="/images/home-hero.png"
@@ -222,16 +248,19 @@ export const CSRSection = () => {
               </div>
               <div className="relative z-20 flex h-full flex-col justify-between p-12">
                 <div className="space-y-4">
-                  <h3 className="text-4xl font-bold tracking-tight text-white uppercase leading-none">
+                  <h3 className="text-6xl leading-none font-bold text-white uppercase">
                     Daya <br /> Academy
                   </h3>
-                  <p className="max-w-xs text-sm font-medium leading-relaxed text-white/70">
-                    Fostering the next generation of industry leaders with world-class technical education.
+                  <p className="max-w-sm text-xl leading-relaxed font-medium text-white/70">
+                    Fostering the next generation of industry leaders with world-class technical
+                    education.
                   </p>
                 </div>
 
-                <div className="absolute bottom-0 left-0 w-full bg-gray-200 py-4 text-center transition-colors group-hover:bg-brand-blue">
-                  <span className="text-[10px] font-black tracking-[0.3em] text-foreground uppercase group-hover:text-background">Explore the academy</span>
+                <div className="group-hover:bg-brand-blue absolute bottom-0 left-0 w-full bg-gray-200 py-4 text-center transition-colors">
+                  <span className="text-foreground group-hover:text-background text-[10px] font-black tracking-[0.3em] uppercase">
+                    Explore the academy
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -248,13 +277,17 @@ export const CSRSection = () => {
         >
           <div className="mb-20 flex flex-col items-end justify-between gap-8 md:flex-row">
             <div className="flex-1">
-              <h2 className="text-brand-blue text-[4rem] font-medium leading-[0.9] tracking-tighter uppercase md:text-[6rem]">
+              <h2 className="text-brand-blue text-[4rem] leading-[0.9] font-medium tracking-tighter uppercase md:text-[6rem]">
                 Our Sister <br />
                 Concern Companies
               </h2>
             </div>
             <div className="flex flex-1 justify-end pb-2">
-              <Button href="#contact" variant="outline" className="h-14 w-[220px] border-brand-blue text-brand-blue">
+              <Button
+                href="#contact"
+                variant="outline"
+                className="border-brand-blue text-brand-blue h-14 w-[220px]"
+              >
                 VIEW ALL
               </Button>
             </div>
@@ -298,13 +331,23 @@ export const CSRSection = () => {
 
                 {/* Content */}
                 <div className="relative z-10 flex h-full flex-col justify-end p-10">
-                  <h3 className="text-xl font-bold tracking-tight text-white uppercase leading-none transition-colors duration-500">
+                  <h3 className="text-xl leading-none font-bold tracking-tight text-white uppercase transition-colors duration-500">
                     {company.name}
                   </h3>
                   <div className="mt-6 h-[1px] w-full bg-white/10 transition-colors group-hover:bg-white/30" />
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="text-[10px] font-bold tracking-widest text-white/40 uppercase">Subsidiary</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/40 group-hover:text-white transition-colors">
+                    <span className="text-[10px] font-bold tracking-widest text-white/40 uppercase">
+                      Subsidiary
+                    </span>
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="text-white/40 transition-colors group-hover:text-white"
+                    >
                       <path d="M7 17l10-10M7 7h10v10" />
                     </svg>
                   </div>
@@ -318,12 +361,16 @@ export const CSRSection = () => {
         <div className="space-y-16">
           <div className="mb-20 flex flex-col items-end justify-between gap-8 md:flex-row">
             <div className="flex-1">
-              <h2 className="text-brand-blue text-[4rem] font-medium leading-[0.9] tracking-tighter uppercase md:text-[6rem]">
+              <h2 className="text-brand-blue text-[4rem] leading-[0.9] font-medium tracking-tighter uppercase md:text-[6rem]">
                 Quality <br /> Certificates
               </h2>
             </div>
             <div className="flex flex-1 justify-end pb-2">
-              <Button href="#contact" variant="outline" className="h-14 w-[220px] border-brand-blue text-brand-blue">
+              <Button
+                href="#contact"
+                variant="outline"
+                className="border-brand-blue text-brand-blue h-14 w-[220px]"
+              >
                 VIEW ALL
               </Button>
             </div>
