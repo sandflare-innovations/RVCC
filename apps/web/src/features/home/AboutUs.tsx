@@ -135,7 +135,7 @@ export const AboutUs = () => {
 
         {/* Scroll Reveal Text & Image */}
         <div className="flex flex-col items-center justify-between md:flex-row">
-          <div ref={containerRef} className="max-w-4xl flex-[1.5]">
+          <div ref={containerRef} className="relative max-w-4xl flex-[1.5]">
             <h3 className="font-primary flex flex-wrap justify-start text-left text-4xl leading-snug font-medium tracking-tight">
               {WORDS.map((word, i) => {
                 const start = i / WORDS.length;
@@ -152,6 +152,7 @@ export const AboutUs = () => {
                         alt="Detail"
                         fill
                         className="object-cover"
+                        sizes="(max-width: 768px) 100px, 200px"
                       />
                     </span>
                   );
@@ -178,33 +179,11 @@ export const AboutUs = () => {
                 alt="About RVCC"
                 fill
                 className="object-cover transition-transform duration-700 hover:scale-105"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
           </div>
         </div>
-
-        {/* Bottom Section */}
-        {/* <div className="mt-40 grid grid-cols-1 items-end gap-16 md:grid-cols-2">
-          <div className="flex gap-6">
-            <div className="relative h-40 w-64 overflow-hidden rounded-3xl">
-              <Image src="/images/home-hero.png" alt="Architecture" fill className="object-cover" />
-            </div>
-            <div className="relative -mb-8 h-48 w-72 overflow-hidden rounded-3xl">
-              <Image src="/images/hero-bg.png" alt="Interior" fill className="object-cover" />
-            </div>
-          </div>
-
-          <div className="text-muted grid grid-cols-2 gap-12 pb-8 text-sm leading-relaxed">
-            <p>
-              By integrating innovative technologies and sustainable solutions, we ensure long-term
-              value for both homeowners and investors.
-            </p>
-            <p>
-              By uniting vision, precision and craftsmanship, we deliver exceptional residences that
-              reflect confidence, quality and enduring distinction.
-            </p>
-          </div>
-        </div> */}
 
         {/* Stats Section */}
         <div className="mt-40 grid grid-cols-2 md:grid-cols-4">
@@ -252,7 +231,13 @@ const ClientMarquee = () => {
             key={i}
             className="relative h-42 w-42 flex-shrink-0 transition-all duration-300 hover:scale-110"
           >
-            <Image src={src} alt={`Client logo`} fill className="object-contain" />
+            <Image
+              src={src}
+              alt={`Client logo`}
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100px, 200px"
+            />
           </div>
         ))}
       </motion.div>
