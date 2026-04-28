@@ -96,6 +96,7 @@ export const NewsAndEvents = () => {
                   alt={item.title}
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
 
