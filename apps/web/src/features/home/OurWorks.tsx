@@ -175,6 +175,7 @@ export const OurWorks = () => {
                 fill
                 className="object-cover"
                 priority
+                sizes="100vw"
               />
             </motion.div>
           </AnimatePresence>
