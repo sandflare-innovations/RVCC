@@ -72,7 +72,7 @@ export const FloatingContact = () => {
                 whileHover={{ scale: 1.1, backgroundColor: "#0073BC" }}
                 whileTap={{ scale: 0.9 }}
                 className={cn(
-                  "bg-background hover:bg-brand-blue border-brand-blue text-brand-blue hover:text-background flex h-14 w-14 items-center justify-center rounded-full border-2 text-white shadow-xl transition-colors duration-300"
+                  "bg-background hover:bg-brand-blue border-brand-blue text-brand-blue hover:text-background flex h-14 w-14 items-center justify-center rounded-full border-2 shadow-xl transition-colors duration-300"
                 )}
                 aria-label={action.label}
               >
@@ -88,7 +88,7 @@ export const FloatingContact = () => {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className={cn(
-          "border-brand-blue bg-brand-blue text-background flex h-14 w-14 items-center justify-center rounded-full border-3 text-white shadow-2xl transition-all duration-500"
+          "border-background bg-brand-blue text-background flex h-14 w-14 items-center justify-center rounded-full border-3 text-white shadow-2xl transition-all duration-500"
         )}
       >
         <AnimatePresence mode="wait">

@@ -175,7 +175,9 @@ export const Navbar = () => {
               borderColor={isLightAndScrolled ? "border-brand-blue" : "border-white"}
               textColor={isLightAndScrolled ? "text-brand-blue" : "text-white"}
               hoverFillColor={isLightAndScrolled ? "bg-brand-blue" : "bg-white"}
-              hoverTextColor={isLightAndScrolled ? "group-hover:text-background" : "group-hover:text-brand-blue"}
+              hoverTextColor={
+                isLightAndScrolled ? "group-hover:text-background" : "group-hover:text-brand-blue"
+              }
               className="h-10 min-w-[140px] rounded-none px-6 text-[9px] font-bold tracking-widest uppercase transition-all duration-500"
             >
               Contact
