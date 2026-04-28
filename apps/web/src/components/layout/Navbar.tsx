@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa6";
 
@@ -220,11 +221,18 @@ export const Navbar = () => {
               href={`#${link.toLowerCase().replace(" ", "-")}`}
               onClick={() => setIsOpen(false)}
               className={cn(
-                "group border-border text-brand-blue relative border-b pb-4 text-2xl font-bold tracking-[0.2em] transition-all",
+                "group border-border text-brand-blue relative border-b pb-4 text-2xl font-bold transition-all",
                 "flex items-center justify-between"
               )}
             >
-              <span className="uppercase">{link}</span>
+              <motion.span
+                initial={{ letterSpacing: "0.2em" }}
+                whileHover={{ letterSpacing: "0.4em" }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="uppercase transition-all"
+              >
+                {link}
+              </motion.span>
               <span className="text-brand-blue/30 group-hover:text-brand-blue text-[10px] transition-colors">
                 0{idx + 1}
               </span>

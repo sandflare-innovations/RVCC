@@ -59,6 +59,8 @@ export const Footer = () => {
                   <motion.a
                     key={index}
                     href={link.href}
+                    whileHover={{ letterSpacing: "0.2em" }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                     className="group relative w-fit text-lg font-light transition-all duration-500 hover:text-white/70"
                   >
                     <span>{link.name}</span>
@@ -82,6 +84,8 @@ export const Footer = () => {
                   <motion.a
                     key={index}
                     href="#services"
+                    whileHover={{ letterSpacing: "0.2em" }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                     className="group relative w-fit text-lg font-light transition-all duration-500 hover:text-white/70"
                   >
                     <span>{item}</span>
@@ -105,6 +109,8 @@ export const Footer = () => {
                   <motion.a
                     key={index}
                     href="#projects"
+                    whileHover={{ letterSpacing: "0.2em" }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                     className="group relative w-fit text-lg font-light transition-all duration-500 hover:text-white/70"
                   >
                     <span>{item}</span>
@@ -128,6 +134,8 @@ export const Footer = () => {
                   <motion.a
                     key={index}
                     href={item.href}
+                    whileHover={{ letterSpacing: "0.2em" }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                     className="group relative w-fit text-lg font-light transition-all duration-500 hover:text-white/70"
                   >
                     <span>{item.name}</span>
