@@ -1,16 +1,19 @@
 "use client";
 
 import { useRef } from "react";
+
 import Image from "next/image";
+
 import {
   motion,
+  useAnimationFrame,
+  useMotionValue,
   useScroll,
   useSpring,
   useTransform,
   useVelocity,
-  useAnimationFrame,
-  useMotionValue,
 } from "framer-motion";
+
 const wrap = (min: number, max: number, v: number) => {
   const rangeSize = max - min;
   return ((((v - min) % rangeSize) + rangeSize) % rangeSize) + min;
@@ -67,8 +70,11 @@ function ParallaxText({ children, images, baseVelocity = 100 }: ParallaxProps) {
   const midIndex = Math.floor(words.length / 2);
 
   return (
-    <div className="parallax overflow-hidden whitespace-nowrap flex flex-nowrap">
-      <motion.div className="scroller flex whitespace-nowrap flex-nowrap text-[6rem] text-semibold font-normal uppercase tracking-tighter text-foreground" style={{ x }}>
+    <div className="parallax flex flex-nowrap overflow-hidden whitespace-nowrap">
+      <motion.div
+        className="scroller text-semibold text-foreground flex flex-nowrap text-[6rem] font-normal tracking-tighter whitespace-nowrap uppercase"
+        style={{ x }}
+      >
         {[...Array(4)].map((_, i) => (
           <span key={i} className="mr-8 flex items-center gap-8">
             {words.slice(0, midIndex).join(" ")}
@@ -78,6 +84,7 @@ function ParallaxText({ children, images, baseVelocity = 100 }: ParallaxProps) {
                 alt="Construction detail"
                 fill
                 className="object-cover"
+                sizes="15vw"
               />
             </div>
             {words.slice(midIndex).join(" ")}
@@ -87,6 +94,7 @@ function ParallaxText({ children, images, baseVelocity = 100 }: ParallaxProps) {
                 alt="Construction detail"
                 fill
                 className="object-cover"
+                sizes="15vw"
               />
             </div>
           </span>
@@ -98,7 +106,7 @@ function ParallaxText({ children, images, baseVelocity = 100 }: ParallaxProps) {
 
 export const ScrollingText = () => {
   return (
-    <section className="bg-background py-10 overflow-hidden mb-30">
+    <section className="bg-background mb-30 overflow-hidden py-10">
       <ParallaxText baseVelocity={-3} images={["/images/home-hero.png", "/images/hero-bg.png"]}>
         Discover the world of Ray
       </ParallaxText>
