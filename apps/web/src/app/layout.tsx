@@ -26,8 +26,8 @@ export default function RootLayout({
       <body className="font-primary flex min-h-full flex-col" suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <LenisProvider>
