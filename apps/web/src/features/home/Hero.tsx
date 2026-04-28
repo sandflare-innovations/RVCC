@@ -314,8 +314,8 @@ export const Hero = () => {
       <AnimatePresence>
         {showContent && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 1 }}
             className="pointer-events-none absolute bottom-8 left-1/2 z-30 flex w-full -translate-x-1/2 justify-center overflow-hidden px-6 md:bottom-6"
           >
