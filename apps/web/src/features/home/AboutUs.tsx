@@ -53,33 +53,40 @@ const WORDS = [
 ];
 
 const STATS = [
-  { value: 20, label: "Years of Trust" },
-  { value: 300, label: "PROJECTS COMPLETED" },
-  { value: 30, label: "ONGOING PROJECTS" },
-  { value: 20, label: "SATISFIED CLIENTS" },
+  { value: 2006, label: "YEAR FOUNDED", suffix: "" },
+  { value: 100, label: "COMPLETED PROJECTS", suffix: "+" },
+  { value: 30, label: "ONGOING PROJECTS", suffix: "+" },
+  { value: 15, label: "GOVERNMENT PROJECTS", suffix: "+" },
+  { value: 100, label: "SATISFIED CLIENTS", suffix: "%" },
 ];
 
 const CLIENT_IMAGES = Array.from({ length: 18 }, (_, i) => `/images/clients/${i + 1}.png`);
 
-const Counter = ({ from = 0, to }: { from?: number; to: number }) => {
+const Counter = ({
+  from = 0,
+  to,
+  suffix = "+",
+}: {
+  from?: number;
+  to: number;
+  suffix?: string;
+}) => {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-50px" });
   const count = useMotionValue(from);
-  const rounded = useTransform(count, (latest) => Math.round(latest) + "+");
-  const [isComplete, setIsComplete] = useState(false);
+  const rounded = useTransform(count, (latest) => Math.round(latest) + suffix);
 
   useEffect(() => {
     if (inView) {
       animate(count, to, {
         duration: 2.5,
         ease: [0.16, 1, 0.3, 1], // Smooth cubic-bezier easeOut
-        onComplete: () => setIsComplete(true),
       });
     }
   }, [inView, count, to]);
 
   return (
-    <motion.span ref={ref} className={cn("mx-8 text-black tabular-nums")}>
+    <motion.span ref={ref} className="tabular-nums">
       {rounded}
     </motion.span>
   );
@@ -186,21 +193,56 @@ export const AboutUs = () => {
         </div>
 
         {/* Stats Section */}
-        <div className="mt-40 grid grid-cols-2 md:grid-cols-4">
-          {STATS.map((stat, idx) => (
-            <div
-              key={idx}
-              className={cn(
-                "flex flex-col items-center justify-center px-4 text-center",
-                idx !== STATS.length - 1 ? "border-border md:border-r-2" : ""
-              )}
-            >
-              <span className="font-primary mb-6 text-6xl font-medium tracking-tighter md:text-7xl lg:text-[5.5rem]">
-                <Counter to={stat.value} />
-              </span>
-              <span className="text-muted text-[14px] tracking-widest uppercase">{stat.label}</span>
-            </div>
-          ))}
+        <div className="border-brand-blue mt-40 grid grid-cols-1 border-3 md:grid-cols-3">
+          {/* Row 1: Item 1 (Spans 2/3 width) */}
+          <div className="border-brand-blue flex flex-col items-center justify-center gap-4 p-8 md:col-span-2 md:flex-row md:gap-10 md:border-r-3 md:p-12 lg:p-16">
+            <span className="font-primary text-brand-blue/70 mt-16 text-3xl font-medium tracking-tight uppercase md:text-4xl lg:text-6xl">
+              since
+            </span>
+            <span className="font-primary text-brand-blue text-[6rem] leading-[0.8] font-medium tracking-tighter md:text-[8rem] lg:text-[10rem]">
+              <Counter to={STATS[0].value} suffix={STATS[0].suffix} />
+            </span>
+          </div>
+
+          {/* Row 1: Item 2 (Spans 1/3 width) */}
+          <div className="flex flex-col items-center justify-center p-8 md:p-12 lg:p-16">
+            <span className="font-primary text-brand-blue mb-2 text-6xl font-medium tracking-tighter md:text-7xl lg:text-8xl">
+              <Counter to={STATS[1].value} suffix={STATS[1].suffix} />
+            </span>
+            <span className="text-brand-blue font-primary text-xs tracking-[0.2em] uppercase lg:text-sm">
+              {STATS[1].label}
+            </span>
+          </div>
+
+          {/* Row 2: Item 3 (1/3 width) */}
+          <div className="border-brand-blue flex flex-col items-center justify-center border-t-3 border-b-3 p-8 md:border-r-3 md:border-b-0 md:p-12 lg:p-16">
+            <span className="font-primary text-brand-blue mb-2 text-5xl font-medium tracking-tighter md:text-6xl lg:text-7xl">
+              <Counter to={STATS[2].value} suffix={STATS[2].suffix} />
+            </span>
+            <span className="text-brand-blue font-primary text-xs tracking-[0.2em] uppercase lg:text-sm">
+              {STATS[2].label}
+            </span>
+          </div>
+
+          {/* Row 2: Item 4 (1/3 width) */}
+          <div className="border-brand-blue flex flex-col items-center justify-center border-t-3 border-b-3 p-8 md:border-r-3 md:border-b-0 md:p-12 lg:p-16">
+            <span className="font-primary text-brand-blue mb-2 text-5xl font-medium tracking-tighter md:text-6xl lg:text-7xl">
+              <Counter to={STATS[3].value} suffix={STATS[3].suffix} />
+            </span>
+            <span className="text-brand-blue font-primary text-xs tracking-[0.2em] uppercase lg:text-sm">
+              {STATS[3].label}
+            </span>
+          </div>
+
+          {/* Row 2: Item 5 (1/3 width) */}
+          <div className="border-brand-blue flex flex-col items-center justify-center border-t-3 p-8 md:p-12 lg:p-16">
+            <span className="font-primary text-brand-blue mb-2 text-5xl font-medium tracking-tighter md:text-6xl lg:text-7xl">
+              <Counter to={STATS[4].value} suffix={STATS[4].suffix} />
+            </span>
+            <span className="text-brand-blue font-primary text-xs tracking-[0.2em] uppercase lg:text-sm">
+              {STATS[4].label}
+            </span>
+          </div>
         </div>
       </div>
 
