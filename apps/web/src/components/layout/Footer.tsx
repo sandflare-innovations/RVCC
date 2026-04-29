@@ -59,7 +59,7 @@ export const Footer = () => {
                   <motion.a
                     key={index}
                     href={link.href}
-                    whileHover={{ letterSpacing: "0.2em" }}
+                    whileHover={{ letterSpacing: "0.1em" }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     className="group relative w-fit text-lg font-light transition-all duration-500 hover:text-white/70"
                   >
@@ -84,7 +84,7 @@ export const Footer = () => {
                   <motion.a
                     key={index}
                     href="#services"
-                    whileHover={{ letterSpacing: "0.2em" }}
+                    whileHover={{ letterSpacing: "0.1em" }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     className="group relative w-fit text-lg font-light transition-all duration-500 hover:text-white/70"
                   >
@@ -109,7 +109,7 @@ export const Footer = () => {
                   <motion.a
                     key={index}
                     href="#projects"
-                    whileHover={{ letterSpacing: "0.2em" }}
+                    whileHover={{ letterSpacing: "0.1em" }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     className="group relative w-fit text-lg font-light transition-all duration-500 hover:text-white/70"
                   >
@@ -134,7 +134,7 @@ export const Footer = () => {
                   <motion.a
                     key={index}
                     href={item.href}
-                    whileHover={{ letterSpacing: "0.2em" }}
+                    whileHover={{ letterSpacing: "0.1em" }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     className="group relative w-fit text-lg font-light transition-all duration-500 hover:text-white/70"
                   >
@@ -201,7 +201,7 @@ export const Footer = () => {
               initial={{ y: "100%" }}
               whileInView={{ y: "25%" }}
               transition={{ duration: 1.5, ease: [0.19, 1, 0.22, 1] }}
-              viewport={{ once: true }}
+              viewport={{ once: false }}
               className="relative aspect-[3/1] w-full opacity-20"
               style={{ filter: "brightness(0) invert(1)" }}
             >
