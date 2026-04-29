@@ -47,7 +47,7 @@ export const Hero = () => {
 
   // Parallax / Scroll Animations
   const bgScale = useTransform(scrollY, [0, 1000], [1, 1.25]);
-  const contentY = useTransform(scrollY, [0, 800], [0, -150]);
+  const contentY = useTransform(scrollY, [0, 800], [0, -500]);
   const contentOpacity = useTransform(scrollY, [0, 600], [1, 0]);
   const blurValue = useTransform(scrollY, [0, 800], [0, 4]);
 
