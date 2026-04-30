@@ -163,30 +163,16 @@ export const OurWorks = () => {
 
   return (
     <div className="relative flex w-full flex-col items-center overflow-visible">
-      {/* Full-width Persistent Background Image Layer */}
+      {/* Full-width Persistent Background (shows the "last" image in the gaps) */}
       <div className="absolute inset-y-0 left-1/2 z-0 w-screen -translate-x-1/2 overflow-hidden">
-        {/* The "last" image as a permanent base during transition */}
-        <div className="absolute inset-0">
-          <Image
-            src={works[prevIndex].image}
-            alt="background"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/50" />
-        </div>
-
-        {/* The "new" image revealing over the last one */}
-        <AnimatePresence custom={direction}>
-          <SlideImage
-            key={works[index].id}
-            work={works[index]}
-            direction={direction}
-            moveX={moveX}
-            moveY={moveY}
-          />
-        </AnimatePresence>
+        <Image
+          src={works[prevIndex].image}
+          alt="background"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/50" />
       </div>
 
       <motion.section
@@ -196,6 +182,19 @@ export const OurWorks = () => {
         style={{ width: containerWidth, borderRadius: radius }}
         className="relative z-20 mx-auto flex h-screen min-h-[700px] flex-col items-center overflow-hidden"
       >
+        {/* Animated Slide Layer (respects container width) */}
+        <div className="absolute inset-0 z-0">
+          <AnimatePresence custom={direction}>
+            <SlideImage
+              key={works[index].id}
+              work={works[index]}
+              direction={direction}
+              moveX={moveX}
+              moveY={moveY}
+            />
+          </AnimatePresence>
+        </div>
+
         <div className="relative z-20 flex h-full w-full flex-col justify-between p-8 md:p-16 lg:p-24">
           <div className="flex w-full items-start justify-between">
             <div className="flex flex-col">
