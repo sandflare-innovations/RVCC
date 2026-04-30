@@ -20,46 +20,45 @@ import { Button } from "@/components/ui/Button";
 
 const imageVariants: Variants = {
   enter: (direction: number) => ({
-    x: direction > 0 ? "100%" : "-100%",
+    clipPath: direction > 0 ? "inset(0 0 0 100%)" : "inset(0 100% 0 0)",
     zIndex: 10,
     opacity: 1,
   }),
   center: {
-    x: "0%",
+    clipPath: "inset(0 0 0 0%)",
     zIndex: 10,
     opacity: 1,
     transition: {
       type: "tween",
       duration: 1.2,
-      ease: [0.4, 0, 0.2, 1],
+      ease: [0.22, 1, 0.36, 1],
     },
   },
   exit: {
-    x: "0%",
     zIndex: 0,
     opacity: 1,
     transition: {
-      duration: 1.5,
+      duration: 1.2,
     },
   },
 };
 
 const innerImageVariants: Variants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? "-100%" : "100%",
-  }),
+  enter: {
+    scale: 1.1,
+  },
   center: {
-    x: "0%",
+    scale: 1,
     transition: {
       type: "tween",
       duration: 1.2,
-      ease: [0.4, 0, 0.2, 1],
+      ease: [0.22, 1, 0.36, 1],
     },
   },
   exit: {
-    x: "0%",
+    scale: 1,
     transition: {
-      duration: 1.5,
+      duration: 1.2,
     },
   },
 };
