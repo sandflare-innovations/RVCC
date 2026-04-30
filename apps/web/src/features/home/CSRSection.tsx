@@ -341,7 +341,7 @@ export const CSRSection = () => {
 
                 {/* Content */}
                 <div className="relative z-10 flex h-full flex-col justify-end p-10">
-                  <h3 className="text-xl leading-none font-bold tracking-tight text-white uppercase transition-colors duration-500">
+                  <h3 className="text-3xl leading-none font-bold tracking-tight text-white uppercase transition-colors duration-500">
                     {company.name}
                   </h3>
                   <div className="mt-6 h-[1px] w-full bg-white/10 transition-colors group-hover:bg-white/30" />
