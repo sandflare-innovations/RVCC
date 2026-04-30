@@ -58,7 +58,7 @@ const works = [
     title2: "Artificial Grass",
     description:
       "Considering the great advantages in artificial grass, RVCC offers alternative solutions to natural grass installation with a near accurate match and long-term durability.",
-    image: "/images/home-hero.png",
+    image: "/images/projects/grass.png",
     number: "04",
     cta: "View project",
     iconId: "grass",
@@ -69,7 +69,7 @@ const works = [
     title2: "Land Survey",
     description:
       "RVCC uses the latest technologies in survey and topography, including advanced global positioning systems (GPS) for accurate and efficient results.",
-    image: "/images/hero-bg.png",
+    image: "/images/projects/survey.png",
     number: "05",
     cta: "View project",
     iconId: "survey",
