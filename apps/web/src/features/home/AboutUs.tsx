@@ -21,38 +21,43 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@lib/utils";
 
 const WORDS = [
-  "WE",
-  "DEVELOP",
-  "CONTEMPORARY",
-  "RESIDENCES",
-  "WHERE",
-  "ARCHITECTURE,",
-  "LIGHT",
-  "AND",
-  "[img1]",
-  "LANDSCAPE",
-  "EXIST",
-  "IN",
-  "PERFECT",
-  "[img2]",
-  "BALANCE",
-  "OUR",
-  "FOCUS",
+  "RVCC",
   "IS",
-  "NOT",
-  "JUST",
+  "DEDICATED",
   "TO",
-  "BUILD",
-  "HOUSES",
-  "—",
-  "BUT",
-  "TO",
+  "EXCELLENCE",
+  "THROUGH",
+  "INTEGRITY",
+  "AND",
+  "ETHICAL",
+  "CONDUCT.",
+  "[img1]",
+  "WE",
   "CREATE",
-  "SPACES",
-  "THAT",
-  "ELEVATE",
+  "STATE-OF-THE-ART",
+  "LANDMARK",
+  "BUILDINGS",
+  "AND",
+  "SUSTAINABLE",
+  "INFRASTRUCTURE,",
+  "DELIVERING",
+  "INTEGRATED",
+  "SERVICES",
+  "FROM",
+  "DESIGN",
+  "TO",
+  "CONSTRUCTION.",
+  "[img2]",
+  "OUR",
+  "TAILORED",
+  "APPROACH",
+  "PRIORITIZES",
+  "LIFE-CYCLE",
+  "PERFORMANCE",
+  "AND",
+  "MAINTENANCE-FREE",
+  "SOLUTIONS.",
   "[img3]",
-  "LIVING",
 ];
 
 const STATS = [
@@ -145,19 +150,28 @@ export const AboutUs = () => {
   });
 
   return (
-    <section className="bg-background relative z-10 mx-auto max-w-7xl py-30" id="about">
+    <section className="bg-background relative z-10 mx-auto max-w-7xl py-20" id="about">
       <div className="container">
         {/* Header */}
-        <div className="mb-20 flex flex-col text-center">
-          <h2 className="text-brand-blue font-primary text-[8rem] leading-[0.8] font-normal tracking-tighter uppercase">
-            about us
+        <div className="my-10 flex flex-col items-center text-center">
+          <h2 className="text-brand-blue font-primary mb-10 text-[8rem] leading-[0.8] font-normal tracking-tighter uppercase">
+            about
           </h2>
+          <div className="flex max-w-2xl flex-col items-center">
+            <h3 className="text-brand-blue font-heading mb-6 text-6xl uppercase">
+              RIYADH VILLAS CONTRACTING CO.
+            </h3>
+            <div className="bg-brand-blue/30 mb-6 h-px w-20" />
+            <p className="text-brand-blue font-primary text-[11px] font-bold tracking-[0.3em] uppercase opacity-80">
+              Civil Construction and Infrastructure development.
+            </p>
+          </div>
         </div>
 
         {/* Scroll Reveal Text & Image */}
         <div className="flex flex-col items-center">
-          <div ref={containerRef} className="relative mb-20 max-w-7xl flex-[1.5]">
-            <h3 className="font-primary flex flex-wrap justify-center text-center text-3xl leading-snug font-medium tracking-tight">
+          <div ref={containerRef} className="relative mb-20 max-w-5xl flex-[1.5]">
+            <h3 className="font-primary flex flex-wrap justify-center text-center text-xl leading-relaxed font-medium tracking-tight md:text-2xl">
               {WORDS.map((word, i) => {
                 const start = i / WORDS.length;
                 const end = start + 1 / WORDS.length;
@@ -276,56 +290,26 @@ export const AboutUs = () => {
           </div>
         </div>
 
-        {/* Stats Section */}
-        <div className="border-brand-blue mt-40 grid grid-cols-1 border-3 md:grid-cols-3">
-          {/* Row 1: Item 1 (Spans 2/3 width) */}
-          <div className="border-brand-blue flex flex-col items-center justify-center gap-4 p-8 md:col-span-2 md:flex-row md:gap-10 md:border-r-3 md:p-12 lg:p-16">
-            <span className="font-primary text-brand-blue/70 mt-16 text-3xl font-medium tracking-tight uppercase md:text-4xl lg:text-6xl">
-              since
-            </span>
-            <span className="font-primary text-brand-blue text-[6rem] leading-[0.8] font-medium tracking-tighter md:text-[8rem] lg:text-[10rem]">
-              <Counter to={STATS[0].value} suffix={STATS[0].suffix} />
-            </span>
-          </div>
-
-          {/* Row 1: Item 2 (Spans 1/3 width) */}
-          <div className="flex flex-col items-center justify-center p-8 md:p-12 lg:p-16">
-            <span className="font-primary text-brand-blue mb-2 text-6xl font-medium tracking-tighter md:text-7xl lg:text-8xl">
-              <Counter to={STATS[1].value} suffix={STATS[1].suffix} />
-            </span>
-            <span className="text-brand-blue font-primary text-xs tracking-[0.2em] uppercase lg:text-sm">
-              {STATS[1].label}
-            </span>
-          </div>
-
-          {/* Row 2: Item 3 (1/3 width) */}
-          <div className="border-brand-blue flex flex-col items-center justify-center border-t-3 border-b-3 p-8 md:border-r-3 md:border-b-0 md:p-12 lg:p-16">
-            <span className="font-primary text-brand-blue mb-2 text-5xl font-medium tracking-tighter md:text-6xl lg:text-7xl">
-              <Counter to={STATS[2].value} suffix={STATS[2].suffix} />
-            </span>
-            <span className="text-brand-blue font-primary text-xs tracking-[0.2em] uppercase lg:text-sm">
-              {STATS[2].label}
-            </span>
-          </div>
-
-          {/* Row 2: Item 4 (1/3 width) */}
-          <div className="border-brand-blue flex flex-col items-center justify-center border-t-3 border-b-3 p-8 md:border-r-3 md:border-b-0 md:p-12 lg:p-16">
-            <span className="font-primary text-brand-blue mb-2 text-5xl font-medium tracking-tighter md:text-6xl lg:text-7xl">
-              <Counter to={STATS[3].value} suffix={STATS[3].suffix} />
-            </span>
-            <span className="text-brand-blue font-primary text-xs tracking-[0.2em] uppercase lg:text-sm">
-              {STATS[3].label}
-            </span>
-          </div>
-
-          {/* Row 2: Item 5 (1/3 width) */}
-          <div className="border-brand-blue flex flex-col items-center justify-center border-t-3 p-8 md:p-12 lg:p-16">
-            <span className="font-primary text-brand-blue mb-2 text-5xl font-medium tracking-tighter md:text-6xl lg:text-7xl">
-              <Counter to={STATS[4].value} suffix={STATS[4].suffix} />
-            </span>
-            <span className="text-brand-blue font-primary text-xs tracking-[0.2em] uppercase lg:text-sm">
-              {STATS[4].label}
-            </span>
+        {/* Simple & Premium Stats Section */}
+        <div className="mt-20 border-t border-zinc-100 pt-32">
+          <div className="grid grid-cols-2 gap-x-12 gap-y-20 md:grid-cols-4">
+            {STATS.slice(1).map((stat, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: idx * 0.1 }}
+                className="flex flex-col gap-4"
+              >
+                <div className="font-primary text-brand-blue text-6xl font-medium tracking-tighter lg:text-8xl">
+                  <Counter to={stat.value} suffix={stat.suffix} />
+                </div>
+                <div className="h-px w-full bg-zinc-100" />
+                <div className="font-primary text-[10px] font-bold tracking-[0.4em] text-zinc-400 uppercase">
+                  {stat.label}
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>
@@ -347,7 +331,7 @@ const ClientMarquee = () => {
           x: ["0%", "-50%"],
         }}
         transition={{
-          duration: 40,
+          duration: 60,
           ease: "linear",
           repeat: Infinity,
         }}
