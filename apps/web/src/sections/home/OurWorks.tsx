@@ -154,25 +154,27 @@ export const OurWorks = () => {
   const prev = () => setPage([(index - 1 + works.length) % works.length, -1]);
 
   return (
-    <div className="bg-background relative flex w-full flex-col items-center overflow-visible">
+    <div className="relative flex w-full flex-col items-center overflow-visible">
+      {/* Full-width Background Image Layer */}
+      <div className="absolute inset-0 z-0">
+        <AnimatePresence custom={direction}>
+          <SlideImage
+            key={works[index].id}
+            work={works[index]}
+            direction={direction}
+            moveX={moveX}
+            moveY={moveY}
+          />
+        </AnimatePresence>
+      </div>
+
       <motion.section
         id="works"
         ref={containerRef}
         onMouseMove={handleMouseMove}
         style={{ width: containerWidth, borderRadius: radius }}
-        className="bg-background relative z-20 mx-auto flex h-screen min-h-[700px] flex-col items-center overflow-hidden"
+        className="relative z-20 mx-auto flex h-screen min-h-[700px] flex-col items-center overflow-hidden"
       >
-        <div className="absolute inset-0 z-0">
-          <AnimatePresence custom={direction}>
-            <SlideImage
-              key={works[index].id}
-              work={works[index]}
-              direction={direction}
-              moveX={moveX}
-              moveY={moveY}
-            />
-          </AnimatePresence>
-        </div>
         <div className="relative z-20 flex h-full w-full flex-col justify-between p-8 md:p-16 lg:p-24">
           <div className="flex w-full items-start justify-between">
             <div className="flex flex-col">
