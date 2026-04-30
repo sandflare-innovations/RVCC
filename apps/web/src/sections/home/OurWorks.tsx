@@ -118,8 +118,11 @@ export const OurWorks = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [[index, direction], setPage] = useState([0, 0]);
 
+  const [prevIndex, setPrevIndex] = useState(0);
+
   useEffect(() => {
     const timer = setInterval(() => {
+      setPrevIndex(index);
       setPage([(index + 1) % works.length, 1]);
     }, 8000);
     return () => clearInterval(timer);
@@ -149,13 +152,32 @@ export const OurWorks = () => {
   const containerWidth = useTransform(smoothProgress, [0, 0.8], ["70%", "100%"]);
   const radius = useTransform(smoothProgress, [0, 0.8], ["40px", "0px"]);
 
-  const next = () => setPage([(index + 1) % works.length, 1]);
-  const prev = () => setPage([(index - 1 + works.length) % works.length, -1]);
+  const next = () => {
+    setPrevIndex(index);
+    setPage([(index + 1) % works.length, 1]);
+  };
+  const prev = () => {
+    setPrevIndex(index);
+    setPage([(index - 1 + works.length) % works.length, -1]);
+  };
 
   return (
     <div className="relative flex w-full flex-col items-center overflow-visible">
-      {/* Full-width Background Image Layer */}
-      <div className="absolute inset-0 z-0">
+      {/* Full-width Persistent Background Image Layer */}
+      <div className="absolute inset-y-0 left-1/2 z-0 w-screen -translate-x-1/2 overflow-hidden">
+        {/* The "last" image as a permanent base during transition */}
+        <div className="absolute inset-0">
+          <Image
+            src={works[prevIndex].image}
+            alt="background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
+
+        {/* The "new" image revealing over the last one */}
         <AnimatePresence custom={direction}>
           <SlideImage
             key={works[index].id}
