@@ -313,7 +313,8 @@ export const AboutUs = () => {
                 <Button
                   variant="outline"
                   href="/pdf/RVCC COPMANY PROFILE SIGNATURE PROJECT.pdf"
-                  download="RVCC_Company_Profile.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   borderColor="border-black"
                   textColor="text-black"
                   hoverFillColor="bg-black"
@@ -321,7 +322,7 @@ export const AboutUs = () => {
                   className="mt-6 h-12 w-full min-w-0"
                 >
                   <span className="flex items-center gap-2">
-                    Profile <FaFileLines size={12} />
+                    Open Profile <FaFileLines size={12} />
                   </span>
                 </Button>
               </div>

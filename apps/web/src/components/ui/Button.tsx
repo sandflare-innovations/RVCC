@@ -20,6 +20,8 @@ interface ButtonProps {
   hoverFillColor?: string;
   hoverTextColor?: string;
   download?: string | boolean;
+  target?: string;
+  rel?: string;
 }
 
 export const Button = ({
@@ -35,6 +37,8 @@ export const Button = ({
   hoverFillColor,
   hoverTextColor,
   download,
+  target,
+  rel,
 }: ButtonProps) => {
   const isLink = !!href;
   const Tag = isLink ? motion.a : motion.button;
@@ -104,6 +108,8 @@ export const Button = ({
         className
       )}
       download={download}
+      target={target}
+      rel={rel}
     >
       {/* Label */}
       <span
