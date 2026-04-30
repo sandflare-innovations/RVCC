@@ -23,7 +23,7 @@
       "@components/*": ["./src/components/*"],
       "@ui/*": ["./src/components/ui/*"],
       "@sections/*": ["./src/sections/*"],
-      "@constants/*": ["./src/constants/*"],
+      "@data/*": ["./src/data/*"],
       "@layout/*": ["./src/components/layout/*"],
       "@lib/*": ["./src/lib/*"],
       "@types/*": ["./src/types/*"],

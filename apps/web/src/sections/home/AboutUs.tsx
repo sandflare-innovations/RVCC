@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
 
-import { CLIENT_IMAGES, ABOUT_STATS as STATS, ABOUT_WORDS as WORDS } from "@constants/home/about";
+import { CLIENT_IMAGES, ABOUT_STATS as STATS, ABOUT_WORDS as WORDS } from "@data/home/about";
 import {
   MotionValue,
   animate,

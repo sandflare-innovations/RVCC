@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-import { NEWS_DATA } from "@constants/home/news";
+import { NEWS_DATA } from "@data/home/news";
 import { motion } from "framer-motion";
 import { FiArrowRight, FiMail } from "react-icons/fi";
 

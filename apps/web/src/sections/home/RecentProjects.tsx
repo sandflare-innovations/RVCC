@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import Image from "next/image";
 
-import { RECENT_PROJECTS as PROJECTS } from "@constants/projects/recent";
+import { RECENT_PROJECTS as PROJECTS } from "@data/projects/recent";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 import { Icons } from "@repo/ui";

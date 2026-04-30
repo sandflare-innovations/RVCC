@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
 
-import { type WorkItem, works } from "@constants/projects/works";
+import { type WorkItem, works } from "@data/projects/works";
 import {
   AnimatePresence,
   MotionValue,

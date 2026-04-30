@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-import { FOUNDER_DATA, LEADER_MESSAGE } from "@constants/home/leaders";
+import { FOUNDER_DATA, LEADER_MESSAGE } from "@data/home/leaders";
 import { motion } from "framer-motion";
 
 export const Leaders = () => {

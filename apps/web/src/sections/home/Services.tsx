@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import Image from "next/image";
 
-import { SERVICES_DATA } from "@constants/home/services";
+import { SERVICES_DATA } from "@data/home/services";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { Icons } from "@repo/ui";

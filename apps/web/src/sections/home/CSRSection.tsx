@@ -4,7 +4,7 @@ import React from "react";
 
 import Image from "next/image";
 
-import { type Certificate, certificates, concernLogos, sisterCompanies } from "@constants/home/csr";
+import { type Certificate, certificates, concernLogos, sisterCompanies } from "@data/home/csr";
 import { Variants, motion } from "framer-motion";
 
 import { Button } from "@/components/ui/Button";
