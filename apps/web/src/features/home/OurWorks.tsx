@@ -122,9 +122,9 @@ const innerImageVariants: Variants = {
 };
 
 const contentVariants: Variants = {
-  initial: { clipPath: "inset(100% 0 0 0)", opacity: 0, y: 40 },
+  initial: { clipPath: "inset(0 0 100% 0)", opacity: 0, y: -40 },
   animate: {
-    clipPath: "inset(0 0 0 0)",
+    clipPath: "inset(0 0 0% 0)",
     opacity: 1,
     y: 0,
     transition: { duration: 1.2, delay: 0.8, ease: [0.22, 1, 0.36, 1] },
@@ -217,7 +217,7 @@ export const OurWorks = () => {
         ref={containerRef}
         onMouseMove={handleMouseMove}
         style={{ width: containerWidth, borderRadius: radius }}
-        className="relative z-20 mx-auto flex h-screen min-h-[700px] flex-col items-center overflow-hidden bg-black"
+        className="bg-background relative z-20 mx-auto flex h-screen min-h-[700px] flex-col items-center overflow-hidden"
       >
         <div className="absolute inset-0 z-0">
           <AnimatePresence custom={direction}>
