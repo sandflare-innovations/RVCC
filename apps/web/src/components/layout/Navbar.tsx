@@ -58,7 +58,7 @@ export const Navbar = () => {
     };
   }, []);
 
-  const menuLinks = ["ABOUT US", "SERVICES", "PROJECTS", "GALLERY", "CAREERS", "CONTACTS"];
+  const menuLinks = ["ABOUT US", "SERVICES", "PROJECTS", "GALLERY", "CAREERS", "DOCUMENTS"];
 
   // Force white theme for header elements when in Works section
   const forceWhiteTheme = isWorksSection;
