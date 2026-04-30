@@ -128,6 +128,14 @@ export const OurWorks = () => {
     return () => clearInterval(timer);
   }, [index]);
 
+  // Sync prevIndex after transition to ensure gaps show the CURRENT image after reveal
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setPrevIndex(index);
+    }, 1200);
+    return () => clearTimeout(timeout);
+  }, [index]);
+
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
   const smoothMouseX = useSpring(mouseX, { stiffness: 50, damping: 20 });
@@ -165,14 +173,16 @@ export const OurWorks = () => {
     <div className="relative flex w-full flex-col items-center overflow-visible">
       {/* Full-width Persistent Background (shows the "last" image in the gaps) */}
       <div className="absolute inset-y-0 left-1/2 z-0 w-screen -translate-x-1/2 overflow-hidden">
-        <Image
-          src={works[prevIndex].image}
-          alt="background"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-black/50" />
+        <motion.div style={{ x: moveX, y: moveY }} className="absolute inset-[-5%]">
+          <Image
+            src={works[prevIndex].image}
+            alt="background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/50" />
+        </motion.div>
       </div>
 
       <motion.section
