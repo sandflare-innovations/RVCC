@@ -98,7 +98,7 @@ const imageVariants: Variants = {
     opacity: 1,
     transition: {
       type: "tween",
-      duration: 2.2,
+      duration: 2.5,
     },
   },
 };
@@ -119,7 +119,7 @@ const innerImageVariants: Variants = {
     x: "0%",
     transition: {
       type: "tween",
-      duration: 2.2,
+      duration: 2.5,
     },
   },
 };
@@ -157,8 +157,8 @@ const SlideImage = ({
 }: {
   work: (typeof works)[0];
   direction: number;
-  moveX: MotionValue<string | number>;
-  moveY: MotionValue<string | number>;
+  moveX: MotionValue<string>;
+  moveY: MotionValue<string>;
 }) => {
   const isPresent = useIsPresent();
 
@@ -174,8 +174,8 @@ const SlideImage = ({
       <motion.div custom={direction} variants={innerImageVariants} className="absolute inset-0">
         <motion.div
           style={{
-            x: isPresent ? moveX : 0,
-            y: isPresent ? moveY : 0,
+            x: moveX,
+            y: moveY,
           }}
           className="absolute inset-0 -top-[2.5%] -left-[2.5%] h-[105%] w-[105%]"
         >
