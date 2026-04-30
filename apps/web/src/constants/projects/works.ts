@@ -1,13 +1,4 @@
-export interface WorkItem {
-  id: number;
-  title1: string;
-  title2: string;
-  description: string;
-  image: string;
-  number: string;
-  cta: string;
-  iconId: string;
-}
+import { WorkItem } from "@types";
 
 export const works: WorkItem[] = [
   {

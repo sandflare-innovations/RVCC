@@ -1,10 +1,4 @@
-export interface MajorProjectItem {
-  id: string;
-  title: string;
-  location: string;
-  image: string;
-  description: string;
-}
+import { MajorProjectItem } from "@types";
 
 export const MAJOR_PROJECTS: MajorProjectItem[] = [
   {

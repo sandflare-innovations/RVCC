@@ -1,3 +1,5 @@
+import { AboutStat } from "@types";
+
 export const ABOUT_WORDS = [
   "RVCC",
   "IS",
@@ -38,7 +40,7 @@ export const ABOUT_WORDS = [
   "[img3]",
 ];
 
-export const ABOUT_STATS = [
+export const ABOUT_STATS: AboutStat[] = [
   { value: 2006, label: "YEAR FOUNDED", suffix: "" },
   { value: 100, label: "COMPLETED PROJECTS", suffix: "+" },
   { value: 30, label: "ONGOING PROJECTS", suffix: "+" },

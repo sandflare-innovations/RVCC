@@ -1,4 +1,6 @@
-export const FOUNDER_DATA = {
+import { FounderData } from "@types";
+
+export const FOUNDER_DATA: FounderData = {
   name: "Dr. Sooraj N K",
   role: "Founder & CEO",
   image: "/images/team/founder.png",

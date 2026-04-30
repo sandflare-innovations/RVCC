@@ -1,12 +1,4 @@
-export interface RecentProjectItem {
-  title: string;
-  location: string;
-  year: string;
-  category: string;
-  type: string;
-  description: string;
-  image: string;
-}
+import { RecentProjectItem } from "@types";
 
 export const RECENT_PROJECTS: RecentProjectItem[] = [
   {

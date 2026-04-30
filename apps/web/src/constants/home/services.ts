@@ -1,9 +1,4 @@
-export interface ServiceItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  image: string;
-}
+import { ServiceItem } from "@types";
 
 export const SERVICES_DATA: ServiceItem[] = [
   {

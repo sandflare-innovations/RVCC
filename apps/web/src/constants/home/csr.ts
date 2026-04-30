@@ -1,13 +1,4 @@
-export interface Certificate {
-  name: string;
-  code: string;
-}
-
-export interface SisterCompany {
-  name: string;
-  img: string;
-  description?: string;
-}
+import { Certificate, SisterCompany } from "@types";
 
 export const certificates: Certificate[] = [
   { name: "ISO 9001", code: "ISO-9001-2015" },
