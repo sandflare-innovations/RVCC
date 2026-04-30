@@ -4,7 +4,15 @@ import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
 
-import { animate, motion, useInView, useMotionValue, useTransform } from "framer-motion";
+import {
+  MotionValue,
+  animate,
+  motion,
+  useInView,
+  useMotionValue,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 import { FaArrowRight, FaFileLines, FaPause, FaPlay } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/Button";
@@ -79,7 +87,7 @@ const Counter = ({
     if (inView) {
       animate(count, to, {
         duration: 2.5,
-        ease: [0.16, 1, 0.3, 1], // Smooth cubic-bezier easeOut
+        ease: [0.16, 1, 0.3, 1],
       });
     }
   }, [inView, count, to]);
@@ -91,8 +99,26 @@ const Counter = ({
   );
 };
 
-const Word = ({ children }: { children: React.ReactNode }) => {
-  return <span className="text-brand-blue mr-3 mb-3 inline-block">{children}</span>;
+const Word = ({
+  children,
+  progress,
+  range,
+}: {
+  children: React.ReactNode;
+  progress: MotionValue<number>;
+  range: [number, number];
+}) => {
+  const opacity = useTransform(progress, range, [0.3, 1]);
+  const color = useTransform(progress, range, ["#000000", "#0073bc"]);
+
+  return (
+    <motion.span
+      style={{ opacity, color }}
+      className="mr-3 mb-3 inline-block cursor-default font-normal transition-colors duration-100"
+    >
+      {children}
+    </motion.span>
+  );
 };
 
 const InlineImage = ({ src }: { src: string }) => {
@@ -133,6 +159,11 @@ export const AboutUs = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
 
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start 80%", "end 50%"],
+  });
+
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -151,7 +182,6 @@ export const AboutUs = () => {
   return (
     <section className="bg-background relative z-10 mx-auto max-w-7xl py-20" id="about">
       <div className="container">
-        {/* Header */}
         <div className="my-10 flex flex-col items-center text-center">
           <h2 className="text-brand-blue font-primary mb-10 text-[8rem] leading-[0.8] font-normal tracking-tighter uppercase">
             about
@@ -167,11 +197,13 @@ export const AboutUs = () => {
           </div>
         </div>
 
-        {/* Scroll Reveal Text & Image */}
         <div className="flex flex-col items-center">
           <div ref={containerRef} className="relative mb-20 max-w-5xl flex-[1.5]">
-            <h3 className="font-primary flex flex-wrap justify-center text-center text-xl leading-relaxed font-medium tracking-tight md:text-2xl">
+            <h3 className="font-primary flex flex-wrap justify-center text-center text-xl leading-relaxed font-medium tracking-tight md:text-3xl">
               {WORDS.map((word, i) => {
+                const start = i / WORDS.length;
+                const end = start + 1 / WORDS.length;
+
                 if (word.startsWith("[img")) {
                   const imgIndex = word === "[img1]" ? 0 : word === "[img2]" ? 1 : 2;
                   const images = [
@@ -179,17 +211,19 @@ export const AboutUs = () => {
                     "/images/projects/major-center.png",
                     "/images/projects/major-right.png",
                   ];
-
                   return <InlineImage key={i} src={images[imgIndex]} />;
                 }
 
-                return <Word key={i}>{word}</Word>;
+                return (
+                  <Word key={i} progress={scrollYProgress} range={[start, end]}>
+                    {word}
+                  </Word>
+                );
               })}
             </h3>
           </div>
 
           <div className="grid w-full grid-cols-1 items-stretch gap-10 lg:grid-cols-12">
-            {/* Video Frame */}
             <div className="group relative aspect-[21/9] w-full overflow-hidden rounded-none bg-gray-100 lg:col-span-9">
               <video
                 ref={videoRef}
@@ -200,8 +234,6 @@ export const AboutUs = () => {
                 preload="metadata"
                 onClick={togglePlay}
               />
-
-              {/* Play/Pause Button Overlay */}
               <div
                 className={cn(
                   "pointer-events-none absolute inset-0 flex items-center justify-center bg-black/10 transition-opacity duration-500",
@@ -224,9 +256,7 @@ export const AboutUs = () => {
               </div>
             </div>
 
-            {/* Right Side CTAs */}
             <div className="flex flex-col gap-6 lg:col-span-3">
-              {/* About Page CTA */}
               <div className="bg-brand-blue/5 border-brand-blue/20 hover:bg-brand-blue/10 flex flex-1 flex-col justify-between rounded-none border p-6 transition-all">
                 <div>
                   <h4 className="font-primary text-brand-blue mb-3 text-xl font-bold tracking-tighter uppercase">
@@ -244,7 +274,6 @@ export const AboutUs = () => {
                 </Button>
               </div>
 
-              {/* Company Profile CTA */}
               <div className="flex flex-1 flex-col justify-between rounded-none border border-zinc-200 bg-zinc-50 p-6 transition-all hover:bg-zinc-100">
                 <div>
                   <h4 className="font-primary mb-3 text-xl font-bold tracking-tighter text-zinc-800 uppercase">
@@ -274,7 +303,6 @@ export const AboutUs = () => {
           </div>
         </div>
 
-        {/* Simple & Premium Stats Section */}
         <div className="mt-20 border-t border-zinc-100 pt-32">
           <div className="grid grid-cols-2 gap-x-12 gap-y-20 md:grid-cols-4">
             {STATS.slice(1).map((stat, idx) => (
@@ -297,28 +325,19 @@ export const AboutUs = () => {
           </div>
         </div>
       </div>
-
       <ClientMarquee />
     </section>
   );
 };
 
 const ClientMarquee = () => {
-  // Use a doubled array to create the infinite effect
   const logos = [...CLIENT_IMAGES, ...CLIENT_IMAGES];
-
   return (
     <div className="w-full overflow-hidden pt-20">
       <motion.div
         className="flex w-max items-center gap-16 px-8"
-        animate={{
-          x: ["0%", "-50%"],
-        }}
-        transition={{
-          duration: 60,
-          ease: "linear",
-          repeat: Infinity,
-        }}
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{ duration: 60, ease: "linear", repeat: Infinity }}
       >
         {logos.map((src, i) => (
           <div
@@ -327,7 +346,7 @@ const ClientMarquee = () => {
           >
             <Image
               src={src}
-              alt={`Client logo`}
+              alt="Client logo"
               fill
               className="object-contain"
               sizes="(max-width: 768px) 100px, 200px"

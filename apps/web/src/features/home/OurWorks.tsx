@@ -9,7 +9,6 @@ import {
   MotionValue,
   Variants,
   motion,
-  useIsPresent,
   useMotionValue,
   useScroll,
   useSpring,
@@ -79,26 +78,25 @@ const works = [
 const imageVariants: Variants = {
   enter: (direction: number) => ({
     x: direction > 0 ? "100%" : "-100%",
-    zIndex: 20,
+    zIndex: 2,
     opacity: 1,
   }),
   center: {
     x: "0%",
-    zIndex: 20,
+    zIndex: 2,
     opacity: 1,
     transition: {
       type: "tween",
-      duration: 2.2,
-      ease: [0.22, 1, 0.36, 1],
+      duration: 1.2,
+      ease: [0.4, 0, 0.2, 1],
     },
   },
   exit: {
     x: "0%",
-    zIndex: 10,
+    zIndex: 1,
     opacity: 1,
     transition: {
-      type: "tween",
-      duration: 2.5,
+      duration: 1.2,
     },
   },
 };
@@ -111,42 +109,27 @@ const innerImageVariants: Variants = {
     x: "0%",
     transition: {
       type: "tween",
-      duration: 2.2,
-      ease: [0.22, 1, 0.36, 1],
+      duration: 1.2,
+      ease: [0.4, 0, 0.2, 1],
     },
   },
   exit: {
     x: "0%",
     transition: {
-      type: "tween",
-      duration: 2.5,
+      duration: 1.2,
     },
   },
 };
 
 const contentVariants: Variants = {
-  initial: {
-    clipPath: "inset(100% 0 0 0)",
-    opacity: 0,
-    y: 40,
-  },
+  initial: { clipPath: "inset(100% 0 0 0)", opacity: 0, y: 40 },
   animate: {
     clipPath: "inset(0 0 0 0)",
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 1.2,
-      delay: 0.8,
-      ease: [0.22, 1, 0.36, 1],
-    },
+    transition: { duration: 1.2, delay: 0.8, ease: [0.22, 1, 0.36, 1] },
   },
-  exit: {
-    opacity: 0,
-    y: -20,
-    transition: {
-      duration: 0.4,
-    },
-  },
+  exit: { opacity: 0, y: -20, transition: { duration: 0.4 } },
 };
 
 const SlideImage = ({
@@ -160,8 +143,6 @@ const SlideImage = ({
   moveX: MotionValue<string>;
   moveY: MotionValue<string>;
 }) => {
-  const isPresent = useIsPresent();
-
   return (
     <motion.div
       custom={direction}
@@ -173,13 +154,9 @@ const SlideImage = ({
     >
       <motion.div custom={direction} variants={innerImageVariants} className="absolute inset-0">
         <motion.div
-          style={{
-            x: moveX,
-            y: moveY,
-          }}
+          style={{ x: moveX, y: moveY }}
           className="absolute inset-0 -top-[2.5%] -left-[2.5%] h-[105%] w-[105%]"
         >
-          <div className="absolute inset-0 z-10 bg-black/50" />
           <Image
             src={work.image}
             alt={work.title1}
@@ -188,6 +165,7 @@ const SlideImage = ({
             priority
             sizes="100vw"
           />
+          <div className="absolute inset-0 bg-black/50" />
         </motion.div>
       </motion.div>
     </motion.div>
@@ -198,21 +176,17 @@ export const OurWorks = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [[index, direction], setPage] = useState([0, 0]);
 
-  // Auto-play functionality
   useEffect(() => {
     const timer = setInterval(() => {
       setPage([(index + 1) % works.length, 1]);
-    }, 8000); // 8 seconds cycle
+    }, 8000);
     return () => clearInterval(timer);
   }, [index]);
 
-  // Mouse Parallax Logic
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
-
   const smoothMouseX = useSpring(mouseX, { stiffness: 50, damping: 20 });
   const smoothMouseY = useSpring(mouseY, { stiffness: 50, damping: 20 });
-
   const moveX = useTransform(smoothMouseX, [0, 1], ["-2%", "2%"]);
   const moveY = useTransform(smoothMouseY, [0, 1], ["-2%", "2%"]);
 
@@ -229,9 +203,7 @@ export const OurWorks = () => {
     target: containerRef,
     offset: ["start end", "start start"],
   });
-
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
-
   const containerWidth = useTransform(smoothProgress, [0, 0.8], ["70%", "100%"]);
   const radius = useTransform(smoothProgress, [0, 0.8], ["40px", "0px"]);
 
@@ -244,15 +216,11 @@ export const OurWorks = () => {
         id="works"
         ref={containerRef}
         onMouseMove={handleMouseMove}
-        style={{
-          width: containerWidth,
-          borderRadius: radius,
-        }}
+        style={{ width: containerWidth, borderRadius: radius }}
         className="relative z-20 mx-auto flex h-screen min-h-[700px] flex-col items-center overflow-hidden bg-black"
       >
-        {/* Full Screen Background Image Slider with Parallax */}
         <div className="absolute inset-0 z-0">
-          <AnimatePresence initial={true} custom={direction}>
+          <AnimatePresence initial={false} custom={direction}>
             <SlideImage
               key={works[index].id}
               work={works[index]}
@@ -262,10 +230,7 @@ export const OurWorks = () => {
             />
           </AnimatePresence>
         </div>
-
-        {/* Content Overlay */}
         <div className="relative z-20 flex h-full w-full flex-col justify-between p-8 md:p-16 lg:p-24">
-          {/* Header Area */}
           <div className="flex w-full items-start justify-between">
             <div className="flex flex-col">
               <span className="mb-2 text-xs font-bold tracking-[0.4em] text-white/60 uppercase">
@@ -275,7 +240,6 @@ export const OurWorks = () => {
                 Our Works
               </h2>
             </div>
-
             <div className="hidden max-w-xs md:block">
               <p className="text-sm leading-relaxed font-light text-white/60">
                 Building the future with sustainable engineering and unparalleled craftsmanship
@@ -283,11 +247,9 @@ export const OurWorks = () => {
               </p>
             </div>
           </div>
-
-          {/* Center Content: Project Title & Big Number */}
           <div className="flex flex-col items-start md:flex-row md:items-end md:gap-12">
             <div className="relative flex flex-col">
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 <motion.div
                   key={works[index].id}
                   variants={contentVariants}
@@ -303,11 +265,9 @@ export const OurWorks = () => {
               </AnimatePresence>
             </div>
           </div>
-
-          {/* Bottom Area: Description, CTA and Nav */}
           <div className="flex flex-col items-end justify-between gap-8 md:flex-row md:items-center">
             <div className="max-w-md">
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 <motion.div
                   key={works[index].id}
                   variants={contentVariants}
@@ -330,8 +290,6 @@ export const OurWorks = () => {
                 </motion.div>
               </AnimatePresence>
             </div>
-
-            {/* Premium Navigation Controls */}
             <div className="flex items-center gap-6">
               <div className="flex flex-col items-end">
                 <span className="text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase">
@@ -345,7 +303,6 @@ export const OurWorks = () => {
                   />
                 </div>
               </div>
-
               <div className="flex gap-3">
                 <button
                   onClick={prev}
