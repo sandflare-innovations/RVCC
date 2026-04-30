@@ -4,16 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
 
-import {
-  MotionValue,
-  animate,
-  motion,
-  useInView,
-  useMotionValue,
-  useScroll,
-  useTransform,
-} from "framer-motion";
-import { useTheme } from "next-themes";
+import { animate, motion, useInView, useMotionValue, useTransform } from "framer-motion";
 import { FaArrowRight, FaFileLines, FaPause, FaPlay } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/Button";
@@ -100,59 +91,47 @@ const Counter = ({
   );
 };
 
-const Word = ({
-  children,
-  progress,
-  range,
-  inactiveColor,
-}: {
-  children: React.ReactNode;
-  progress: MotionValue<number>;
-  range: [number, number];
-  inactiveColor: string;
-}) => {
-  const color = useTransform(progress, range, [inactiveColor, "#0073bc"]);
-
-  return (
-    <motion.span style={{ color }} className="mr-3 mb-3 inline-block">
-      {children}
-    </motion.span>
-  );
+const Word = ({ children }: { children: React.ReactNode }) => {
+  return <span className="text-brand-blue mr-3 mb-3 inline-block">{children}</span>;
 };
 
-const InlineImage = ({
-  src,
-  progress,
-  range,
-}: {
-  src: string;
-  progress: MotionValue<number>;
-  range: [number, number];
-}) => {
-  const opacity = useTransform(progress, range, [0, 1]);
-  const scale = useTransform(progress, range, [0.8, 1]);
-
+const InlineImage = ({ src }: { src: string }) => {
   return (
-    <motion.span
-      style={{ opacity, scale }}
-      className="relative top-2 mx-3 mb-3 inline-block h-12 w-24 overflow-hidden rounded-none md:h-10 md:w-32"
-    >
-      <Image src={src} alt="Detail" fill className="object-cover" sizes="200px" />
-    </motion.span>
+    <span className="relative top-2 mx-3 mb-3 inline-block h-12 w-24 md:h-10 md:w-32">
+      <motion.span
+        className="absolute inset-0 z-10 block cursor-pointer overflow-hidden rounded-sm"
+        initial={{ opacity: 1, scale: 1 }}
+        whileHover={{
+          scale: 2.2,
+          zIndex: 50,
+          boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3)",
+        }}
+        transition={{ type: "spring", stiffness: 250, damping: 25 }}
+      >
+        <motion.div
+          className="h-full w-full"
+          initial={{ scale: 1.2 }}
+          whileHover={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 250, damping: 25 }}
+        >
+          <Image
+            src={src}
+            alt="Detail"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 300px, 600px"
+          />
+        </motion.div>
+      </motion.span>
+    </span>
   );
 };
 
 export const AboutUs = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -168,13 +147,6 @@ export const AboutUs = () => {
       setIsPlaying(!isPlaying);
     }
   };
-
-  const inactiveColor = mounted && resolvedTheme === "dark" ? "#ffffff" : "#000000";
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start 70%", "end 70%"],
-  });
 
   return (
     <section className="bg-background relative z-10 mx-auto max-w-7xl py-20" id="about">
@@ -200,9 +172,6 @@ export const AboutUs = () => {
           <div ref={containerRef} className="relative mb-20 max-w-5xl flex-[1.5]">
             <h3 className="font-primary flex flex-wrap justify-center text-center text-xl leading-relaxed font-medium tracking-tight md:text-2xl">
               {WORDS.map((word, i) => {
-                const start = i / WORDS.length;
-                const end = start + 1 / WORDS.length;
-
                 if (word.startsWith("[img")) {
                   const imgIndex = word === "[img1]" ? 0 : word === "[img2]" ? 1 : 2;
                   const images = [
@@ -211,35 +180,10 @@ export const AboutUs = () => {
                     "/images/projects/major-right.png",
                   ];
 
-                  // Find the next image index or end of text
-                  let nextImgStart = 1;
-                  for (let j = i + 1; j < WORDS.length; j++) {
-                    if (WORDS[j].startsWith("[img")) {
-                      nextImgStart = j / WORDS.length;
-                      break;
-                    }
-                  }
-
-                  return (
-                    <InlineImage
-                      key={i}
-                      progress={scrollYProgress}
-                      range={[start, nextImgStart]}
-                      src={images[imgIndex]}
-                    />
-                  );
+                  return <InlineImage key={i} src={images[imgIndex]} />;
                 }
 
-                return (
-                  <Word
-                    key={i}
-                    progress={scrollYProgress}
-                    range={[start, end]}
-                    inactiveColor={inactiveColor}
-                  >
-                    {word}
-                  </Word>
-                );
+                return <Word key={i}>{word}</Word>;
               })}
             </h3>
           </div>
