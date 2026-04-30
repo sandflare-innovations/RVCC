@@ -78,12 +78,12 @@ const works = [
 const imageVariants: Variants = {
   enter: (direction: number) => ({
     x: direction > 0 ? "100%" : "-100%",
-    zIndex: 2,
+    zIndex: 10,
     opacity: 1,
   }),
   center: {
     x: "0%",
-    zIndex: 2,
+    zIndex: 10,
     opacity: 1,
     transition: {
       type: "tween",
@@ -93,10 +93,10 @@ const imageVariants: Variants = {
   },
   exit: {
     x: "0%",
-    zIndex: 1,
+    zIndex: 0,
     opacity: 1,
     transition: {
-      duration: 1.2,
+      duration: 1.5,
     },
   },
 };
@@ -116,7 +116,7 @@ const innerImageVariants: Variants = {
   exit: {
     x: "0%",
     transition: {
-      duration: 1.2,
+      duration: 1.5,
     },
   },
 };
@@ -220,7 +220,7 @@ export const OurWorks = () => {
         className="relative z-20 mx-auto flex h-screen min-h-[700px] flex-col items-center overflow-hidden bg-black"
       >
         <div className="absolute inset-0 z-0">
-          <AnimatePresence initial={false} custom={direction}>
+          <AnimatePresence custom={direction}>
             <SlideImage
               key={works[index].id}
               work={works[index]}
