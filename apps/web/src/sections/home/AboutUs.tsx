@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
 
+import { CLIENT_IMAGES, ABOUT_STATS as STATS, ABOUT_WORDS as WORDS } from "@constants/home/about";
 import {
   MotionValue,
   animate,
@@ -18,56 +19,6 @@ import { FaArrowRight, FaFileLines, FaPause, FaPlay } from "react-icons/fa6";
 import { Button } from "@/components/ui/Button";
 
 import { cn } from "@lib/utils";
-
-const WORDS = [
-  "RVCC",
-  "IS",
-  "[img1]",
-  "DEDICATED",
-  "TO",
-  "EXCELLENCE",
-  "THROUGH",
-  "INTEGRITY",
-  "AND",
-  "ETHICAL",
-  "CONDUCT.",
-  "WE",
-  "CREATE",
-  "STATE-OF-THE-ART",
-  "LANDMARK",
-  "BUILDINGS",
-  "AND",
-  "SUSTAINABLE",
-  "INFRASTRUCTURE,",
-  "DELIVERING",
-  "INTEGRATED",
-  "SERVICES",
-  "FROM",
-  "DESIGN",
-  "TO",
-  "CONSTRUCTION.",
-  "[img2]",
-  "OUR",
-  "TAILORED",
-  "APPROACH",
-  "PRIORITIZES",
-  "LIFE-CYCLE",
-  "PERFORMANCE",
-  "AND",
-  "MAINTENANCE-FREE",
-  "SOLUTIONS.",
-  "[img3]",
-];
-
-const STATS = [
-  { value: 2006, label: "YEAR FOUNDED", suffix: "" },
-  { value: 100, label: "COMPLETED PROJECTS", suffix: "+" },
-  { value: 30, label: "ONGOING PROJECTS", suffix: "+" },
-  { value: 15, label: "GOVERNMENT PROJECTS", suffix: "+" },
-  { value: 100, label: "SATISFIED CLIENTS", suffix: "%" },
-];
-
-const CLIENT_IMAGES = Array.from({ length: 18 }, (_, i) => `/images/clients/${i + 1}.png`);
 
 const Counter = ({
   from = 0,

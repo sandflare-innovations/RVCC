@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 
+import { FOUNDER_DATA, LEADER_MESSAGE } from "@constants/home/leaders";
 import { motion } from "framer-motion";
 
 export const Leaders = () => {
@@ -18,17 +19,19 @@ export const Leaders = () => {
               className="relative aspect-[4/4] w-full overflow-hidden transition-all duration-700"
             >
               <Image
-                src="/images/team/founder.png" // Placeholder for Founder
-                alt="Founder"
+                src={FOUNDER_DATA.image}
+                alt={FOUNDER_DATA.name}
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 33vw"
               />
             </motion.div>
             <div className="mt-8">
-              <h3 className="text-brand-blue text-5xl tracking-tight uppercase">Dr. Sooraj N K</h3>
+              <h3 className="text-brand-blue text-5xl tracking-tight uppercase">
+                {FOUNDER_DATA.name}
+              </h3>
               <p className="text-brand-blue/50 mt-2 text-sm font-medium tracking-[0.2em] uppercase">
-                Founder & CEO
+                {FOUNDER_DATA.role}
               </p>
             </div>
           </div>
@@ -46,18 +49,11 @@ export const Leaders = () => {
               </div>
 
               <div className="grid grid-cols-1 gap-12">
-                <div className="text-brand-blue/80 text-lg leading-relaxed font-medium">
-                  Reckoned as a fast-growing construction company in the Kingdom of Saudi Arabia,
-                  since inception in 2006, RVCC has always been a key contributor to Kingdom’s
-                  construction sector. It proudly associates itself with prestigious and landmark
-                  projects in the Kingdom.{" "}
-                </div>
-                <div className="text-brand-blue/80 text-lg leading-relaxed font-medium">
-                  We are committed to having a good partnership, transparency, and reliability with
-                  our clients and vendors. Our clients are aware that we have the skills, resources
-                  and expertise, and most importantly, the ability to provide specialist services
-                  related to all activities within the....{" "}
-                </div>
+                {LEADER_MESSAGE.map((paragraph, i) => (
+                  <div key={i} className="text-brand-blue/80 text-lg leading-relaxed font-medium">
+                    {paragraph}
+                  </div>
+                ))}
               </div>
             </motion.div>
           </div>

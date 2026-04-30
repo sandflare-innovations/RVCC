@@ -4,36 +4,10 @@ import { useRef } from "react";
 
 import Image from "next/image";
 
+import { MAJOR_PROJECTS as PROJECTS } from "@constants/projects/major";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 
 import { Button } from "@/components/ui/Button";
-
-const PROJECTS = [
-  {
-    id: "01",
-    title: "KAFD Iconic Tower",
-    location: "RIYADH, KSA",
-    image: "/images/projects/major-center.png",
-    description:
-      "Setting new benchmarks for luxury and sustainability in commercial architecture within the financial district.",
-  },
-  {
-    id: "02",
-    title: "The Heritage Residences",
-    location: "RIYADH, KSA",
-    image: "/images/projects/major-left.png",
-    description:
-      "Ultra-luxury residential complex featuring traditional Najdi architectural elements with modern engineering.",
-  },
-  {
-    id: "03",
-    title: "The Prism Commercial Hub",
-    location: "JEDDAH, KSA",
-    image: "/images/projects/major-right.png",
-    description:
-      "A pinnacle of modern geometric design, redefining corporate environments in the Red Sea region.",
-  },
-];
 
 export const MajorProject = () => {
   const containerRef = useRef<HTMLDivElement>(null);

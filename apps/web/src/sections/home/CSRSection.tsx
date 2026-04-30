@@ -4,47 +4,10 @@ import React from "react";
 
 import Image from "next/image";
 
+import { type Certificate, certificates, concernLogos, sisterCompanies } from "@constants/home/csr";
 import { Variants, motion } from "framer-motion";
 
 import { Button } from "@/components/ui/Button";
-
-interface Certificate {
-  name: string;
-  code: string;
-}
-
-const CSRMask = () => (
-  <svg width="0" height="0" className="absolute">
-    <defs>
-      <clipPath id="csr-mask" clipPathUnits="objectBoundingBox">
-        <path
-          d="
-            M 0 0 
-            L 0.15 0 
-            C 0.2 0, 0.22 0.03, 0.28 0.03 
-            L 0.72 0.03 
-            C 0.78 0.03, 0.8 0, 0.85 0 
-            L 1 0 
-            L 1 1 
-            L 0.85 1 
-            C 0.8 1, 0.78 0.97, 0.72 0.97 
-            L 0.28 0.97 
-            C 0.22 0.97, 0.2 1, 0.15 1 
-            L 0 1 
-            Z
-          "
-        />
-      </clipPath>
-    </defs>
-  </svg>
-);
-
-const certificates = [
-  { name: "ISO 9001", code: "ISO-9001-2015" },
-  { name: "ISO 14001", code: "ISO-14001-2015" },
-  { name: "OHSAS 18001", code: "OHSAS-18001-2007" },
-  { name: "ISO 45001", code: "ISO-45001-2018" },
-];
 
 const CertificateCard = ({
   cert,
@@ -91,8 +54,6 @@ const CertificateCard = ({
 };
 
 const LogoTicker = () => {
-  const logos = Array.from({ length: 7 }, (_, i) => `/images/concern-companies/logos/${i + 1}.png`);
-
   return (
     <div className="relative w-full overflow-hidden">
       <div className="from-background pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r to-transparent md:w-64" />
@@ -109,7 +70,7 @@ const LogoTicker = () => {
         }}
         className="flex w-max items-center gap-10"
       >
-        {[...logos, ...logos].map((logo, index) => (
+        {[...concernLogos, ...concernLogos].map((logo, index) => (
           <div
             key={index}
             className="group relative h-24 w-60 flex-shrink-0 opacity-60 grayscale transition-all duration-700 hover:opacity-100 hover:grayscale-0"
@@ -306,20 +267,7 @@ export const CSRSection = () => {
           <LogoTicker />
 
           <div className="flex flex-col items-center justify-center gap-4 md:flex-row">
-            {[
-              {
-                name: "Paanayil Heavy",
-                img: "/images/concern-companies/paanayil-heavy.png",
-              },
-              {
-                name: "Paanayil Builder",
-                img: "/images/concern-companies/panayil-builder.png",
-              },
-              {
-                name: "South Pacific General",
-                img: "/images/concern-companies/south-pacific-general.png",
-              },
-            ].map((company, index) => (
+            {sisterCompanies.map((company, index) => (
               <motion.div
                 key={index}
                 variants={itemVariants}
