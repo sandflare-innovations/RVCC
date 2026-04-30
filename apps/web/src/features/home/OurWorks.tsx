@@ -122,7 +122,7 @@ const innerImageVariants: Variants = {
 };
 
 const contentVariants: Variants = {
-  initial: { clipPath: "inset(0 0 100% 0)", opacity: 0, y: -40 },
+  initial: { clipPath: "inset(0 0 100% 0)", opacity: 0, y: 40 },
   animate: {
     clipPath: "inset(0 0 0% 0)",
     opacity: 1,
