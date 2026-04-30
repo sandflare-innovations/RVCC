@@ -281,6 +281,7 @@ export const AboutUs = () => {
                 <Button
                   variant="outline"
                   href="/pdf/RVCC COPMANY PROFILE SIGNATURE PROJECT.pdf"
+                  download="RVCC_Company_Profile.pdf"
                   borderColor="border-black"
                   textColor="text-black"
                   hoverFillColor="bg-black"

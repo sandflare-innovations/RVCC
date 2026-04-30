@@ -19,6 +19,7 @@ interface ButtonProps {
   bgColor?: string;
   hoverFillColor?: string;
   hoverTextColor?: string;
+  download?: string | boolean;
 }
 
 export const Button = ({
@@ -33,6 +34,7 @@ export const Button = ({
   bgColor,
   hoverFillColor,
   hoverTextColor,
+  download,
 }: ButtonProps) => {
   const isLink = !!href;
   const Tag = isLink ? motion.a : motion.button;
@@ -101,6 +103,7 @@ export const Button = ({
         bgColor || currentStyles.bg,
         className
       )}
+      download={download}
     >
       {/* Label */}
       <span
