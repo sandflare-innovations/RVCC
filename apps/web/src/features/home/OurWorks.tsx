@@ -25,7 +25,7 @@ const works = [
     title2: "Construction",
     description:
       "RVCC is unconditionally dedicated to achieving excellence in the marketplace by understanding and exceeding customer expectations through integrity, commitment and ethical conduct.",
-    image: "/images/projects/major-left.png",
+    image: "/images/projects/qiddiya.png",
     number: "01",
     cta: "View project",
     iconId: "civil",
@@ -36,7 +36,7 @@ const works = [
     title2: "Landscaping",
     description:
       "RVCC Landscaping has been giving life to public and private outdoor spaces by providing landscaping architecture, construction, and maintenance services.",
-    image: "/images/projects/major-center.png",
+    image: "/images/projects/neom.png",
     number: "02",
     cta: "View project",
     iconId: "landscaping",
@@ -47,7 +47,7 @@ const works = [
     title2: "Earth Works",
     description:
       "RVCC undertakes different types of earth works. In the petroleum industry, RVCC works with ARAMCO in sand removal services and access-related operations.",
-    image: "/images/projects/major-right.png",
+    image: "/images/projects/diriyah.png",
     number: "03",
     cta: "View project",
     iconId: "earthworks",
