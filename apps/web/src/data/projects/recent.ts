@@ -9,7 +9,7 @@ export const RECENT_PROJECTS: RecentProjectItem[] = [
     type: "SINGLE HOME",
     description:
       "A breathtaking architectural masterpiece redefining the city's horizon with unparalleled elegance and sustainable design.",
-    image: "/images/home-hero.png",
+    image: "/images/projects/4.png",
   },
   {
     title: "Bohemian Rhapsody",
@@ -19,7 +19,7 @@ export const RECENT_PROJECTS: RecentProjectItem[] = [
     type: "SINGLE HOME",
     description:
       "Artistic living spaces that blend avant-garde aesthetics with functional modernity for a unique urban experience.",
-    image: "/images/hero-bg.png",
+    image: "/images/projects/5.png",
   },
   {
     title: "Vintage Glamour",
@@ -29,7 +29,7 @@ export const RECENT_PROJECTS: RecentProjectItem[] = [
     type: "SINGLE HOME",
     description:
       "Timeless luxury meets contemporary comfort in this meticulously restored heritage estate.",
-    image: "/images/home-hero.png",
+    image: "/images/projects/6.png",
   },
   {
     title: "Modern Sanctuary",
@@ -39,7 +39,7 @@ export const RECENT_PROJECTS: RecentProjectItem[] = [
     type: "SINGLE HOME",
     description:
       "An oasis of calm featuring minimalist lines, natural light, and state-of-the-art smart home integration.",
-    image: "/images/hero-bg.png",
+    image: "/images/projects/7.png",
   },
   {
     title: "Urban Oasis",
@@ -49,7 +49,7 @@ export const RECENT_PROJECTS: RecentProjectItem[] = [
     type: "OFFICE",
     description:
       "Dynamic workspace designed to foster creativity and collaboration in the heart of the business district.",
-    image: "/images/home-hero.png",
+    image: "/images/projects/8.png",
   },
   {
     title: "Nordic Minimal",
@@ -59,6 +59,6 @@ export const RECENT_PROJECTS: RecentProjectItem[] = [
     type: "APARTMENT",
     description:
       "Sleek Scandinavian design focused on simplicity, functionality, and connection with nature.",
-    image: "/images/hero-bg.png",
+    image: "/images/projects/9.png",
   },
 ];

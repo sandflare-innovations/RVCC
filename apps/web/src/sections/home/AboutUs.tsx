@@ -158,9 +158,9 @@ export const AboutUs = () => {
                 if (word.startsWith("[img")) {
                   const imgIndex = word === "[img1]" ? 0 : word === "[img2]" ? 1 : 2;
                   const images = [
-                    "/images/projects/major-left.png",
-                    "/images/projects/major-center.png",
-                    "/images/projects/major-right.png",
+                    "/images/projects/2.png",
+                    "/images/projects/1.png",
+                    "/images/projects/3.png",
                   ];
                   return <InlineImage key={i} src={images[imgIndex]} />;
                 }

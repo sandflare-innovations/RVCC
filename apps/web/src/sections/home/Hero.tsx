@@ -17,21 +17,21 @@ const HERO_CONTENT = [
     title2: "Legacy",
     description:
       "Redefining the architectural landscape through precision engineering and visionary design. We build structures that define generations.",
-    img: "/images/projects/major-center.png",
+    img: "/images/projects/4.png",
   },
   {
     title1: "Shaping",
     title2: "Reality",
     description:
       "Turning ambitious concepts into solid architectural achievements with unparalleled technical expertise and innovative construction methods.",
-    img: "/images/projects/major-left.png",
+    img: "/images/projects/2.png",
   },
   {
     title1: "Beyond",
     title2: "Limits",
     description:
       "Creating iconic environments that inspire and endure. Our commitment to quality ensures every project becomes a landmark of excellence.",
-    img: "/images/projects/major-right.png",
+    img: "/images/projects/3.png",
   },
 ];
 
