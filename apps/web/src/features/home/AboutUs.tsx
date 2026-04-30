@@ -120,6 +120,28 @@ const Word = ({
   );
 };
 
+const InlineImage = ({
+  src,
+  progress,
+  range,
+}: {
+  src: string;
+  progress: MotionValue<number>;
+  range: [number, number];
+}) => {
+  const opacity = useTransform(progress, range, [0, 1]);
+  const scale = useTransform(progress, range, [0.8, 1]);
+
+  return (
+    <motion.span
+      style={{ opacity, scale }}
+      className="relative top-2 mx-3 mb-3 inline-block h-12 w-24 overflow-hidden rounded-none md:h-10 md:w-32"
+    >
+      <Image src={src} alt="Detail" fill className="object-cover" sizes="200px" />
+    </motion.span>
+  );
+};
+
 export const AboutUs = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { resolvedTheme } = useTheme();
@@ -182,19 +204,29 @@ export const AboutUs = () => {
                 const end = start + 1 / WORDS.length;
 
                 if (word.startsWith("[img")) {
+                  const imgIndex = word === "[img1]" ? 0 : word === "[img2]" ? 1 : 2;
+                  const images = [
+                    "/images/projects/major-left.png",
+                    "/images/projects/major-center.png",
+                    "/images/projects/major-right.png",
+                  ];
+
+                  // Find the next image index or end of text
+                  let nextImgStart = 1;
+                  for (let j = i + 1; j < WORDS.length; j++) {
+                    if (WORDS[j].startsWith("[img")) {
+                      nextImgStart = j / WORDS.length;
+                      break;
+                    }
+                  }
+
                   return (
-                    <span
+                    <InlineImage
                       key={i}
-                      className="relative top-2 mx-3 mb-3 inline-block h-12 w-24 overflow-hidden rounded-none md:h-10 md:w-32"
-                    >
-                      <Image
-                        src="/images/home-hero.png"
-                        alt="Detail"
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100px, 200px"
-                      />
-                    </span>
+                      progress={scrollYProgress}
+                      range={[start, nextImgStart]}
+                      src={images[imgIndex]}
+                    />
                   );
                 }
 
