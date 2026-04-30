@@ -259,7 +259,6 @@ export const OurWorks = () => {
               direction={direction}
               moveX={moveX}
               moveY={moveY}
-              isActive={true}
             />
           </AnimatePresence>
         </div>
