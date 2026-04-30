@@ -14,6 +14,9 @@ import {
   useTransform,
 } from "framer-motion";
 import { useTheme } from "next-themes";
+import { FaArrowRight, FaFileLines, FaPause, FaPlay } from "react-icons/fa6";
+
+import { Button } from "@/components/ui/Button";
 
 import { cn } from "@lib/utils";
 
@@ -116,10 +119,23 @@ export const AboutUs = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
 
   const inactiveColor = mounted && resolvedTheme === "dark" ? "#ffffff" : "#000000";
 
@@ -132,18 +148,16 @@ export const AboutUs = () => {
     <section className="bg-background relative z-10 mx-auto max-w-7xl py-30" id="about">
       <div className="container">
         {/* Header */}
-        <div className="flex items-end justify-between">
-          <div className="flex flex-col">
-            <h2 className="text-brand-blue font-primary text-[8rem] leading-[0.8] font-normal tracking-tighter uppercase">
-              about us
-            </h2>
-          </div>
+        <div className="mb-20 flex flex-col text-center">
+          <h2 className="text-brand-blue font-primary text-[8rem] leading-[0.8] font-normal tracking-tighter uppercase">
+            about us
+          </h2>
         </div>
 
         {/* Scroll Reveal Text & Image */}
-        <div className="flex flex-col items-center justify-between md:flex-row">
-          <div ref={containerRef} className="relative max-w-4xl flex-[1.5]">
-            <h3 className="font-primary flex flex-wrap justify-start text-left text-4xl leading-snug font-medium tracking-tight">
+        <div className="flex flex-col items-center">
+          <div ref={containerRef} className="relative mb-20 max-w-7xl flex-[1.5]">
+            <h3 className="font-primary flex flex-wrap justify-center text-center text-3xl leading-snug font-medium tracking-tight">
               {WORDS.map((word, i) => {
                 const start = i / WORDS.length;
                 const end = start + 1 / WORDS.length;
@@ -179,15 +193,85 @@ export const AboutUs = () => {
             </h3>
           </div>
 
-          <div className="flex w-full flex-1 justify-end">
-            <div className="relative aspect-[3.5/4] w-full max-w-md overflow-hidden rounded-none bg-gray-100">
-              <Image
-                src="/images/home-hero.png"
-                alt="About RVCC"
-                fill
-                className="object-cover transition-transform duration-700 hover:scale-105"
-                sizes="(max-width: 768px) 100vw, 50vw"
+          <div className="grid w-full grid-cols-1 items-stretch gap-10 lg:grid-cols-12">
+            {/* Video Frame */}
+            <div className="group relative aspect-[21/9] w-full overflow-hidden rounded-none bg-gray-100 lg:col-span-9">
+              <video
+                ref={videoRef}
+                src="/videos/about.mp4"
+                className="h-full w-full object-cover"
+                loop
+                playsInline
+                onClick={togglePlay}
               />
+
+              {/* Play/Pause Button Overlay */}
+              <div
+                className={cn(
+                  "pointer-events-none absolute inset-0 flex items-center justify-center bg-black/10 transition-opacity duration-500",
+                  isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+                )}
+              >
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePlay();
+                  }}
+                  className="pointer-events-auto flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-transparent text-white shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95"
+                >
+                  {isPlaying ? (
+                    <FaPause className="text-3xl" />
+                  ) : (
+                    <FaPlay className="ml-1 text-3xl" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Right Side CTAs */}
+            <div className="flex flex-col gap-6 lg:col-span-3">
+              {/* About Page CTA */}
+              <div className="bg-brand-blue/5 border-brand-blue/20 hover:bg-brand-blue/10 flex flex-1 flex-col justify-between rounded-none border p-6 transition-all">
+                <div>
+                  <h4 className="font-primary text-brand-blue mb-3 text-xl font-bold tracking-tighter uppercase">
+                    Our story
+                  </h4>
+                  <p className="text-brand-blue/70 text-[10px] leading-relaxed font-medium">
+                    Explore our legacy of architectural excellence and our commitment to shaping the
+                    future.
+                  </p>
+                </div>
+                <Button variant="brand-outline" href="/about" className="mt-6 h-12 w-full min-w-0">
+                  <span className="flex items-center gap-2">
+                    Read More <FaArrowRight size={12} />
+                  </span>
+                </Button>
+              </div>
+
+              {/* Company Profile CTA */}
+              <div className="flex flex-1 flex-col justify-between rounded-none border border-zinc-200 bg-zinc-50 p-6 transition-all hover:bg-zinc-100">
+                <div>
+                  <h4 className="font-primary mb-3 text-xl font-bold tracking-tighter text-zinc-800 uppercase">
+                    Profile
+                  </h4>
+                  <p className="text-[10px] leading-relaxed font-medium text-zinc-500">
+                    Download our comprehensive company profile to learn about our range of services.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  href="/company-profile.pdf"
+                  borderColor="border-black"
+                  textColor="text-black"
+                  hoverFillColor="bg-black"
+                  hoverTextColor="group-hover:text-white"
+                  className="mt-6 h-12 w-full min-w-0"
+                >
+                  <span className="flex items-center gap-2">
+                    Profile <FaFileLines size={12} />
+                  </span>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
