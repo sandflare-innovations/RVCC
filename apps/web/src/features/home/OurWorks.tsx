@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
 
 import {
   AnimatePresence,
+  MotionValue,
   Variants,
   motion,
+  useIsPresent,
   useMotionValue,
   useScroll,
   useSpring,
@@ -23,7 +25,7 @@ const works = [
     title2: "Construction",
     description:
       "RVCC is unconditionally dedicated to achieving excellence in the marketplace by understanding and exceeding customer expectations through integrity, commitment and ethical conduct.",
-    image: "/images/home-hero.png",
+    image: "/images/projects/major-left.png",
     number: "01",
     cta: "View project",
     iconId: "civil",
@@ -34,7 +36,7 @@ const works = [
     title2: "Landscaping",
     description:
       "RVCC Landscaping has been giving life to public and private outdoor spaces by providing landscaping architecture, construction, and maintenance services.",
-    image: "/images/home-hero.png",
+    image: "/images/projects/major-center.png",
     number: "02",
     cta: "View project",
     iconId: "landscaping",
@@ -45,7 +47,7 @@ const works = [
     title2: "Earth Works",
     description:
       "RVCC undertakes different types of earth works. In the petroleum industry, RVCC works with ARAMCO in sand removal services and access-related operations.",
-    image: "/images/home-hero.png",
+    image: "/images/projects/major-right.png",
     number: "03",
     cta: "View project",
     iconId: "earthworks",
@@ -67,7 +69,7 @@ const works = [
     title2: "Land Survey",
     description:
       "RVCC uses the latest technologies in survey and topography, including advanced global positioning systems (GPS) for accurate and efficient results.",
-    image: "/images/home-hero.png",
+    image: "/images/hero-bg.png",
     number: "05",
     cta: "View project",
     iconId: "survey",
@@ -77,35 +79,132 @@ const works = [
 const imageVariants: Variants = {
   enter: (direction: number) => ({
     x: direction > 0 ? "100%" : "-100%",
-    scale: 1.2,
+    zIndex: 20,
+    opacity: 1,
   }),
   center: {
-    x: 0,
-    scale: 1.1,
+    x: "0%",
+    zIndex: 20,
+    opacity: 1,
     transition: {
-      duration: 1.2,
+      type: "tween",
+      duration: 2.2,
       ease: [0.22, 1, 0.36, 1],
     },
   },
-  exit: (direction: number) => ({
-    x: direction > 0 ? "-20%" : "20%",
-    opacity: 0.5,
+  exit: {
+    x: "0%",
+    zIndex: 10,
+    opacity: 1,
     transition: {
-      duration: 1.2,
+      type: "tween",
+      duration: 2.2,
+    },
+  },
+};
+
+const innerImageVariants: Variants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? "-100%" : "100%",
+  }),
+  center: {
+    x: "0%",
+    transition: {
+      type: "tween",
+      duration: 2.2,
       ease: [0.22, 1, 0.36, 1],
     },
-  }),
+  },
+  exit: {
+    x: "0%",
+    transition: {
+      type: "tween",
+      duration: 2.2,
+    },
+  },
 };
 
 const contentVariants: Variants = {
-  initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
+  initial: {
+    clipPath: "inset(100% 0 0 0)",
+    opacity: 0,
+    y: 40,
+  },
+  animate: {
+    clipPath: "inset(0 0 0 0)",
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 1.2,
+      delay: 0.8,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -20,
+    transition: {
+      duration: 0.4,
+    },
+  },
+};
+
+const SlideImage = ({
+  work,
+  direction,
+  moveX,
+  moveY,
+}: {
+  work: (typeof works)[0];
+  direction: number;
+  moveX: MotionValue<string | number>;
+  moveY: MotionValue<string | number>;
+}) => {
+  const isPresent = useIsPresent();
+
+  return (
+    <motion.div
+      custom={direction}
+      variants={imageVariants}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      className="absolute inset-0 overflow-hidden"
+    >
+      <motion.div custom={direction} variants={innerImageVariants} className="absolute inset-0">
+        <motion.div
+          style={{
+            x: isPresent ? moveX : 0,
+            y: isPresent ? moveY : 0,
+          }}
+          className="absolute inset-0 -top-[2.5%] -left-[2.5%] h-[105%] w-[105%]"
+        >
+          <div className="absolute inset-0 z-10 bg-black/50" />
+          <Image
+            src={work.image}
+            alt={work.title1}
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  );
 };
 
 export const OurWorks = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [[index, direction], setPage] = useState([0, 0]);
+
+  // Auto-play functionality
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPage([(index + 1) % works.length, 1]);
+    }, 8000); // 8 seconds cycle
+    return () => clearInterval(timer);
+  }, [index]);
 
   // Mouse Parallax Logic
   const mouseX = useMotionValue(0.5);
@@ -153,31 +252,15 @@ export const OurWorks = () => {
       >
         {/* Full Screen Background Image Slider with Parallax */}
         <div className="absolute inset-0 z-0">
-          <AnimatePresence initial={false} custom={direction}>
-            <motion.div
-              key={index}
-              custom={direction}
-              variants={imageVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              style={{
-                x: moveX,
-                y: moveY,
-                scale: 1.1,
-              }}
-              className="absolute inset-0 -top-[5%] -left-[5%] h-[110%] w-[110%]"
-            >
-              <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/20 to-black/70" />
-              <Image
-                src={works[index].image}
-                alt={works[index].title1}
-                fill
-                className="object-cover"
-                priority
-                sizes="100vw"
-              />
-            </motion.div>
+          <AnimatePresence initial={true} custom={direction}>
+            <SlideImage
+              key={works[index].id}
+              work={works[index]}
+              direction={direction}
+              moveX={moveX}
+              moveY={moveY}
+              isActive={true}
+            />
           </AnimatePresence>
         </div>
 
@@ -205,14 +288,13 @@ export const OurWorks = () => {
           {/* Center Content: Project Title & Big Number */}
           <div className="flex flex-col items-start md:flex-row md:items-end md:gap-12">
             <div className="relative flex flex-col">
-              <AnimatePresence mode="wait">
+              <AnimatePresence>
                 <motion.div
-                  key={index}
+                  key={works[index].id}
                   variants={contentVariants}
                   initial="initial"
                   animate="animate"
                   exit="exit"
-                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <h3 className="font-heading text-5xl leading-[0.8] text-white md:text-7xl lg:text-9xl">
                     <span className="block opacity-60">{works[index].title1}</span>
@@ -221,33 +303,18 @@ export const OurWorks = () => {
                 </motion.div>
               </AnimatePresence>
             </div>
-
-            <div className="hidden md:block">
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={index}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 0.1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="font-heading pointer-events-none absolute right-24 bottom-12 text-[20rem] leading-none text-white"
-                >
-                  {works[index].number}
-                </motion.span>
-              </AnimatePresence>
-            </div>
           </div>
 
           {/* Bottom Area: Description, CTA and Nav */}
           <div className="flex flex-col items-end justify-between gap-8 md:flex-row md:items-center">
             <div className="max-w-md">
-              <AnimatePresence mode="wait">
+              <AnimatePresence>
                 <motion.div
-                  key={index}
+                  key={works[index].id}
                   variants={contentVariants}
                   initial="initial"
                   animate="animate"
                   exit="exit"
-                  transition={{ duration: 0.8, delay: 0.1 }}
                 >
                   <p className="mb-8 text-sm leading-relaxed font-light text-white/80 md:text-base">
                     {works[index].description}

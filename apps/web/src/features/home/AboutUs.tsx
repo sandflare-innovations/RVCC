@@ -23,6 +23,7 @@ import { cn } from "@lib/utils";
 const WORDS = [
   "RVCC",
   "IS",
+  "[img1]",
   "DEDICATED",
   "TO",
   "EXCELLENCE",
@@ -31,7 +32,6 @@ const WORDS = [
   "AND",
   "ETHICAL",
   "CONDUCT.",
-  "[img1]",
   "WE",
   "CREATE",
   "STATE-OF-THE-ART",
