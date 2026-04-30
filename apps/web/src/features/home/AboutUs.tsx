@@ -280,7 +280,7 @@ export const AboutUs = () => {
                 </div>
                 <Button
                   variant="outline"
-                  href="/company-profile.pdf"
+                  href="/pdf/RVCC COPMANY PROFILE SIGNATURE PROJECT.pdf"
                   borderColor="border-black"
                   textColor="text-black"
                   hoverFillColor="bg-black"
