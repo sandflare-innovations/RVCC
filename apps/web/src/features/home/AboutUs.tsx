@@ -126,6 +126,7 @@ export const AboutUs = () => {
   const [mounted, setMounted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -136,6 +137,10 @@ export const AboutUs = () => {
       if (isPlaying) {
         videoRef.current.pause();
       } else {
+        if (!hasStarted) {
+          videoRef.current.currentTime = 0;
+          setHasStarted(true);
+        }
         videoRef.current.play();
       }
       setIsPlaying(!isPlaying);
@@ -212,10 +217,11 @@ export const AboutUs = () => {
             <div className="group relative aspect-[21/9] w-full overflow-hidden rounded-none bg-gray-100 lg:col-span-9">
               <video
                 ref={videoRef}
-                src="/videos/about.mp4"
+                src="/videos/about.mp4#t=25"
                 className="h-full w-full object-cover"
                 loop
                 playsInline
+                preload="metadata"
                 onClick={togglePlay}
               />
 
