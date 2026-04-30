@@ -137,7 +137,7 @@ export const RecentProjects = () => {
   return (
     <section
       ref={sectionRef}
-      className="bg-background relative w-full overflow-hidden px-8 py-20 md:px-16 lg:px-24"
+      className="bg-background relative w-full overflow-hidden px-8 py-20 md:px-16 lg:px-24 lg:pt-40"
       id="projects"
     >
       <div className="mx-auto">
