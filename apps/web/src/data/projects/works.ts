@@ -1,4 +1,6 @@
-export type { WorkItem } from "@types";
+import { WorkItem } from "@types";
+
+export type { WorkItem };
 
 export const works: WorkItem[] = [
   {

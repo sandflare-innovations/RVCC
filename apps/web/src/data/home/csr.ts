@@ -1,5 +1,7 @@
 import { Certificate, SisterCompany } from "@types";
 
+export type { Certificate, SisterCompany };
+
 export const certificates: Certificate[] = [
   { name: "ISO 9001", code: "ISO-9001-2015" },
   { name: "ISO 14001", code: "ISO-14001-2015" },
