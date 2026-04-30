@@ -108,7 +108,7 @@ const Word = ({
   progress: MotionValue<number>;
   range: [number, number];
 }) => {
-  const opacity = useTransform(progress, range, [0.3, 1]);
+  const opacity = useTransform(progress, range, [1, 1]);
   const color = useTransform(progress, range, ["#000000", "#0073bc"]);
 
   return (
