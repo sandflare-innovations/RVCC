@@ -21,12 +21,12 @@ import { Button } from "@/components/ui/Button";
 const imageVariants: Variants = {
   enter: (direction: number) => ({
     clipPath: direction > 0 ? "inset(0 0 0 100%)" : "inset(0 100% 0 0)",
-    zIndex: 10,
+    zIndex: 20,
     opacity: 1,
   }),
   center: {
     clipPath: "inset(0 0 0 0%)",
-    zIndex: 10,
+    zIndex: 20,
     opacity: 1,
     transition: {
       type: "tween",
@@ -35,7 +35,7 @@ const imageVariants: Variants = {
     },
   },
   exit: {
-    zIndex: 0,
+    zIndex: 10,
     opacity: 1,
     transition: {
       duration: 1.2,
@@ -56,7 +56,7 @@ const innerImageVariants: Variants = {
     },
   },
   exit: {
-    scale: 1,
+    scale: 1.05,
     transition: {
       duration: 1.2,
     },
@@ -74,17 +74,14 @@ const contentVariants: Variants = {
   exit: { opacity: 0, y: -20, transition: { duration: 0.4 } },
 };
 
-const SlideImage = ({
-  work,
-  direction,
-  moveX,
-  moveY,
-}: {
+interface SlideImageProps {
   work: (typeof works)[0];
   direction: number;
   moveX: MotionValue<string>;
   moveY: MotionValue<string>;
-}) => {
+}
+
+const SlideImage = ({ work, direction, moveX, moveY }: SlideImageProps) => {
   return (
     <motion.div
       custom={direction}
@@ -94,10 +91,10 @@ const SlideImage = ({
       exit="exit"
       className="absolute inset-0 overflow-hidden"
     >
-      <motion.div custom={direction} variants={innerImageVariants} className="absolute inset-0">
+      <motion.div variants={innerImageVariants} className="absolute inset-0">
         <motion.div
           style={{ x: moveX, y: moveY }}
-          className="absolute inset-0 -top-[2.5%] -left-[2.5%] h-[105%] w-[105%]"
+          className="absolute inset-[-5%] h-[110%] w-[110%]"
         >
           <Image
             src={work.image}
@@ -118,22 +115,11 @@ export const OurWorks = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [[index, direction], setPage] = useState([0, 0]);
 
-  const [prevIndex, setPrevIndex] = useState(0);
-
   useEffect(() => {
     const timer = setInterval(() => {
-      setPrevIndex(index);
       setPage([(index + 1) % works.length, 1]);
     }, 8000);
     return () => clearInterval(timer);
-  }, [index]);
-
-  // Sync prevIndex after transition to ensure gaps show the CURRENT image after reveal
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setPrevIndex(index);
-    }, 1200);
-    return () => clearTimeout(timeout);
   }, [index]);
 
   const mouseX = useMotionValue(0.5);
@@ -158,45 +144,25 @@ export const OurWorks = () => {
   });
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
   const containerWidth = useTransform(smoothProgress, [0, 0.8], ["70%", "100%"]);
-  const radius = useTransform(smoothProgress, [0, 0.8], ["40px", "0px"]);
+  const radius = useTransform(smoothProgress, [0, 0.8], ["50px", "0px"]);
 
-  const next = () => {
-    setPrevIndex(index);
-    setPage([(index + 1) % works.length, 1]);
-  };
-  const prev = () => {
-    setPrevIndex(index);
-    setPage([(index - 1 + works.length) % works.length, -1]);
-  };
+  const next = () => setPage([(index + 1) % works.length, 1]);
+  const prev = () => setPage([(index - 1 + works.length) % works.length, -1]);
 
   return (
-    <div className="relative flex w-full flex-col items-center overflow-visible">
-      {/* Full-width Persistent Background (shows the "last" image in the gaps) */}
-      <div className="absolute inset-y-0 left-1/2 z-0 w-screen -translate-x-1/2 overflow-hidden">
-        <motion.div style={{ x: moveX, y: moveY }} className="absolute inset-[-5%]">
-          <Image
-            src={works[prevIndex].image}
-            alt="background"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/50" />
-        </motion.div>
-      </div>
-
+    <div className="bg-background relative flex w-full flex-col items-center overflow-visible">
       <motion.section
         id="works"
         ref={containerRef}
         onMouseMove={handleMouseMove}
         style={{ width: containerWidth, borderRadius: radius }}
-        className="relative z-20 mx-auto flex h-screen min-h-[700px] flex-col items-center overflow-hidden"
+        className="bg-brand-black relative z-20 mx-auto flex h-screen min-h-[700px] flex-col items-center overflow-hidden"
       >
-        {/* Animated Slide Layer (respects container width) */}
+        {/* Dual Container Reveal Layer */}
         <div className="absolute inset-0 z-0">
-          <AnimatePresence custom={direction}>
+          <AnimatePresence custom={direction} initial={false}>
             <SlideImage
-              key={works[index].id}
+              key={index}
               work={works[index]}
               direction={direction}
               moveX={moveX}
