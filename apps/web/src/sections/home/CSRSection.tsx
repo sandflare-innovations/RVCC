@@ -20,11 +20,7 @@ const CertificateCard = ({
 }) => {
   return (
     <motion.div
-      variants={itemVariants}
-      custom={index}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
+      initial={{ opacity: 1, y: 0 }}
       className="group border-brand-blue bg-brand-blue relative flex aspect-[3.5/4] w-full flex-col overflow-hidden rounded-none border transition-all duration-500"
     >
       <div className="relative w-full flex-1 p-12">
@@ -56,35 +52,56 @@ const CertificateCard = ({
 const LogoTicker = () => {
   return (
     <div className="relative w-full overflow-hidden">
-      <div className="from-background pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r to-transparent md:w-64" />
-      <div className="from-background pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l to-transparent md:w-64" />
+      {/* Desktop Ticker */}
+      <div className="hidden md:block">
+        <div className="from-background pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r to-transparent md:w-64" />
+        <div className="from-background pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l to-transparent md:w-64" />
 
-      <motion.div
-        animate={{
-          x: ["0%", "-50%"],
-        }}
-        transition={{
-          duration: 30,
-          ease: "linear",
-          repeat: Infinity,
-        }}
-        className="gap-content-gap flex w-max items-center"
-      >
-        {[...concernLogos, ...concernLogos].map((logo, index) => (
+        <motion.div
+          animate={{
+            x: ["0%", "-50%"],
+          }}
+          transition={{
+            duration: 30,
+            ease: "linear",
+            repeat: Infinity,
+          }}
+          className="gap-2 flex w-max items-center md:gap-8"
+        >
+          {[...concernLogos, ...concernLogos].map((logo, index) => (
+            <div
+              key={index}
+              className="group relative h-20 w-48 flex-shrink-0 transition-all duration-700"
+            >
+              <Image
+                src={logo}
+                alt={`Concern Company Logo ${index + 1}`}
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 200px, 300px"
+              />
+            </div>
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Mobile Grid - 3 Columns */}
+      <div className="grid grid-cols-3 gap-6 md:hidden">
+        {concernLogos.map((logo, index) => (
           <div
             key={index}
-            className="group relative h-24 w-60 flex-shrink-0 opacity-60 grayscale transition-all duration-700 hover:opacity-100 hover:grayscale-0"
+            className="relative flex aspect-[4/3] items-center justify-center p-0 transition-all duration-700"
           >
             <Image
               src={logo}
               alt={`Concern Company Logo ${index + 1}`}
               fill
               className="object-contain"
-              sizes="(max-width: 768px) 200px, 300px"
+              sizes="33vw"
             />
           </div>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 };
@@ -124,13 +141,13 @@ export const CSRSection = () => {
           variants={containerVariants}
           className="space-y-element-gap"
         >
-          <div className="header-margin gap-element-gap flex flex-col items-end justify-between md:flex-row">
+          <div className="header-margin gap-element-gap flex flex-col items-center justify-between text-center md:flex-row md:items-end md:text-left">
             <div className="flex-1">
               <h2 className="text-brand-blue text-[4rem] leading-[0.7] font-medium tracking-tighter uppercase md:text-[6rem]">
                 Corporate Social <br /> Responsibility
               </h2>
             </div>
-            <div className="flex flex-1 justify-end pb-2">
+            <div className="hidden flex-1 justify-end pb-2 md:flex">
               <Button
                 href="#contact"
                 borderColor="border-brand-blue"
@@ -232,6 +249,20 @@ export const CSRSection = () => {
               </div>
             </motion.div>
           </div>
+          {/* Mobile CTA */}
+          <div className="mt-8 flex justify-center md:hidden">
+            <Button
+              href="#contact"
+              borderColor="border-brand-blue"
+              textColor="text-brand-blue"
+              bgColor="bg-transparent"
+              hoverFillColor="bg-brand-blue"
+              hoverTextColor="group-hover:text-background"
+              className="h-14 w-full"
+            >
+              EXPLORE ALL
+            </Button>
+          </div>
         </motion.div>
 
         {/* Sister Concerns */}
@@ -242,14 +273,14 @@ export const CSRSection = () => {
           variants={containerVariants}
           className="space-y-element-gap"
         >
-          <div className="header-margin gap-element-gap flex flex-col items-end justify-between md:flex-row">
+          <div className="header-margin gap-element-gap flex flex-col items-center justify-between text-center md:flex-row md:items-end md:text-left">
             <div className="flex-1">
               <h2 className="text-brand-blue text-[4rem] leading-[0.7] font-medium tracking-tighter uppercase md:text-[6rem]">
                 Our Sister <br />
                 Concern Companies
               </h2>
             </div>
-            <div className="flex flex-1 justify-end pb-2">
+            <div className="hidden flex-1 justify-end pb-2 md:flex">
               <Button
                 href="#contact"
                 borderColor="border-brand-blue"
@@ -266,14 +297,14 @@ export const CSRSection = () => {
 
           <LogoTicker />
 
-          <div className="gap-content-gap flex flex-col items-center justify-center md:flex-row">
+          <div className="gap-4 scroll-hide flex flex-row items-stretch justify-start snap-x snap-mandatory overflow-x-auto overflow-y-hidden md:gap-content-gap md:flex-row md:items-center md:justify-center md:overflow-visible">
             {sisterCompanies.map((company, index) => (
               <motion.div
                 key={index}
-                variants={itemVariants}
+                initial={{ opacity: 1, y: 0 }}
                 whileHover={{ y: -10 }}
                 transition={{ duration: 0.5 }}
-                className="group relative h-[450px] w-full cursor-pointer overflow-hidden rounded-none bg-zinc-950 md:w-1/3"
+                className="group relative h-[450px] w-[80vw] flex-shrink-0 snap-center cursor-pointer overflow-hidden rounded-none bg-zinc-950 md:w-1/3 md:flex-shrink"
               >
                 {/* Background Image with Overlay */}
                 <div className="absolute inset-0 z-0 transition-all duration-1000">
@@ -313,17 +344,31 @@ export const CSRSection = () => {
               </motion.div>
             ))}
           </div>
+          {/* Mobile CTA */}
+          <div className="mt-8 flex justify-center md:hidden">
+            <Button
+              href="#contact"
+              borderColor="border-brand-blue"
+              textColor="text-brand-blue"
+              bgColor="bg-transparent"
+              hoverFillColor="bg-brand-blue"
+              hoverTextColor="group-hover:text-background"
+              className="h-14 w-full"
+            >
+              VIEW ALL
+            </Button>
+          </div>
         </motion.div>
 
         {/* Certificates */}
         <div className="space-y-element-gap">
-          <div className="header-margin gap-element-gap flex flex-col items-end justify-between md:flex-row">
+          <div className="header-margin gap-element-gap flex flex-col items-center justify-between text-center md:flex-row md:items-end md:text-left">
             <div className="flex-1">
               <h2 className="text-brand-blue text-[4rem] leading-[0.7] font-medium tracking-tighter uppercase md:text-[6rem]">
                 Quality <br /> Certificates
               </h2>
             </div>
-            <div className="flex flex-1 justify-end pb-2">
+            <div className="hidden flex-1 justify-end pb-2 md:flex">
               <Button
                 href="#contact"
                 borderColor="border-brand-blue"
@@ -338,19 +383,30 @@ export const CSRSection = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="scroll-hide flex flex-row items-stretch justify-start gap-4 snap-x snap-mandatory overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 md:overflow-visible lg:grid-cols-4">
             {certificates.map((cert: Certificate, index: number) => (
               <motion.div
                 key={index}
-                variants={itemVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={index}
+                initial={{ opacity: 1, y: 0 }}
+                className="w-[80vw] flex-shrink-0 snap-center md:w-auto md:flex-shrink"
               >
                 <CertificateCard cert={cert} index={index} itemVariants={itemVariants} />
               </motion.div>
             ))}
+          </div>
+          {/* Mobile CTA */}
+          <div className="mt-8 flex justify-center md:hidden">
+            <Button
+              href="#contact"
+              borderColor="border-brand-blue"
+              textColor="text-brand-blue"
+              bgColor="bg-transparent"
+              hoverFillColor="bg-brand-blue"
+              hoverTextColor="group-hover:text-background"
+              className="h-14 w-full"
+            >
+              VIEW ALL
+            </Button>
           </div>
         </div>
       </div>
