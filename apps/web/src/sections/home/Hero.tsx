@@ -52,13 +52,20 @@ export const Hero = () => {
   const blurValue = useTransform(scrollY, [0, 800], [0, 4]);
 
   useEffect(() => {
-    const expandTimer = setTimeout(() => setIsExpanded(true), 800);
-    const contentTimer = setTimeout(() => setShowContent(true), 2800);
+    // Check if we're on a mobile device to skip animations
+    const isMobile = window.innerWidth < 768;
 
-    return () => {
-      clearTimeout(expandTimer);
-      clearTimeout(contentTimer);
-    };
+    if (isMobile) {
+      setIsExpanded(true);
+      setShowContent(true);
+    } else {
+      const expandTimer = setTimeout(() => setIsExpanded(true), 800);
+      const contentTimer = setTimeout(() => setShowContent(true), 2800);
+      return () => {
+        clearTimeout(expandTimer);
+        clearTimeout(contentTimer);
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -122,14 +129,14 @@ export const Hero = () => {
             height: { duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.8 },
             opacity: { duration: 1.2, ease: "easeInOut", delay: 1.8 },
           }}
-          className="absolute z-10 overflow-hidden"
+          className="absolute z-10 hidden overflow-hidden md:block"
         >
           <Image
             src={HERO_CONTENT[1].img}
             alt="Side 1"
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, 33vw"
+            sizes="33vw"
             priority
           />
         </motion.div>
@@ -148,7 +155,7 @@ export const Hero = () => {
             width: { duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.8 },
             height: { duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.8 },
           }}
-          className="relative z-10 overflow-hidden"
+          className="relative z-10 h-full w-full overflow-hidden"
         >
           <AnimatePresence mode="wait">
             <motion.div
@@ -165,7 +172,7 @@ export const Hero = () => {
                 fill
                 className="object-cover"
                 priority
-                sizes="(max-width: 1200px) 100vw, 90vw"
+                sizes="100vw"
               />
               <motion.div
                 style={{ backdropFilter: `blur(${blurValue}px)` }}
@@ -192,14 +199,14 @@ export const Hero = () => {
             height: { duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.8 },
             opacity: { duration: 1.2, ease: "easeInOut", delay: 1.8 },
           }}
-          className="absolute z-10 overflow-hidden"
+          className="absolute z-10 hidden overflow-hidden md:block"
         >
           <Image
             src={HERO_CONTENT[2].img}
             alt="Side 2"
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, 33vw"
+            sizes="33vw"
             priority
           />
         </motion.div>
@@ -214,7 +221,7 @@ export const Hero = () => {
             style={{ y: contentY, opacity: contentOpacity }}
             className="p-section-py-mobile md:p-section-py pointer-events-none absolute inset-0 z-30 flex flex-col justify-center"
           >
-            <div className="container mx-auto flex flex-col justify-center gap-12">
+            <div className=" flex flex-col justify-center gap-12 bg-red-500">
               <div className="pointer-events-auto w-full">
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -234,10 +241,10 @@ export const Hero = () => {
                       </div>
 
                       <h1 className="font-heading flex flex-col -space-y-4 leading-[0.8] text-white md:-space-y-8">
-                        <span className="block text-[15vw] tracking-tighter uppercase md:text-[8rem] lg:text-[10rem]">
+                        <span className="block text-[20vw] tracking-tighter uppercase md:text-[8rem] lg:text-[10rem]">
                           {content.title1}
                         </span>
-                        <span className="text-brand-blue block text-[15vw] tracking-tighter uppercase md:text-[8rem] lg:text-[10rem]">
+                        <span className="text-brand-blue block text-[20vw] tracking-tighter uppercase md:text-[8rem] lg:text-[10rem]">
                           {content.title2}
                         </span>
                       </h1>
@@ -314,7 +321,7 @@ export const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 1 }}
-            className="pointer-events-none absolute bottom-8 left-1/2 z-30 flex w-full -translate-x-1/2 justify-center overflow-hidden px-6 md:bottom-6"
+            className="pointer-events-none absolute bottom-16 left-1/2 z-30 flex w-full -translate-x-1/2 justify-center overflow-hidden px-6 md:bottom-6"
           >
             <div className="relative w-full max-w-xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)]">
               <motion.div
@@ -331,7 +338,7 @@ export const Hero = () => {
                 {[1, 2, 3, 4, 5, 6, 7].concat([1, 2, 3, 4, 5, 6, 7]).map((i, index) => (
                   <div
                     key={index}
-                    className="relative h-16 w-16 brightness-0 invert transition-opacity md:h-20 md:w-20"
+                    className="relative h-20 w-20 brightness-0 invert transition-opacity md:h-20 md:w-20"
                   >
                     <Image
                       src={`/images/clients/${i}.png`}
