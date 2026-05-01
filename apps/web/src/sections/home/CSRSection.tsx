@@ -114,7 +114,7 @@ export const CSRSection = () => {
   };
 
   return (
-    <section className="bg-background section-padding px-container relative overflow-hidden">
+    <section className="bg-background section-padding relative overflow-hidden">
       <div className="space-y-container-gap container mx-auto">
         {/* Corporate Social Responsibility */}
         <motion.div
