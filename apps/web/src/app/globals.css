@@ -171,35 +171,19 @@
   .container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 var(--spacing-container);
+    @apply px-container;
   }
 
   .section-padding {
-    padding-top: var(--spacing-section-py-mobile);
-    padding-bottom: var(--spacing-section-py-mobile);
+    @apply py-section-py-mobile md:py-section-py;
   }
 
   .section-margin {
-    margin-top: var(--spacing-section-py-mobile);
-    margin-bottom: var(--spacing-section-py-mobile);
+    @apply my-section-py-mobile md:my-section-py;
   }
 
   .header-margin {
-    margin-bottom: var(--spacing-header-mb-mobile);
-  }
-
-  @media (min-width: 768px) {
-    .section-padding {
-      padding-top: var(--spacing-section-py);
-      padding-bottom: var(--spacing-section-py);
-    }
-    .section-margin {
-      margin-top: var(--spacing-section-py);
-      margin-bottom: var(--spacing-section-py);
-    }
-    .header-margin {
-      margin-bottom: var(--spacing-header-mb);
-    }
+    @apply mb-header-mb-mobile md:mb-header-mb;
   }
 
   .glass {
