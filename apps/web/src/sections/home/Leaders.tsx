@@ -71,7 +71,17 @@ export const Leaders = () => {
                         <span className="hidden md:inline">{paragraph}</span>
                       </>
                     ) : (
-                      paragraph
+                      <>
+                        {paragraph}
+                        {i === LEADER_MESSAGE.length - 1 && (
+                          <Link
+                            href="/about"
+                            className="text-brand-blue ml-2 hidden font-bold underline md:inline"
+                          >
+                            Read More
+                          </Link>
+                        )}
+                      </>
                     )}
                   </div>
                 ))}
