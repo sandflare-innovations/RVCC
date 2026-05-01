@@ -131,7 +131,7 @@ export const AboutUs = () => {
   };
 
   return (
-    <section className="bg-background section-padding relative z-10 mx-auto max-w-7xl" id="about">
+    <section className="bg-background section-padding relative z-10 mx-auto" id="about">
       <div className="container">
         <div className="header-margin flex flex-col items-center text-center">
           <h2 className="text-brand-blue font-primary mb-content-gap text-[8rem] leading-[0.7] font-normal tracking-tighter uppercase">
@@ -254,7 +254,7 @@ export const AboutUs = () => {
           </div>
         </div>
 
-        <div className="mt-section-py-mobile md:mt-section-py pt-section-py-mobile md:pt-section-py border-t border-zinc-100">
+        <div className="mt-section-py pt-section-py border-t border-zinc-100">
           <div className="grid grid-cols-2 gap-x-12 gap-y-20 md:grid-cols-4">
             {STATS.slice(1).map((stat, idx) => (
               <motion.div
