@@ -40,7 +40,7 @@ export const Footer = () => {
   return (
     <footer className="bg-background relative overflow-hidden py-0">
       <div className="mx-auto">
-        <div className="bg-brand-blue dark:text-theme-bg relative z-10 overflow-hidden px-8 py-20 text-white md:px-16 lg:px-24">
+        <div className="bg-brand-blue dark:text-theme-bg section-padding relative z-10 overflow-hidden px-8 text-white md:px-16 lg:px-24">
           {/* Decorative Lines instead of Circles for Sharp Design */}
           <div className="pointer-events-none absolute top-0 right-0 h-px w-full bg-white/10" />
           <div className="pointer-events-none absolute bottom-0 left-0 h-px w-full bg-white/10" />

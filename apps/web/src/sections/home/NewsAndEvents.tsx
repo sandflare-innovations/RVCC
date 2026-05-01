@@ -10,21 +10,21 @@ import { Button } from "@/components/ui/Button";
 
 export const NewsAndEvents = () => {
   return (
-    <section className="bg-zinc-50 py-32 md:py-48" id="news">
+    <section className="section-padding bg-zinc-50" id="news">
       <div className="container mx-auto px-4 md:px-8">
         {/* Consistent Section Header */}
-        <div className="mb-24 flex flex-col items-end justify-between gap-8 md:flex-row">
+        <div className="header-margin flex flex-col items-end justify-between gap-8 md:flex-row">
           <div className="flex-1">
             <motion.h2
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-brand-blue font-primary text-[5rem] leading-[0.8] font-normal tracking-tighter uppercase md:text-[8rem]"
+              className="text-brand-blue font-primary text-[5rem] leading-[0.7] font-normal tracking-tighter uppercase md:text-[8rem]"
             >
               News &<br /> Events
             </motion.h2>
           </div>
-          <div className="flex flex-1 flex-col items-start gap-6 md:items-end md:pb-4">
+          <div className="header-margin gap-content-gap flex flex-col items-start md:items-end md:pb-4">
             <p className="max-w-sm text-sm leading-relaxed text-zinc-500 md:text-right">
               Stay connected with the latest milestones and community initiatives from the heart of
               Riyadh's construction landscape.
@@ -43,7 +43,7 @@ export const NewsAndEvents = () => {
         </div>
 
         {/* Newsletter Style Grid */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="gap-content-gap grid grid-cols-1 md:grid-cols-3">
           {NEWS_DATA.map((item, index) => (
             <motion.div
               key={item.id}
@@ -54,7 +54,7 @@ export const NewsAndEvents = () => {
               className="group hover:border-brand-blue/20 relative flex flex-col border border-black/5 bg-white p-6 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,115,188,0.05)]"
             >
               {/* Newsletter Header Card */}
-              <div className="mb-6 flex items-center justify-between border-b border-zinc-100 pb-4">
+              <div className="mb-content-gap flex items-center justify-between border-b border-zinc-100 pb-4">
                 <div className="flex flex-col">
                   <span className="text-brand-blue text-[9px] font-black tracking-widest uppercase">
                     {item.category}
@@ -65,7 +65,7 @@ export const NewsAndEvents = () => {
               </div>
 
               {/* Image */}
-              <div className="relative mb-6 aspect-video overflow-hidden grayscale transition-all duration-700 group-hover:grayscale-0">
+              <div className="mb-content-gap relative aspect-video overflow-hidden grayscale transition-all duration-700 group-hover:grayscale-0">
                 <Image
                   src={item.image}
                   alt={item.title}

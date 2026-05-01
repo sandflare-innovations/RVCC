@@ -116,7 +116,7 @@ export const MajorProject = () => {
                   <p className="mb-content-gap max-w-md text-lg font-light text-zinc-300 md:text-xl">
                     {PROJECTS[0].description}
                   </p>
-                  <div className="flex flex-col gap-content-gap sm:flex-row">
+                  <div className="gap-content-gap flex flex-col sm:flex-row">
                     <Button
                       borderColor="border-white"
                       textColor="text-brand-blue"
@@ -198,7 +198,7 @@ export const MajorProject = () => {
                 <p className="mb-content-gap max-w-md text-lg font-light text-zinc-300 md:text-xl">
                   {PROJECTS[1].description}
                 </p>
-                <div className="flex flex-col gap-content-gap sm:flex-row">
+                <div className="gap-content-gap flex flex-col sm:flex-row">
                   <Button
                     borderColor="border-white"
                     textColor="text-brand-blue"
@@ -251,7 +251,7 @@ export const MajorProject = () => {
                 <p className="mb-content-gap max-w-md text-lg font-light text-zinc-300 md:text-xl">
                   {PROJECTS[2].description}
                 </p>
-                <div className="flex flex-col gap-content-gap sm:flex-row">
+                <div className="gap-content-gap flex flex-col sm:flex-row">
                   <Button
                     borderColor="border-white"
                     textColor="text-brand-blue"

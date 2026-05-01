@@ -80,7 +80,7 @@ export const RecentProjects = () => {
     >
       <div className="mx-auto">
         {/* Header Section */}
-        <div className="header-margin flex flex-col items-end justify-between gap-content-gap md:flex-row">
+        <div className="header-margin gap-content-gap flex flex-col items-end justify-between md:flex-row">
           <div className="flex-1">
             <h2 className="text-brand-blue text-[4rem] leading-[0.7] font-medium tracking-tighter uppercase md:text-[6rem]">
               Our Projects
@@ -167,7 +167,7 @@ export const RecentProjects = () => {
 
                         {/* Hover Overlay - Now White with Heading */}
                         <div className="bg-brand-blue absolute inset-0 z-30 flex translate-y-full flex-col justify-end p-8 shadow-2xl transition-transform duration-700 ease-[0.19,1,0.22,1] group-hover:translate-y-[25%]">
-                          <div className="flex h-full flex-col justify-center gap-content-gap">
+                          <div className="gap-content-gap flex h-full flex-col justify-center">
                             <h3 className="text-background text-5xl font-black uppercase">
                               {project.title}
                             </h3>

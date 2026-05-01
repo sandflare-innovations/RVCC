@@ -22,7 +22,7 @@ export const Services = () => {
       id="services"
     >
       <div className="mx-auto flex h-full max-w-[100rem] items-center">
-        <div className="grid h-full w-full grid-cols-1 gap-1 md:grid-cols-12 md:gap-content-gap">
+        <div className="md:gap-content-gap grid h-full w-full grid-cols-1 gap-1 md:grid-cols-12">
           {/* Left Column: Service Items */}
           <div className="flex h-full flex-col gap-2 md:col-span-7">
             {SERVICES_DATA.map((service) => {
@@ -32,7 +32,7 @@ export const Services = () => {
                 <div
                   key={service.id}
                   onMouseEnter={() => setActiveId(service.id)}
-                  className={`group relative flex flex-1 cursor-pointer flex-col justify-center border-b border-black/5 p-content-gap transition-all duration-500 ${
+                  className={`group p-content-gap relative flex flex-1 cursor-pointer flex-col justify-center border-b border-black/5 transition-all duration-500 ${
                     isActive ? "bg-brand-blue" : "bg-white"
                   }`}
                 >

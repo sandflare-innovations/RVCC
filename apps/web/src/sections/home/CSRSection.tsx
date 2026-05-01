@@ -68,7 +68,7 @@ const LogoTicker = () => {
           ease: "linear",
           repeat: Infinity,
         }}
-        className="flex w-max items-center gap-10"
+        className="gap-content-gap flex w-max items-center"
       >
         {[...concernLogos, ...concernLogos].map((logo, index) => (
           <div
@@ -114,19 +114,19 @@ export const CSRSection = () => {
   };
 
   return (
-    <section className="bg-background relative overflow-hidden px-6 py-24 md:px-16 md:py-32 lg:px-24">
-      <div className="mx-auto max-w-[100rem] space-y-32">
+    <section className="bg-background section-padding relative overflow-hidden px-6 md:px-16 lg:px-24">
+      <div className="space-y-container-gap mx-auto max-w-[100rem]">
         {/* Corporate Social Responsibility */}
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.1 }}
           variants={containerVariants}
-          className="space-y-16"
+          className="space-y-element-gap"
         >
-          <div className="mb-20 flex flex-col items-end justify-between gap-8 md:flex-row">
+          <div className="header-margin flex flex-col items-end justify-between gap-8 md:flex-row">
             <div className="flex-1">
-              <h2 className="text-brand-blue text-[4rem] leading-[0.9] font-medium tracking-tighter uppercase md:text-[6rem]">
+              <h2 className="text-brand-blue text-[4rem] leading-[0.7] font-medium tracking-tighter uppercase md:text-[6rem]">
                 Corporate Social <br /> Responsibility
               </h2>
             </div>
@@ -240,11 +240,11 @@ export const CSRSection = () => {
           whileInView="visible"
           viewport={{ once: true, amount: 0.1 }}
           variants={containerVariants}
-          className="space-y-16"
+          className="space-y-element-gap"
         >
-          <div className="mb-20 flex flex-col items-end justify-between gap-8 md:flex-row">
+          <div className="header-margin flex flex-col items-end justify-between gap-8 md:flex-row">
             <div className="flex-1">
-              <h2 className="text-brand-blue text-[4rem] leading-[0.9] font-medium tracking-tighter uppercase md:text-[6rem]">
+              <h2 className="text-brand-blue text-[4rem] leading-[0.7] font-medium tracking-tighter uppercase md:text-[6rem]">
                 Our Sister <br />
                 Concern Companies
               </h2>
@@ -266,7 +266,7 @@ export const CSRSection = () => {
 
           <LogoTicker />
 
-          <div className="flex flex-col items-center justify-center gap-4 md:flex-row">
+          <div className="gap-content-gap flex flex-col items-center justify-center md:flex-row">
             {sisterCompanies.map((company, index) => (
               <motion.div
                 key={index}
@@ -316,10 +316,10 @@ export const CSRSection = () => {
         </motion.div>
 
         {/* Certificates */}
-        <div className="space-y-16">
-          <div className="mb-20 flex flex-col items-end justify-between gap-8 md:flex-row">
+        <div className="space-y-element-gap">
+          <div className="header-margin flex flex-col items-end justify-between gap-8 md:flex-row">
             <div className="flex-1">
-              <h2 className="text-brand-blue text-[4rem] leading-[0.9] font-medium tracking-tighter uppercase md:text-[6rem]">
+              <h2 className="text-brand-blue text-[4rem] leading-[0.7] font-medium tracking-tighter uppercase md:text-[6rem]">
                 Quality <br /> Certificates
               </h2>
             </div>
