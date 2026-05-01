@@ -25,14 +25,14 @@ const Contact = () => {
     <section id="contact" className="bg-theme-bg section-padding">
       <div className="max-w-8xl gap-element-gap container mx-auto grid grid-cols-1 items-center lg:grid-cols-2">
         {/* Left: Heading */}
-        <div className="space-y-4">
+        <div className="space-y-4 text-center lg:text-left">
           <h2
-            className={`text-6xl leading-[0.85] font-bold uppercase md:text-[10rem] ${isRTL ? "text-right" : "text-left"}`}
+            className={`text-brand-blue font-primary flex flex-col items-center leading-[0.85] font-normal tracking-tighter uppercase lg:items-start`}
           >
-            <span className="font-brand-sec text-brand-blue mb-2 block text-5xl md:text-[10rem]">
+            <span className="text-[5rem] md:text-[10rem]">
               Contact
             </span>
-            <img src="/images/logo/logo.png" alt="Contact" className="h-auto w-full" />
+            <img src="/images/logo/logo.png" alt="Contact" className="h-auto w-full max-w-[400px] lg:max-w-none" />
           </h2>
         </div>
 
