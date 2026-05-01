@@ -151,12 +151,84 @@ export const OurWorks = () => {
 
   return (
     <div className="bg-background relative flex w-full flex-col items-center overflow-visible">
+      {/* Mobile View - Special Card Design */}
+      <section className="section-padding container md:hidden">
+        <motion.div
+          initial={{ opacity: 0, y: 100 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.1 }}
+          transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
+          className="header-margin flex flex-col items-center gap-6 text-center"
+        >
+          <h2 className="text-brand-blue font-primary text-[5rem] leading-[0.7] font-normal tracking-tighter uppercase">
+            Our <br /> Works
+          </h2>
+          <p className="max-w-xl text-sm leading-relaxed text-zinc-500">
+            Building the future with sustainable engineering and unparalleled craftsmanship across
+            the region.
+          </p>
+        </motion.div>
+
+        <div className="flex flex-col gap-32">
+          {works.map((work, idx) => (
+            <div key={work.id} className="relative flex w-full flex-col">
+              {/* Image Layer - Slides from Left */}
+              <motion.div
+                initial={{ x: -80, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                viewport={{ once: false, amount: 0.1 }}
+                transition={{ duration: 1.5, ease: [0.19, 1, 0.22, 1] }}
+                className="relative z-10 aspect-[16/10] w-[92%] overflow-hidden bg-zinc-200 shadow-2xl"
+              >
+                <Image
+                  src={work.image}
+                  alt={work.title1}
+                  fill
+                  className="object-cover transition-transform duration-[5s] group-hover:scale-110"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+                <div className="absolute inset-0 bg-black/5" />
+              </motion.div>
+
+              {/* Content Card - Slides from Right, Overlaps 25% */}
+              <motion.div
+                initial={{ x: 80, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                viewport={{ once: false, amount: 0.1 }}
+                transition={{ duration: 1.5, delay: 0.2, ease: [0.19, 1, 0.22, 1] }}
+                className="border-brand-blue relative z-20 -mt-24 ml-auto w-[85%] border-l-[12px] bg-white p-8 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.4)]"
+              >
+                <div className="flex flex-col">
+                  <div className="bg-brand-blue/10 mb-6 h-1 w-12" />
+                  <h3 className="mb-6 text-5xl leading-[0.8] font-medium tracking-normal text-zinc-900 uppercase">
+                    {work.title1} <br />
+                    <span className="text-brand-blue font-black">{work.title2}</span>
+                  </h3>
+                  <p className="mb-8 text-xs leading-relaxed text-zinc-500">{work.description}</p>
+                  <Button
+                    borderColor="border-brand-blue"
+                    textColor="text-brand-blue"
+                    bgColor="bg-transparent"
+                    hoverFillColor="bg-brand-blue"
+                    hoverTextColor="group-hover:text-background"
+                    className="h-14 w-full text-[10px] font-black tracking-widest"
+                  >
+                    {work.cta}
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Desktop View - Existing Slider */}
       <motion.section
         id="works"
         ref={containerRef}
         onMouseMove={handleMouseMove}
         style={{ width: containerWidth, borderRadius: radius }}
-        className="bg-brand-black relative z-20 mx-auto flex h-screen min-h-[700px] flex-col items-center overflow-hidden"
+        className="bg-brand-black relative z-20 mx-auto hidden h-screen min-h-[700px] flex-col items-center overflow-hidden md:flex"
       >
         {/* Dual Container Reveal Layer */}
         <div className="absolute inset-0 z-0">
