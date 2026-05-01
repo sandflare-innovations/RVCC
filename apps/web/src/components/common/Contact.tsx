@@ -22,8 +22,8 @@ const Contact = () => {
     "w-full bg-transparent border-b border-[#0073BC] py-6 text-2xl md:text-3xl font-normal text-[#0073BC] focus:outline-none focus:border-[#0073BC] transition-colors placeholder:text-[#0073BC]";
 
   return (
-    <section id="contact" className="bg-theme-bg section-padding px-6 md:px-20 lg:px-32">
-      <div className="max-w-8xl gap-element-gap mx-auto grid grid-cols-1 items-center lg:grid-cols-2">
+    <section id="contact" className="bg-theme-bg section-padding">
+      <div className="max-w-8xl gap-element-gap container mx-auto grid grid-cols-1 items-center lg:grid-cols-2">
         {/* Left: Heading */}
         <div className="space-y-4">
           <h2
