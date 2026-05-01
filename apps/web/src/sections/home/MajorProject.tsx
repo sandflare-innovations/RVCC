@@ -42,34 +42,36 @@ export const MajorProject = () => {
   return (
     <div className="bg-background hidden md:block">
       {/* 1. Header Section - Tightened up to reduce gap */}
-      <section className="container pt-20">
-        <div className="header-margin gap-element-gap flex flex-col items-center text-center">
-          <div className="flex-1">
-            <motion.h2
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-brand-blue font-primary text-[5rem] leading-[0.7] font-normal tracking-tighter uppercase md:text-[8rem]"
-            >
-              Major <br /> Projects
-            </motion.h2>
-          </div>
-          <div className="flex flex-col items-center justify-center">
-            <p className="max-w-xl text-sm leading-relaxed text-zinc-500 md:pb-4">
-              Showcasing our most ambitious architectural achievements that define the skyline and
-              set new standards in construction excellence across the region.
-            </p>
-            <Button
-              borderColor="border-brand-blue"
-              textColor="text-brand-blue"
-              bgColor="bg-transparent"
-              hoverFillColor="bg-brand-blue"
-              hoverTextColor="group-hover:text-background"
-              className="w-full md:w-auto"
-              href="#works"
-            >
-              VIEW ALL
-            </Button>
+      <section className="pt-20">
+        <div className="container mx-auto">
+          <div className="header-margin gap-element-gap flex flex-col items-center text-center">
+            <div className="flex-1">
+              <motion.h2
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-brand-blue font-primary text-[5rem] leading-[0.7] font-normal tracking-tighter uppercase md:text-[8rem]"
+              >
+                Major <br /> Projects
+              </motion.h2>
+            </div>
+            <div className="flex flex-col items-center justify-center">
+              <p className="max-w-xl text-sm leading-relaxed text-zinc-500 md:pb-4">
+                Showcasing our most ambitious architectural achievements that define the skyline and
+                set new standards in construction excellence across the region.
+              </p>
+              <Button
+                borderColor="border-brand-blue"
+                textColor="text-brand-blue"
+                bgColor="bg-transparent"
+                hoverFillColor="bg-brand-blue"
+                hoverTextColor="group-hover:text-background"
+                className="w-full md:w-auto"
+                href="#works"
+              >
+                VIEW ALL
+              </Button>
+            </div>
           </div>
         </div>
       </section>
