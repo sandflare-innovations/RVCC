@@ -114,8 +114,8 @@ export const CSRSection = () => {
   };
 
   return (
-    <section className="bg-background section-padding relative overflow-hidden px-6 md:px-16 lg:px-24">
-      <div className="space-y-container-gap mx-auto max-w-[100rem]">
+    <section className="bg-background section-padding px-container relative overflow-hidden">
+      <div className="space-y-container-gap container mx-auto">
         {/* Corporate Social Responsibility */}
         <motion.div
           initial="hidden"
@@ -124,7 +124,7 @@ export const CSRSection = () => {
           variants={containerVariants}
           className="space-y-element-gap"
         >
-          <div className="header-margin flex flex-col items-end justify-between gap-8 md:flex-row">
+          <div className="header-margin gap-element-gap flex flex-col items-end justify-between md:flex-row">
             <div className="flex-1">
               <h2 className="text-brand-blue text-[4rem] leading-[0.7] font-medium tracking-tighter uppercase md:text-[6rem]">
                 Corporate Social <br /> Responsibility
@@ -242,7 +242,7 @@ export const CSRSection = () => {
           variants={containerVariants}
           className="space-y-element-gap"
         >
-          <div className="header-margin flex flex-col items-end justify-between gap-8 md:flex-row">
+          <div className="header-margin gap-element-gap flex flex-col items-end justify-between md:flex-row">
             <div className="flex-1">
               <h2 className="text-brand-blue text-[4rem] leading-[0.7] font-medium tracking-tighter uppercase md:text-[6rem]">
                 Our Sister <br />
@@ -317,7 +317,7 @@ export const CSRSection = () => {
 
         {/* Certificates */}
         <div className="space-y-element-gap">
-          <div className="header-margin flex flex-col items-end justify-between gap-8 md:flex-row">
+          <div className="header-margin gap-element-gap flex flex-col items-end justify-between md:flex-row">
             <div className="flex-1">
               <h2 className="text-brand-blue text-[4rem] leading-[0.7] font-medium tracking-tighter uppercase md:text-[6rem]">
                 Quality <br /> Certificates
