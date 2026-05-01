@@ -74,7 +74,7 @@ const Word = ({
 
 const InlineImage = ({ src }: { src: string }) => {
   return (
-    <span className="relative top-2 mx-3 mb-3 inline-block h-12 w-24 md:h-10 md:w-32">
+    <span className="relative top-2 mx-3 mb-3 hidden h-12 w-24 md:inline-block md:h-10 md:w-32">
       <motion.span
         className="absolute inset-0 z-10 block cursor-pointer overflow-hidden rounded-sm"
         initial={{ opacity: 1, scale: 1 }}
@@ -133,24 +133,24 @@ export const AboutUs = () => {
   return (
     <section className="bg-background section-padding relative z-10 mx-auto" id="about">
       <div className="container">
-        <div className="header-margin flex flex-col items-center text-center">
-          <h2 className="text-brand-blue font-primary mb-content-gap text-[8rem] leading-[0.7] font-normal tracking-tighter uppercase">
+        <div className="header-margin flex flex-col items-start text-left md:items-center md:text-center">
+          <h2 className="text-brand-blue font-primary mb-content-gap text-6xl leading-[0.8] font-normal tracking-tighter uppercase sm:text-7xl md:text-[8rem] md:leading-[0.7]">
             about
           </h2>
-          <div className="flex max-w-2xl flex-col items-center">
-            <h3 className="text-brand-blue font-heading mb-6 text-6xl uppercase">
+          <div className="flex max-w-2xl flex-col items-start md:items-center">
+            <h3 className="text-brand-blue font-heading mb-6 text-3xl uppercase sm:text-4xl md:text-6xl">
               RIYADH VILLAS CONTRACTING CO.
             </h3>
             <div className="bg-brand-blue/30 mb-content-gap h-px w-20" />
-            <p className="text-brand-blue font-primary text-[11px] font-bold tracking-[0.3em] uppercase opacity-80">
+            <p className="text-brand-blue font-primary text-[10px] font-bold tracking-[0.2em] opacity-80 md:text-[11px] md:tracking-[0.3em]">
               Civil Construction and Infrastructure development.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-start md:items-center">
           <div ref={containerRef} className="mb-element-gap relative max-w-5xl flex-[1.5]">
-            <h3 className="font-primary flex flex-wrap justify-center text-center text-xl leading-relaxed font-medium tracking-tight md:text-3xl">
+            <h3 className="font-primary flex flex-wrap justify-start text-left text-lg leading-[1.1] font-medium tracking-tight md:justify-center md:text-center md:text-3xl md:leading-relaxed">
               {WORDS.map((word, i) => {
                 const start = i / WORDS.length;
                 const end = start + 1 / WORDS.length;
@@ -175,7 +175,7 @@ export const AboutUs = () => {
           </div>
 
           <div className="gap-content-gap grid w-full grid-cols-1 items-stretch lg:grid-cols-12">
-            <div className="group relative aspect-[21/9] w-full overflow-hidden rounded-none bg-gray-100 lg:col-span-9">
+            <div className="group relative aspect-video w-full overflow-hidden rounded-none bg-gray-100 md:aspect-[21/9] lg:col-span-9">
               <video
                 ref={videoRef}
                 src="/videos/about.mp4#t=25"
