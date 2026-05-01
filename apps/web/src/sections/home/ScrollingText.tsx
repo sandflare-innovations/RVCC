@@ -106,7 +106,7 @@ function ParallaxText({ children, images, baseVelocity = 100 }: ParallaxProps) {
 
 export const ScrollingText = () => {
   return (
-    <section className="bg-background section-padding overflow-hidden">
+    <section className="bg-background section-padding hidden overflow-hidden md:block">
       <ParallaxText baseVelocity={-3} images={["/images/home-hero.png", "/images/hero-bg.png"]}>
         Discover the world of Ray
       </ParallaxText>
