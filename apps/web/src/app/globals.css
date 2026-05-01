@@ -58,7 +58,13 @@
   --font-heading: "Ara Hamah Alislam", cursive;
   --font-primary: "Maven Pro", sans-serif;
   /* Custom Spacing */
-  --spacing-section: 6rem;
+  --spacing-section-py: 8rem;
+  --spacing-section-py-mobile: 4rem;
+  --spacing-header-mb: 5rem;
+  --spacing-header-mb-mobile: 3rem;
+  --spacing-container-gap: 8rem;
+  --spacing-element-gap: 4rem;
+  --spacing-content-gap: 2rem;
   --spacing-container: 1.5rem;
 
   /* Custom Text Sizes */
@@ -166,6 +172,34 @@
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 var(--spacing-container);
+  }
+
+  .section-padding {
+    padding-top: var(--spacing-section-py-mobile);
+    padding-bottom: var(--spacing-section-py-mobile);
+  }
+
+  .section-margin {
+    margin-top: var(--spacing-section-py-mobile);
+    margin-bottom: var(--spacing-section-py-mobile);
+  }
+
+  .header-margin {
+    margin-bottom: var(--spacing-header-mb-mobile);
+  }
+
+  @media (min-width: 768px) {
+    .section-padding {
+      padding-top: var(--spacing-section-py);
+      padding-bottom: var(--spacing-section-py);
+    }
+    .section-margin {
+      margin-top: var(--spacing-section-py);
+      margin-bottom: var(--spacing-section-py);
+    }
+    .header-margin {
+      margin-bottom: var(--spacing-header-mb);
+    }
   }
 
   .glass {
