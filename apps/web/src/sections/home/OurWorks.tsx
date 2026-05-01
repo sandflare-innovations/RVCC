@@ -150,7 +150,7 @@ export const OurWorks = () => {
   const prev = () => setPage([(index - 1 + works.length) % works.length, -1]);
 
   return (
-    <div className="bg-background relative flex w-full flex-col items-center overflow-visible">
+    <div className="bg-background relative flex w-full flex-col items-center overflow-hidden">
       {/* Mobile View - Special Card Design */}
       <section className="section-padding container md:hidden">
         <motion.div
@@ -243,7 +243,7 @@ export const OurWorks = () => {
           </AnimatePresence>
         </div>
 
-        <div className="p-section-py-mobile md:p-section-py relative z-20 flex h-full w-full flex-col justify-between">
+        <div className="p-section-py-mobile md:p-section-py container relative z-20 mx-auto flex h-full w-full flex-col justify-between px-container">
           <div className="flex w-full items-start justify-between">
             <div className="flex flex-col">
               <span className="mb-2 text-xs font-bold tracking-[0.4em] text-white/60 uppercase">

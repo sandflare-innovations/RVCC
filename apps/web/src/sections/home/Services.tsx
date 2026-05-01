@@ -19,8 +19,8 @@ export const Services = () => {
   const activeService = SERVICES_DATA.find((s) => s.id === activeId) || SERVICES_DATA[0];
 
   return (
-    <section className="section-padding px-container relative w-full bg-gray-100" id="services">
-      <div className=" ">
+    <section className="section-padding relative w-full overflow-hidden bg-gray-100" id="services">
+      <div className="container mx-auto">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 100 }}
