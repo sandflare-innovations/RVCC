@@ -42,7 +42,7 @@ export const MajorProject = () => {
   return (
     <div className="bg-background">
       {/* 1. Header Section - Tightened up to reduce gap */}
-      <section className="section-padding container mx-auto px-4 md:px-8">
+      <section className="section-padding container">
         <motion.h2
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
