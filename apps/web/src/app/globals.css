@@ -110,7 +110,7 @@
     --muted: #a6a6a6;
     --accent: #0073bc;
     --border: rgba(0, 0, 0, 0.1);
-    --spacing-container: 1rem;
+    --spacing-container: 0.75rem;
     color-scheme: light;
   }
 
