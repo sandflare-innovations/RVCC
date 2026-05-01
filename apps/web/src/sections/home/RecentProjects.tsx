@@ -75,10 +75,10 @@ export const RecentProjects = () => {
   return (
     <section
       ref={sectionRef}
-      className="bg-background section-padding relative w-full overflow-hidden px-8 md:px-16 lg:px-24"
+      className="bg-background section-padding relative w-full overflow-hidden"
       id="projects"
     >
-      <div className="mx-auto">
+      <div className="container">
         {/* Header Section */}
         <div className="header-margin gap-content-gap flex flex-col items-end justify-between md:flex-row">
           <div className="flex-1">
