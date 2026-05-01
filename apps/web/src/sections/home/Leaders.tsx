@@ -1,17 +1,20 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 import { FOUNDER_DATA, LEADER_MESSAGE } from "@data/home/leaders";
 import { motion } from "framer-motion";
 
+import { cn } from "@lib/utils";
+
 export const Leaders = () => {
   return (
-    <section className="section-padding px-container overflow-hidden" id="leaders">
+    <section className="px-container md:section-padding overflow-hidden py-12" id="leaders">
       <div className="container mx-auto">
         <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-12">
           {/* Left: Founder Profile (1/3 approx) */}
-          <div className="border-brand-blue p-content-gap border-2 md:col-span-4">
+          <div className="border-brand-blue md:p-content-gap border-2 p-4 md:col-span-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -37,7 +40,7 @@ export const Leaders = () => {
           </div>
 
           {/* Right: CEO Message (2/3 approx) */}
-          <div className="p-content-gap flex h-full flex-col justify-center md:col-span-8">
+          <div className="md:p-content-gap flex h-full flex-col justify-center p-0 md:col-span-8">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -50,8 +53,26 @@ export const Leaders = () => {
 
               <div className="grid grid-cols-1 gap-12">
                 {LEADER_MESSAGE.map((paragraph, i) => (
-                  <div key={i} className="text-brand-blue/80 text-lg leading-relaxed font-medium">
-                    {paragraph}
+                  <div
+                    key={i}
+                    className={cn(
+                      "text-lg leading-relaxed font-medium text-zinc-500",
+                      i > 0 && "hidden md:block"
+                    )}
+                  >
+                    {i === 0 ? (
+                      <>
+                        <span className="md:hidden">
+                          {paragraph}{" "}
+                          <Link href="/about" className="text-brand-blue font-bold underline">
+                            Read More
+                          </Link>
+                        </span>
+                        <span className="hidden md:inline">{paragraph}</span>
+                      </>
+                    ) : (
+                      paragraph
+                    )}
                   </div>
                 ))}
               </div>
