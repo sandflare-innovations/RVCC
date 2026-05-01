@@ -21,7 +21,25 @@ export const Services = () => {
       className="section-padding relative w-full bg-gray-100 px-8 md:px-16 lg:px-24"
       id="services"
     >
-      <div className="mx-auto flex h-full max-w-[100rem] items-center">
+      <div className="mx-auto max-w-[100rem]">
+        {/* Section Header */}
+        <div className="header-margin gap-element-gap flex flex-col items-end justify-between md:flex-row">
+          <div className="flex-1">
+            <motion.h2
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-brand-blue font-primary text-[5rem] leading-[0.7] font-normal tracking-tighter uppercase md:text-[8rem]"
+            >
+              Our <br /> Services
+            </motion.h2>
+          </div>
+          <p className="max-w-sm text-sm leading-relaxed text-zinc-500 md:pb-4">
+            Delivering excellence through specialized construction, infrastructure, and engineering
+            solutions tailored for the Kingdom's vision.
+          </p>
+        </div>
+
         <div className="md:gap-content-gap grid h-full w-full grid-cols-1 gap-1 md:grid-cols-12">
           {/* Left Column: Service Items */}
           <div className="flex h-full flex-col gap-2 md:col-span-7">
