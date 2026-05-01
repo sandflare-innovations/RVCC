@@ -6,22 +6,22 @@ export const certificates: Certificate[] = [
   {
     name: "ISO 9001",
     code: "ISO - 9001 - 2008",
-    image: "/certificate/tuv.png",
+    image: "/images/certificate/tuv.png",
   },
   {
     name: "ISO 14001",
     code: "ISO - 14001 - 2004",
-    image: "/certificate/jas-anz-14001.png",
+    image: "/images/certificate/jas-anz-14001.png",
   },
   {
     name: "OHSAS 18001",
     code: "OHSAS - 18001 - 2007",
-    image: "/certificate/jas-anz-18001.png",
+    image: "/images/certificate/jas-anz-18001.png",
   },
   {
     name: "IAF",
     code: "Member of Multilateral",
-    image: "/certificate/iaf.png",
+    image: "/images/certificate/iaf.png",
   },
 ];
 
