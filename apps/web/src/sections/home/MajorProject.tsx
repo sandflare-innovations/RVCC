@@ -121,7 +121,7 @@ export const MajorProject = () => {
                 className="absolute inset-0 z-30 bg-black/10"
               />
 
-              <div className="relative z-40 container mx-auto px-4 md:px-8">
+              <div className="relative z-40 container mx-auto md:px-8">
                 <motion.div
                   style={{ opacity: p1ContentOpacity, y: p1ContentY }}
                   className="max-w-4xl text-left"
@@ -206,7 +206,7 @@ export const MajorProject = () => {
               sizes="100vw"
             />
             <div className="absolute inset-0 z-10 bg-black/10" />
-            <div className="relative z-20 container mx-auto px-4 md:px-8">
+            <div className="relative z-20 container mx-auto md:px-8">
               <motion.div style={{ opacity: p2ContentOpacity }} className="max-w-4xl text-left">
                 <span className="text-brand-blue mb-4 block text-[10px] font-black tracking-widest uppercase">
                   Project 02
@@ -259,7 +259,7 @@ export const MajorProject = () => {
               sizes="100vw"
             />
             <div className="absolute inset-0 z-10 bg-black/10" />
-            <div className="relative z-20 container mx-auto px-4 md:px-8">
+            <div className="relative z-20 container mx-auto md:px-8">
               <motion.div style={{ opacity: p3ContentOpacity }} className="max-w-4xl text-left">
                 <span className="text-brand-blue mb-4 block text-[10px] font-black tracking-widest uppercase">
                   Project 03
