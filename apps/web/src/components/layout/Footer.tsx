@@ -40,7 +40,7 @@ export const Footer = () => {
   return (
     <footer className="bg-background relative overflow-hidden py-0">
       <div className="mx-auto">
-        <div className="bg-brand-blue dark:text-theme-bg section-padding relative z-10 overflow-hidden px-8 text-white md:px-16 lg:px-24">
+        <div className="bg-brand-blue dark:text-theme-bg section-padding relative z-10 container overflow-hidden text-white">
           {/* Decorative Lines instead of Circles for Sharp Design */}
           <div className="pointer-events-none absolute top-0 right-0 h-px w-full bg-white/10" />
           <div className="pointer-events-none absolute bottom-0 left-0 h-px w-full bg-white/10" />
@@ -146,7 +146,7 @@ export const Footer = () => {
             </div>
 
             {/* Bottom Section */}
-            <div className="relative border-t border-white/10 pt-12 pb-32">
+            <div className="pt-element-gap pb-header-mb relative border-t border-white/10">
               <div className="flex flex-col items-center justify-between gap-12 md:flex-row">
                 {/* Social Icons - Expanded List */}
                 <div className="flex flex-wrap items-center justify-center gap-4">
