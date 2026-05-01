@@ -186,9 +186,9 @@ export const CSRSection = () => {
                   </p>
                 </div>
 
-                <div className="group-hover:bg-brand-blue absolute bottom-0 left-0 w-full bg-gray-200 py-4 text-center transition-colors">
-                  <span className="text-foreground group-hover:text-background text-[10px] font-black tracking-[0.3em] uppercase">
-                    LEARN ABOUT THE INITIATIVE
+                <div className="bg-brand-blue sm:bg-gray-200 group-hover:bg-brand-blue absolute bottom-0 left-0 w-full py-4 text-center transition-colors">
+                  <span className="text-background sm:text-foreground group-hover:text-background text-[10px] font-black tracking-[0.3em] uppercase">
+                    Explore the Initiative
                   </span>
                 </div>
               </div>
@@ -229,8 +229,8 @@ export const CSRSection = () => {
                   </p>
                 </div>
 
-                <div className="group-hover:bg-brand-blue absolute bottom-0 left-0 w-full bg-gray-200 py-4 text-center transition-colors">
-                  <span className="text-foreground group-hover:text-background text-[10px] font-black tracking-[0.3em] uppercase">
+                <div className="bg-brand-blue sm:bg-gray-200 group-hover:bg-brand-blue absolute bottom-0 left-0 w-full py-4 text-center transition-colors">
+                  <span className="text-background sm:text-foreground group-hover:text-background text-[10px] font-black tracking-[0.3em] uppercase">
                     Explore the academy
                   </span>
                 </div>
