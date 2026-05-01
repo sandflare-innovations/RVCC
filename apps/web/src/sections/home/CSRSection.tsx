@@ -147,19 +147,7 @@ export const CSRSection = () => {
                 Corporate Social <br /> Responsibility
               </h2>
             </div>
-            <div className="hidden flex-1 justify-end pb-2 md:flex">
-              <Button
-                href="#contact"
-                borderColor="border-brand-blue"
-                textColor="text-brand-blue"
-                bgColor="bg-transparent"
-                hoverFillColor="bg-brand-blue"
-                hoverTextColor="group-hover:text-background"
-                className="h-14 w-[220px]"
-              >
-                EXPLORE ALL
-              </Button>
-            </div>
+
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -249,20 +237,7 @@ export const CSRSection = () => {
               </div>
             </motion.div>
           </div>
-          {/* Mobile CTA */}
-          <div className="mt-8 flex justify-center md:hidden">
-            <Button
-              href="#contact"
-              borderColor="border-brand-blue"
-              textColor="text-brand-blue"
-              bgColor="bg-transparent"
-              hoverFillColor="bg-brand-blue"
-              hoverTextColor="group-hover:text-background"
-              className="h-14 w-full"
-            >
-              EXPLORE ALL
-            </Button>
-          </div>
+
         </motion.div>
 
         {/* Sister Concerns */}
@@ -368,19 +343,7 @@ export const CSRSection = () => {
                 Quality <br /> Certificates
               </h2>
             </div>
-            <div className="hidden flex-1 justify-end pb-2 md:flex">
-              <Button
-                href="#contact"
-                borderColor="border-brand-blue"
-                textColor="text-brand-blue"
-                bgColor="bg-transparent"
-                hoverFillColor="bg-brand-blue"
-                hoverTextColor="group-hover:text-background"
-                className="h-14 w-[220px]"
-              >
-                VIEW ALL
-              </Button>
-            </div>
+
           </div>
 
           <div className="scroll-hide flex flex-row items-stretch justify-start gap-4 snap-x snap-mandatory overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 md:overflow-visible lg:grid-cols-4">
@@ -394,20 +357,7 @@ export const CSRSection = () => {
               </motion.div>
             ))}
           </div>
-          {/* Mobile CTA */}
-          <div className="mt-8 flex justify-center md:hidden">
-            <Button
-              href="#contact"
-              borderColor="border-brand-blue"
-              textColor="text-brand-blue"
-              bgColor="bg-transparent"
-              hoverFillColor="bg-brand-blue"
-              hoverTextColor="group-hover:text-background"
-              className="h-14 w-full"
-            >
-              VIEW ALL
-            </Button>
-          </div>
+
         </div>
       </div>
     </section>
