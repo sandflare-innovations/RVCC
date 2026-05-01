@@ -13,7 +13,7 @@ export const NewsAndEvents = () => {
     <section className="section-padding bg-zinc-50" id="news">
       <div className="container mx-auto px-4 md:px-8">
         {/* Consistent Section Header */}
-        <div className="header-margin flex flex-col items-end justify-between gap-8 md:flex-row">
+        <div className="header-margin gap-element-gap flex flex-col items-end justify-between md:flex-row">
           <div className="flex-1">
             <motion.h2
               initial={{ opacity: 0, y: 30 }}
@@ -24,8 +24,8 @@ export const NewsAndEvents = () => {
               News &<br /> Events
             </motion.h2>
           </div>
-          <div className="header-margin gap-content-gap flex flex-col items-start md:items-end md:pb-4">
-            <p className="max-w-sm text-sm leading-relaxed text-zinc-500 md:text-right">
+          <div className="flex flex-col items-end justify-end">
+            <p className="max-w-sm text-sm leading-relaxed text-zinc-500 md:pb-4">
               Stay connected with the latest milestones and community initiatives from the heart of
               Riyadh's construction landscape.
             </p>
