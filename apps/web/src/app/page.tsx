@@ -20,7 +20,7 @@ const MajorProject = dynamic(
   }
 );
 const RecentProjects = dynamic(
-  () => import("@sections/home/RecentProjects").then((mod) => mod.RecentProjects),
+  () => import("@/sections/home/Projects").then((mod) => mod.RecentProjects),
   {
     ssr: true,
   }

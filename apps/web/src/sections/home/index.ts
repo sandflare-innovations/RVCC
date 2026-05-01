@@ -3,7 +3,7 @@ export * from "./Hero";
 export * from "./Leaders";
 export * from "./Services";
 export * from "./MajorProject";
-export * from "./RecentProjects";
+export * from "./Projects";
 export * from "./ScrollingText";
 export * from "./OurWorks";
 export * from "./CSRSection";
