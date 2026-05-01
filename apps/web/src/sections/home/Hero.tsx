@@ -214,7 +214,7 @@ export const Hero = () => {
             style={{ y: contentY, opacity: contentOpacity }}
             className="p-section-py-mobile md:p-section-py pointer-events-none absolute inset-0 z-30 flex flex-col justify-center"
           >
-            <div className="mx-auto flex w-full max-w-[120rem] flex-col justify-center gap-12">
+            <div className="container mx-auto flex flex-col justify-center gap-12">
               <div className="pointer-events-auto w-full">
                 <AnimatePresence mode="wait">
                   <motion.div
