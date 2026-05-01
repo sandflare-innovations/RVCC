@@ -18,11 +18,11 @@ export const Services = () => {
 
   return (
     <section
-      className="relative w-full bg-gray-100 px-8 py-12 md:px-16 md:py-30 lg:px-24"
+      className="section-padding relative w-full bg-gray-100 px-8 md:px-16 lg:px-24"
       id="services"
     >
       <div className="mx-auto flex h-full max-w-[100rem] items-center">
-        <div className="grid h-full w-full grid-cols-1 gap-1 md:grid-cols-12 md:gap-2">
+        <div className="grid h-full w-full grid-cols-1 gap-1 md:grid-cols-12 md:gap-content-gap">
           {/* Left Column: Service Items */}
           <div className="flex h-full flex-col gap-2 md:col-span-7">
             {SERVICES_DATA.map((service) => {
@@ -32,7 +32,7 @@ export const Services = () => {
                 <div
                   key={service.id}
                   onMouseEnter={() => setActiveId(service.id)}
-                  className={`group relative flex flex-1 cursor-pointer flex-col justify-center border-b border-black/5 p-8 transition-all duration-500 md:p-6 ${
+                  className={`group relative flex flex-1 cursor-pointer flex-col justify-center border-b border-black/5 p-content-gap transition-all duration-500 ${
                     isActive ? "bg-brand-blue" : "bg-white"
                   }`}
                 >

@@ -42,15 +42,14 @@ export const MajorProject = () => {
   return (
     <div className="bg-background">
       {/* 1. Header Section - Tightened up to reduce gap */}
-      <section className="container mx-auto px-4 md:px-8">
+      <section className="section-padding container mx-auto px-4 md:px-8">
         <motion.h2
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-brand-blue font-primary pt-20 text-[5rem] leading-[0.8] font-normal tracking-tighter uppercase md:text-[8rem]"
+          className="text-brand-blue font-primary text-center text-[5rem] leading-[0.7] font-normal tracking-tighter uppercase md:text-[8rem]"
         >
-          Major
-          <br /> Projects
+          Major Projects
         </motion.h2>
       </section>
 
@@ -107,17 +106,17 @@ export const MajorProject = () => {
                   <span className="text-brand-blue mb-4 block text-[10px] font-black tracking-widest uppercase">
                     Project 01
                   </span>
-                  <h3 className="font-primary mb-10 text-[3.5rem] leading-[0.75] font-normal tracking-tighter text-white uppercase md:text-[5.5rem] lg:text-[7rem]">
+                  <h3 className="font-primary mb-content-gap text-[3.5rem] leading-[0.75] font-normal tracking-tighter text-white uppercase md:text-[5.5rem] lg:text-[7rem]">
                     {PROJECTS[0].title.split(" ").map((word, i) => (
                       <span key={i} className="block">
                         {word}
                       </span>
                     ))}
                   </h3>
-                  <p className="mb-12 max-w-md text-lg font-light text-zinc-300 md:text-xl">
+                  <p className="mb-content-gap max-w-md text-lg font-light text-zinc-300 md:text-xl">
                     {PROJECTS[0].description}
                   </p>
-                  <div className="flex flex-col gap-6 sm:flex-row">
+                  <div className="flex flex-col gap-content-gap sm:flex-row">
                     <Button
                       borderColor="border-white"
                       textColor="text-brand-blue"
@@ -189,17 +188,17 @@ export const MajorProject = () => {
                 <span className="text-brand-blue mb-4 block text-[10px] font-black tracking-widest uppercase">
                   Project 02
                 </span>
-                <h3 className="font-primary mb-10 text-[3.5rem] leading-[0.75] font-normal tracking-tighter text-white uppercase md:text-[5.5rem] lg:text-[7rem]">
+                <h3 className="font-primary mb-content-gap text-[3.5rem] leading-[0.75] font-normal tracking-tighter text-white uppercase md:text-[5.5rem] lg:text-[7rem]">
                   {PROJECTS[1].title.split(" ").map((word, i) => (
                     <span key={i} className="block">
                       {word}
                     </span>
                   ))}
                 </h3>
-                <p className="mb-12 max-w-md text-lg font-light text-zinc-300 md:text-xl">
+                <p className="mb-content-gap max-w-md text-lg font-light text-zinc-300 md:text-xl">
                   {PROJECTS[1].description}
                 </p>
-                <div className="flex flex-col gap-6 sm:flex-row">
+                <div className="flex flex-col gap-content-gap sm:flex-row">
                   <Button
                     borderColor="border-white"
                     textColor="text-brand-blue"
@@ -242,17 +241,17 @@ export const MajorProject = () => {
                 <span className="text-brand-blue mb-4 block text-[10px] font-black tracking-widest uppercase">
                   Project 03
                 </span>
-                <h3 className="font-primary mb-10 text-[3.5rem] leading-[0.75] font-normal tracking-tighter text-white uppercase md:text-[5.5rem] lg:text-[7rem]">
+                <h3 className="font-primary mb-content-gap text-[3.5rem] leading-[0.75] font-normal tracking-tighter text-white uppercase md:text-[5.5rem] lg:text-[7rem]">
                   {PROJECTS[2].title.split(" ").map((word, i) => (
                     <span key={i} className="block">
                       {word}
                     </span>
                   ))}
                 </h3>
-                <p className="mb-12 max-w-md text-lg font-light text-zinc-300 md:text-xl">
+                <p className="mb-content-gap max-w-md text-lg font-light text-zinc-300 md:text-xl">
                   {PROJECTS[2].description}
                 </p>
-                <div className="flex flex-col gap-6 sm:flex-row">
+                <div className="flex flex-col gap-content-gap sm:flex-row">
                   <Button
                     borderColor="border-white"
                     textColor="text-brand-blue"

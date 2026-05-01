@@ -75,14 +75,14 @@ export const RecentProjects = () => {
   return (
     <section
       ref={sectionRef}
-      className="bg-background relative w-full overflow-hidden px-8 py-20 md:px-16 lg:px-24 lg:pt-40"
+      className="bg-background section-padding relative w-full overflow-hidden px-8 md:px-16 lg:px-24"
       id="projects"
     >
       <div className="mx-auto">
         {/* Header Section */}
-        <div className="mb-32 flex flex-col items-end justify-between gap-8 md:flex-row">
+        <div className="header-margin flex flex-col items-end justify-between gap-content-gap md:flex-row">
           <div className="flex-1">
-            <h2 className="text-brand-blue text-[4rem] leading-[0.9] font-medium tracking-tighter uppercase md:text-[6rem]">
+            <h2 className="text-brand-blue text-[4rem] leading-[0.7] font-medium tracking-tighter uppercase md:text-[6rem]">
               Our Projects
             </h2>
           </div>
@@ -167,7 +167,7 @@ export const RecentProjects = () => {
 
                         {/* Hover Overlay - Now White with Heading */}
                         <div className="bg-brand-blue absolute inset-0 z-30 flex translate-y-full flex-col justify-end p-8 shadow-2xl transition-transform duration-700 ease-[0.19,1,0.22,1] group-hover:translate-y-[25%]">
-                          <div className="flex h-full flex-col justify-center gap-4">
+                          <div className="flex h-full flex-col justify-center gap-content-gap">
                             <h3 className="text-background text-5xl font-black uppercase">
                               {project.title}
                             </h3>

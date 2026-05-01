@@ -7,11 +7,11 @@ import { motion } from "framer-motion";
 
 export const Leaders = () => {
   return (
-    <section className="overflow-hidden px-8 py-24 md:px-16 lg:px-24" id="leaders">
+    <section className="section-padding overflow-hidden px-8 md:px-16 lg:px-24" id="leaders">
       <div className="mx-auto max-w-[100rem]">
         <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-12">
           {/* Left: Founder Profile (1/3 approx) */}
-          <div className="border-brand-blue border-2 p-6 md:col-span-4">
+          <div className="border-brand-blue p-content-gap border-2 md:col-span-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -37,14 +37,14 @@ export const Leaders = () => {
           </div>
 
           {/* Right: CEO Message (2/3 approx) */}
-          <div className="flex h-full flex-col justify-center p-8 md:col-span-8">
+          <div className="p-content-gap flex h-full flex-col justify-center md:col-span-8">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
             >
-              <div className="text-brand-blue/30 mb-8 text-[10px] font-bold tracking-[0.4em] uppercase">
+              <div className="text-brand-blue/30 mb-content-gap text-[10px] font-bold tracking-[0.4em] uppercase">
                 Leader Message
               </div>
 
