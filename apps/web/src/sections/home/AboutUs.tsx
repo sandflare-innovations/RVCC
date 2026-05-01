@@ -254,25 +254,21 @@ export const AboutUs = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.1 }}
                 transition={{ duration: 2, delay: 0.4, ease: [0.19, 1, 0.22, 1] }}
-                className="flex flex-1 flex-col justify-between rounded-none border border-zinc-200 bg-zinc-50 p-6 transition-all hover:bg-zinc-100"
+                className="bg-brand-blue/5 border-brand-blue/20 hover:bg-brand-blue/10 flex flex-1 flex-col justify-between rounded-none border p-6 transition-all"
               >
                 <div>
-                  <h4 className="font-primary mb-3 text-xl font-bold tracking-tighter text-zinc-800 uppercase">
+                  <h4 className="font-primary text-brand-blue mb-3 text-xl font-bold tracking-tighter uppercase">
                     Profile
                   </h4>
-                  <p className="text-[10px] leading-relaxed font-medium text-zinc-500">
+                  <p className="text-brand-blue/70 text-[10px] leading-relaxed font-medium">
                     Download our comprehensive company profile to learn about our range of services.
                   </p>
                 </div>
                 <Button
-                  variant="outline"
+                  variant="brand-outline"
                   href="/pdf/RVCC COPMANY PROFILE SIGNATURE PROJECT.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
-                  borderColor="border-black"
-                  textColor="text-black"
-                  hoverFillColor="bg-black"
-                  hoverTextColor="group-hover:text-white"
                   className="mt-content-gap h-12 w-full min-w-0"
                 >
                   <span className="flex items-center gap-2">
