@@ -40,7 +40,7 @@ export const MajorProject = () => {
   const p3ContentOpacity = useTransform(smoothProgress, [0.9, 1], [0, 1]);
 
   return (
-    <div className="bg-background">
+    <div className="bg-background hidden md:block">
       {/* 1. Header Section - Tightened up to reduce gap */}
       <section className="container pt-20">
         <div className="header-margin gap-element-gap flex flex-col items-center text-center">
