@@ -58,7 +58,15 @@ export const Navbar = () => {
     };
   }, []);
 
-  const menuLinks = ["ABOUT US", "SERVICES", "PROJECTS", "GALLERY", "CAREERS", "DOCUMENTS"];
+  const menuLinks = [
+    "ABOUT US",
+    "SERVICES",
+    "PROJECTS",
+    "GALLERY",
+    "CAREERS",
+    "DOCUMENTS",
+    "CONTACT",
+  ];
 
   // Force white theme for header elements when in Works section
   const forceWhiteTheme = isWorksSection;
@@ -143,7 +151,7 @@ export const Navbar = () => {
           {/* Actions - Right */}
           <div className="relative z-50 flex items-center space-x-8">
             <nav className="hidden items-center space-x-8 lg:flex">
-              {menuLinks.slice(3).map((link) => (
+              {menuLinks.slice(3, 6).map((link) => (
                 <Link
                   key={link}
                   href={`#${link.toLowerCase().replace(" ", "-")}`}
@@ -178,7 +186,7 @@ export const Navbar = () => {
               hoverTextColor={
                 isLightAndScrolled ? "group-hover:text-background" : "group-hover:text-brand-blue"
               }
-              className="h-10 min-w-[140px] rounded-none px-6 text-[9px] font-bold tracking-widest uppercase transition-all duration-500"
+              className="hidden h-10 min-w-[140px] rounded-none px-6 text-[9px] font-bold tracking-widest uppercase transition-all duration-500 lg:flex"
             >
               Contact
             </Button>
