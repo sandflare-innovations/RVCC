@@ -243,7 +243,7 @@ export const OurWorks = () => {
           </AnimatePresence>
         </div>
 
-        <div className="p-section-py-mobile md:p-section-py container relative z-20 mx-auto flex h-full w-full flex-col justify-between">
+        <div className="py-section-py-mobile md:py-section-py container relative z-20 mx-auto flex h-full w-full flex-col justify-between">
           <div className="flex w-full items-start justify-between">
             <div className="flex flex-col">
               <span className="mb-2 text-xs font-bold tracking-[0.4em] text-white/60 uppercase">
