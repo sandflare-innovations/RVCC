@@ -17,11 +17,8 @@ export const Services = () => {
   const activeService = SERVICES_DATA.find((s) => s.id === activeId) || SERVICES_DATA[0];
 
   return (
-    <section
-      className="section-padding relative w-full bg-gray-100 px-8 md:px-16 lg:px-24"
-      id="services"
-    >
-      <div className="mx-auto max-w-[100rem]">
+    <section className="section-padding px-container relative w-full bg-gray-100" id="services">
+      <div className="container mx-auto">
         {/* Section Header */}
         <div className="header-margin gap-element-gap flex flex-col items-end justify-between md:flex-row">
           <div className="flex-1">
