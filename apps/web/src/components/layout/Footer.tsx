@@ -49,7 +49,7 @@ export const Footer = () => {
 
           <div className="relative z-10 w-full">
             {/* Main Content Grid */}
-            <div className="mb-32 grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-24">
+            <div className="mb-32 grid grid-cols-2 gap-12 lg:grid-cols-4 lg:gap-24">
               {/* Navigation Links */}
               <div className="flex flex-col items-start gap-4 text-left">
                 <span className="mb-6 text-[10px] font-bold tracking-[0.5em] text-white/30 uppercase">
@@ -61,7 +61,7 @@ export const Footer = () => {
                     href={link.href}
                     whileHover={{ letterSpacing: "0.1em" }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="group relative w-fit text-lg font-light transition-all duration-500 hover:text-white/70"
+                    className="group relative w-fit text-[14px] font-light transition-all duration-500 hover:text-white/70 xs:text-base sm:text-lg"
                   >
                     <span>{link.name}</span>
                     <span className="absolute bottom-0 left-0 h-px w-0 bg-white transition-all duration-500 group-hover:w-full" />
@@ -86,7 +86,7 @@ export const Footer = () => {
                     href="#services"
                     whileHover={{ letterSpacing: "0.1em" }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="group relative w-fit text-lg font-light transition-all duration-500 hover:text-white/70"
+                    className="group relative w-fit text-[14px] font-light transition-all duration-500 hover:text-white/70 xs:text-base sm:text-lg"
                   >
                     <span>{item}</span>
                     <span className="absolute bottom-0 left-0 h-px w-0 bg-white transition-all duration-500 group-hover:w-full" />
@@ -111,7 +111,7 @@ export const Footer = () => {
                     href="#projects"
                     whileHover={{ letterSpacing: "0.1em" }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="group relative w-fit text-lg font-light transition-all duration-500 hover:text-white/70"
+                    className="group relative w-fit text-[14px] font-light transition-all duration-500 hover:text-white/70 xs:text-base sm:text-lg"
                   >
                     <span>{item}</span>
                     <span className="absolute bottom-0 left-0 h-px w-0 bg-white transition-all duration-500 group-hover:w-full" />
@@ -136,7 +136,7 @@ export const Footer = () => {
                     href={item.href}
                     whileHover={{ letterSpacing: "0.1em" }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="group relative w-fit text-lg font-light transition-all duration-500 hover:text-white/70"
+                    className="group relative w-fit text-[14px] font-light transition-all duration-500 hover:text-white/70 xs:text-base sm:text-lg"
                   >
                     <span>{item.name}</span>
                     <span className="absolute bottom-0 left-0 h-px w-0 bg-white transition-all duration-500 group-hover:w-full" />
