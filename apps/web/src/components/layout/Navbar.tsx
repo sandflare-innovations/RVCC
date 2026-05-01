@@ -78,8 +78,8 @@ export const Navbar = () => {
         className={cn(
           "fixed top-0 right-0 left-0 z-[100] transition-all duration-500 ease-in-out",
           isLightAndScrolled
-            ? "bg-background/90 py-4 shadow-lg backdrop-blur-md"
-            : "bg-transparent py-8",
+            ? "bg-background/90 py-6 shadow-lg backdrop-blur-md md:py-4"
+            : "bg-transparent py-10 md:py-8",
           isVisible ? "translate-y-0" : "-translate-y-full"
         )}
       >
