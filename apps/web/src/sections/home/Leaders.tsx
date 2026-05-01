@@ -7,8 +7,8 @@ import { motion } from "framer-motion";
 
 export const Leaders = () => {
   return (
-    <section className="section-padding overflow-hidden px-8 md:px-16 lg:px-24" id="leaders">
-      <div className="mx-auto max-w-[100rem]">
+    <section className="section-padding px-container overflow-hidden" id="leaders">
+      <div className="container mx-auto">
         <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-12">
           {/* Left: Founder Profile (1/3 approx) */}
           <div className="border-brand-blue p-content-gap border-2 md:col-span-4">
