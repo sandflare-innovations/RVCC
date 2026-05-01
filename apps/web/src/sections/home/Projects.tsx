@@ -85,7 +85,7 @@ export const RecentProjects = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
-          className="header-margin md:gap-element-gap flex flex-col items-center gap-6 text-center lg:flex-row lg:items-end lg:text-left"
+          className="header-margin sm:pb-20 md:gap-element-gap flex flex-col items-center gap-6 text-center lg:flex-row lg:items-end lg:text-left"
         >
           <div className="flex-1">
             <h2 className="text-brand-blue font-primary text-[5rem] leading-[0.7] font-normal tracking-tighter uppercase md:text-[8rem]">
