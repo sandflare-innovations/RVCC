@@ -29,7 +29,7 @@ const CertificateCard = ({
     >
       <div className="relative w-full flex-1 p-12">
         <Image
-          src={`/images/certificates/certificate${index + 1}.png`}
+          src={cert.image}
           alt={cert.name}
           fill
           className="object-contain"
