@@ -135,7 +135,13 @@ export const AboutUs = () => {
       id="about"
     >
       <div className="container">
-        <div className="header-margin flex flex-col items-start text-left md:items-center md:text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 100 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.1 }}
+          transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
+          className="header-margin flex flex-col items-start text-left md:items-center md:text-center"
+        >
           <h2 className="text-brand-blue font-primary mb-content-gap text-6xl leading-[0.8] font-normal tracking-tighter uppercase sm:text-7xl md:text-[8rem] md:leading-[0.7]">
             about
           </h2>
@@ -148,7 +154,7 @@ export const AboutUs = () => {
               Civil Construction and Infrastructure development.
             </p>
           </div>
-        </div>
+        </motion.div>
 
         <div className="flex flex-col items-start md:items-center">
           <div ref={containerRef} className="mb-element-gap relative max-w-5xl flex-[1.5]">
@@ -177,7 +183,13 @@ export const AboutUs = () => {
           </div>
 
           <div className="gap-content-gap grid w-full grid-cols-1 items-stretch lg:grid-cols-12">
-            <div className="group relative aspect-video w-full overflow-hidden rounded-none bg-gray-100 md:aspect-[21/9] lg:col-span-9">
+            <motion.div
+              initial={{ opacity: 0, y: 100 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.1 }}
+              transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
+              className="group relative aspect-video w-full overflow-hidden rounded-none bg-gray-100 md:aspect-[21/9] lg:col-span-9"
+            >
               <video
                 ref={videoRef}
                 src="/videos/about.mp4#t=25"
@@ -207,10 +219,16 @@ export const AboutUs = () => {
                   )}
                 </button>
               </div>
-            </div>
+            </motion.div>
 
             <div className="gap-content-gap flex flex-col lg:col-span-3">
-              <div className="bg-brand-blue/5 border-brand-blue/20 hover:bg-brand-blue/10 flex flex-1 flex-col justify-between rounded-none border p-6 transition-all">
+              <motion.div
+                initial={{ opacity: 0, y: 100 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.1 }}
+                transition={{ duration: 2, delay: 0.2, ease: [0.19, 1, 0.22, 1] }}
+                className="bg-brand-blue/5 border-brand-blue/20 hover:bg-brand-blue/10 flex flex-1 flex-col justify-between rounded-none border p-6 transition-all"
+              >
                 <div>
                   <h4 className="font-primary text-brand-blue mb-3 text-xl font-bold tracking-tighter uppercase">
                     Our story
@@ -229,9 +247,15 @@ export const AboutUs = () => {
                     Read More <FaArrowRight size={12} />
                   </span>
                 </Button>
-              </div>
+              </motion.div>
 
-              <div className="flex flex-1 flex-col justify-between rounded-none border border-zinc-200 bg-zinc-50 p-6 transition-all hover:bg-zinc-100">
+              <motion.div
+                initial={{ opacity: 0, y: 100 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.1 }}
+                transition={{ duration: 2, delay: 0.4, ease: [0.19, 1, 0.22, 1] }}
+                className="flex flex-1 flex-col justify-between rounded-none border border-zinc-200 bg-zinc-50 p-6 transition-all hover:bg-zinc-100"
+              >
                 <div>
                   <h4 className="font-primary mb-3 text-xl font-bold tracking-tighter text-zinc-800 uppercase">
                     Profile
@@ -255,7 +279,7 @@ export const AboutUs = () => {
                     Open Profile <FaFileLines size={12} />
                   </span>
                 </Button>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
@@ -265,9 +289,10 @@ export const AboutUs = () => {
             {STATS.slice(1).map((stat, idx) => (
               <motion.div
                 key={idx}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 100 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: idx * 0.1 }}
+                viewport={{ once: false, amount: 0.1 }}
+                transition={{ duration: 2, delay: idx * 0.1, ease: [0.19, 1, 0.22, 1] }}
                 className="flex flex-col items-center gap-4 text-center"
               >
                 <div className="font-primary text-brand-blue text-6xl font-medium tracking-tighter lg:text-8xl">
@@ -290,7 +315,13 @@ export const AboutUs = () => {
 const ClientMarquee = () => {
   const logos = [...CLIENT_IMAGES, ...CLIENT_IMAGES];
   return (
-    <div className="md:pt-element-gap w-full overflow-hidden pt-8">
+    <motion.div
+      initial={{ opacity: 0, y: 100 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: false, amount: 0.1 }}
+      transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
+      className="md:pt-element-gap w-full overflow-hidden pt-8"
+    >
       <motion.div
         className="flex w-max items-center gap-16 px-8"
         animate={{ x: ["0%", "-50%"] }}
@@ -311,6 +342,6 @@ const ClientMarquee = () => {
           </div>
         ))}
       </motion.div>
-    </div>
+    </motion.div>
   );
 };

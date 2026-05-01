@@ -14,13 +14,14 @@ export const Leaders = () => {
       <div className="container mx-auto">
         <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-12">
           {/* Left: Founder Profile (1/3 approx) */}
-          <div className="border-brand-blue md:p-content-gap border-2 p-4 md:col-span-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="relative aspect-[4/4] w-full overflow-hidden transition-all duration-700"
-            >
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.1 }}
+            transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
+            className="border-brand-blue md:p-content-gap border-2 p-4 md:col-span-4"
+          >
+            <div className="relative aspect-[4/4] w-full overflow-hidden transition-all duration-700">
               <Image
                 src={FOUNDER_DATA.image}
                 alt={FOUNDER_DATA.name}
@@ -28,7 +29,7 @@ export const Leaders = () => {
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 33vw"
               />
-            </motion.div>
+            </div>
             <div className="mt-8">
               <h3 className="text-brand-blue text-5xl tracking-tight uppercase">
                 {FOUNDER_DATA.name}
@@ -37,15 +38,15 @@ export const Leaders = () => {
                 {FOUNDER_DATA.role}
               </p>
             </div>
-          </div>
+          </motion.div>
 
           {/* Right: CEO Message (2/3 approx) */}
           <div className="md:p-content-gap flex h-full flex-col justify-center p-0 md:col-span-8">
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
+              initial={{ opacity: 0, y: 100 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.1 }}
+              transition={{ duration: 2, delay: 0.2, ease: [0.19, 1, 0.22, 1] }}
             >
               <div className="text-brand-blue/30 mb-content-gap text-[10px] font-bold tracking-[0.4em] uppercase">
                 Leader Message
