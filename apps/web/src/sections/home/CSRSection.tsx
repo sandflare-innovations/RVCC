@@ -163,7 +163,7 @@ export const CSRSection = () => {
               <div className="absolute inset-0 z-10 bg-black/40 transition-colors group-hover:bg-black/20" />
               <div className="absolute inset-0 transition-all duration-1000">
                 <Image
-                  src="/images/csr_charity.png"
+                  src="/images/social/daya-charity.png"
                   alt="Daya Charitable Trust"
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-105"
@@ -172,7 +172,7 @@ export const CSRSection = () => {
               </div>
               <div className="relative z-20 flex h-full flex-col justify-between p-12">
                 <div className="space-y-4">
-                  <h3 className="text-6xl leading-none font-bold text-white uppercase">
+                  <h3 className="text-6xl leading-[0.8] font-bold text-white uppercase">
                     Daya <br /> Charitable Trust
                   </h3>
                   <p className="max-w-sm text-xl leading-relaxed font-medium text-white/70">
@@ -206,7 +206,7 @@ export const CSRSection = () => {
               <div className="absolute inset-0 z-10 bg-black/40 transition-colors group-hover:bg-black/20" />
               <div className="absolute inset-0 transition-all duration-1000">
                 <Image
-                  src="/images/csr_academy.png"
+                  src="/images/social/daya-academy.png"
                   alt="Daya Academy"
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-105"
@@ -215,7 +215,7 @@ export const CSRSection = () => {
               </div>
               <div className="relative z-20 flex h-full flex-col justify-between p-12">
                 <div className="space-y-4">
-                  <h3 className="text-6xl leading-none font-bold text-white uppercase">
+                  <h3 className="text-6xl leading-[0.8] font-bold text-white uppercase">
                     Daya <br /> Academy
                   </h3>
                   <p className="max-w-sm text-xl leading-relaxed font-medium text-white/70">
