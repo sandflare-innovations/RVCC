@@ -1,6 +1,7 @@
 export interface Certificate {
   name: string;
   code: string;
+  image: string;
 }
 
 export interface SisterCompany {
