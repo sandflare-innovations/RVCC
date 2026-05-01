@@ -201,7 +201,7 @@ export const Footer = () => {
               initial={{ y: "100%" }}
               whileInView={{ y: "25%" }}
               transition={{ duration: 1.5, ease: [0.19, 1, 0.22, 1] }}
-              viewport={{ once: false }}
+              viewport={{ once: true }}
               className="relative aspect-[3/1] w-full opacity-20"
               style={{ filter: "brightness(0) invert(1)" }}
             >

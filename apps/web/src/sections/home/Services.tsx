@@ -25,7 +25,7 @@ export const Services = () => {
         <motion.div
           initial={{ opacity: 0, y: 100 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false, amount: 0.1 }}
+          viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
           className="header-margin md:gap-element-gap flex flex-col items-center gap-6 text-center lg:flex-row lg:items-end lg:text-left"
         >
@@ -140,7 +140,7 @@ export const Services = () => {
               key={service.id}
               initial={{ opacity: 0, y: 100 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.1 }}
+              viewport={{ once: true, amount: 0.1 }}
               transition={{ duration: 2, delay: idx * 0.1, ease: [0.19, 1, 0.22, 1] }}
               className="overflow-hidden bg-white"
             >
@@ -168,7 +168,7 @@ export const Services = () => {
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.1 }}
+            viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 1.5, delay: 0.5 }}
             className="mt-4"
           >

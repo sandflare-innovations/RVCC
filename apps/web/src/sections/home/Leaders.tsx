@@ -17,7 +17,7 @@ export const Leaders = () => {
           <motion.div
             initial={{ opacity: 0, y: 100 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.1 }}
+            viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
             className="border-brand-blue md:p-content-gap border-2 p-4 md:col-span-4"
           >
@@ -45,7 +45,7 @@ export const Leaders = () => {
             <motion.div
               initial={{ opacity: 0, y: 100 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.1 }}
+              viewport={{ once: true, amount: 0.1 }}
               transition={{ duration: 2, delay: 0.2, ease: [0.19, 1, 0.22, 1] }}
             >
               <div className="text-brand-blue/30 mb-content-gap text-[10px] font-bold tracking-[0.4em] uppercase">

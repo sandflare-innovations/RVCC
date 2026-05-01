@@ -138,7 +138,7 @@ export const AboutUs = () => {
         <motion.div
           initial={{ opacity: 0, y: 100 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false, amount: 0.1 }}
+          viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
           className="header-margin flex flex-col items-start text-left md:items-center md:text-center"
         >
@@ -186,7 +186,7 @@ export const AboutUs = () => {
             <motion.div
               initial={{ opacity: 0, y: 100 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.1 }}
+              viewport={{ once: true, amount: 0.1 }}
               transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
               className="group relative aspect-video w-full overflow-hidden rounded-none bg-gray-100 md:aspect-[21/9] lg:col-span-9"
             >
@@ -225,7 +225,7 @@ export const AboutUs = () => {
               <motion.div
                 initial={{ opacity: 0, y: 100 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false, amount: 0.1 }}
+                viewport={{ once: true, amount: 0.1 }}
                 transition={{ duration: 2, delay: 0.2, ease: [0.19, 1, 0.22, 1] }}
                 className="bg-brand-blue/5 border-brand-blue/20 hover:bg-brand-blue/10 flex flex-1 flex-col justify-between rounded-none border p-6 transition-all"
               >
@@ -252,7 +252,7 @@ export const AboutUs = () => {
               <motion.div
                 initial={{ opacity: 0, y: 100 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false, amount: 0.1 }}
+                viewport={{ once: true, amount: 0.1 }}
                 transition={{ duration: 2, delay: 0.4, ease: [0.19, 1, 0.22, 1] }}
                 className="flex flex-1 flex-col justify-between rounded-none border border-zinc-200 bg-zinc-50 p-6 transition-all hover:bg-zinc-100"
               >
@@ -291,7 +291,7 @@ export const AboutUs = () => {
                 key={idx}
                 initial={{ opacity: 0, y: 100 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false, amount: 0.1 }}
+                viewport={{ once: true, amount: 0.1 }}
                 transition={{ duration: 2, delay: idx * 0.1, ease: [0.19, 1, 0.22, 1] }}
                 className="flex flex-col items-center gap-4 text-center"
               >
