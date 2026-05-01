@@ -171,7 +171,7 @@ export const OurWorks = () => {
           </AnimatePresence>
         </div>
 
-        <div className="relative z-20 flex h-full w-full flex-col justify-between p-8 md:p-16 lg:p-24">
+        <div className="p-section-py-mobile md:p-section-py relative z-20 flex h-full w-full flex-col justify-between">
           <div className="flex w-full items-start justify-between">
             <div className="flex flex-col">
               <span className="mb-2 text-xs font-bold tracking-[0.4em] text-white/60 uppercase">
