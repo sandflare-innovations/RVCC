@@ -20,7 +20,7 @@ export const Services = () => {
     <section className="section-padding px-container relative w-full bg-gray-100" id="services">
       <div className="container mx-auto">
         {/* Section Header */}
-        <div className="header-margin gap-element-gap flex flex-col items-end justify-between md:flex-row">
+        <div className="header-margin gap-element-gap flex flex-col items-center text-center">
           <div className="flex-1">
             <motion.h2
               initial={{ opacity: 0, y: 30 }}
@@ -31,10 +31,23 @@ export const Services = () => {
               Our <br /> Services
             </motion.h2>
           </div>
-          <p className="max-w-sm text-sm leading-relaxed text-zinc-500 md:pb-4">
-            Delivering excellence through specialized construction, infrastructure, and engineering
-            solutions tailored for the Kingdom's vision.
-          </p>
+          <div className="flex flex-col items-center justify-center">
+            <p className="max-w-xl text-sm leading-relaxed text-zinc-500 md:pb-4">
+              Delivering excellence through specialized construction, infrastructure, and
+              engineering solutions tailored for the Kingdom's vision.
+            </p>
+            <Button
+              borderColor="border-brand-blue"
+              textColor="text-brand-blue"
+              bgColor="bg-transparent"
+              hoverFillColor="bg-brand-blue"
+              hoverTextColor="group-hover:text-background"
+              className="w-full md:w-auto"
+              href="#services"
+            >
+              VIEW ALL
+            </Button>
+          </div>
         </div>
 
         <div className="md:gap-content-gap grid h-full w-full grid-cols-1 gap-1 md:grid-cols-12">
