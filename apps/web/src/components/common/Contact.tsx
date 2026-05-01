@@ -29,7 +29,7 @@ const Contact = () => {
           <h2
             className={`text-brand-blue font-primary flex flex-col items-center leading-[0.85] font-normal tracking-tighter uppercase lg:items-start`}
           >
-            <span className="text-[5rem] md:text-[10rem]">
+            <span className="text-[4rem] md:text-[8rem]">
               Contact
             </span>
             <img src="/images/logo/logo.png" alt="Contact" className="h-auto w-full max-w-[400px] lg:max-w-none" />
