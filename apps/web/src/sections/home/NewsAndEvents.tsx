@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 export const NewsAndEvents = () => {
   return (
     <section className="section-padding bg-zinc-50" id="news">
-      <div className="container mx-auto px-4 md:px-8">
+      <div className="container mx-auto">
         {/* Consistent Section Header */}
         <div className="header-margin gap-element-gap flex flex-col items-end justify-between md:flex-row">
           <div className="flex-1">
