@@ -131,17 +131,17 @@ export const AboutUs = () => {
   };
 
   return (
-    <section className="bg-background relative z-10 mx-auto max-w-7xl py-20" id="about">
+    <section className="bg-background section-padding relative z-10 mx-auto max-w-7xl" id="about">
       <div className="container">
-        <div className="my-10 flex flex-col items-center text-center">
-          <h2 className="text-brand-blue font-primary mb-10 text-[8rem] leading-[0.8] font-normal tracking-tighter uppercase">
+        <div className="header-margin flex flex-col items-center text-center">
+          <h2 className="text-brand-blue font-primary mb-content-gap text-[8rem] leading-[0.7] font-normal tracking-tighter uppercase">
             about
           </h2>
           <div className="flex max-w-2xl flex-col items-center">
             <h3 className="text-brand-blue font-heading mb-6 text-6xl uppercase">
               RIYADH VILLAS CONTRACTING CO.
             </h3>
-            <div className="bg-brand-blue/30 mb-6 h-px w-20" />
+            <div className="bg-brand-blue/30 mb-content-gap h-px w-20" />
             <p className="text-brand-blue font-primary text-[11px] font-bold tracking-[0.3em] uppercase opacity-80">
               Civil Construction and Infrastructure development.
             </p>
@@ -149,7 +149,7 @@ export const AboutUs = () => {
         </div>
 
         <div className="flex flex-col items-center">
-          <div ref={containerRef} className="relative mb-20 max-w-5xl flex-[1.5]">
+          <div ref={containerRef} className="mb-element-gap relative max-w-5xl flex-[1.5]">
             <h3 className="font-primary flex flex-wrap justify-center text-center text-xl leading-relaxed font-medium tracking-tight md:text-3xl">
               {WORDS.map((word, i) => {
                 const start = i / WORDS.length;
@@ -174,7 +174,7 @@ export const AboutUs = () => {
             </h3>
           </div>
 
-          <div className="grid w-full grid-cols-1 items-stretch gap-10 lg:grid-cols-12">
+          <div className="gap-content-gap grid w-full grid-cols-1 items-stretch lg:grid-cols-12">
             <div className="group relative aspect-[21/9] w-full overflow-hidden rounded-none bg-gray-100 lg:col-span-9">
               <video
                 ref={videoRef}
@@ -254,7 +254,7 @@ export const AboutUs = () => {
           </div>
         </div>
 
-        <div className="mt-20 border-t border-zinc-100 pt-32">
+        <div className="mt-section-py-mobile md:mt-section-py pt-section-py-mobile md:pt-section-py border-t border-zinc-100">
           <div className="grid grid-cols-2 gap-x-12 gap-y-20 md:grid-cols-4">
             {STATS.slice(1).map((stat, idx) => (
               <motion.div
@@ -284,7 +284,7 @@ export const AboutUs = () => {
 const ClientMarquee = () => {
   const logos = [...CLIENT_IMAGES, ...CLIENT_IMAGES];
   return (
-    <div className="w-full overflow-hidden pt-20">
+    <div className="pt-element-gap w-full overflow-hidden">
       <motion.div
         className="flex w-max items-center gap-16 px-8"
         animate={{ x: ["0%", "-50%"] }}
