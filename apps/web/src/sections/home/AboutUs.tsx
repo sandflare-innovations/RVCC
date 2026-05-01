@@ -59,12 +59,11 @@ const Word = ({
   progress: MotionValue<number>;
   range: [number, number];
 }) => {
-  const opacity = useTransform(progress, range, [1, 1]);
-  const color = useTransform(progress, range, ["#000000", "#0073bc"]);
+  const opacity = useTransform(progress, range, [0.15, 1]);
 
   return (
     <motion.span
-      style={{ opacity, color }}
+      style={{ opacity }}
       className="mr-3 mb-3 inline-block cursor-default font-normal transition-colors duration-100"
     >
       {children}
