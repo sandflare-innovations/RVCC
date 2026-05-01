@@ -10,21 +10,19 @@ import { Button } from "@/components/ui/Button";
 
 export const NewsAndEvents = () => {
   return (
-    <section className="section-padding bg-zinc-50" id="news">
+    <section className="section-padding bg-zinc-50 overflow-hidden" id="news">
       <div className="container mx-auto">
         {/* Consistent Section Header */}
-        <div className="header-margin gap-element-gap flex flex-col items-end justify-between md:flex-row">
+        <motion.div
+          initial={{ opacity: 1, y: 0 }}
+          className="header-margin gap-element-gap flex flex-col items-center justify-between text-center md:flex-row md:items-end md:text-left"
+        >
           <div className="flex-1">
-            <motion.h2
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-brand-blue font-primary text-[5rem] leading-[0.7] font-normal tracking-tighter uppercase md:text-[8rem]"
-            >
+            <h2 className="text-brand-blue font-primary text-[5rem] leading-[0.7] font-normal tracking-tighter uppercase md:text-[8rem]">
               News &<br /> Events
-            </motion.h2>
+            </h2>
           </div>
-          <div className="flex flex-col items-end justify-end">
+          <div className="hidden flex-col items-end justify-end md:flex">
             <p className="max-w-sm text-sm leading-relaxed text-zinc-500 md:pb-4">
               Stay connected with the latest milestones and community initiatives from the heart of
               Riyadh's construction landscape.
@@ -40,18 +38,15 @@ export const NewsAndEvents = () => {
               VIEW ALL
             </Button>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Newsletter Style Grid */}
-        <div className="gap-content-gap grid grid-cols-1 md:grid-cols-3">
+        {/* Mobile Carousel / Desktop Grid */}
+        <div className="scroll-hide gap-4 flex flex-row items-stretch justify-start snap-x snap-mandatory overflow-x-auto overflow-y-hidden md:grid md:grid-cols-3 md:gap-content-gap md:overflow-visible">
           {NEWS_DATA.map((item, index) => (
             <motion.div
               key={item.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.8 }}
-              className="group hover:border-brand-blue/20 relative flex flex-col border border-black/5 bg-white p-6 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,115,188,0.05)]"
+              initial={{ opacity: 1, y: 0 }}
+              className="group hover:border-brand-blue/20 relative flex w-[80vw] flex-shrink-0 snap-center flex-col border border-black/5 bg-white p-6 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,115,188,0.05)] md:w-auto md:flex-shrink"
             >
               {/* Newsletter Header Card */}
               <div className="mb-content-gap flex items-center justify-between border-b border-zinc-100 pb-4">
@@ -65,7 +60,7 @@ export const NewsAndEvents = () => {
               </div>
 
               {/* Image */}
-              <div className="mb-content-gap relative aspect-video overflow-hidden grayscale transition-all duration-700 group-hover:grayscale-0">
+              <div className="mb-content-gap relative aspect-video overflow-hidden transition-all duration-700">
                 <Image
                   src={item.image}
                   alt={item.title}
@@ -95,6 +90,20 @@ export const NewsAndEvents = () => {
               </div>
             </motion.div>
           ))}
+        </div>
+
+        {/* Mobile CTA */}
+        <div className="mt-12 flex justify-center md:hidden">
+          <Button
+            borderColor="border-brand-blue"
+            textColor="text-brand-blue"
+            bgColor="bg-transparent"
+            hoverFillColor="bg-brand-blue"
+            hoverTextColor="group-hover:text-background"
+            className="h-14 w-full"
+          >
+            VIEW ALL
+          </Button>
         </div>
       </div>
     </section>
