@@ -30,7 +30,7 @@ export const Leaders = () => {
                 sizes="(max-width: 768px) 100vw, 33vw"
               />
             </div>
-            <div className="mt-8">
+            <div className="mt-8 text-center">
               <h3 className="text-brand-blue text-5xl tracking-tight uppercase">
                 {FOUNDER_DATA.name}
               </h3>
