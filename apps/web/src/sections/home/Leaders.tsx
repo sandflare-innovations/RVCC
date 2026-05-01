@@ -10,7 +10,7 @@ import { cn } from "@lib/utils";
 
 export const Leaders = () => {
   return (
-    <section className="px-container md:section-padding overflow-hidden py-12" id="leaders">
+    <section className="md:section-padding overflow-hidden py-12" id="leaders">
       <div className="container mx-auto">
         <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-12">
           {/* Left: Founder Profile (1/3 approx) */}

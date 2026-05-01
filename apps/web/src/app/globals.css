@@ -65,7 +65,7 @@
   --spacing-container-gap: 8rem;
   --spacing-element-gap: 4rem;
   --spacing-content-gap: 2rem;
-  --spacing-container: 1.5rem;
+  --spacing-container: var(--spacing-container);
 
   /* Custom Text Sizes */
   --text-display: 4.5rem;
@@ -110,7 +110,20 @@
     --muted: #a6a6a6;
     --accent: #0073bc;
     --border: rgba(0, 0, 0, 0.1);
+    --spacing-container: 1rem;
     color-scheme: light;
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --spacing-container: 2.5rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    :root {
+      --spacing-container: 4rem;
+    }
   }
 
   .dark {
