@@ -131,14 +131,17 @@ export const AboutUs = () => {
   };
 
   return (
-    <section className="bg-background section-padding relative z-10 mx-auto" id="about">
+    <section
+      className="bg-background pt-section-py-mobile md:py-section-py relative z-10 mx-auto pb-0"
+      id="about"
+    >
       <div className="container">
         <div className="header-margin flex flex-col items-start text-left md:items-center md:text-center">
           <h2 className="text-brand-blue font-primary mb-content-gap text-6xl leading-[0.8] font-normal tracking-tighter uppercase sm:text-7xl md:text-[8rem] md:leading-[0.7]">
             about
           </h2>
           <div className="flex max-w-2xl flex-col items-start md:items-center">
-            <h3 className="text-brand-blue font-heading mb-6 text-3xl uppercase sm:text-4xl md:text-6xl">
+            <h3 className="text-brand-blue font-heading mb-content-gap text-3xl uppercase sm:text-4xl md:text-6xl">
               RIYADH VILLAS CONTRACTING CO.
             </h3>
             <div className="bg-brand-blue/30 mb-content-gap h-px w-20" />
@@ -207,7 +210,7 @@ export const AboutUs = () => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-6 lg:col-span-3">
+            <div className="gap-content-gap flex flex-col lg:col-span-3">
               <div className="bg-brand-blue/5 border-brand-blue/20 hover:bg-brand-blue/10 flex flex-1 flex-col justify-between rounded-none border p-6 transition-all">
                 <div>
                   <h4 className="font-primary text-brand-blue mb-3 text-xl font-bold tracking-tighter uppercase">
@@ -218,7 +221,11 @@ export const AboutUs = () => {
                     future.
                   </p>
                 </div>
-                <Button variant="brand-outline" href="/about" className="mt-6 h-12 w-full min-w-0">
+                <Button
+                  variant="brand-outline"
+                  href="/about"
+                  className="mt-content-gap h-12 w-full min-w-0"
+                >
                   <span className="flex items-center gap-2">
                     Read More <FaArrowRight size={12} />
                   </span>
@@ -243,7 +250,7 @@ export const AboutUs = () => {
                   textColor="text-black"
                   hoverFillColor="bg-black"
                   hoverTextColor="group-hover:text-white"
-                  className="mt-6 h-12 w-full min-w-0"
+                  className="mt-content-gap h-12 w-full min-w-0"
                 >
                   <span className="flex items-center gap-2">
                     Open Profile <FaFileLines size={12} />
@@ -254,15 +261,15 @@ export const AboutUs = () => {
           </div>
         </div>
 
-        <div className="mt-section-py pt-section-py border-t border-zinc-100">
-          <div className="grid grid-cols-2 gap-x-12 gap-y-20 md:grid-cols-4">
+        <div className="mt-element-gap pt-element-gap md:mt-section-py md:pt-section-py border-t border-zinc-100">
+          <div className="gap-element-gap grid grid-cols-2 md:grid-cols-4">
             {STATS.slice(1).map((stat, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: idx * 0.1 }}
-                className="flex flex-col gap-4"
+                className="flex flex-col items-center gap-4 text-center"
               >
                 <div className="font-primary text-brand-blue text-6xl font-medium tracking-tighter lg:text-8xl">
                   <Counter to={stat.value} suffix={stat.suffix} />
@@ -284,7 +291,7 @@ export const AboutUs = () => {
 const ClientMarquee = () => {
   const logos = [...CLIENT_IMAGES, ...CLIENT_IMAGES];
   return (
-    <div className="pt-element-gap w-full overflow-hidden">
+    <div className="md:pt-element-gap w-full overflow-hidden pt-8">
       <motion.div
         className="flex w-max items-center gap-16 px-8"
         animate={{ x: ["0%", "-50%"] }}
