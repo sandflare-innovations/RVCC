@@ -212,7 +212,7 @@ export const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             style={{ y: contentY, opacity: contentOpacity }}
-            className="pointer-events-none absolute inset-0 z-30 flex flex-col justify-center p-8 md:p-16 lg:p-24"
+            className="p-section-py-mobile md:p-section-py pointer-events-none absolute inset-0 z-30 flex flex-col justify-center"
           >
             <div className="mx-auto flex w-full max-w-[120rem] flex-col justify-center gap-12">
               <div className="pointer-events-auto w-full">
