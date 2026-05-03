@@ -52,12 +52,16 @@ export const RecentProjects = () => {
     setStartIndex((prev) => prev - 1);
   };
 
-  const handleMobileDragEnd = (e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const threshold = 50;
-    if (info.offset.x < -threshold && mobileIndex < PROJECTS.length - 1) {
-      setMobileIndex((prev) => prev + 1);
-    } else if (info.offset.x > threshold && mobileIndex > 0) {
-      setMobileIndex((prev) => prev - 1);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const scrollLeft = scrollRef.current.scrollLeft;
+      const width = scrollRef.current.offsetWidth;
+      const newIndex = Math.round(scrollLeft / width);
+      if (newIndex !== mobileIndex && newIndex >= 0 && newIndex < PROJECTS.length) {
+        setMobileIndex(newIndex);
+      }
     }
   };
 
@@ -127,68 +131,67 @@ export const RecentProjects = () => {
 
         {/* Mobile Projects Carousel */}
         <div className="md:hidden">
-          <div className="overflow-visible">
-            <motion.div
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              onDragEnd={handleMobileDragEnd}
-              animate={{ x: `-${mobileIndex * 90}vw` }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="flex"
-              style={{ paddingLeft: "5vw" }}
-            >
-              {PROJECTS.map((project, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1, ease: [0.19, 1, 0.22, 1] }}
-                  className="relative flex w-[90vw] flex-shrink-0 flex-col items-center pr-4"
-                >
-                  <div className="relative aspect-[5/3] w-full overflow-hidden shadow-2xl">
-                    <Image
-                      src={project.image}
-                      alt={project.title}
-                      fill
-                      className="object-cover"
-                      sizes="90vw"
-                    />
+          <div
+            ref={scrollRef}
+            onScroll={handleScroll}
+            className="scrollbar-hide flex snap-x snap-mandatory overflow-x-auto"
+          >
+            {PROJECTS.map((project, idx) => (
+              <div
+                key={idx}
+                className="relative flex w-full min-w-full flex-shrink-0 snap-center snap-always flex-col"
+              >
+                {/* Image Container */}
+                <div className="relative aspect-[4/3] w-full overflow-hidden shadow-sm">
+                  <Image
+                    src={project.image}
+                    alt={project.title}
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                  />
+                </div>
 
-                    {/* Centered Bottom Overlay - The "Hover" effect */}
-                    <div className="absolute bottom-6 left-1/2 z-20 w-[85%] -translate-x-1/2 border border-zinc-100 bg-white/95 p-6 text-center shadow-xl backdrop-blur-sm">
-                      <span className="text-brand-blue mb-1 block text-[10px] font-black tracking-widest uppercase">
-                        {project.category}
-                      </span>
-                      <h3 className="text-brand-blue text-2xl leading-tight font-bold tracking-tighter uppercase">
-                        {project.title}
-                      </h3>
-                      <div className="bg-brand-blue mx-auto mt-3 h-0.5 w-12" />
-                    </div>
-
-                    <div className="absolute top-4 left-4 z-20">
-                      <span className="bg-brand-blue/90 px-3 py-1 text-[8px] font-bold tracking-widest text-white uppercase backdrop-blur-sm">
-                        Project {String(idx + 1).padStart(2, "0")}
-                      </span>
-                    </div>
+                {/* Content Container - Significant Overlap */}
+                <div className="relative z-20 mx-3 -mt-20 border border-zinc-100 bg-white p-8 text-left shadow-2xl">
+                  <div className="mb-6 space-y-3">
+                    <span className="text-[10px] font-bold tracking-[0.2em] text-zinc-500 uppercase">
+                      COMPLETED — {project.category}
+                    </span>
+                    <h3 className="text-brand-blue text-3xl leading-[0.9] font-medium tracking-tighter uppercase">
+                      {project.title}
+                    </h3>
                   </div>
-                </motion.div>
-              ))}
-            </motion.div>
+
+                  <p className="mb-8 line-clamp-4 text-[12px] leading-relaxed text-zinc-500">
+                    {project.description}
+                  </p>
+
+                  <Button
+                    borderColor="border-zinc-300"
+                    textColor="text-zinc-800"
+                    bgColor="bg-transparent"
+                    hoverFillColor="bg-brand-blue"
+                    hoverTextColor="group-hover:text-white"
+                    className="h-12 px-8 text-[10px] font-bold tracking-widest"
+                  >
+                    LEARN MORE
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Pagination Indicators */}
-          <div className="mt-10 flex justify-center gap-2">
-            {PROJECTS.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setMobileIndex(i)}
-                className={cn(
-                  "h-1 transition-all duration-500",
-                  mobileIndex === i ? "bg-brand-blue w-8" : "w-2 bg-zinc-200"
-                )}
+          {/* Pagination Slider Indicator */}
+          <div className="mt-12 flex flex-col items-center gap-4">
+            <div className="relative h-1 w-48 overflow-hidden bg-zinc-100">
+              <motion.div
+                className="bg-brand-blue absolute inset-y-0"
+                style={{ width: `${100 / PROJECTS.length}%` }}
+                animate={{ x: `${mobileIndex * 100}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
               />
-            ))}
+            </div>
           </div>
 
           <motion.div
