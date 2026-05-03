@@ -10,7 +10,7 @@ import { cn } from "@lib/utils";
 
 export const Leaders = () => {
   return (
-    <section className="md:section-padding overflow-hidden py-12" id="leaders">
+    <section className="md:section-padding overflow-hidden py-12 md:pb-24" id="leaders">
       <div className="container mx-auto">
         <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-12">
           {/* Left: Founder Profile (1/3 approx) */}
@@ -19,7 +19,7 @@ export const Leaders = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
-            className="border-brand-blue md:p-content-gap border-2 p-4 md:col-span-4"
+            className="border-brand-blue border-2 p-4 md:col-span-4 md:p-4"
           >
             <div className="relative aspect-[4/4] w-full overflow-hidden transition-all duration-700">
               <Image
@@ -48,7 +48,7 @@ export const Leaders = () => {
               viewport={{ once: true, amount: 0.1 }}
               transition={{ duration: 2, delay: 0.2, ease: [0.19, 1, 0.22, 1] }}
             >
-              <div className="text-brand-blue/30 mb-content-gap text-[10px] font-bold tracking-[0.4em] uppercase">
+              <div className="text-brand-blue/30 mb-content-gap text-[12px] font-bold tracking-[0.4em] uppercase sm:text-[16px]">
                 Leader Message
               </div>
 
@@ -57,7 +57,7 @@ export const Leaders = () => {
                   <div
                     key={i}
                     className={cn(
-                      "text-lg leading-relaxed font-medium text-zinc-500",
+                      "text-lg leading-relaxed font-medium text-zinc-500 sm:text-xl",
                       i > 0 && "hidden md:block"
                     )}
                   >
@@ -65,7 +65,7 @@ export const Leaders = () => {
                       <>
                         <span className="md:hidden">
                           {paragraph}{" "}
-                          <Link href="/about" className="text-brand-blue font-bold underline">
+                          <Link href="/about" className="text-brand-blue font-semibold underline">
                             Read More
                           </Link>
                         </span>
@@ -77,7 +77,7 @@ export const Leaders = () => {
                         {i === LEADER_MESSAGE.length - 1 && (
                           <Link
                             href="/about"
-                            className="text-brand-blue ml-2 hidden font-bold underline md:inline"
+                            className="text-brand-blue ml-2 hidden font-semibold underline md:inline"
                           >
                             Read More
                           </Link>
