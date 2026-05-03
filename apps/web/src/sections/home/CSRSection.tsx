@@ -71,7 +71,7 @@ const LogoTicker = () => {
           {[...concernLogos, ...concernLogos].map((logo, index) => (
             <div
               key={index}
-              className="group relative h-20 w-48 flex-shrink-0 transition-all duration-700"
+              className="group relative h-32 w-48 flex-shrink-0 transition-all duration-700"
             >
               <Image
                 src={logo}
