@@ -41,6 +41,6 @@ export const sisterCompanies: SisterCompany[] = [
 ];
 
 export const concernLogos = Array.from(
-  { length: 7 },
+  { length: 9 },
   (_, i) => `/images/concern-companies/logos/${i + 1}.png`
 );
