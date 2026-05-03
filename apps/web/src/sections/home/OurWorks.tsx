@@ -45,13 +45,13 @@ const imageVariants: Variants = {
 
 const innerImageVariants: Variants = {
   enter: {
-    scale: 1.1,
+    scale: 1,
   },
   center: {
     scale: 1,
     transition: {
       type: "tween",
-      duration: 1.2,
+      duration: 2,
       ease: [0.22, 1, 0.36, 1],
     },
   },
@@ -243,7 +243,7 @@ export const OurWorks = () => {
           </AnimatePresence>
         </div>
 
-        <div className="py-section-py-mobile md:py-section-py container relative z-20 mx-auto flex h-full w-full flex-col justify-between">
+        <div className="py-section-py-mobile md:py-section-py relative z-20 container mx-auto flex h-full w-full flex-col justify-between">
           <div className="flex w-full items-start justify-between">
             <div className="flex flex-col">
               <span className="mb-2 text-xs font-bold tracking-[0.4em] text-white/60 uppercase">
