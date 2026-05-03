@@ -5,11 +5,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 
 import { RECENT_PROJECTS as PROJECTS } from "@data/projects/recent";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { PanInfo, motion, useScroll, useTransform } from "framer-motion";
 
 import { Icons } from "@repo/ui";
 
 import { Button } from "@/components/ui/Button";
+
+import { cn } from "@lib/utils";
 
 export const RecentProjects = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -37,6 +39,7 @@ export const RecentProjects = () => {
 
   // 2. State for navigation
   const [startIndex, setStartIndex] = useState(0);
+  const [mobileIndex, setMobileIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(true);
 
   const nextSlide = () => {
@@ -47,6 +50,15 @@ export const RecentProjects = () => {
   const prevSlide = () => {
     setIsTransitioning(true);
     setStartIndex((prev) => prev - 1);
+  };
+
+  const handleMobileDragEnd = (e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const threshold = 50;
+    if (info.offset.x < -threshold && mobileIndex < PROJECTS.length - 1) {
+      setMobileIndex((prev) => prev + 1);
+    } else if (info.offset.x > threshold && mobileIndex > 0) {
+      setMobileIndex((prev) => prev - 1);
+    }
   };
 
   // Render a "window" of items based on the current startIndex
@@ -85,7 +97,7 @@ export const RecentProjects = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
-          className="header-margin sm:pb-20 md:gap-element-gap flex flex-col items-center gap-6 text-center lg:flex-row lg:items-end lg:text-left"
+          className="header-margin md:gap-element-gap flex flex-col items-center gap-6 text-center sm:pb-20 lg:flex-row lg:items-end lg:text-left"
         >
           <div className="flex-1">
             <h2 className="text-brand-blue font-primary text-[5rem] leading-[0.7] font-normal tracking-tighter uppercase md:text-[8rem]">
@@ -113,58 +125,77 @@ export const RecentProjects = () => {
           </div>
         </motion.div>
 
-        {/* Mobile Projects List - Special Cards */}
-        <div className="flex flex-col gap-10 md:hidden">
-          {PROJECTS.map((project, idx) => (
+        {/* Mobile Projects Carousel */}
+        <div className="md:hidden">
+          <div className="overflow-visible">
             <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 100 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.1 }}
-              transition={{ duration: 2, delay: idx * 0.1, ease: [0.19, 1, 0.22, 1] }}
-              className="group relative flex flex-col border border-zinc-200 bg-white"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              onDragEnd={handleMobileDragEnd}
+              animate={{ x: `-${mobileIndex * 90}vw` }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="flex"
+              style={{ paddingLeft: "5vw" }}
             >
-              <div className="relative aspect-[4/5] w-full overflow-hidden">
-                <Image
-                  src={project.image}
-                  alt={project.title}
-                  fill
-                  className="object-cover"
-                  sizes="100vw"
-                />
-                <div className="absolute top-4 left-4 z-20 flex gap-2">
-                  <span className="bg-brand-blue/90 px-3 py-1 text-[8px] font-bold tracking-widest text-white uppercase backdrop-blur-sm">
-                    {project.category}
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col p-8">
-                <span className="text-brand-blue mb-2 text-[10px] font-black tracking-widest uppercase">
-                  Project {String(idx + 1).padStart(2, "0")}
-                </span>
-                <h3 className="text-brand-blue mb-4 text-4xl font-medium tracking-tighter uppercase">
-                  {project.title}
-                </h3>
-                <p className="mb-6 text-xs leading-relaxed text-zinc-500">{project.description}</p>
-                <Button
-                  borderColor="border-brand-blue"
-                  textColor="text-brand-blue"
-                  bgColor="bg-transparent"
-                  hoverFillColor="bg-brand-blue"
-                  hoverTextColor="group-hover:text-background"
-                  className="h-12 w-full text-[10px] font-bold"
+              {PROJECTS.map((project, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1, ease: [0.19, 1, 0.22, 1] }}
+                  className="relative flex w-[90vw] flex-shrink-0 flex-col items-center pr-4"
                 >
-                  VIEW PROJECT DETAILS
-                </Button>
-              </div>
+                  <div className="relative aspect-[5/3] w-full overflow-hidden shadow-2xl">
+                    <Image
+                      src={project.image}
+                      alt={project.title}
+                      fill
+                      className="object-cover"
+                      sizes="90vw"
+                    />
+
+                    {/* Centered Bottom Overlay - The "Hover" effect */}
+                    <div className="absolute bottom-6 left-1/2 z-20 w-[85%] -translate-x-1/2 border border-zinc-100 bg-white/95 p-6 text-center shadow-xl backdrop-blur-sm">
+                      <span className="text-brand-blue mb-1 block text-[10px] font-black tracking-widest uppercase">
+                        {project.category}
+                      </span>
+                      <h3 className="text-brand-blue text-2xl leading-tight font-bold tracking-tighter uppercase">
+                        {project.title}
+                      </h3>
+                      <div className="bg-brand-blue mx-auto mt-3 h-0.5 w-12" />
+                    </div>
+
+                    <div className="absolute top-4 left-4 z-20">
+                      <span className="bg-brand-blue/90 px-3 py-1 text-[8px] font-bold tracking-widest text-white uppercase backdrop-blur-sm">
+                        Project {String(idx + 1).padStart(2, "0")}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </motion.div>
-          ))}
+          </div>
+
+          {/* Pagination Indicators */}
+          <div className="mt-10 flex justify-center gap-2">
+            {PROJECTS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setMobileIndex(i)}
+                className={cn(
+                  "h-1 transition-all duration-500",
+                  mobileIndex === i ? "bg-brand-blue w-8" : "w-2 bg-zinc-200"
+                )}
+              />
+            ))}
+          </div>
+
           <motion.div
-            initial={{ opacity: 0, y: 100 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 2, delay: 0.2, ease: [0.19, 1, 0.22, 1] }}
-            className="mt-4"
+            viewport={{ once: true }}
+            className="mt-12"
           >
             <Button
               href="#contact"
