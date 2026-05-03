@@ -66,7 +66,7 @@ const LogoTicker = () => {
             ease: "linear",
             repeat: Infinity,
           }}
-          className="gap-2 flex w-max items-center md:gap-8"
+          className="flex w-max items-center gap-2 md:gap-8"
         >
           {[...concernLogos, ...concernLogos].map((logo, index) => (
             <div
@@ -147,7 +147,6 @@ export const CSRSection = () => {
                 Corporate Social <br /> Responsibility
               </h2>
             </div>
-
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -168,7 +167,7 @@ export const CSRSection = () => {
               <div className="absolute inset-0 z-10 bg-black/40 transition-colors group-hover:bg-black/20" />
               <div className="absolute inset-0 transition-all duration-1000">
                 <Image
-                  src="/images/social/daya-charity.png"
+                  src="/images/social/daya-trust.png"
                   alt="Daya Charitable Trust"
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-105"
@@ -186,7 +185,7 @@ export const CSRSection = () => {
                   </p>
                 </div>
 
-                <div className="bg-brand-blue sm:bg-gray-200 group-hover:bg-brand-blue absolute bottom-0 left-0 w-full py-4 text-center transition-colors">
+                <div className="bg-brand-blue group-hover:bg-brand-blue absolute bottom-0 left-0 w-full py-4 text-center transition-colors sm:bg-gray-200">
                   <span className="text-background sm:text-foreground group-hover:text-background text-[10px] font-black tracking-[0.3em] uppercase">
                     Explore the Initiative
                   </span>
@@ -229,7 +228,7 @@ export const CSRSection = () => {
                   </p>
                 </div>
 
-                <div className="bg-brand-blue sm:bg-gray-200 group-hover:bg-brand-blue absolute bottom-0 left-0 w-full py-4 text-center transition-colors">
+                <div className="bg-brand-blue group-hover:bg-brand-blue absolute bottom-0 left-0 w-full py-4 text-center transition-colors sm:bg-gray-200">
                   <span className="text-background sm:text-foreground group-hover:text-background text-[10px] font-black tracking-[0.3em] uppercase">
                     Explore the academy
                   </span>
@@ -237,7 +236,6 @@ export const CSRSection = () => {
               </div>
             </motion.div>
           </div>
-
         </motion.div>
 
         {/* Sister Concerns */}
@@ -272,14 +270,14 @@ export const CSRSection = () => {
 
           <LogoTicker />
 
-          <div className="gap-4 scroll-hide flex flex-row items-stretch justify-start snap-x snap-mandatory overflow-x-auto overflow-y-hidden md:gap-content-gap md:flex-row md:items-center md:justify-center md:overflow-visible">
+          <div className="scroll-hide md:gap-content-gap flex snap-x snap-mandatory flex-row items-stretch justify-start gap-4 overflow-x-auto overflow-y-hidden md:flex-row md:items-center md:justify-center md:overflow-visible">
             {sisterCompanies.map((company, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 1, y: 0 }}
                 whileHover={{ y: -10 }}
                 transition={{ duration: 0.5 }}
-                className="group relative h-[450px] w-[80vw] flex-shrink-0 snap-center cursor-pointer overflow-hidden rounded-none bg-zinc-950 md:w-1/3 md:flex-shrink"
+                className="group relative h-[450px] w-[80vw] flex-shrink-0 cursor-pointer snap-center overflow-hidden rounded-none bg-zinc-950 md:w-1/3 md:flex-shrink"
               >
                 {/* Background Image with Overlay */}
                 <div className="absolute inset-0 z-0 transition-all duration-1000">
@@ -343,10 +341,9 @@ export const CSRSection = () => {
                 Quality <br /> Certificates
               </h2>
             </div>
-
           </div>
 
-          <div className="scroll-hide flex flex-row items-stretch justify-start gap-4 snap-x snap-mandatory overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 md:overflow-visible lg:grid-cols-4">
+          <div className="scroll-hide flex snap-x snap-mandatory flex-row items-stretch justify-start gap-4 overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 md:overflow-visible lg:grid-cols-4">
             {certificates.map((cert: Certificate, index: number) => (
               <motion.div
                 key={index}
@@ -357,7 +354,6 @@ export const CSRSection = () => {
               </motion.div>
             ))}
           </div>
-
         </div>
       </div>
     </section>
