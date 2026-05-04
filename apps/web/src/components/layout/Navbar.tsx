@@ -58,6 +58,41 @@ export const Navbar = () => {
     };
   }, []);
 
+  // Lock background scroll when menu is open using position: fixed strategy (best for mobile/iOS)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const body = document.body;
+    const html = document.documentElement;
+
+    if (isOpen) {
+      const scrollPos = window.scrollY;
+      body.style.overflow = "hidden";
+      body.style.position = "fixed";
+      body.style.top = `-${scrollPos}px`;
+      body.style.width = "100%";
+      html.style.scrollBehavior = "auto";
+    } else {
+      const savedScrollPos = Math.abs(parseInt(body.style.top || "0", 10));
+      body.style.overflow = "";
+      body.style.position = "";
+      body.style.top = "";
+      body.style.width = "";
+      html.style.scrollBehavior = "";
+      if (savedScrollPos) {
+        window.scrollTo(0, savedScrollPos);
+      }
+    }
+
+    return () => {
+      body.style.overflow = "";
+      body.style.position = "";
+      body.style.top = "";
+      body.style.width = "";
+      html.style.scrollBehavior = "";
+    };
+  }, [isOpen]);
+
   const menuLinks = [
     "ABOUT US",
     "SERVICES",
@@ -194,10 +229,9 @@ export const Navbar = () => {
         </div>
       </header>
 
-      {/* SpaceX Style Side Menu Overlay */}
       <div
         className={cn(
-          "fixed inset-0 z-[150] bg-black/40 backdrop-blur-sm transition-opacity duration-500",
+          "fixed inset-0 z-[150] bg-black/40 backdrop-blur-sm transition-opacity duration-500 touch-none",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
         onClick={() => setIsOpen(false)}
@@ -206,25 +240,26 @@ export const Navbar = () => {
       {/* SpaceX Style Side Menu Box */}
       <div
         className={cn(
-          "bg-background fixed top-0 left-0 z-[200] flex h-full w-full max-w-[400px] flex-col p-12 transition-transform duration-500 ease-out",
+          "bg-background custom-scrollbar overscroll-contain fixed top-0 left-0 z-[200] h-full w-full max-w-[400px] overflow-y-auto transition-transform duration-500 ease-out",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Close Button */}
-        <div className="flex justify-start">
-          <button
-            onClick={() => setIsOpen(false)}
-            className="text-brand-blue group flex items-center space-x-4 transition-all duration-500"
-          >
-            <Icons.Close className="h-8 w-8 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-180" />
-            <span className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-              Close
-            </span>
-          </button>
-        </div>
+        <div className="flex min-h-full flex-col p-12">
+          {/* Close Button */}
+          <div className="flex shrink-0 justify-start">
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-brand-blue group flex items-center space-x-4 transition-all duration-500"
+            >
+              <Icons.Close className="h-8 w-8 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-180" />
+              <span className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                Close
+              </span>
+            </button>
+          </div>
 
-        {/* Menu Links - Optimized for 100vh visibility */}
-        <nav className="mt-12 flex flex-1 flex-col justify-center space-y-6">
+        {/* Menu Links */}
+        <nav className="mt-6 flex flex-1 flex-col space-y-6 py-4">
           {menuLinks.map((link, idx) => (
             <Link
               key={link}
@@ -254,7 +289,7 @@ export const Navbar = () => {
         </nav>
 
         {/* Menu Footer - Compact */}
-        <div className="border-border mt-auto border-t pt-10">
+        <div className="mt-auto shrink-0 pt-10">
           <div className="flex w-full items-center justify-between gap-4">
             {/* Social Icons */}
             <div className="flex items-center gap-4">
@@ -281,6 +316,7 @@ export const Navbar = () => {
               </button>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </>
