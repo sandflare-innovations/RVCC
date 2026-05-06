@@ -2,6 +2,8 @@
 
 import React from "react";
 
+import Image from "next/image";
+
 import { motion } from "framer-motion";
 
 export interface MarqueeImage {
@@ -63,7 +65,7 @@ export const ThreeDMarquee: React.FC<ThreeDMarqueeProps> = ({
                   repeat: Infinity,
                   repeatType: "reverse",
                 }}
-                className="relative flex flex-col items-center gap-12"
+                className="relative flex flex-col items-center gap-12 will-change-transform"
               >
                 {/* Horizontal and Vertical lines for architectural grid feel */}
                 <div className="bg-brand-blue/10 absolute top-0 left-0 h-full w-px" />
@@ -74,16 +76,23 @@ export const ThreeDMarquee: React.FC<ThreeDMarqueeProps> = ({
                   return (
                     <div key={`img-${imgIdx}`} className="relative">
                       <div className="bg-brand-blue/10 absolute top-0 left-0 h-px w-full" />
-                      <motion.img
+                      <motion.div
                         whileHover={{ y: -20, scale: 1.05 }}
                         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                        src={image.src}
-                        alt={image.alt}
-                        className={`ring-brand-blue/10 hover:shadow-brand-blue/20 aspect-[16/10] w-full max-w-[320px] rounded-none object-cover shadow-2xl ring-1 transition-all duration-500 ${
+                        className={`ring-brand-blue/10 hover:shadow-brand-blue/20 relative aspect-[16/10] w-full min-w-[320px] overflow-hidden rounded-none shadow-2xl ring-1 transition-all duration-500 ${
                           isClickable ? "cursor-pointer" : ""
                         }`}
                         onClick={() => handleImageClick(image, globalIndex)}
-                      />
+                      >
+                        <Image
+                          src={image.src}
+                          alt={image.alt}
+                          fill
+                          className="object-cover"
+                          sizes="400px"
+                          quality={60}
+                        />
+                      </motion.div>
                     </div>
                   );
                 })}
