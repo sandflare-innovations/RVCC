@@ -1,11 +1,16 @@
 "use client";
 
 import { useState } from "react";
+
 import Image from "next/image";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+
+import { AnimatePresence, motion } from "framer-motion";
+
 import { Icons } from "@repo/ui";
+
 import { GallaryProject } from "@/data/gallary";
+
 import { cn } from "../../../lib/utils";
 
 interface ProjectClientProps {
@@ -77,57 +82,63 @@ export default function ProjectClient({ project }: ProjectClientProps) {
         <div className="absolute inset-0 bg-black/50" />
 
         {/* Hero Content */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="container mx-auto"
           >
-            <h1 className="text-5xl md:text-9xl font-bold text-white mb-6 uppercase">
+            <h1 className="mb-6 text-5xl font-bold text-white uppercase md:text-9xl">
               {project.title}
             </h1>
-            <div className="h-1 w-24 bg-brand-blue mx-auto" />
+            <div className="bg-brand-blue mx-auto h-1 w-24" />
 
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4"
+              className="absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col items-center gap-4"
             >
-              <span className="text-white/40 text-[10px] font-bold tracking-[0.5em] uppercase">Scroll to explore</span>
-              <div className="w-px h-12 bg-gradient-to-b from-brand-blue to-transparent" />
+              <span className="text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">
+                Scroll to explore
+              </span>
+              <div className="from-brand-blue h-12 w-px bg-gradient-to-b to-transparent" />
             </motion.div>
           </motion.div>
         </div>
       </section>
 
-      <section className="py-32 px-6">
+      <section className="px-6 py-32">
         <div className="container mx-auto">
           {/* Header Info */}
-          <div className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-12">
+          <div className="mb-24 flex flex-col justify-between gap-12 md:flex-row md:items-end">
             <div className="max-w-3xl">
               <Link
                 href="/gallary"
-                className="group flex items-center gap-3 text-brand-blue font-bold tracking-widest text-[10px] uppercase mb-12 hover:gap-5 transition-all"
+                className="group text-brand-blue mb-12 flex items-center gap-3 text-[10px] font-bold tracking-widest uppercase transition-all hover:gap-5"
               >
-                <Icons.ChevronRight className="w-4 h-4 rotate-180" />
+                <Icons.ChevronRight className="h-4 w-4 rotate-180" />
                 Back to Collections
               </Link>
-              <h2 className="text-brand-blue font-bold tracking-widest uppercase text-xs mb-6">About the Project</h2>
-              <p className="text-foreground/80 text-xl md:text-3xl font-light leading-snug">
+              <h2 className="text-brand-blue mb-6 text-xs font-bold tracking-widest uppercase">
+                About the Project
+              </h2>
+              <p className="text-foreground/80 text-xl leading-snug font-light md:text-3xl">
                 {project.description}
               </p>
             </div>
 
-            <div className="flex flex-col items-end gap-2 text-foreground/30">
-              <span className="text-6xl font-black font-primary">{project.images.length}</span>
-              <span className="text-[10px] font-bold tracking-widest uppercase">Captured Moments</span>
+            <div className="text-foreground/30 flex flex-col items-end gap-2">
+              <span className="font-primary text-6xl font-black">{project.images.length}</span>
+              <span className="text-[10px] font-bold tracking-widest uppercase">
+                Captured Moments
+              </span>
             </div>
           </div>
 
           {/* Masonry Gallery */}
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
+          <div className="columns-1 gap-8 space-y-8 md:columns-2 lg:columns-3">
             {project.images.map((img, i) => (
               <motion.div
                 key={`${project.slug}-img-${i}`}
@@ -135,18 +146,18 @@ export default function ProjectClient({ project }: ProjectClientProps) {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 onClick={() => setSelectedImageIndex(i)}
-                className="break-inside-avoid rounded-none overflow-hidden group relative bg-muted shadow-lg cursor-zoom-in transition-all duration-500"
+                className="group bg-muted relative cursor-zoom-in break-inside-avoid overflow-hidden rounded-none shadow-lg transition-all duration-500"
               >
                 <Image
                   src={img}
                   alt={`${project.title} - image ${i + 1}`}
                   width={800}
                   height={600}
-                  className="w-full h-auto object-cover transition-transform duration-1000 group-hover:scale-105"
+                  className="h-auto w-full object-cover transition-transform duration-1000 group-hover:scale-105"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   quality={85}
                 />
-                <div className="absolute inset-0 bg-brand-blue/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="bg-brand-blue/10 absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100" />
               </motion.div>
             ))}
           </div>
@@ -160,20 +171,20 @@ export default function ProjectClient({ project }: ProjectClientProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-background/98 backdrop-blur-2xl"
+            className="bg-background/98 fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-2xl"
             onClick={() => setSelectedImageIndex(null)}
           >
             {/* Close Button */}
             <button
-              className="absolute top-8 right-8 text-foreground/50 hover:text-foreground transition-colors z-[110]"
+              className="text-foreground/50 hover:text-foreground absolute top-8 right-8 z-[110] transition-colors"
               onClick={() => setSelectedImageIndex(null)}
             >
-              <Icons.Close className="w-10 h-10" />
+              <Icons.Close className="h-10 w-10" />
             </button>
 
             {/* Carousel Container */}
-            <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-              <div className="relative w-full h-full flex items-center justify-center">
+            <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
+              <div className="relative flex h-full w-full items-center justify-center">
                 <AnimatePresence initial={false} custom={direction} mode="popLayout">
                   {/* Previous Image Preview */}
                   {!isZoomed && (
@@ -183,11 +194,15 @@ export default function ProjectClient({ project }: ProjectClientProps) {
                       animate={{ opacity: 0.2, x: "-80%", scale: 1 }}
                       exit={{ opacity: 0, x: "-100%", scale: 0.8 }}
                       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute hidden xl:block w-[20vw] h-screen cursor-pointer pointer-events-auto"
+                      className="pointer-events-auto absolute hidden h-screen w-[20vw] cursor-pointer xl:block"
                       onClick={prevImage}
                     >
                       <Image
-                        src={project.images[(selectedImageIndex - 1 + project.images.length) % project.images.length]}
+                        src={
+                          project.images[
+                            (selectedImageIndex - 1 + project.images.length) % project.images.length
+                          ]
+                        }
                         alt="Previous"
                         fill
                         className="object-cover grayscale"
@@ -207,18 +222,18 @@ export default function ProjectClient({ project }: ProjectClientProps) {
                     transition={{
                       x: { type: "spring", stiffness: 300, damping: 30 },
                       opacity: { duration: 0.4 },
-                      scale: { duration: 0.4 }
+                      scale: { duration: 0.4 },
                     }}
-                    className="relative w-screen h-screen z-20 shadow-2xl pointer-events-auto cursor-crosshair select-none overflow-hidden"
+                    className="pointer-events-auto relative z-20 h-screen w-screen cursor-crosshair overflow-hidden shadow-2xl select-none"
                     onClick={(e) => e.stopPropagation()}
                     onDoubleClick={() => setIsZoomed(!isZoomed)}
                     onMouseMove={handleMouseMove}
                   >
                     <motion.div
-                      className="w-full h-full relative"
+                      className="relative h-full w-full"
                       animate={{
                         scale: isZoomed ? 4 : 1,
-                        transformOrigin: `${mousePos.x}% ${mousePos.y}%`
+                        transformOrigin: `${mousePos.x}% ${mousePos.y}%`,
                       }}
                       transition={{ type: "spring", stiffness: 150, damping: 25, mass: 0.5 }}
                     >
@@ -244,7 +259,7 @@ export default function ProjectClient({ project }: ProjectClientProps) {
                       animate={{ opacity: 0.2, x: "80%", scale: 1 }}
                       exit={{ opacity: 0, x: "100%", scale: 0.8 }}
                       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute hidden xl:block w-[20vw] h-screen cursor-pointer pointer-events-auto"
+                      className="pointer-events-auto absolute hidden h-screen w-[20vw] cursor-pointer xl:block"
                       onClick={nextImage}
                     >
                       <Image
@@ -263,24 +278,30 @@ export default function ProjectClient({ project }: ProjectClientProps) {
             {/* Overlay Navigation (Invisible areas for clicking) */}
             {!isZoomed && (
               <>
-                <div className="absolute inset-y-0 left-0 w-[15%] z-[105] cursor-pointer group" onClick={prevImage}>
-                  <div className="absolute left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Icons.ChevronRight className="w-12 h-12 rotate-180 text-brand-blue" />
+                <div
+                  className="group absolute inset-y-0 left-0 z-[105] w-[15%] cursor-pointer"
+                  onClick={prevImage}
+                >
+                  <div className="absolute top-1/2 left-12 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
+                    <Icons.ChevronRight className="text-brand-blue h-12 w-12 rotate-180" />
                   </div>
                 </div>
-                <div className="absolute inset-y-0 right-0 w-[15%] z-[105] cursor-pointer group" onClick={nextImage}>
-                  <div className="absolute right-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Icons.ChevronRight className="w-12 h-12 text-brand-blue" />
+                <div
+                  className="group absolute inset-y-0 right-0 z-[105] w-[15%] cursor-pointer"
+                  onClick={nextImage}
+                >
+                  <div className="absolute top-1/2 right-12 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
+                    <Icons.ChevronRight className="text-brand-blue h-12 w-12" />
                   </div>
                 </div>
               </>
             )}
 
             {/* Footer Counter */}
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 z-[110]">
+            <div className="absolute bottom-10 left-1/2 z-[110] flex -translate-x-1/2 flex-col items-center gap-4">
               <div className="flex items-center">
-                <div className="bg-black/20 backdrop-blur-sm px-10 py-2 rounded-full border border-white/10 flex flex-col items-center">
-                  <div className="text-white text-xl font-light tracking-widest font-sans flex items-center gap-2">
+                <div className="flex flex-col items-center rounded-full border border-white/10 bg-black/20 px-10 py-2 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 font-sans text-xl font-light tracking-widest text-white">
                     <span className="text-white">{selectedImageIndex + 1}</span>
                     <span className="text-white/20">/</span>
                     <span className="text-white/40">{project.images.length}</span>

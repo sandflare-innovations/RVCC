@@ -1,8 +1,12 @@
-import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { GALLARY_PROJECTS } from "@/data/gallary";
-import { Footer } from "@layout/Footer";
+
+import { Metadata } from "next";
+
 import { FloatingContact } from "@/components/common/FloatingContact";
+import { GALLARY_PROJECTS } from "@/data/gallary";
+
+import { Footer } from "@layout/Footer";
+
 import ProjectClient from "./ProjectClient";
 
 interface Props {
@@ -29,7 +33,7 @@ export default async function ProjectGallaryPage({ params }: Props) {
   }
 
   return (
-    <div className="relative min-h-screen bg-background">
+    <div className="bg-background relative min-h-screen">
       <ProjectClient project={project} />
       <Footer />
       <FloatingContact />
