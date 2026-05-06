@@ -36,7 +36,7 @@ export const GallaryCollections = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="hover:border-brand-blue/20 border border-transparent bg-white p-4 shadow-sm transition-all duration-500 will-change-transform group-hover:shadow-2xl dark:bg-white/5"
+                className="hover:border-brand-blue/20 border border-transparent bg-white p-4 shadow-sm transition-all duration-500 group-hover:shadow-2xl dark:bg-white/5"
               >
                 {/* Image Container Stack */}
                 <div className="mb-6 space-y-2">
@@ -47,8 +47,8 @@ export const GallaryCollections = () => {
                       alt={project.title}
                       fill
                       className="object-cover transition-transform duration-1000 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      quality={70}
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      quality={80}
                     />
                   </div>
 
@@ -61,8 +61,8 @@ export const GallaryCollections = () => {
                           alt={`${project.title} preview ${i}`}
                           fill
                           className="object-cover transition-opacity duration-500 group-hover:opacity-90"
-                          sizes="15vw"
-                          quality={70}
+                          sizes="10vw"
+                          quality={50}
                         />
                       </div>
                     ))}
