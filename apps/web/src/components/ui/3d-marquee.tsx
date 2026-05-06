@@ -6,6 +6,8 @@ import Image from "next/image";
 
 import { motion } from "framer-motion";
 
+import { cn } from "@lib/utils";
+
 export interface MarqueeImage {
   src: string;
   alt: string;
@@ -44,7 +46,10 @@ export const ThreeDMarquee: React.FC<ThreeDMarqueeProps> = ({
 
   return (
     <section
-      className={`bg-background mx-auto block h-[600px] overflow-hidden max-sm:h-[400px] ${className}`}
+      className={cn(
+        "bg-background mx-auto block h-[600px] overflow-hidden max-sm:h-[400px]",
+        className
+      )}
     >
       <div
         className="flex h-full w-full items-center justify-center"
@@ -54,7 +59,9 @@ export const ThreeDMarquee: React.FC<ThreeDMarqueeProps> = ({
       >
         <div className="w-full scale-90 overflow-hidden sm:scale-125">
           <div
-            className={`relative grid h-full w-full origin-center transform grid-cols-2 gap-8 sm:grid-cols-4`}
+            className={cn(
+              "relative grid h-full w-full origin-center transform grid-cols-2 gap-8 sm:grid-cols-4"
+            )}
           >
             {imageGroups.map((imagesInGroup, idx) => (
               <motion.div
@@ -65,23 +72,24 @@ export const ThreeDMarquee: React.FC<ThreeDMarqueeProps> = ({
                   repeat: Infinity,
                   repeatType: "reverse",
                 }}
-                className="relative flex flex-col items-center gap-12 will-change-transform"
+                className={cn("relative flex flex-col items-center gap-12 will-change-transform")}
               >
                 {/* Horizontal and Vertical lines for architectural grid feel */}
-                <div className="bg-brand-blue/10 absolute top-0 left-0 h-full w-px" />
+                <div className={cn("bg-brand-blue/10 absolute top-0 left-0 h-full w-px")} />
                 {imagesInGroup.map((image, imgIdx) => {
                   const globalIndex = idx * groupSize + imgIdx;
                   const isClickable = image.href || onImageClick;
 
                   return (
                     <div key={`img-${imgIdx}`} className="relative">
-                      <div className="bg-brand-blue/10 absolute top-0 left-0 h-px w-full" />
+                      <div className={cn("bg-brand-blue/10 absolute top-0 left-0 h-px w-full")} />
                       <motion.div
                         whileHover={{ y: -10, scale: 1.02 }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
-                        className={`ring-brand-blue/10 hover:shadow-brand-blue/30 relative aspect-[16/10] w-full min-w-[320px] overflow-hidden rounded-none shadow-2xl ring-1 transition-all duration-300 ${
+                        className={cn(
+                          "ring-brand-blue/10 hover:shadow-brand-blue/30 relative aspect-[16/10] w-full min-w-[320px] overflow-hidden rounded-none shadow-2xl ring-1 transition-all duration-300",
                           isClickable ? "cursor-pointer" : ""
-                        }`}
+                        )}
                         onClick={() => handleImageClick(image, globalIndex)}
                       >
                         <Image
