@@ -71,7 +71,7 @@ export const GallaryCollections = () => {
 
                 {/* Footer Info */}
                 <div className="border-foreground/5 flex items-center justify-between border-t pt-2">
-                  <h3 className="text-brand-blue text-3xl font-bold uppercase transition-colors">
+                  <h3 className="text-brand-blue font-primary text-lg font-bold tracking-tighter uppercase transition-colors">
                     {project.title}
                   </h3>
                   <div className="text-foreground/40 group-hover:text-brand-blue flex items-center gap-2 transition-colors">
