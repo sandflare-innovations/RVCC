@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
@@ -17,6 +18,7 @@ import { Button } from "@ui/Button";
 import { cn } from "@lib/utils";
 
 export const Navbar = () => {
+  const pathname = usePathname();
   const { resolvedTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -24,13 +26,19 @@ export const Navbar = () => {
   const [isWorksSection, setIsWorksSection] = useState(false);
   const lastScrollY = useRef(0);
 
+  const isGallaryPage = pathname?.includes("/gallary");
+
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      setIsScrolled(currentScrollY > window.innerHeight);
+      setIsScrolled(currentScrollY > (isGallaryPage ? 50 : window.innerHeight));
 
-      if (currentScrollY > lastScrollY.current && currentScrollY > window.innerHeight) {
-        setIsVisible(false);
+      // Hide header while scrolling down
+      if (currentScrollY > lastScrollY.current) {
+        // Only hide immediately on gallery pages, otherwise wait for 100vh
+        if (isGallaryPage || currentScrollY > window.innerHeight) {
+          setIsVisible(false);
+        }
       } else {
         setIsVisible(true);
       }
