@@ -138,7 +138,9 @@ export const Navbar = () => {
               {menuLinks.slice(0, 3).map((link) => (
                 <Link
                   key={link}
-                  href={link === "GALLERY" ? "/gallary" : `/#${link.toLowerCase().replace(" ", "-")}`}
+                  href={
+                    link === "GALLERY" ? "/gallary" : `/#${link.toLowerCase().replace(" ", "-")}`
+                  }
                   className={cn(
                     "group relative flex flex-col py-1 text-[12px] font-bold tracking-[0.3em] transition-colors",
                     isLightAndScrolled ? "text-brand-blue/70" : "text-white/70"
@@ -189,7 +191,9 @@ export const Navbar = () => {
               {menuLinks.slice(3, 6).map((link) => (
                 <Link
                   key={link}
-                  href={link === "GALLERY" ? "/gallary" : `/#${link.toLowerCase().replace(" ", "-")}`}
+                  href={
+                    link === "GALLERY" ? "/gallary" : `/#${link.toLowerCase().replace(" ", "-")}`
+                  }
                   className={cn(
                     "group relative flex flex-col py-1 text-[12px] font-bold tracking-[0.3em] transition-colors",
                     isLightAndScrolled ? "text-brand-blue/70" : "text-white/70"
@@ -231,7 +235,7 @@ export const Navbar = () => {
 
       <div
         className={cn(
-          "fixed inset-0 z-[150] bg-black/40 backdrop-blur-sm transition-opacity duration-500 touch-none",
+          "fixed inset-0 z-[150] touch-none bg-black/40 backdrop-blur-sm transition-opacity duration-500",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
         onClick={() => setIsOpen(false)}
@@ -240,7 +244,7 @@ export const Navbar = () => {
       {/* SpaceX Style Side Menu Box */}
       <div
         className={cn(
-          "bg-background custom-scrollbar overscroll-contain fixed top-0 left-0 z-[200] h-full w-full max-w-[400px] overflow-y-auto transition-transform duration-500 ease-out",
+          "bg-background custom-scrollbar fixed top-0 left-0 z-[200] h-full w-full max-w-[400px] overflow-y-auto overscroll-contain transition-transform duration-500 ease-out",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -258,65 +262,65 @@ export const Navbar = () => {
             </button>
           </div>
 
-        {/* Menu Links */}
-        <nav className="mt-6 flex flex-1 flex-col space-y-6 py-4">
-          {menuLinks.map((link, idx) => (
-            <Link
-              key={link}
-              href={link === "GALLERY" ? "/gallary" : `/#${link.toLowerCase().replace(" ", "-")}`}
-              onClick={() => setIsOpen(false)}
-              className={cn(
-                "group border-border text-brand-blue relative border-b pb-4 text-2xl font-bold transition-all",
-                "flex items-center justify-between"
-              )}
-            >
-              <motion.span
-                initial={{ letterSpacing: "0.2em" }}
-                whileHover={{ letterSpacing: "0.4em" }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="uppercase transition-all"
+          {/* Menu Links */}
+          <nav className="mt-6 flex flex-1 flex-col space-y-6 py-4">
+            {menuLinks.map((link, idx) => (
+              <Link
+                key={link}
+                href={link === "GALLERY" ? "/gallary" : `/#${link.toLowerCase().replace(" ", "-")}`}
+                onClick={() => setIsOpen(false)}
+                className={cn(
+                  "group border-border text-brand-blue relative border-b pb-4 text-2xl font-bold transition-all",
+                  "flex items-center justify-between"
+                )}
               >
-                {link}
-              </motion.span>
-              <span className="text-brand-blue/30 group-hover:text-brand-blue text-[10px] transition-colors">
-                0{idx + 1}
-              </span>
-
-              {/* SpaceX-style underline for menu links */}
-              <span className="bg-brand-blue absolute bottom-0 left-0 h-[2px] w-full origin-right scale-x-0 transition-transform duration-500 group-hover:origin-left group-hover:scale-x-100" />
-            </Link>
-          ))}
-        </nav>
-
-        {/* Menu Footer - Compact */}
-        <div className="mt-auto shrink-0 pt-10">
-          <div className="flex w-full items-center justify-between gap-4">
-            {/* Social Icons */}
-            <div className="flex items-center gap-4">
-              {[
-                { icon: <FaLinkedinIn />, href: "#" },
-                { icon: <FaInstagram />, href: "#" },
-                { icon: <FaFacebookF />, href: "#" },
-              ].map((social, i) => (
-                <a
-                  key={i}
-                  href={social.href}
-                  className="border-brand-blue/10 bg-brand-blue/5 text-brand-blue hover:bg-brand-blue flex h-12 w-12 items-center justify-center border transition-all duration-500 hover:text-white"
+                <motion.span
+                  initial={{ letterSpacing: "0.2em" }}
+                  whileHover={{ letterSpacing: "0.4em" }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="uppercase transition-all"
                 >
-                  <div className="text-xl">{social.icon}</div>
-                </a>
-              ))}
-            </div>
+                  {link}
+                </motion.span>
+                <span className="text-brand-blue/30 group-hover:text-brand-blue text-[10px] transition-colors">
+                  0{idx + 1}
+                </span>
 
-            {/* Actions: Theme & Language */}
-            <div className="flex items-center gap-4">
-              <AnimatedThemeToggler />
-              <button className="border-brand-blue/10 bg-brand-blue/5 text-brand-blue hover:bg-brand-blue flex h-12 w-12 items-center justify-center border text-[10px] font-black tracking-[0.1em] uppercase transition-all duration-500 hover:text-white">
-                AR
-              </button>
+                {/* SpaceX-style underline for menu links */}
+                <span className="bg-brand-blue absolute bottom-0 left-0 h-[2px] w-full origin-right scale-x-0 transition-transform duration-500 group-hover:origin-left group-hover:scale-x-100" />
+              </Link>
+            ))}
+          </nav>
+
+          {/* Menu Footer - Compact */}
+          <div className="mt-auto shrink-0 pt-10">
+            <div className="flex w-full items-center justify-between gap-4">
+              {/* Social Icons */}
+              <div className="flex items-center gap-4">
+                {[
+                  { icon: <FaLinkedinIn />, href: "#" },
+                  { icon: <FaInstagram />, href: "#" },
+                  { icon: <FaFacebookF />, href: "#" },
+                ].map((social, i) => (
+                  <a
+                    key={i}
+                    href={social.href}
+                    className="border-brand-blue/10 bg-brand-blue/5 text-brand-blue hover:bg-brand-blue flex h-12 w-12 items-center justify-center border transition-all duration-500 hover:text-white"
+                  >
+                    <div className="text-xl">{social.icon}</div>
+                  </a>
+                ))}
+              </div>
+
+              {/* Actions: Theme & Language */}
+              <div className="flex items-center gap-4">
+                <AnimatedThemeToggler />
+                <button className="border-brand-blue/10 bg-brand-blue/5 text-brand-blue hover:bg-brand-blue flex h-12 w-12 items-center justify-center border text-[10px] font-black tracking-[0.1em] uppercase transition-all duration-500 hover:text-white">
+                  AR
+                </button>
+              </div>
             </div>
           </div>
-        </div>
         </div>
       </div>
     </>
