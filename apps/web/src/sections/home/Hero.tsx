@@ -136,7 +136,7 @@ export const Hero = () => {
             alt="Side 1"
             fill
             className="object-cover"
-            sizes="33vw"
+            sizes="(max-width: 768px) 100vw, 33vw"
             priority
           />
         </motion.div>
@@ -166,14 +166,16 @@ export const Hero = () => {
               transition={{ duration: 1.5 }}
               className="absolute inset-0"
             >
-              <Image
-                src={content.img}
-                alt={content.title1}
-                fill
-                className="object-cover"
-                priority
-                sizes="100vw"
-              />
+                <Image
+                  src={content.img}
+                  alt={content.title1}
+                  fill
+                  className="object-cover"
+                  priority
+                  loading="eager"
+                  sizes="100vw"
+                  quality={90}
+                />
               <motion.div
                 style={{ backdropFilter: `blur(${blurValue}px)` }}
                 className="absolute inset-0 bg-black/30"
@@ -206,7 +208,7 @@ export const Hero = () => {
             alt="Side 2"
             fill
             className="object-cover"
-            sizes="33vw"
+            sizes="(max-width: 768px) 100vw, 33vw"
             priority
           />
         </motion.div>
@@ -345,7 +347,9 @@ export const Hero = () => {
                       alt={`Partner Logo ${i}`}
                       fill
                       className="object-contain"
-                      sizes="(max-width: 768px) 64px, 80px"
+                      loading="lazy"
+                      quality={50}
+                      sizes="80px"
                     />
                   </div>
                 ))}

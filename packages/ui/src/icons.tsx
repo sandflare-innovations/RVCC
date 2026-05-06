@@ -4,6 +4,7 @@ import {
   FiCheckCircle,
   FiChevronRight,
   FiClock,
+  FiImage,
   FiInstagram,
   FiLinkedin,
   FiMail,
@@ -11,6 +12,7 @@ import {
   FiMenu,
   FiMoon,
   FiPhone,
+  FiPlus,
   FiSun,
   FiX,
 } from "react-icons/fi";
@@ -31,6 +33,8 @@ export const Icons = {
   Clock: FiClock,
   Check: FiCheckCircle,
   Construction: FaHardHat,
+  Plus: FiPlus,
+  Gallery: FiImage,
 };
 
 export type IconType = keyof typeof Icons;
