@@ -166,16 +166,16 @@ export const Hero = () => {
               transition={{ duration: 1.5 }}
               className="absolute inset-0"
             >
-                <Image
-                  src={content.img}
-                  alt={content.title1}
-                  fill
-                  className="object-cover"
-                  priority
-                  loading="eager"
-                  sizes="100vw"
-                  quality={90}
-                />
+              <Image
+                src={content.img}
+                alt={content.title1}
+                fill
+                className="object-cover"
+                priority
+                loading="eager"
+                sizes="100vw"
+                quality={90}
+              />
               <motion.div
                 style={{ backdropFilter: `blur(${blurValue}px)` }}
                 className="absolute inset-0 bg-black/30"
