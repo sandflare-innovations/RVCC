@@ -138,7 +138,7 @@ export const Navbar = () => {
               {menuLinks.slice(0, 3).map((link) => (
                 <Link
                   key={link}
-                  href={`#${link.toLowerCase().replace(" ", "-")}`}
+                  href={link === "GALLERY" ? "/gallary" : `/#${link.toLowerCase().replace(" ", "-")}`}
                   className={cn(
                     "group relative flex flex-col py-1 text-[12px] font-bold tracking-[0.3em] transition-colors",
                     isLightAndScrolled ? "text-brand-blue/70" : "text-white/70"
@@ -189,7 +189,7 @@ export const Navbar = () => {
               {menuLinks.slice(3, 6).map((link) => (
                 <Link
                   key={link}
-                  href={`#${link.toLowerCase().replace(" ", "-")}`}
+                  href={link === "GALLERY" ? "/gallary" : `/#${link.toLowerCase().replace(" ", "-")}`}
                   className={cn(
                     "group relative flex flex-col py-1 text-[12px] font-bold tracking-[0.3em] transition-colors",
                     isLightAndScrolled ? "text-brand-blue/70" : "text-white/70"
@@ -214,7 +214,7 @@ export const Navbar = () => {
             </nav>
             <Button
               variant="none"
-              href="#contact"
+              href="/#contact"
               borderColor={isLightAndScrolled ? "border-brand-blue" : "border-white"}
               textColor={isLightAndScrolled ? "text-brand-blue" : "text-white"}
               hoverFillColor={isLightAndScrolled ? "bg-brand-blue" : "bg-white"}
@@ -263,7 +263,7 @@ export const Navbar = () => {
           {menuLinks.map((link, idx) => (
             <Link
               key={link}
-              href={`#${link.toLowerCase().replace(" ", "-")}`}
+              href={link === "GALLERY" ? "/gallary" : `/#${link.toLowerCase().replace(" ", "-")}`}
               onClick={() => setIsOpen(false)}
               className={cn(
                 "group border-border text-brand-blue relative border-b pb-4 text-2xl font-bold transition-all",
