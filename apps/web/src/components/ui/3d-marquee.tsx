@@ -77,9 +77,9 @@ export const ThreeDMarquee: React.FC<ThreeDMarqueeProps> = ({
                     <div key={`img-${imgIdx}`} className="relative">
                       <div className="bg-brand-blue/10 absolute top-0 left-0 h-px w-full" />
                       <motion.div
-                        whileHover={{ y: -20, scale: 1.05 }}
-                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                        className={`ring-brand-blue/10 hover:shadow-brand-blue/20 relative aspect-[16/10] w-full min-w-[320px] overflow-hidden rounded-none shadow-2xl ring-1 transition-all duration-500 ${
+                        whileHover={{ y: -10, scale: 1.02 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                        className={`ring-brand-blue/10 hover:shadow-brand-blue/30 relative aspect-[16/10] w-full min-w-[320px] overflow-hidden rounded-none shadow-2xl ring-1 transition-all duration-300 ${
                           isClickable ? "cursor-pointer" : ""
                         }`}
                         onClick={() => handleImageClick(image, globalIndex)}
