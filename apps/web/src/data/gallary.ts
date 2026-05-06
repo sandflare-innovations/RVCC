@@ -73,4 +73,19 @@ export const GALLARY_PROJECTS: GallaryProject[] = [
     thumbnail: "/images/projects/15.png",
     images: ["/images/projects/15.png", "/images/projects/6.png", "/images/projects/7.png"],
   },
+  {
+    id: "p6",
+    slug: "sky-villa-collection",
+    title: "Sky Villa Collection",
+    description:
+      "Exclusive residential villas designed with panoramic vistas and vertical gardens.",
+    thumbnail: "/images/projects/12.png",
+    images: [
+      "/images/projects/12.png",
+      "/images/projects/3.png",
+      "/images/projects/4.png",
+      "/images/projects/5.png",
+      "/images/projects/14.png",
+    ],
+  },
 ];
