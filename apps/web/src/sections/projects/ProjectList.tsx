@@ -64,8 +64,8 @@ export const ProjectList = () => {
 
                       {/* Hover Overlay */}
                       <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-500 group-hover:opacity-100 flex items-center justify-center">
-                        <div className="h-16 w-16 rounded-full bg-brand-blue flex items-center justify-center text-white scale-0 transition-transform duration-500 group-hover:scale-100">
-                          <Icons.ArrowRight className="h-6 w-6" />
+                        <div className="h-20 w-20 rounded-full bg-transparent border-2 border-white cursor-pointer flex items-center justify-center text-white scale-0 transition-transform duration-500 group-hover:scale-100">
+                          <Icons.ArrowRight className="h-8 w-8" />
                         </div>
                       </div>
                     </div>
