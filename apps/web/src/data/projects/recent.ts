@@ -19,7 +19,7 @@ export const RECENT_PROJECTS: RecentProjectItem[] = [
     type: "SINGLE HOME",
     description:
       "Artistic living spaces that blend avant-garde aesthetics with functional modernity for a unique urban experience.",
-    image: "/images/projects/5.png",
+    image: "/images/projects/8.png",
   },
   {
     title: "Vintage Glamour",
@@ -29,7 +29,7 @@ export const RECENT_PROJECTS: RecentProjectItem[] = [
     type: "SINGLE HOME",
     description:
       "Timeless luxury meets contemporary comfort in this meticulously restored heritage estate.",
-    image: "/images/projects/6.png",
+    image: "/images/projects/9.png",
   },
   {
     title: "Modern Sanctuary",
@@ -39,7 +39,7 @@ export const RECENT_PROJECTS: RecentProjectItem[] = [
     type: "SINGLE HOME",
     description:
       "An oasis of calm featuring minimalist lines, natural light, and state-of-the-art smart home integration.",
-    image: "/images/projects/7.png",
+    image: "/images/projects/3.png",
   },
   {
     title: "Urban Oasis",
@@ -49,7 +49,7 @@ export const RECENT_PROJECTS: RecentProjectItem[] = [
     type: "OFFICE",
     description:
       "Dynamic workspace designed to foster creativity and collaboration in the heart of the business district.",
-    image: "/images/projects/8.png",
+    image: "/images/projects/16.png",
   },
   {
     title: "Nordic Minimal",
@@ -59,6 +59,16 @@ export const RECENT_PROJECTS: RecentProjectItem[] = [
     type: "APARTMENT",
     description:
       "Sleek Scandinavian design focused on simplicity, functionality, and connection with nature.",
-    image: "/images/projects/9.png",
+    image: "/images/projects/12.png",
+  },
+  {
+    title: "Skyline Business Park",
+    location: "Riyadh, KSA",
+    year: "2024",
+    category: "COMMERCIAL",
+    type: "OFFICE PARK",
+    description:
+      "A sprawling business park featuring modular office spaces, green roof gardens, and high-tech connectivity infrastructure.",
+    image: "/images/projects/14.png",
   },
 ];
