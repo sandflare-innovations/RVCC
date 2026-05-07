@@ -35,15 +35,14 @@ export const LogoMarquee = ({ className }: LogoMarqueeProps) => {
               key={index}
               className="relative h-20 w-20 brightness-0 invert transition-opacity"
             >
-              <Image
-                src={`/images/clients/${i}.png`}
-                alt={`Partner Logo ${i}`}
-                fill
-                className="object-contain"
-                loading="lazy"
-                quality={50}
-                sizes="80px"
-              />
+                <Image
+                  src={`/images/clients/${i}.png`}
+                  alt={`Partner Logo ${i}`}
+                  fill
+                  className="object-contain"
+                  loading="lazy"
+                  sizes="80px"
+                />
             </div>
           ))}
         </motion.div>
