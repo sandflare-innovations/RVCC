@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { PROJECTS } from "@/data/projects/detailed";
+import { PROJECTS } from "../data/projects/detailed";
 
 export const useProjectFilters = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -13,7 +13,8 @@ export const useProjectFilters = () => {
   }, []);
 
   const filteredProjects = useMemo(() => {
-    let result = [...PROJECTS];
+    const allProjects = PROJECTS || [];
+    let result = [...allProjects];
 
     // Search
     if (searchQuery) {

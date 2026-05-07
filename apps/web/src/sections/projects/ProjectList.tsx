@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@lib/utils";
 import { Icons } from "@repo/ui";
-import { useProjectFilters } from "@/hooks/useProjectFilters";
+import { useProjectFilters } from "../../hooks/useProjectFilters";
 import { ProjectFilters } from "./ProjectFilters";
 
 export const ProjectList = () => {
