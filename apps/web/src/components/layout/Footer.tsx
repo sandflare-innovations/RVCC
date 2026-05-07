@@ -22,10 +22,10 @@ export const Footer = () => {
   };
 
   const navLinks = [
-    { name: t.header.about, href: "#about" },
-    { name: t.header.services, href: "#services" },
-    { name: t.header.projects, href: "#projects" },
-    { name: t.header.contacts, href: "#contacts" },
+    { name: t.header.about, href: "/about" },
+    { name: t.header.services, href: "/services" },
+    { name: t.header.projects, href: "/projects" },
+    { name: t.header.contacts, href: "/contact" },
   ];
 
   const socialLinks = [
@@ -82,7 +82,7 @@ export const Footer = () => {
               ].map((item, index) => (
                 <motion.a
                   key={index}
-                  href="#services"
+                  href="/services"
                   whileHover={{ letterSpacing: "0.1em" }}
                   transition={{ duration: 0.4, ease: "easeOut" }}
                   className="group xs:text-base relative w-fit text-[14px] font-light transition-all duration-500 hover:text-white/70 sm:text-lg"
@@ -107,7 +107,7 @@ export const Footer = () => {
               ].map((item, index) => (
                 <motion.a
                   key={index}
-                  href="#projects"
+                  href="/projects"
                   whileHover={{ letterSpacing: "0.1em" }}
                   transition={{ duration: 0.4, ease: "easeOut" }}
                   className="group xs:text-base relative w-fit text-[14px] font-light transition-all duration-500 hover:text-white/70 sm:text-lg"
@@ -127,7 +127,7 @@ export const Footer = () => {
                 { name: "Safety & Quality", href: "#" },
                 { name: "Sustainability", href: "#" },
                 { name: "Our Team", href: "#" },
-                { name: "Careers", href: "#" },
+                { name: "Careers", href: "/careers" },
                 { name: "Privacy Policy", href: "#" },
               ].map((item, index) => (
                 <motion.a
