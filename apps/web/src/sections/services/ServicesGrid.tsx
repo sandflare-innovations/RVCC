@@ -130,7 +130,7 @@ export const ServicesGrid = () => {
               SERVICES
             </span>
           </div>
-          <h2 className="font-heading max-w-2xl text-4xl leading-[3rem] md:text-5xl lg:text-6xl">
+          <h2 className="font-heading max-w-4xl text-4xl leading-[3rem] md:text-5xl lg:text-7xl">
             Seamless property solutions <br />
             tailored for you
           </h2>
