@@ -48,7 +48,6 @@ export const GallaryCollections = () => {
                       fill
                       className="object-cover transition-transform duration-1000 group-hover:scale-105"
                       sizes="(max-width: 768px) 100vw, 33vw"
-                      quality={80}
                     />
                   </div>
 
@@ -62,7 +61,6 @@ export const GallaryCollections = () => {
                           fill
                           className="object-cover transition-opacity duration-500 group-hover:opacity-90"
                           sizes="10vw"
-                          quality={50}
                         />
                       </div>
                     ))}

@@ -77,7 +77,6 @@ export default function ProjectClient({ project }: ProjectClientProps) {
           className="object-cover"
           priority
           sizes="100vw"
-          quality={100}
         />
         <div className="absolute inset-0 bg-black/50" />
 
@@ -155,7 +154,6 @@ export default function ProjectClient({ project }: ProjectClientProps) {
                   height={600}
                   className="h-auto w-full object-cover transition-transform duration-1000 group-hover:scale-105"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  quality={85}
                 />
                 <div className="bg-brand-blue/10 absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100" />
               </motion.div>
@@ -246,7 +244,6 @@ export default function ProjectClient({ project }: ProjectClientProps) {
                           isZoomed ? "object-cover" : "object-contain"
                         )}
                         sizes="100vw"
-                        quality={100}
                       />
                     </motion.div>
                   </motion.div>
