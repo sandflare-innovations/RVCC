@@ -13,6 +13,7 @@ import {
   FiMoon,
   FiPhone,
   FiPlus,
+  FiSearch,
   FiSun,
   FiX,
 } from "react-icons/fi";
@@ -35,6 +36,7 @@ export const Icons = {
   Construction: FaHardHat,
   Plus: FiPlus,
   Gallery: FiImage,
+  Search: FiSearch,
 };
 
 export type IconType = keyof typeof Icons;
