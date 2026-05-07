@@ -95,7 +95,6 @@ export const MajorProject = () => {
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  quality={75}
                 />
                 <div className="absolute inset-0 bg-black/10" />
                 <div className="absolute bottom-8 left-8 text-white">
@@ -116,7 +115,6 @@ export const MajorProject = () => {
                 className="object-cover"
                 priority
                 sizes="(max-width: 1024px) 100vw, 80vw"
-                quality={85}
               />
               <motion.div
                 style={{ opacity: p1ContentOpacity }}
@@ -206,7 +204,6 @@ export const MajorProject = () => {
               fill
               className="object-cover"
               sizes="100vw"
-              quality={80}
             />
             <div className="absolute inset-0 z-10 bg-black/10" />
             <div className="relative z-20 container mx-auto md:px-8">

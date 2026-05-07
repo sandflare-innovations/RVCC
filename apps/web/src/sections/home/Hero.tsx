@@ -176,7 +176,6 @@ export const Hero = () => {
                 priority
                 loading="eager"
                 sizes="100vw"
-                quality={90}
               />
               <motion.div
                 style={{ backdropFilter: `blur(${blurValue}px)` }}
