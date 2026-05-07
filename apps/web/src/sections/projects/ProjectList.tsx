@@ -28,7 +28,7 @@ export const ProjectList = () => {
         categories={categories}
       />
 
-      <div className="container mx-auto px-6 mt-20 py-12 min-h-[400px]">
+      <div className="container mx-auto px-6 py-12 min-h-[400px]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <AnimatePresence mode="popLayout">
             {projects.map((project, index) => (
