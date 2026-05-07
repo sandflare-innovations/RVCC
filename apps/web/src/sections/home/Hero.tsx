@@ -8,6 +8,8 @@ import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion"
 import { FaArrowRight } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/Button";
+import { LogoMarquee } from "@/components/common/LogoMarquee";
+
 
 import { cn } from "@lib/utils";
 
@@ -323,38 +325,8 @@ export const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 1 }}
-            className="pointer-events-none absolute bottom-16 left-1/2 z-30 flex w-full -translate-x-1/2 justify-center overflow-hidden px-6 md:bottom-6"
           >
-            <div className="relative w-full max-w-xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)]">
-              <motion.div
-                animate={{
-                  x: ["0%", "-50%"],
-                }}
-                transition={{
-                  duration: 40,
-                  ease: "linear",
-                  repeat: Infinity,
-                }}
-                className="flex w-max items-center gap-12 md:gap-16"
-              >
-                {[1, 2, 3, 4, 5, 6, 7].concat([1, 2, 3, 4, 5, 6, 7]).map((i, index) => (
-                  <div
-                    key={index}
-                    className="relative h-20 w-20 brightness-0 invert transition-opacity md:h-20 md:w-20"
-                  >
-                    <Image
-                      src={`/images/clients/${i}.png`}
-                      alt={`Partner Logo ${i}`}
-                      fill
-                      className="object-contain"
-                      loading="lazy"
-                      quality={50}
-                      sizes="80px"
-                    />
-                  </div>
-                ))}
-              </motion.div>
-            </div>
+            <LogoMarquee />
           </motion.div>
         )}
       </AnimatePresence>
