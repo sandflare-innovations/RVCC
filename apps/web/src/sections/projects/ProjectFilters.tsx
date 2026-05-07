@@ -20,7 +20,7 @@ export const ProjectFilters = ({
   categories,
 }: ProjectFiltersProps) => {
   return (
-    <div className="sticky top-20 z-40 bg-background/80 backdrop-blur-md border-b border-foreground/5 py-8 mb-12">
+    <div className="bg-background/80 backdrop-blur-md border-b border-foreground/5 py-12 mb-10">
       <div className="container mx-auto px-6">
         <div className="flex flex-col lg:flex-row gap-8 items-center justify-between">
           {/* Categories */}
@@ -30,10 +30,10 @@ export const ProjectFilters = ({
                 key={category}
                 onClick={() => setSelectedCategory(category)}
                 className={cn(
-                  "px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap",
+                  "px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap border border-brand-blue",
                   selectedCategory === category
                     ? "bg-brand-blue text-white"
-                    : "bg-foreground/5 text-foreground/40 hover:bg-foreground/10 hover:text-foreground"
+                    : "text-brand-blue hover:bg-brand-blue/60 hover:bg-brand-blue hover:text-white"
                 )}
               >
                 {category}
@@ -44,13 +44,13 @@ export const ProjectFilters = ({
           <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto items-center">
             {/* Search */}
             <div className="relative w-full sm:w-80 group">
-              <Icons.Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/20 group-focus-within:text-brand-blue transition-colors" />
+              <Icons.Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-blue group-focus-within:text-brand-blue transition-colors" />
               <input
                 type="text"
                 placeholder="SEARCH PROJECTS..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-foreground/5 border-none px-12 py-3 text-[10px] font-bold tracking-widest uppercase placeholder:text-foreground/20 focus:ring-1 focus:ring-brand-blue outline-none transition-all"
+                className="w-full border-b-2 border-brand-blue px-12 py-3 text-[10px] font-bold tracking-widest uppercase placeholder:text-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all"
               />
             </div>
           </div>
