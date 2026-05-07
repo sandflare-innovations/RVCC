@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { cn } from "@lib/utils";
 import { AngledSlider } from "@/components/ui/angled-slider";
 import { PROJECTS } from "@/data/projects/detailed";
+import { LogoMarquee } from "@/components/common/LogoMarquee";
+
 
 export const ProjectHero = () => {
   const sliderItems = PROJECTS.map((p) => ({
@@ -50,6 +52,9 @@ export const ProjectHero = () => {
 
       {/* Decorative background element */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-full w-full bg-brand-blue/5 blur-[120px] pointer-events-none" />
+      
+      {/* Client Logos - Bottom Center */}
+      <LogoMarquee />
     </section>
   );
 };
