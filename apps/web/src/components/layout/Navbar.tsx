@@ -146,9 +146,13 @@ export const Navbar = () => {
               {menuLinks.slice(0, 3).map((link) => (
                 <Link
                   key={link}
-                  href={
-                    link === "GALLERY" ? "/gallary" : `/#${link.toLowerCase().replace(" ", "-")}`
-                  }
+                href={
+                  link === "GALLERY"
+                    ? "/gallary"
+                    : link === "PROJECTS"
+                      ? "/projects"
+                      : `/#${link.toLowerCase().replace(" ", "-")}`
+                }
                   className={cn(
                     "group relative flex flex-col py-1 text-[12px] font-bold tracking-[0.3em] transition-colors",
                     isLightAndScrolled ? "text-brand-blue/70" : "text-white/70"
@@ -199,9 +203,13 @@ export const Navbar = () => {
               {menuLinks.slice(3, 6).map((link) => (
                 <Link
                   key={link}
-                  href={
-                    link === "GALLERY" ? "/gallary" : `/#${link.toLowerCase().replace(" ", "-")}`
-                  }
+                href={
+                  link === "GALLERY"
+                    ? "/gallary"
+                    : link === "PROJECTS"
+                      ? "/projects"
+                      : `/#${link.toLowerCase().replace(" ", "-")}`
+                }
                   className={cn(
                     "group relative flex flex-col py-1 text-[12px] font-bold tracking-[0.3em] transition-colors",
                     isLightAndScrolled ? "text-brand-blue/70" : "text-white/70"
