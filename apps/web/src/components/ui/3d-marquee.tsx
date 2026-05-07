@@ -98,7 +98,6 @@ export const ThreeDMarquee: React.FC<ThreeDMarqueeProps> = ({
                           fill
                           className="object-cover"
                           sizes="400px"
-                          quality={60}
                         />
                       </motion.div>
                     </div>
