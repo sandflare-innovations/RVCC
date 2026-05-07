@@ -28,7 +28,7 @@ export const ProjectList = () => {
         categories={categories}
       />
 
-      <div className="container mx-auto px-6 py-12 min-h-[400px]">
+      <div className="container mx-auto px-6 mt-20 py-12 min-h-[400px]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <AnimatePresence mode="popLayout">
             {projects.map((project, index) => (
@@ -40,7 +40,7 @@ export const ProjectList = () => {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.4, ease: [0.19, 1, 0.22, 1] }}
               >
-                <Link 
+                <Link
                   href={`/projects/${project.slug}`}
                   className="group block"
                 >
@@ -54,7 +54,7 @@ export const ProjectList = () => {
                         className="object-cover transition-transform duration-1000 group-hover:scale-110"
                         sizes="(max-width: 768px) 100vw, 50vw"
                       />
-                      
+
                       {/* Category Tag */}
                       <div className="absolute top-6 left-6 z-10">
                         <span className="bg-brand-blue px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white backdrop-blur-md">
@@ -95,7 +95,7 @@ export const ProjectList = () => {
         </div>
 
         {projects.length === 0 && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="flex flex-col items-center justify-center py-24 text-center"
@@ -103,7 +103,7 @@ export const ProjectList = () => {
             <Icons.Search className="h-12 w-12 text-foreground/10 mb-6" />
             <h3 className="text-2xl font-bold uppercase font-primary">No Projects Found</h3>
             <p className="text-foreground/40 mt-2">Try adjusting your search or filters.</p>
-            <button 
+            <button
               onClick={() => {
                 setSearchQuery("");
                 setSelectedCategory("All");
