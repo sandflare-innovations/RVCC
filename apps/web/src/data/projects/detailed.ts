@@ -1,4 +1,4 @@
-import { MajorProjectItem } from "@/types";
+import { MajorProjectItem } from "../../types";
 
 export interface DetailedProject extends MajorProjectItem {
   slug: string;
