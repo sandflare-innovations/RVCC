@@ -14,8 +14,6 @@ export const ProjectList = () => {
     setSearchQuery,
     selectedCategory,
     setSelectedCategory,
-    sortBy,
-    setSortBy,
     categories,
     projects,
   } = useProjectFilters();
@@ -27,8 +25,6 @@ export const ProjectList = () => {
         setSearchQuery={setSearchQuery}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
         categories={categories}
       />
 

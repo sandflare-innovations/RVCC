@@ -1,19 +1,16 @@
 import { useState, useMemo } from "react";
-import { PROJECTS, DetailedProject } from "@/data/projects/detailed";
-
-export type SortOption = "newest" | "oldest" | "a-z" | "z-a";
+import { PROJECTS } from "@/data/projects/detailed";
 
 export const useProjectFilters = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
 
   const categories = useMemo(() => {
     const cats = new Set(PROJECTS.map((p) => p.category));
     return ["All", ...Array.from(cats)];
   }, []);
 
-  const filteredAndSortedProjects = useMemo(() => {
+  const filteredProjects = useMemo(() => {
     let result = [...PROJECTS];
 
     // Search
@@ -32,33 +29,15 @@ export const useProjectFilters = () => {
       result = result.filter((p) => p.category === selectedCategory);
     }
 
-    // Sort
-    result.sort((a, b) => {
-      switch (sortBy) {
-        case "newest":
-          return parseInt(b.year) - parseInt(a.year);
-        case "oldest":
-          return parseInt(a.year) - parseInt(b.year);
-        case "a-z":
-          return a.title.localeCompare(b.title);
-        case "z-a":
-          return b.title.localeCompare(a.title);
-        default:
-          return 0;
-      }
-    });
-
     return result;
-  }, [searchQuery, selectedCategory, sortBy]);
+  }, [searchQuery, selectedCategory]);
 
   return {
     searchQuery,
     setSearchQuery,
     selectedCategory,
     setSelectedCategory,
-    sortBy,
-    setSortBy,
     categories,
-    projects: filteredAndSortedProjects,
+    projects: filteredProjects,
   };
 };
