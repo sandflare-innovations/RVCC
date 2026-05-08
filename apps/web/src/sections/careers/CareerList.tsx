@@ -90,7 +90,7 @@ export const CareerList = () => {
                   setSelectedJob(job);
                   setIsApplying(false);
                 }}
-                className="group hover:border-brand-blue/40 relative cursor-pointer border border-zinc-300 bg-white p-8 shadow-[0_10px_30px_rgba(0,0,0,0.03)] transition-all duration-700 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] dark:border-white/20 dark:bg-white/5"
+                className="group hover:border-brand-blue/40 relative cursor-pointer border border-zinc-200 bg-white p-8 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.06)] transition-all duration-700 hover:shadow-[0_30px_70px_-15px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-white/5"
               >
                 {/* Hover Accent Line */}
                 <div className="bg-brand-blue absolute top-0 left-0 h-full w-0 transition-all duration-700 group-hover:w-1" />
