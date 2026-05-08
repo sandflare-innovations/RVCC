@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+
 import { Metadata } from "next";
 
 import { FloatingContact } from "@/components/common/FloatingContact";

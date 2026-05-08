@@ -4,8 +4,8 @@ import { useState } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
-
 import { useSearchParams } from "next/navigation";
+
 import { AnimatePresence, motion } from "framer-motion";
 
 import { Icons } from "@repo/ui";
@@ -25,8 +25,11 @@ export const GallaryCollections = () => {
       <div className="container mx-auto px-6">
         <div className="mb-16">
           <h2 className="text-foreground mb-4 text-4xl font-bold md:text-5xl">
-            {serviceFilter 
-              ? `Projects in ${serviceFilter.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}` 
+            {serviceFilter
+              ? `Projects in ${serviceFilter
+                  .split("-")
+                  .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                  .join(" ")}`
               : "Project Collections"}
           </h2>
           <div className="bg-brand-blue h-1 w-20" />
@@ -77,7 +80,7 @@ export const GallaryCollections = () => {
 
                 {/* Footer Info */}
                 <div className="border-foreground/5 flex items-center justify-between border-t pt-2">
-                  <h3 className="text-black group-hover:text-brand-blue font-primary text-lg font-bold tracking-tighter uppercase transition-colors duration-300">
+                  <h3 className="group-hover:text-brand-blue font-primary text-lg font-bold tracking-tighter text-black uppercase transition-colors duration-300">
                     {project.title}
                   </h3>
                   <div className="text-foreground/40 group-hover:text-brand-blue flex items-center gap-2 transition-colors">

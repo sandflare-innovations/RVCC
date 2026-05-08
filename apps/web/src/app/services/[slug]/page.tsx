@@ -1,11 +1,13 @@
-import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { services } from "@/data/services";
-import { ServiceDetailHero } from "@/sections/services/detail/ServiceDetailHero";
-import { ServiceDetailContent } from "@/sections/services/detail/ServiceDetailContent";
-import { ServiceDetailProjects } from "@/sections/services/detail/ServiceDetailProjects";
-import { Footer } from "@/components/layout/Footer";
+
+import { Metadata } from "next";
+
 import { FloatingContact } from "@/components/common/FloatingContact";
+import { Footer } from "@/components/layout/Footer";
+import { services } from "@/data/services";
+import { ServiceDetailContent } from "@/sections/services/detail/ServiceDetailContent";
+import { ServiceDetailHero } from "@/sections/services/detail/ServiceDetailHero";
+import { ServiceDetailProjects } from "@/sections/services/detail/ServiceDetailProjects";
 
 interface Props {
   params: Promise<{ slug: string }>;
