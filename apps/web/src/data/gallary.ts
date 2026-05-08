@@ -5,6 +5,7 @@ export interface GallaryProject {
   description: string;
   thumbnail: string;
   images: string[];
+  serviceSlugs: string[];
 }
 
 export const GALLARY_PROJECTS: GallaryProject[] = [
@@ -22,6 +23,12 @@ export const GALLARY_PROJECTS: GallaryProject[] = [
       "/images/projects/3.png",
       "/images/projects/4.png",
     ],
+    serviceSlugs: [
+      "architectural-service",
+      "cladding-works",
+      "steel-metal-works",
+      "building-projects",
+    ],
   },
   {
     id: "p2",
@@ -36,6 +43,7 @@ export const GALLARY_PROJECTS: GallaryProject[] = [
       "/images/projects/6.png",
       "/images/projects/7.png",
     ],
+    serviceSlugs: ["cladding-works", "hardscaping-works", "building-projects"],
   },
   {
     id: "p3",
@@ -50,6 +58,7 @@ export const GALLARY_PROJECTS: GallaryProject[] = [
       "/images/projects/9.png",
       "/images/projects/10.png",
     ],
+    serviceSlugs: ["steel-metal-works", "building-projects"],
   },
   {
     id: "p4",
@@ -64,6 +73,13 @@ export const GALLARY_PROJECTS: GallaryProject[] = [
       "/images/projects/12.png",
       "/images/projects/14.png",
     ],
+    serviceSlugs: [
+      "artificial-grass",
+      "artificial-lakes",
+      "fountain-services",
+      "irrigation-plantation",
+      "landscape-works",
+    ],
   },
   {
     id: "p5",
@@ -72,6 +88,7 @@ export const GALLARY_PROJECTS: GallaryProject[] = [
     description: "Specialized excavation and site preparation for large-scale industrial projects.",
     thumbnail: "/images/projects/15.png",
     images: ["/images/projects/15.png", "/images/projects/6.png", "/images/projects/7.png"],
+    serviceSlugs: ["hardscaping-works", "land-development", "sand-removal-earthwork"],
   },
   {
     id: "p6",
@@ -87,5 +104,6 @@ export const GALLARY_PROJECTS: GallaryProject[] = [
       "/images/projects/5.png",
       "/images/projects/14.png",
     ],
+    serviceSlugs: ["architectural-service", "landscape-works", "building-projects"],
   },
 ];

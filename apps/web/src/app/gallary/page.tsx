@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 
 import { FloatingContact } from "@/components/common/FloatingContact";
@@ -23,7 +24,9 @@ export default function GallaryPage() {
   return (
     <div className="relative min-h-screen">
       <GallaryHero />
-      <GallaryCollections />
+      <Suspense fallback={<div className="container py-24 text-center">Loading gallery...</div>}>
+        <GallaryCollections />
+      </Suspense>
       <Footer />
       <FloatingContact />
     </div>
