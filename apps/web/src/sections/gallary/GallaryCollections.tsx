@@ -89,7 +89,7 @@ export const GallaryCollections = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
-                      className="border-brand-blue/20 absolute top-full right-0 left-0 z-50 mt-1 overflow-hidden border bg-white shadow-2xl"
+                      className="border-brand-blue/20 absolute top-full right-0 left-0 z-50 mt-1 overflow-hidden rounded-sm border bg-white shadow-2xl"
                     >
                       {[
                         { id: "projects", label: "Projects" },
