@@ -5,6 +5,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { Icons } from "@repo/ui";
@@ -12,20 +13,27 @@ import { Icons } from "@repo/ui";
 import { GALLARY_PROJECTS, GallaryProject } from "@/data/gallary";
 
 export const GallaryCollections = () => {
-  const [selectedProject, setSelectedProject] = useState<GallaryProject | null>(null);
+  const searchParams = useSearchParams();
+  const serviceFilter = searchParams.get("service");
+
+  const filteredProjects = serviceFilter
+    ? GALLARY_PROJECTS.filter((p) => p.serviceSlugs.includes(serviceFilter))
+    : GALLARY_PROJECTS;
 
   return (
     <section className="bg-background py-24">
       <div className="container mx-auto px-6">
         <div className="mb-16">
           <h2 className="text-foreground mb-4 text-4xl font-bold md:text-5xl">
-            Project Collections
+            {serviceFilter 
+              ? `Projects in ${serviceFilter.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}` 
+              : "Project Collections"}
           </h2>
           <div className="bg-brand-blue h-1 w-20" />
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {GALLARY_PROJECTS.map((project, index) => (
+          {filteredProjects.map((project, index) => (
             <Link
               key={project.id}
               href={`/gallary/${project.slug}`}
