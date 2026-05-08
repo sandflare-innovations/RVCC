@@ -2,8 +2,10 @@ import { FaFacebook, FaHardHat } from "react-icons/fa";
 import {
   FiArrowRight,
   FiCheckCircle,
+  FiChevronDown,
   FiChevronRight,
   FiClock,
+  FiFile,
   FiImage,
   FiInstagram,
   FiLinkedin,
@@ -28,6 +30,7 @@ export const Icons = {
   Sun: FiSun,
   ArrowRight: FiArrowRight,
   ChevronRight: FiChevronRight,
+  ChevronDown: FiChevronDown,
   MapPin: FiMapPin,
   Phone: FiPhone,
   Mail: FiMail,
@@ -37,6 +40,7 @@ export const Icons = {
   Plus: FiPlus,
   Gallery: FiImage,
   Search: FiSearch,
+  File: FiFile,
 };
 
 export type IconType = keyof typeof Icons;
