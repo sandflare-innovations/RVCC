@@ -2,51 +2,87 @@
 
 import { motion } from "framer-motion";
 
-export const CareerHero = () => {
-  return (
-    <section className="bg-background relative overflow-hidden py-32 md:py-48">
-      {/* Background Monumental Text */}
-      <div className="container mx-auto px-6 text-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
-          className="pointer-events-none mb-[-4rem] md:mb-[-10rem]"
-        >
-          <h1 className="font-heading text-8xl leading-[0.8] font-black text-zinc-100 uppercase md:text-[20rem] dark:text-white/5">
-            JOIN US
-          </h1>
-        </motion.div>
+import { Icons } from "@repo/ui";
 
-        {/* Foreground Content */}
-        <div className="relative z-10 flex flex-col items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="flex flex-col items-center text-center"
-          >
-            <div className="mb-6 flex items-center space-x-3">
-              <div className="bg-brand-blue h-1.5 w-1.5" />
-              <span className="text-brand-blue text-[10px] font-bold tracking-[0.5em] uppercase">
-                CAREERS
-              </span>
-            </div>
-            <h2 className="text-foreground max-w-4xl text-4xl font-normal tracking-tighter uppercase md:text-7xl">
-              Build the <span className="text-brand-blue font-light">Future</span> <br />
-              With RVCC
-            </h2>
-            <p className="text-muted-foreground mt-8 max-w-xl text-lg leading-relaxed font-light">
-              We are a team of visionaries, engineers, and creators. Join us in shaping the
-              architectural landscape of the Kingdom.
-            </p>
-          </motion.div>
-        </div>
+export const CareerHero = () => {
+  const scrollToPositions = () => {
+    const element = document.getElementById("open-positions");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  return (
+    <section className="relative h-screen min-h-[700px] w-full overflow-hidden">
+      {/* Background Image with Architectural Overlay */}
+      <div className="absolute inset-0">
+        <motion.div
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
+          className="h-full w-full bg-[url('/images/careers/premium_studio.png')] bg-cover bg-center grayscale-0"
+        />
+        <div className="absolute inset-0 bg-black/50" />
       </div>
 
-      {/* Decorative Accent */}
-      <div className="bg-brand-blue absolute top-1/2 right-0 h-px w-24 -translate-y-1/2" />
-      <div className="bg-brand-blue absolute top-1/2 left-0 h-px w-24 -translate-y-1/2" />
+      <div className="relative z-10 container mx-auto flex h-full flex-col justify-center px-6 pt-20">
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1, ease: [0.19, 1, 0.22, 1] }}
+          className="max-w-5xl"
+        >
+          <div className="mb-8 flex items-center space-x-4">
+            <div className="h-[2px] w-12 bg-white" />
+            <span className="text-[20px] font-bold tracking-[0.5em] text-white uppercase">
+              EVOLVE WITH US
+            </span>
+          </div>
+
+          <h1 className="font-heading mb-10 text-6xl font-normal tracking-tighter text-white uppercase md:text-8xl lg:text-[10rem] lg:leading-[0.6em]">
+            ARCHITECT <br />
+            <span className="opacity-90">THE FUTURE</span>
+          </h1>
+
+          <div className="mb-16 flex flex-col justify-between gap-12 md:gap-24 lg:flex-row lg:items-center">
+            <p className="max-w-xl text-lg leading-relaxed font-light text-white/90 md:text-xl lg:text-2xl">
+              Join a team of visionaries and creators dedicated to reshaping the skyline of the
+              Kingdom through monumental design and engineering.
+            </p>
+
+            <div className="order-first flex gap-12 border-r border-white/20 pr-8 md:pr-16 lg:order-last">
+              <div className="space-y-1 text-right">
+                <span className="font-heading block text-4xl text-white">12+</span>
+                <span className="text-[9px] font-bold tracking-widest text-white/50 uppercase">
+                  Open Roles
+                </span>
+              </div>
+              <div className="space-y-1 text-right">
+                <span className="font-heading block text-4xl text-white">150+</span>
+                <span className="text-[9px] font-bold tracking-widest text-white/50 uppercase">
+                  Experts
+                </span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Bottom Gradient Overlay (Blending into the white section below) */}
+      <div className="absolute inset-x-0 bottom-0 z-20 h-40 bg-linear-to-t from-white to-transparent dark:from-zinc-950" />
+
+      {/* Bottom Visual Element - Centered */}
+      <div className="absolute bottom-12 left-1/2 z-30 hidden -translate-x-1/2 md:block">
+        <button
+          onClick={scrollToPositions}
+          className="group flex cursor-pointer flex-col items-center space-y-4"
+        >
+          <span className="text-[10px] font-bold tracking-[0.5em] text-white/30 uppercase transition-colors group-hover:text-white">
+            SCROLL
+          </span>
+          <div className="group-hover:bg-brand-blue h-24 w-px bg-white/20 transition-all group-hover:h-32" />
+        </button>
+      </div>
     </section>
   );
 };
