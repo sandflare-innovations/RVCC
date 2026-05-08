@@ -53,7 +53,7 @@ export const ServicesGrid = () => {
                 </div>
 
                 <Link
-                  href={`/services/${service.id}`}
+                  href={`/services/${service.slug}`}
                   className="group/link text-brand-blue inline-flex items-center text-[10px] font-bold tracking-[0.4em] uppercase transition-colors"
                 >
                   LEARN MORE

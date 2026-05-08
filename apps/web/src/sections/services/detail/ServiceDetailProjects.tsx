@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+
 import Image from "next/image";
 import Link from "next/link";
+
 import { AnimatePresence, motion } from "framer-motion";
-import { Service } from "@/data/services";
-import { GALLARY_PROJECTS } from "@/data/gallary";
 import { HiOutlineArrowRight } from "react-icons/hi2";
+
+import { GALLARY_PROJECTS } from "@/data/gallary";
+import { Service } from "@/data/services";
 
 interface ServiceDetailProjectsProps {
   service: Service;
@@ -14,9 +17,7 @@ interface ServiceDetailProjectsProps {
 
 export const ServiceDetailProjects = ({ service }: ServiceDetailProjectsProps) => {
   // Get linked projects
-  const relatedProjects = GALLARY_PROJECTS.filter((p) =>
-    service.projectIds.includes(p.id)
-  );
+  const relatedProjects = GALLARY_PROJECTS.filter((p) => service.projectIds.includes(p.id));
 
   // Flatten images from projects
   const allImages = relatedProjects.flatMap((p) => p.images);
@@ -82,10 +83,11 @@ export const ServiceDetailProjects = ({ service }: ServiceDetailProjectsProps) =
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className={`group relative h-[190px] cursor-pointer overflow-hidden border-2 transition-all duration-300 ${activeImage === img
-                      ? "border-brand-blue"
-                      : "border-transparent opacity-60 hover:opacity-100"
-                      }`}
+                    className={`group relative h-[190px] cursor-pointer overflow-hidden border-2 transition-all duration-300 ${
+                      activeImage === img
+                        ? "border-brand-blue"
+                        : "border-transparent opacity-60 hover:opacity-100"
+                    }`}
                   >
                     <Image
                       src={img}
@@ -99,7 +101,7 @@ export const ServiceDetailProjects = ({ service }: ServiceDetailProjectsProps) =
                         href={`/gallary?service=${service?.slug || ""}`}
                         className="absolute inset-0 flex items-center justify-center bg-black/60 p-4 text-center transition-opacity hover:bg-black/70"
                       >
-                        <div className="border flex justify-center items-center border-white px-8 py-3 text-white gap-3">
+                        <div className="flex items-center justify-center gap-3 border border-white px-8 py-3 text-white">
                           <span className="text-[10px] font-bold tracking-[0.3em] uppercase">
                             VIEW MORE
                           </span>
@@ -107,9 +109,7 @@ export const ServiceDetailProjects = ({ service }: ServiceDetailProjectsProps) =
                         </div>
                       </Link>
                     ) : (
-                      activeImage === img && (
-                        <div className="bg-brand-blue/10 absolute inset-0" />
-                      )
+                      activeImage === img && <div className="bg-brand-blue/10 absolute inset-0" />
                     )}
                   </motion.div>
                 );

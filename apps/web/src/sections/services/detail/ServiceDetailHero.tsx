@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
+
 import { motion } from "framer-motion";
+
 import { Service } from "@/data/services";
 
 interface ServiceDetailHeroProps {
@@ -29,7 +31,7 @@ export const ServiceDetailHero = ({ service }: ServiceDetailHeroProps) => {
       </motion.div>
 
       {/* Content */}
-      <div className="container relative z-10 flex h-full flex-col justify-center pt-20">
+      <div className="relative z-10 container flex h-full flex-col justify-center pt-20">
         <div className="mb-8 flex items-center space-x-4">
           <motion.div
             initial={{ width: 0 }}
@@ -66,7 +68,7 @@ export const ServiceDetailHero = ({ service }: ServiceDetailHeroProps) => {
           transition={{ duration: 0.8, delay: 0.9 }}
           className="max-w-xl"
         >
-          <p className="text-lg font-light leading-relaxed text-white/90 md:text-xl lg:text-2xl">
+          <p className="text-lg leading-relaxed font-light text-white/90 md:text-xl lg:text-2xl">
             {service.description}
           </p>
         </motion.div>
@@ -77,7 +79,7 @@ export const ServiceDetailHero = ({ service }: ServiceDetailHeroProps) => {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 0.1, scale: 1 }}
         transition={{ duration: 1.2, delay: 1 }}
-        className="absolute bottom-20 right-20 hidden text-[20rem] text-white lg:block"
+        className="absolute right-20 bottom-20 hidden text-[20rem] text-white lg:block"
       >
         {service.icon}
       </motion.div>
