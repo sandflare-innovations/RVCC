@@ -1,11 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { cn } from "@lib/utils";
+
+import { LogoMarquee } from "@/components/common/LogoMarquee";
 import { AngledSlider } from "@/components/ui/angled-slider";
 import { PROJECTS } from "@/data/projects/detailed";
-import { LogoMarquee } from "@/components/common/LogoMarquee";
 
+import { cn } from "@lib/utils";
 
 export const ProjectHero = () => {
   const sliderItems = PROJECTS.map((p) => ({
@@ -16,17 +17,21 @@ export const ProjectHero = () => {
   }));
 
   return (
-    <section className={cn("relative h-screen w-full bg-brand-blue overflow-hidden flex items-center justify-center")}>
-      <div className="w-full relative py-20">
+    <section
+      className={cn(
+        "bg-brand-blue relative flex h-screen w-full items-center justify-center overflow-hidden"
+      )}
+    >
+      <div className="relative w-full py-20">
         {/* Monumental Background Text */}
-        <div className="container mx-auto px-6 relative z-0 text-center">
+        <div className="relative z-0 container mx-auto px-6 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, ease: "easeOut" }}
             className="pointer-events-none"
           >
-            <h1 className="text-9xl font-black leading-[0.8] text-background/15 md:text-[24rem] uppercase font-heading select-none">
+            <h1 className="text-background/15 font-heading text-9xl leading-[0.8] font-black uppercase select-none md:text-[24rem]">
               PROJECTS
             </h1>
           </motion.div>
@@ -34,10 +39,10 @@ export const ProjectHero = () => {
 
         {/* Dynamic 3D Slider Section - Layered on Top and Centered */}
         <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 1 }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-full"
+          className="absolute top-1/2 left-1/2 z-10 w-full -translate-x-1/2 -translate-y-1/2"
         >
           <AngledSlider
             items={sliderItems}
@@ -51,8 +56,8 @@ export const ProjectHero = () => {
       </div>
 
       {/* Decorative background element */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-full w-full bg-brand-blue/5 blur-[120px] pointer-events-none" />
-      
+      <div className="bg-brand-blue/5 pointer-events-none absolute top-1/2 left-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 blur-[120px]" />
+
       {/* Client Logos - Bottom Center */}
       <LogoMarquee />
     </section>
