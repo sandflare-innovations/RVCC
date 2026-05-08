@@ -35,7 +35,7 @@ export const ServicesHero = () => {
             </span>
           </div>
 
-          <h1 className="font-heading mb-10 text-6xl font-normal tracking-tighter text-white uppercase md:text-8xl lg:text-[10rem] lg:leading-[0.75]">
+          <h1 className="font-heading mb-10 text-6xl font-normal tracking-tighter text-white uppercase md:text-8xl lg:text-[10rem] lg:leading-[0.6em]">
             SHAPING <br />
             <span className="opacity-90">THE FUTURE</span>
           </h1>
