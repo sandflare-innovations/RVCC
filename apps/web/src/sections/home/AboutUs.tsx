@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
 
-import { CLIENT_IMAGES, ABOUT_STATS as STATS, ABOUT_WORDS as WORDS } from "@data/home/about";
+import { ABOUT_STATS as STATS, ABOUT_WORDS as WORDS } from "@data/home/about";
 import {
   MotionValue,
   animate,
@@ -16,6 +16,7 @@ import {
 } from "framer-motion";
 import { FaArrowRight, FaFileLines, FaPause, FaPlay } from "react-icons/fa6";
 
+import { ClientLogos } from "@/components/common/ClientLogos";
 import { Button } from "@/components/ui/Button";
 
 import { cn } from "@lib/utils";
@@ -84,8 +85,8 @@ const InlineImage = ({ src }: { src: string }) => {
         }}
         transition={{ type: "spring", stiffness: 250, damping: 25 }}
       >
-        <motion.div
-          className="h-full w-full"
+        <motion.span
+          className="block h-full w-full"
           initial={{ scale: 1.2 }}
           whileHover={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 250, damping: 25 }}
@@ -97,7 +98,7 @@ const InlineImage = ({ src }: { src: string }) => {
             className="object-cover"
             sizes="(max-width: 768px) 300px, 600px"
           />
-        </motion.div>
+        </motion.span>
       </motion.span>
     </span>
   );
@@ -303,35 +304,7 @@ export const AboutUs = () => {
           </div>
         </div>
       </div>
-      <ClientMarquee />
+      <ClientLogos />
     </section>
-  );
-};
-
-const ClientMarquee = () => {
-  const logos = [...CLIENT_IMAGES, ...CLIENT_IMAGES];
-  return (
-    <div className="md:pt-element-gap w-full overflow-hidden pt-8">
-      <motion.div
-        className="flex w-max items-center gap-16 px-8"
-        animate={{ x: ["0%", "-50%"] }}
-        transition={{ duration: 60, ease: "linear", repeat: Infinity }}
-      >
-        {logos.map((src, i) => (
-          <div
-            key={i}
-            className="relative h-42 w-42 flex-shrink-0 transition-all duration-300 hover:scale-110"
-          >
-            <Image
-              src={src}
-              alt="Client logo"
-              fill
-              className="object-contain"
-              sizes="(max-width: 768px) 100px, 200px"
-            />
-          </div>
-        ))}
-      </motion.div>
-    </div>
   );
 };
