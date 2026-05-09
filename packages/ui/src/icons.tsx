@@ -5,6 +5,8 @@ import {
   FiChevronDown,
   FiChevronRight,
   FiClock,
+  FiDownload,
+  FiEye,
   FiFile,
   FiImage,
   FiInstagram,
@@ -17,6 +19,7 @@ import {
   FiPhone,
   FiPlus,
   FiSearch,
+  FiShare2,
   FiShield,
   FiSun,
   FiX,
@@ -45,6 +48,9 @@ export const Icons = {
   File: FiFile,
   Shield: FiShield,
   Lock: FiLock,
+  Download: FiDownload,
+  View: FiEye,
+  Share: FiShare2,
 };
 
 export type IconType = keyof typeof Icons;

@@ -1,3 +1,4 @@
+/* RVCC Globals - v1.1 */
 @import "tailwindcss";
 
 @font-face {
@@ -233,6 +234,14 @@
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .rotate-y-negative-10 {
+    transform: rotateY(-10deg);
   }
 
   /* View Transitions API for Theme Toggle */
