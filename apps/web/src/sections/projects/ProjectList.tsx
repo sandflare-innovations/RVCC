@@ -33,7 +33,7 @@ export const ProjectList = () => {
       />
 
       <div className="container mx-auto min-h-[400px] px-6 py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-12">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-5 lg:gap-y-10">
           <AnimatePresence mode="popLayout">
             {projects.map((project, index) => (
               <motion.div
@@ -47,10 +47,10 @@ export const ProjectList = () => {
               >
                 <Link
                   href={`/projects/${project.slug}`}
-                  className="group block flex flex-col items-center justify-center bg-white shadow-[0_10px_30px_-5px_rgba(0,0,0,0.1)] transition-all hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)]"
+                  className="group block flex flex-col items-center justify-center transition-all"
                 >
                   {/* Top: Image Section */}
-                  <div className="relative aspect-[16/10] w-full overflow-hidden">
+                  <div className="relative aspect-[16/10] w-[92%] overflow-hidden">
                     <Image
                       src={project.image}
                       alt={project.title}
@@ -60,9 +60,9 @@ export const ProjectList = () => {
                     />
                   </div>
 
-                  <div className="relative flex flex-col items-center justify-center">
+                  <div className="relative flex flex-col items-center justify-center shadow-[0_10px_30px_-5px_rgba(0,0,0,0.1)] hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)]">
                     {/* Middle: Data Strip */}
-                    <div className="bg-brand-blue z-40 flex w-98 items-center justify-between px-8 py-2">
+                    <div className="bg-brand-blue z-40 flex w-[92%] items-center justify-between px-6 py-2 md:px-8">
                       <div className="flex w-full items-center justify-between">
                         <span className="text-[9px] font-black tracking-[0.3em] text-white uppercase">
                           {project.category}
@@ -75,8 +75,8 @@ export const ProjectList = () => {
                     </div>
 
                     {/* Bottom: Content Section */}
-                    <div className="group-hover:border-brand-blue z-30 -mt-7 w-105 space-y-3 rounded-lg border-2 bg-white p-8 transition-colors duration-1500 ease-in-out lg:p-6">
-                      <h3 className="font-heading group-hover:text-brand-blue mt-6 text-3xl leading-[0.85] text-zinc-900 uppercase transition-colors lg:text-4xl">
+                    <div className="group-hover:border-brand-blue z-30 -mt-7 w-full space-y-3 rounded-lg border-2 bg-white p-6 transition-colors duration-1500 ease-in-out md:p-8">
+                      <h3 className="font-heading group-hover:text-brand-blue mt-6 text-2xl leading-[0.85] text-zinc-900 uppercase transition-colors md:text-3xl lg:text-4xl">
                         {project.title}
                       </h3>
 
