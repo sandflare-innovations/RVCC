@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { AnimatePresence, motion } from "framer-motion";
+import ReCAPTCHA from "react-google-recaptcha";
 
 import { Icons } from "@repo/ui";
 
 import { JobPosition, OPEN_POSITIONS } from "@/data/careers";
+
+import { cn } from "@lib/utils";
 
 export const CareerList = () => {
   const [activeDepartment, setActiveDepartment] = useState<string>("All");
@@ -14,6 +17,33 @@ export const CareerList = () => {
   const [selectedJob, setSelectedJob] = useState<JobPosition | null>(null);
   const [isApplying, setIsApplying] = useState(false);
   const [applicationSuccess, setApplicationSuccess] = useState(false);
+
+  // ReCAPTCHA State
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  const [captchaError, setCaptchaError] = useState(false);
+
+  const handleVerificationTrigger = async () => {
+    setIsVerifying(true);
+    setCaptchaError(false);
+
+    // Execute invisible recaptcha
+    if (recaptchaRef.current) {
+      try {
+        const token = await recaptchaRef.current.executeAsync();
+        if (token) {
+          setIsVerified(true);
+        } else {
+          setCaptchaError(true);
+        }
+      } catch (error) {
+        setCaptchaError(true);
+      } finally {
+        setIsVerifying(false);
+      }
+    }
+  };
 
   const departments = ["All", ...new Set(OPEN_POSITIONS.map((j) => j.department))];
 
@@ -27,11 +57,18 @@ export const CareerList = () => {
 
   const handleApply = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isVerified) {
+      setCaptchaError(true);
+      return;
+    }
+
     setApplicationSuccess(true);
     setTimeout(() => {
       setIsApplying(false);
       setSelectedJob(null);
       setApplicationSuccess(false);
+      setIsVerified(false);
     }, 2000);
   };
 
@@ -274,7 +311,7 @@ export const CareerList = () => {
                                     required
                                     type="text"
                                     placeholder="e.g. Abdullah Ahmed"
-                                    className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-200 dark:border-white/10 dark:text-white dark:placeholder:text-zinc-800"
+                                    className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-300 dark:border-white/10 dark:text-white dark:placeholder:text-zinc-800"
                                   />
                                 </div>
                                 <div className="group space-y-2">
@@ -285,7 +322,7 @@ export const CareerList = () => {
                                     required
                                     type="email"
                                     placeholder="abdullah@example.com"
-                                    className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-200 dark:border-white/10 dark:text-white dark:placeholder:text-zinc-800"
+                                    className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-300 dark:border-white/10 dark:text-white dark:placeholder:text-zinc-800"
                                   />
                                 </div>
                                 <div className="group space-y-2">
@@ -296,18 +333,18 @@ export const CareerList = () => {
                                     required
                                     type="tel"
                                     placeholder="+966 5X XXX XXXX"
-                                    className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-200 dark:border-white/10 dark:text-white dark:placeholder:text-zinc-800"
+                                    className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-300 dark:border-white/10 dark:text-white dark:placeholder:text-zinc-800"
                                   />
                                 </div>
                               </div>
 
                               {/* Right Column: Professional Links & Files */}
-                              <div className="space-y-10">
-                                <div className="h-full space-y-10">
+                              <div className="flex h-full flex-col space-y-6">
+                                <div className="space-y-4">
                                   <label className="text-[9px] font-black tracking-[0.4em] text-zinc-400 uppercase">
                                     CV / CV Archive (PDF)
                                   </label>
-                                  <div className="group hover:border-brand-blue relative flex h-full w-full cursor-pointer flex-col items-center justify-center overflow-hidden border border-dashed border-zinc-200 bg-zinc-50/30 transition-all dark:border-white/10 dark:bg-white/5">
+                                  <div className="group hover:border-brand-blue relative flex h-48 w-full cursor-pointer flex-col items-center justify-center overflow-hidden border border-dashed border-zinc-200 bg-zinc-50/30 transition-all dark:border-white/10 dark:bg-white/5">
                                     <input
                                       required
                                       type="file"
@@ -319,6 +356,76 @@ export const CareerList = () => {
                                       Upload The CV
                                     </p>
                                     <div className="bg-brand-blue/5 absolute inset-0 origin-left scale-x-0 transition-transform group-hover:scale-x-100" />
+                                  </div>
+                                </div>
+
+                                {/* Modern Google Identity Verification UI */}
+                                <div className="pt-2">
+                                  <div className="space-y-3">
+                                    <label
+                                      className={cn(
+                                        "text-[9px] font-black tracking-[0.4em] uppercase transition-colors",
+                                        captchaError ? "text-red-500" : "text-zinc-400"
+                                      )}
+                                    >
+                                      Identity Verification
+                                    </label>
+
+                                    <button
+                                      type="button"
+                                      onClick={handleVerificationTrigger}
+                                      disabled={isVerified || isVerifying}
+                                      className={cn(
+                                        "group relative flex h-14 w-full items-center overflow-hidden border px-6 transition-all duration-500",
+                                        isVerified
+                                          ? "bg-brand-blue/5 border-brand-blue text-brand-blue"
+                                          : captchaError
+                                            ? "border-red-500 bg-red-50 text-red-500"
+                                            : "hover:border-brand-blue border-zinc-200 bg-white text-zinc-500"
+                                      )}
+                                    >
+                                      <div className="relative z-10 flex w-full items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                          {isVerifying ? (
+                                            <div className="border-brand-blue h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
+                                          ) : isVerified ? (
+                                            <Icons.Plus className="text-brand-blue h-4 w-4 rotate-45" />
+                                          ) : (
+                                            <div className="h-4 w-4 rounded-sm border-2 border-current opacity-30 transition-opacity group-hover:opacity-100" />
+                                          )}
+                                          <span className="text-[10px] font-bold tracking-[0.2em] uppercase">
+                                            {isVerifying
+                                              ? "Verifying..."
+                                              : isVerified
+                                                ? "Human Verified"
+                                                : "Confirm Identity"}
+                                          </span>
+                                        </div>
+
+                                        <div className="flex items-center opacity-40">
+                                          <Icons.Shield className="mr-1.5 h-3.5 w-3.5" />
+                                          <span className="text-[8px] font-black tracking-widest uppercase">
+                                            Secured
+                                          </span>
+                                        </div>
+                                      </div>
+
+                                      {/* Background Animation */}
+                                      {!isVerified && !isVerifying && (
+                                        <div className="bg-brand-blue/5 absolute inset-0 -translate-x-full transition-transform duration-700 group-hover:translate-x-0" />
+                                      )}
+                                    </button>
+                                  </div>
+
+                                  <div className="h-0 overflow-hidden opacity-0">
+                                    <ReCAPTCHA
+                                      ref={recaptchaRef}
+                                      sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+                                      size="invisible"
+                                      onChange={(token) => {
+                                        if (token) setIsVerified(true);
+                                      }}
+                                    />
                                   </div>
                                 </div>
                               </div>
@@ -334,7 +441,7 @@ export const CareerList = () => {
                               </button>
                               <button
                                 type="submit"
-                                className="hover:bg-brand-blue font-brand-blue flex-[2] bg-white py-3 text-[16px] font-bold tracking-[0.2em] text-black uppercase shadow-2xl transition-all active:scale-[0.98] dark:hover:text-zinc-900"
+                                className="hover:bg-brand-blue font-brand-blue flex-[2] bg-white py-4 text-[16px] font-bold tracking-[0.2em] text-black uppercase shadow-2xl transition-all active:scale-[0.98] dark:hover:text-zinc-900"
                               >
                                 Send Application
                               </button>
@@ -376,7 +483,9 @@ export const CareerList = () => {
                       </div>
 
                       <button
-                        onClick={() => setIsApplying(true)}
+                        onClick={() => {
+                          setIsApplying(true);
+                        }}
                         className="bg-brand-blue mt-24 py-8 text-[11px] font-bold tracking-[0.6em] text-white uppercase shadow-2xl transition-all hover:scale-[1.02] hover:bg-zinc-900 dark:hover:bg-white dark:hover:text-black"
                       >
                         Apply Now
