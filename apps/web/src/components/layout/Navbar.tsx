@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { motion } from "framer-motion";
+import { useLenis } from "lenis/react";
 import { useTheme } from "next-themes";
 import { FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa6";
 
@@ -20,6 +21,7 @@ import { cn } from "@lib/utils";
 export const Navbar = () => {
   const pathname = usePathname();
   const { resolvedTheme } = useTheme();
+  const lenis = useLenis();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -67,7 +69,6 @@ export const Navbar = () => {
     };
   }, []);
 
-  // Lock background scroll when menu is open using position: fixed strategy (best for mobile/iOS)
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -75,32 +76,34 @@ export const Navbar = () => {
     const html = document.documentElement;
 
     if (isOpen) {
-      const scrollPos = window.scrollY;
+      // Stop Lenis smooth scroll
+      lenis?.stop();
+
+      // Simple overflow hidden to prevent background scroll
+      // avoids the 'jump to top' issue caused by position: fixed
       body.style.overflow = "hidden";
-      body.style.position = "fixed";
-      body.style.top = `-${scrollPos}px`;
-      body.style.width = "100%";
-      html.style.scrollBehavior = "auto";
-    } else {
-      const savedScrollPos = Math.abs(parseInt(body.style.top || "0", 10));
-      body.style.overflow = "";
-      body.style.position = "";
-      body.style.top = "";
-      body.style.width = "";
-      html.style.scrollBehavior = "";
-      if (savedScrollPos) {
-        window.scrollTo(0, savedScrollPos);
+      html.style.overflow = "hidden";
+      // Optional: Add padding to prevent layout shift if scrollbar disappears
+      const scrollBarWidth = window.innerWidth - html.clientWidth;
+      if (scrollBarWidth > 0) {
+        body.style.paddingRight = `${scrollBarWidth}px`;
       }
+    } else {
+      // Start Lenis smooth scroll
+      lenis?.start();
+
+      body.style.overflow = "";
+      html.style.overflow = "";
+      body.style.paddingRight = "";
     }
 
     return () => {
+      lenis?.start();
       body.style.overflow = "";
-      body.style.position = "";
-      body.style.top = "";
-      body.style.width = "";
-      html.style.scrollBehavior = "";
+      html.style.overflow = "";
+      body.style.paddingRight = "";
     };
-  }, [isOpen]);
+  }, [isOpen, lenis]);
 
   const menuLinks = [
     "ABOUT US",
@@ -268,9 +271,10 @@ export const Navbar = () => {
 
       {/* SpaceX Style Side Menu Box */}
       <div
+        data-lenis-prevent
         className={cn(
-          "bg-background custom-scrollbar fixed top-0 left-0 z-[200] h-full w-full max-w-[400px] overflow-y-auto overscroll-contain transition-transform duration-500 ease-out",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          "bg-background custom-scrollbar fixed top-0 left-0 z-[200] h-full w-full max-w-[400px] overflow-y-auto transition-transform duration-500 ease-out",
+          isOpen ? "pointer-events-auto translate-x-0" : "pointer-events-none -translate-x-full"
         )}
       >
         <div className="flex min-h-full flex-col p-12">
