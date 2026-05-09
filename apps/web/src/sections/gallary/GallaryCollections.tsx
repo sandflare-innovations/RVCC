@@ -124,7 +124,7 @@ export const GallaryCollections = () => {
                 placeholder={`Search ${viewMode}...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="text-brand-blue w-full bg-transparent py-4 pr-12 pl-10 text-[10px] font-bold tracking-[0.25em] uppercase transition-all outline-none placeholder:text-zinc-300"
+                className="text-brand-blue placeholder:text-brand-blue w-full bg-transparent py-4 pr-12 pl-10 text-[10px] font-bold tracking-[0.25em] uppercase transition-all outline-none"
               />
               <Icons.Search className="text-brand-blue absolute top-1/2 right-4 h-5 w-5 -translate-y-1/2 transition-colors" />
             </div>
@@ -132,7 +132,7 @@ export const GallaryCollections = () => {
         </div>
 
         {/* Collections Grid */}
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence mode="popLayout">
             {filteredList.map((item, index) => (
               <motion.div
