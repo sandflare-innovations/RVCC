@@ -27,16 +27,17 @@ export const Navbar = () => {
   const lastScrollY = useRef(0);
 
   const isGallaryPage = pathname?.includes("/gallary");
+  const isContactPage = pathname === "/contact";
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      setIsScrolled(currentScrollY > (isGallaryPage ? 50 : window.innerHeight));
+      setIsScrolled(currentScrollY > (isGallaryPage || isContactPage ? 50 : window.innerHeight));
 
       // Hide header while scrolling down
       if (currentScrollY > lastScrollY.current) {
-        // Only hide immediately on gallery pages, otherwise wait for 100vh
-        if (isGallaryPage || currentScrollY > window.innerHeight) {
+        // Only hide immediately on gallery and contact pages, otherwise wait for 100vh
+        if (isGallaryPage || isContactPage || currentScrollY > window.innerHeight) {
           setIsVisible(false);
         }
       } else {
@@ -113,7 +114,7 @@ export const Navbar = () => {
 
   // Force white theme for header elements when in Works section
   const forceWhiteTheme = isWorksSection;
-  const isLightAndScrolled = isScrolled && !forceWhiteTheme;
+  const isLightAndScrolled = (isScrolled && !forceWhiteTheme) || isContactPage;
 
   return (
     <>
@@ -194,7 +195,7 @@ export const Navbar = () => {
               priority
               className={cn(
                 "w-28 transition-all duration-500 md:w-32",
-                forceWhiteTheme || !isScrolled || resolvedTheme === "dark"
+                forceWhiteTheme || (!isScrolled && !isContactPage) || resolvedTheme === "dark"
                   ? "brightness-0 invert"
                   : "brightness-100 invert-0"
               )}
