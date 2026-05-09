@@ -32,7 +32,7 @@ export const ProjectList = () => {
         categories={categories}
       />
 
-      <div className="container mx-auto min-h-[400px] px-6 py-12">
+      <div className="container mx-auto min-h-[400px] px-6 pb-20">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-5 lg:gap-y-10">
           <AnimatePresence mode="popLayout">
             {projects.map((project, index) => (
@@ -47,51 +47,54 @@ export const ProjectList = () => {
               >
                 <Link
                   href={`/projects/${project.slug}`}
-                  className="group block flex flex-col items-center justify-center transition-all"
+                  className="group relative flex flex-col border border-zinc-100 bg-white transition-all duration-500 hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)]"
                 >
-                  {/* Top: Image Section */}
-                  <div className="relative aspect-[16/10] w-[92%] overflow-hidden">
+                  {/* Top: Cinematic Image Section */}
+                  <div className="relative aspect-[16/8] w-full overflow-hidden">
                     <Image
                       src={project.image}
                       alt={project.title}
                       fill
-                      className="object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110"
+                      className="object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105"
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
                   </div>
 
-                  <div className="relative flex flex-col items-center justify-center shadow-[0_10px_30px_-5px_rgba(0,0,0,0.1)] hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)]">
-                    {/* Middle: Data Strip */}
-                    <div className="bg-brand-blue z-40 flex w-[92%] items-center justify-between px-6 py-2 md:px-8">
-                      <div className="flex w-full items-center justify-between">
-                        <span className="text-[9px] font-black tracking-[0.3em] text-white uppercase">
-                          {project.category}
-                        </span>
-                        <div className="h-3 w-px bg-zinc-200" />
-                        <span className="text-[9px] font-bold tracking-[0.3em] text-white uppercase">
-                          {project.location}
-                        </span>
-                      </div>
-                    </div>
+                  {/* Middle: Architectural Data Bar */}
+                  <div className="bg-brand-blue flex w-full items-center px-3 py-3">
+                    <span className="text-[10px] font-black tracking-[0.2em] text-white uppercase">
+                      {project.category}
+                    </span>
+                    <div className="mx-6 h-3 w-[1px] bg-white/30" />
+                    <span className="text-[10px] font-bold tracking-[0.2em] text-white uppercase">
+                      {project.location}
+                    </span>
+                  </div>
 
-                    {/* Bottom: Content Section */}
-                    <div className="group-hover:border-brand-blue z-30 -mt-7 w-full space-y-3 rounded-lg border-2 bg-white p-6 transition-colors duration-1500 ease-in-out md:p-8">
-                      <h3 className="font-heading group-hover:text-brand-blue mt-6 text-2xl leading-[0.85] text-zinc-900 uppercase transition-colors md:text-3xl lg:text-4xl">
-                        {project.title}
-                      </h3>
+                  {/* Bottom: Content & Narrative Section */}
+                  <div className="flex flex-col space-y-4 p-6">
+                    <h3 className="font-heading group-hover:text-brand-blue text-3xl leading-[1.1] tracking-tight text-zinc-900 uppercase transition-colors md:text-4xl">
+                      {project.title}
+                    </h3>
 
-                      <p className="line-clamp-2 text-sm leading-relaxed font-medium text-gray-500">
-                        {project.description}
-                      </p>
+                    <p className="line-clamp-3 text-sm leading-relaxed font-light text-zinc-400">
+                      {project.description}
+                    </p>
 
-                      <div className="flex items-center justify-between pt-4">
-                        <div className="group-hover:bg-brand-blue h-[2px] w-12 bg-zinc-100 transition-all group-hover:w-24" />
-                        <div className="group-hover:text-brand-blue flex items-center gap-3 text-[9px] font-black tracking-[0.4em] text-zinc-900 transition-colors">
-                          EXPLORE <Icons.ArrowRight className="h-3 w-3" />
-                        </div>
+                    <div className="flex items-center justify-between pt-6">
+                      {/* Left: Architectural Accent Line */}
+                      <div className="group-hover:bg-brand-blue h-[1px] w-12 bg-zinc-100 transition-all duration-700 group-hover:w-20" />
+
+                      {/* Right: Explicit Action */}
+                      <div className="group-hover:text-brand-blue flex items-center gap-3 text-[10px] font-black tracking-[0.4em] text-zinc-900 uppercase transition-colors">
+                        EXPLORE{" "}
+                        <Icons.ArrowRight className="h-3.5 w-3.5 transition-transform duration-500 group-hover:translate-x-1" />
                       </div>
                     </div>
                   </div>
+
+                  {/* Interactive Border Overlay */}
+                  <div className="group-hover:border-brand-blue/5 absolute inset-0 border-2 border-transparent transition-colors duration-500" />
                 </Link>
               </motion.div>
             ))}
