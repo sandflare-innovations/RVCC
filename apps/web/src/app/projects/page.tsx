@@ -1,8 +1,11 @@
 import { Metadata } from "next";
+
+import { ClientLogos } from "@/components/common/ClientLogos";
+import { FloatingContact } from "@/components/common/FloatingContact";
+import { Footer } from "@/components/layout/Footer";
 import { ProjectHero } from "@/sections/projects/ProjectHero";
 import { ProjectList } from "@/sections/projects/ProjectList";
-import { Footer } from "@/components/layout/Footer";
-import { FloatingContact } from "@/components/common/FloatingContact";
+import { ProjectMetrics } from "@/sections/projects/ProjectMetrics";
 
 export const metadata: Metadata = {
   title: "Projects | RVCC - Our Architectural Portfolio",
@@ -14,6 +17,8 @@ export default function ProjectsPage() {
   return (
     <main className="relative min-h-screen">
       <ProjectHero />
+      <ProjectMetrics />
+      <ClientLogos />
       <ProjectList />
       <Footer />
       <FloatingContact />
