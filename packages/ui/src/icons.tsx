@@ -9,6 +9,7 @@ import {
   FiImage,
   FiInstagram,
   FiLinkedin,
+  FiLock,
   FiMail,
   FiMapPin,
   FiMenu,
@@ -16,6 +17,7 @@ import {
   FiPhone,
   FiPlus,
   FiSearch,
+  FiShield,
   FiSun,
   FiX,
 } from "react-icons/fi";
@@ -41,6 +43,8 @@ export const Icons = {
   Gallery: FiImage,
   Search: FiSearch,
   File: FiFile,
+  Shield: FiShield,
+  Lock: FiLock,
 };
 
 export type IconType = keyof typeof Icons;
