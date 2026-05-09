@@ -227,7 +227,7 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: var(--accent);
+    background: #0073bc;
   }
 
   .custom-scrollbar {
