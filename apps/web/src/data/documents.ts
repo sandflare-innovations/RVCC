@@ -1,5 +1,6 @@
 export interface DocumentItem {
   id: string;
+  slug: string;
   title: string;
   category: "Profile" | "Standard" | "Report" | "Catalog";
   description: string;
@@ -12,16 +13,18 @@ export interface DocumentItem {
 export const DOCUMENTS: DocumentItem[] = [
   {
     id: "1",
-    title: "RVCC Company Profile 2026",
+    slug: "rvcc-general-profile",
+    title: "RVCC General Profile",
     category: "Profile",
     description: "A comprehensive overview of our history, expertise, and landmark projects in the Saudi Kingdom.",
     fileSize: "12.4 MB",
     updatedAt: "March 2026",
-    fileUrl: "/pdf/RVCC COPMANY PROFILE SIGNATURE PROJECT.pdf",
+    fileUrl: "/pdf/books/RVCC-General-Profile.pdf",
     image: "/images/books/company-profile.png",
   },
   {
     id: "2",
+    slug: "health-safety-standards",
     title: "Health & Safety Standards",
     category: "Standard",
     description: "Our rigorous safety protocols and compliance standards for all construction and civil sites.",
@@ -32,6 +35,7 @@ export const DOCUMENTS: DocumentItem[] = [
   },
   {
     id: "3",
+    slug: "infrastructure-capabilities",
     title: "Infrastructure Capabilities",
     category: "Profile",
     description: "Detailed analysis of our heavy infrastructure and utility development services.",
@@ -42,6 +46,7 @@ export const DOCUMENTS: DocumentItem[] = [
   },
   {
     id: "4",
+    slug: "quality-management-system",
     title: "Quality Management System",
     category: "Standard",
     description: "Documentation of our ISO-aligned quality assurance and project management procedures.",
