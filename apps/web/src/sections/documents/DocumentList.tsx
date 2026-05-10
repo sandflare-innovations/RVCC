@@ -1,20 +1,30 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+
+import dynamic from "next/dynamic";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+
+import { AnimatePresence, motion } from "framer-motion";
+
 import { Icons } from "@repo/ui";
+
 import { Button } from "@/components/ui/Button";
 import { DOCUMENTS, DocumentItem } from "@/data/documents";
 
-const PasswordModal = ({ 
-  isOpen, 
-  onClose, 
-  onSuccess 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  onSuccess: () => void; 
+const FlipbookReader = dynamic(() => import("./FlipbookReader").then((mod) => mod.FlipbookReader), {
+  ssr: false,
+});
+
+const PasswordModal = ({
+  isOpen,
+  onClose,
+  onSuccess,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
 }) => {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [error, setError] = useState(false);
@@ -62,7 +72,7 @@ const PasswordModal = ({
   };
 
   useEffect(() => {
-    if (otp.every(val => val !== "")) {
+    if (otp.every((val) => val !== "")) {
       handleSubmit();
     }
   }, [otp]);
@@ -84,52 +94,46 @@ const PasswordModal = ({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="relative w-full max-w-md bg-white p-12 shadow-2xl"
           >
-            <div className="text-center mb-10">
-              <h3 className="font-heading text-3xl text-zinc-900 uppercase mb-4">
-                Secure Access
-              </h3>
-              <p className="text-sm text-zinc-500 font-medium">
+            <div className="mb-10 text-center">
+              <h3 className="font-heading mb-4 text-3xl text-zinc-900 uppercase">Secure Access</h3>
+              <p className="text-sm font-medium text-zinc-500">
                 Please enter the 4-digit code to download this resource.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col items-center">
-              <div className="flex gap-4 mb-10">
+              <div className="mb-10 flex gap-4">
                 {otp.map((digit, index) => (
                   <input
                     key={index}
-                    ref={el => {
+                    ref={(el) => {
                       inputs.current[index] = el;
                     }}
                     type="text"
                     maxLength={1}
                     value={digit}
-                    onChange={e => handleChange(index, e.target.value)}
-                    onKeyDown={e => handleKeyDown(index, e)}
-                    className={`w-14 h-14 text-center text-2xl font-bold border transition-all outline-none ${
-                      error 
-                        ? "border-red-500 bg-red-50 text-red-900" 
-                        : "border-zinc-200 focus:border-brand-blue bg-zinc-50"
+                    onChange={(e) => handleChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    className={`h-14 w-14 border text-center text-2xl font-bold transition-all outline-none ${
+                      error
+                        ? "border-red-500 bg-red-50 text-red-900"
+                        : "focus:border-brand-blue border-zinc-200 bg-zinc-50"
                     }`}
                   />
                 ))}
               </div>
 
               {error && (
-                <motion.p 
+                <motion.p
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-red-500 text-[10px] font-bold uppercase tracking-widest mb-8"
+                  className="mb-8 text-[10px] font-bold tracking-widest text-red-500 uppercase"
                 >
                   Incorrect Password. Please try again.
                 </motion.p>
               )}
 
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-full"
-              >
+              <Button type="submit" variant="primary" className="w-full">
                 Verify & Download
               </Button>
             </form>
@@ -140,8 +144,21 @@ const PasswordModal = ({
   );
 };
 
-const DocumentCard = ({ item, index }: { item: DocumentItem; index: number }) => {
+const DocumentCard = ({
+  item,
+  index,
+  onRead,
+}: {
+  item: DocumentItem;
+  index: number;
+  onRead: (item: DocumentItem) => void;
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleReadClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onRead(item);
+  };
 
   const handleDownloadClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -167,7 +184,7 @@ const DocumentCard = ({ item, index }: { item: DocumentItem; index: number }) =>
         transition={{ duration: 0.6, delay: index * 0.1 }}
         className="group"
       >
-        <div className="flex flex-col sm:flex-row h-full bg-white border border-zinc-100 p-8 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.06)] transition-all duration-500 hover:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.1)]">
+        <div className="flex h-full flex-col border border-zinc-100 bg-white p-8 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.06)] transition-all duration-500 hover:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.1)] sm:flex-row">
           {/* Left: Enhanced 3D Book Representation */}
           <div className="perspective-1000 relative mx-auto mb-8 aspect-[3/4.5] w-full shrink-0 sm:mx-0 sm:mb-0 sm:w-44 md:w-48">
             {/* Main Book Body with slight persistent rotate */}
@@ -214,8 +231,11 @@ const DocumentCard = ({ item, index }: { item: DocumentItem; index: number }) =>
 
             <div className="mt-auto flex items-center justify-between border-t border-zinc-50 pt-8">
               <div className="flex items-center gap-4">
-                <button className="border-brand-blue text-brand-blue hover:bg-brand-blue border px-6 py-2 text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-300 hover:text-white">
-                  Read More
+                <button
+                  onClick={handleReadClick}
+                  className="border-brand-blue text-brand-blue hover:bg-brand-blue border px-6 py-2 text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-300 hover:text-white"
+                >
+                  View Detail
                 </button>
                 <button
                   onClick={handleDownloadClick}
@@ -236,22 +256,28 @@ const DocumentCard = ({ item, index }: { item: DocumentItem; index: number }) =>
         </div>
       </motion.div>
 
-      <PasswordModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSuccess={handleSuccess} 
+      <PasswordModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleSuccess}
       />
     </>
   );
 };
 
 export const DocumentList = () => {
+  const router = useRouter();
+
+  const handleRead = (doc: DocumentItem) => {
+    router.push(`/documents/${doc.slug}`);
+  };
+
   return (
     <section className="bg-white pb-32">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
           {DOCUMENTS.map((item, index) => (
-            <DocumentCard key={item.id} item={item} index={index} />
+            <DocumentCard key={item.id} item={item} index={index} onRead={handleRead} />
           ))}
         </div>
       </div>
