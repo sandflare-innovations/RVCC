@@ -27,13 +27,6 @@ const Page = React.forwardRef<HTMLDivElement, { number: number; children: React.
   (props, ref) => {
     return (
       <div className="relative flex h-full w-full flex-col overflow-hidden bg-white" ref={ref}>
-        {/* Sharp Glossy Specular Band - High contrast, no tinting */}
-        <div className="pointer-events-none absolute inset-0 z-[6] bg-[linear-gradient(115deg,transparent_45%,rgba(255,255,255,0.15)_50%,transparent_55%)]" />
-
-        {/* Edge-Only Intense Lighting Bloom */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-[7] h-1 bg-white/40" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-[6] h-16 bg-gradient-to-b from-white/15 to-transparent" />
-
         {/* Softened Depth Crease */}
         <div className="pointer-events-none absolute inset-y-0 left-0 z-[5] w-20 bg-gradient-to-r from-black/[0.08] via-black/[0.02] to-transparent" />
 
@@ -61,6 +54,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [readerBg, setReaderBg] = useState<"white" | "black" | "brand-blue">("black");
   const [showSettings, setShowSettings] = useState(false);
+  const [showTools, setShowTools] = useState(false);
 
   // Handle Fullscreen
   useEffect(() => {
@@ -76,7 +70,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
       interval = setInterval(() => {
         // @ts-expect-error - pageFlip() is added by the library at runtime
         flipBookRef.current?.pageFlip()?.flipNext();
-      }, 4000);
+      }, 3000);
     }
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
@@ -183,32 +177,51 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
             />
           </div>
 
-          {/* Top Header / Page Info */}
-          <div className="pointer-events-none absolute top-0 right-0 left-0 z-[450] flex h-20 items-center justify-between px-6 md:px-8">
-            <div
-              className={`pointer-events-auto rounded-none px-4 py-2 text-xs font-medium tracking-wider shadow-sm backdrop-blur-md transition-colors duration-300 md:text-sm ${
-                readerBg === "white"
-                  ? "border-brand-blue/10 text-brand-blue border bg-white/80"
-                  : "border border-white/10 bg-black/40 text-white"
-              }`}
-            >
-              {currentPage === 0
-                ? "Cover"
-                : `Pages ${currentPage + 1}-${Math.min(currentPage + 2, numPages)}`}{" "}
-              / {numPages}
-            </div>
-
+          {/* Top Left - Back Button */}
+          <div className="absolute top-8 left-8 z-[450]">
             <button
               onClick={onClose}
-              className={`pointer-events-auto flex h-12 w-12 items-center justify-center rounded-none backdrop-blur-md transition-all duration-300 ${
+              className={`group flex h-12 w-12 items-center justify-center rounded-none backdrop-blur-xl transition-all duration-300 ${
                 readerBg === "white"
-                  ? "text-brand-blue/60 hover:text-brand-blue bg-white/80 shadow-sm"
-                  : "bg-black/40 text-white/60 hover:text-white"
+                  ? "text-brand-blue/60 hover:text-brand-blue border-brand-blue/5 border bg-white/40 shadow-sm"
+                  : "border border-white/5 bg-black/20 text-white/60 hover:bg-black/40 hover:text-white"
               }`}
-              title="Close Reader"
+              title="Back to Gallery"
             >
-              <Icons.Close className="h-6 w-6" />
+              <Icons.ChevronLeft className="h-6 w-6 transition-transform group-hover:-translate-x-1" />
             </button>
+          </div>
+
+          {/* Left Center - Vertical Page Index */}
+          <div className="pointer-events-none absolute top-1/2 left-8 z-[450] -translate-y-1/2">
+            <div
+              className={`pointer-events-auto flex flex-col items-center gap-4 rounded-none border px-3 py-6 shadow-2xl backdrop-blur-xl transition-colors duration-300 ${
+                readerBg === "white"
+                  ? "border-brand-blue/10 text-brand-blue bg-white/30"
+                  : "border-white/10 bg-black/30 text-white"
+              }`}
+            >
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-[10px] font-black tracking-widest uppercase opacity-40 [writing-mode:vertical-lr]">
+                  PAGE
+                </span>
+                <div
+                  className={`h-8 w-[1px] ${readerBg === "white" ? "bg-brand-blue/10" : "bg-white/10"}`}
+                />
+              </div>
+
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-sm font-black tracking-tighter">
+                  {String(currentPage + 1).padStart(2, "0")}
+                </span>
+                <div
+                  className={`h-[1px] w-4 ${readerBg === "white" ? "bg-brand-blue/20" : "bg-white/20"}`}
+                />
+                <span className="text-[10px] font-bold opacity-40">
+                  {String(numPages).padStart(2, "0")}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Main Book Area */}
@@ -216,23 +229,6 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
             ref={containerRef}
             className="absolute inset-x-0 top-20 bottom-24 z-[400] flex items-center justify-center px-4 md:px-16"
           >
-            {/* Nav Left - Always visible for accessibility during zoom */}
-            <div className="absolute left-4 z-50 flex flex-col gap-4 md:left-8">
-              <button
-                onClick={() => {
-                  // @ts-expect-error - pageFlip is added at runtime
-                  flipBookRef.current?.pageFlip()?.flipPrev();
-                }}
-                className={`flex h-14 w-14 items-center justify-center rounded-none shadow-lg backdrop-blur-sm transition-all ${
-                  readerBg === "white"
-                    ? "text-brand-blue/40 hover:text-brand-blue bg-white/50 hover:bg-white"
-                    : "bg-black/20 text-white/40 hover:bg-black/40 hover:text-white"
-                }`}
-              >
-                <Icons.ChevronLeft className="h-8 w-8 stroke-[1.5]" />
-              </button>
-            </div>
-
             {/* Dynamic Sized Flipbook Wrapper */}
             <motion.div
               className={`relative flex items-center justify-center ${isZoomed ? "z-[460] cursor-grab active:cursor-grabbing" : "z-[400] cursor-pointer"}`}
@@ -241,8 +237,8 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                   ? {
                       aspectRatio: `${spreadRatio}`,
                       width: "100%",
-                      maxHeight: "calc(100vh - 5rem)",
-                      maxWidth: `calc((100vh - 5rem) * ${spreadRatio})`,
+                      maxHeight: "calc(100vh - 2rem)",
+                      maxWidth: `calc((100vh - 2rem) * ${spreadRatio})`,
                     }
                   : {
                       width: "600px",
@@ -329,146 +325,152 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                 )}
               </Document>
             </motion.div>
-
-            {/* Nav Right - Always visible for accessibility during zoom */}
-            <div className="absolute right-4 z-50 flex flex-col gap-4 md:right-8">
-              <button
-                onClick={() => {
-                  // @ts-expect-error - pageFlip is added at runtime
-                  flipBookRef.current?.pageFlip()?.flipNext();
-                }}
-                className={`flex h-14 w-14 items-center justify-center rounded-none shadow-lg backdrop-blur-sm transition-all ${
-                  readerBg === "white"
-                    ? "text-brand-blue/40 hover:text-brand-blue bg-white/50 hover:bg-white"
-                    : "bg-black/20 text-white/40 hover:bg-black/40 hover:text-white"
-                }`}
-              >
-                <Icons.ChevronRight className="h-8 w-8 stroke-[1.5]" />
-              </button>
-            </div>
           </div>
 
-          {/* Bottom Toolbar */}
-          <div
-            className={`absolute bottom-6 left-1/2 z-[450] flex -translate-x-1/2 items-center gap-6 rounded-none border px-4 py-2.5 shadow-2xl backdrop-blur-xl transition-colors duration-300 ${
-              readerBg === "white"
-                ? "border-brand-blue/10 bg-white/90"
-                : "border-white/10 bg-zinc-900/90"
-            }`}
-          >
-            <button
-              onClick={handleZoomOut}
-              className={`rounded-none p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
-              title="Zoom Out"
-            >
-              <Icons.Minus className="h-5 w-5" />
-            </button>
-
-            <span
-              className={`w-10 text-center text-xs font-bold ${readerBg === "white" ? "text-brand-blue" : "text-white"}`}
-            >
-              {Math.round(zoomLevel * 100)}%
-            </span>
-
-            <button
-              onClick={handleZoomIn}
-              className={`rounded-none p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
-              title="Zoom In"
-            >
-              <Icons.Plus className="h-5 w-5" />
-            </button>
-
-            <div
-              className={`mx-1 h-6 w-[1px] ${readerBg === "white" ? "bg-brand-blue/10" : "bg-white/10"}`}
-            />
-
-            <button
-              onClick={() => setShowGrid(true)}
-              className={`rounded-none p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
-              title="Visual Grid"
-            >
-              <Icons.LayoutGrid className="h-5 w-5" />
-            </button>
-
-            <button
-              onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-              className={`rounded-none p-2 transition-colors ${isAutoPlaying ? (readerBg === "white" ? "text-brand-blue bg-brand-blue/10" : "bg-white/20 text-white") : readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5" : "text-white/60 hover:bg-white/10"}`}
-              title="Auto-play Slideshow"
-            >
-              {isAutoPlaying ? (
-                <Icons.Pause className="h-5 w-5" />
-              ) : (
-                <Icons.Play className="h-5 w-5" />
-              )}
-            </button>
-
-            <div className="relative">
-              <button
-                onClick={() => setShowSettings(!showSettings)}
-                className={`rounded-none p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
-                title="Theme Settings"
-              >
-                <Icons.Palette className="h-5 w-5" />
-              </button>
-
-              <AnimatePresence>
-                {showSettings && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className={`absolute bottom-full left-1/2 mb-4 flex min-w-[140px] -translate-x-1/2 flex-col gap-1 rounded-none border p-2 shadow-2xl backdrop-blur-xl ${
-                      readerBg === "white"
-                        ? "border-brand-blue/10 bg-white/95"
-                        : "border-white/10 bg-zinc-900/95"
-                    }`}
+          {/* Floating Right Toolbar */}
+          <div className="fixed top-1/2 right-6 z-[450] flex -translate-y-1/2 flex-col items-end gap-3">
+            <AnimatePresence>
+              {showTools && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className={`flex flex-col items-center gap-4 rounded-none border p-2 shadow-2xl backdrop-blur-2xl transition-colors duration-300 ${
+                    readerBg === "white"
+                      ? "border-brand-blue/10 bg-white/30"
+                      : "border-white/10 bg-black/30"
+                  }`}
+                >
+                  <button
+                    onClick={handleZoomIn}
+                    className={`rounded-none p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
+                    title="Zoom In"
                   >
-                    {(
-                      [
-                        { id: "white", label: "Light", color: "bg-white border-zinc-200" },
-                        { id: "black", label: "Dark", color: "bg-zinc-900 border-zinc-700" },
-                        {
-                          id: "brand-blue",
-                          label: "Brand",
-                          color: "bg-brand-blue border-brand-blue/20",
-                        },
-                      ] as const
-                    ).map((bg) => (
-                      <button
-                        key={bg.id}
-                        onClick={() => {
-                          setReaderBg(bg.id);
-                          setShowSettings(false);
-                        }}
-                        className={`flex items-center gap-3 rounded-none px-3 py-2.5 text-xs font-semibold transition-all ${
-                          readerBg === bg.id
-                            ? readerBg === "white"
-                              ? "bg-brand-blue/10 text-brand-blue"
-                              : "bg-white/15 text-white"
-                            : readerBg === "white"
-                              ? "text-zinc-600 hover:bg-zinc-100"
-                              : "text-zinc-400 hover:bg-white/5"
-                        }`}
-                      >
-                        <div className={`h-4 w-4 rounded-full border shadow-sm ${bg.color}`} />
-                        {bg.label}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                    <Icons.Plus className="h-5 w-5" />
+                  </button>
+
+                  <span
+                    className={`text-center text-[10px] font-bold ${readerBg === "white" ? "text-brand-blue" : "text-white"}`}
+                  >
+                    {Math.round(zoomLevel * 100)}%
+                  </span>
+
+                  <button
+                    onClick={handleZoomOut}
+                    className={`rounded-none p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
+                    title="Zoom Out"
+                  >
+                    <Icons.Minus className="h-5 w-5" />
+                  </button>
+
+                  <div
+                    className={`h-[1px] w-6 ${readerBg === "white" ? "bg-brand-blue/10" : "bg-white/10"}`}
+                  />
+
+                  <button
+                    onClick={() => setShowGrid(true)}
+                    className={`rounded-none p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
+                    title="Visual Grid"
+                  >
+                    <Icons.LayoutGrid className="h-5 w-5" />
+                  </button>
+
+                  <button
+                    onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+                    className={`rounded-none p-2 transition-colors ${isAutoPlaying ? (readerBg === "white" ? "text-brand-blue bg-brand-blue/10" : "bg-white/20 text-white") : readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5" : "text-white/60 hover:bg-white/10"}`}
+                    title="Auto-play Slideshow"
+                  >
+                    {isAutoPlaying ? (
+                      <Icons.Pause className="h-5 w-5" />
+                    ) : (
+                      <Icons.Play className="h-5 w-5" />
+                    )}
+                  </button>
+
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowSettings(!showSettings)}
+                      className={`rounded-none p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
+                      title="Theme Settings"
+                    >
+                      <Icons.Palette className="h-5 w-5" />
+                    </button>
+
+                    <AnimatePresence>
+                      {showSettings && (
+                        <motion.div
+                          initial={{ opacity: 0, x: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, x: 0, scale: 1 }}
+                          exit={{ opacity: 0, x: -10, scale: 0.95 }}
+                          className={`absolute top-0 right-full mr-4 flex min-w-[140px] flex-col gap-1 rounded-none border p-2 shadow-2xl backdrop-blur-2xl ${
+                            readerBg === "white"
+                              ? "border-brand-blue/10 bg-white/40"
+                              : "border-white/10 bg-black/40"
+                          }`}
+                        >
+                          {(
+                            [
+                              { id: "white", label: "Light", color: "bg-white border-zinc-200" },
+                              { id: "black", label: "Dark", color: "bg-zinc-900 border-zinc-700" },
+                              {
+                                id: "brand-blue",
+                                label: "Brand",
+                                color: "bg-brand-blue border-brand-blue/20",
+                              },
+                            ] as const
+                          ).map((bg) => (
+                            <button
+                              key={bg.id}
+                              onClick={() => {
+                                setReaderBg(bg.id);
+                                setShowSettings(false);
+                              }}
+                              className={`flex items-center gap-3 rounded-none px-3 py-2.5 text-xs font-semibold transition-all ${
+                                readerBg === bg.id
+                                  ? readerBg === "white"
+                                    ? "bg-brand-blue/10 text-brand-blue"
+                                    : "bg-white/15 text-white"
+                                  : readerBg === "white"
+                                    ? "text-zinc-600 hover:bg-zinc-100"
+                                    : "text-zinc-400 hover:bg-white/5"
+                              }`}
+                            >
+                              <div
+                                className={`h-4 w-4 rounded-full border shadow-sm ${bg.color}`}
+                              />
+                              {bg.label}
+                            </button>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <button
+                    onClick={toggleFullscreen}
+                    className={`rounded-none p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
+                    title="Fullscreen"
+                  >
+                    {isFullscreen ? (
+                      <Icons.Minimize className="h-5 w-5" />
+                    ) : (
+                      <Icons.Maximize className="h-5 w-5" />
+                    )}
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <button
-              onClick={toggleFullscreen}
-              className={`rounded-full p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
-              title="Fullscreen"
+              onClick={() => setShowTools(!showTools)}
+              className={`flex h-12 w-12 items-center justify-center rounded-none border shadow-2xl backdrop-blur-2xl transition-all duration-300 ${
+                readerBg === "white"
+                  ? "text-brand-blue border-brand-blue/10 bg-white/30 hover:bg-white/50"
+                  : "border-white/10 bg-black/30 text-white hover:bg-black/50"
+              } ${showTools ? "rotate-45" : "rotate-0"}`}
+              title="Toggle Tools"
             >
-              {isFullscreen ? (
-                <Icons.Minimize className="h-5 w-5" />
-              ) : (
-                <Icons.Maximize className="h-5 w-5" />
-              )}
+              <Icons.Plus className="h-6 w-6" />
             </button>
           </div>
 
