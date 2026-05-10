@@ -52,7 +52,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
   const [showGrid, setShowGrid] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [readerBg, setReaderBg] = useState<"white" | "black" | "brand-blue">("white");
+  const [readerBg, setReaderBg] = useState<"white" | "black" | "brand-blue">("brand-blue");
   const [showSettings, setShowSettings] = useState(false);
   const [showTools, setShowTools] = useState(false);
 
