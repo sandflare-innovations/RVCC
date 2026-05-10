@@ -2,11 +2,17 @@
 
 import { use } from "react";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { DOCUMENTS } from "@/data/documents";
-import { FlipbookReader } from "@/sections/documents/FlipbookReader";
+
+// Load the FlipbookReader dynamically to avoid SSR issues with PDF.js (DOMMatrix is not defined)
+const FlipbookReader = dynamic(
+  () => import("@/sections/documents/FlipbookReader").then((mod) => mod.FlipbookReader),
+  { ssr: false }
+);
 
 interface PageProps {
   params: Promise<{ slug: string }>;
