@@ -52,7 +52,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
   const [showGrid, setShowGrid] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [readerBg, setReaderBg] = useState<"white" | "black" | "brand-blue">("black");
+  const [readerBg, setReaderBg] = useState<"white" | "black" | "brand-blue">("white");
   const [showSettings, setShowSettings] = useState(false);
   const [showTools, setShowTools] = useState(false);
 
@@ -159,17 +159,17 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
           {/* Branded Background Watermark */}
           <div
             className={`pointer-events-none absolute inset-0 flex items-center justify-center transition-opacity duration-700 ${
-              readerBg === "white" ? "opacity-[0.03]" : "opacity-[0.5]"
+              readerBg === "white" ? "opacity-[0.05]" : "opacity-[0.1]"
             }`}
           >
             <div
-              className={`aspect-square w-full max-w-[1200px] ${readerBg === "brand-blue" ? "bg-white" : "bg-brand-blue"}`}
+              className={`aspect-square w-full ${readerBg === "brand-blue" ? "bg-white" : "bg-brand-blue"}`}
               style={{
-                maskImage: "url(/images/logo/logo.png)",
+                maskImage: "url(/images/logo/rvcc-grid.png)",
                 maskRepeat: "no-repeat",
                 maskPosition: "center",
                 maskSize: "contain",
-                WebkitMaskImage: "url(/images/logo/logo.png)",
+                WebkitMaskImage: "url(/images/logo/rvcc-grid.png)",
                 WebkitMaskRepeat: "no-repeat",
                 WebkitMaskPosition: "center",
                 WebkitMaskSize: "contain",
