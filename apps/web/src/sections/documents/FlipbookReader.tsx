@@ -12,8 +12,10 @@ import { Icons } from "@repo/ui";
 
 import { DocumentItem } from "@/data/documents";
 
-// Set PDF worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Set PDF worker with the required ES module (.mjs) build for modern PDF.js compatibility (Synced with react-pdf version 5.4.296)
+if (typeof window !== "undefined") {
+  pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.4.296/build/pdf.worker.min.mjs`;
+}
 
 interface FlipbookReaderProps {
   isOpen: boolean;
@@ -184,7 +186,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
           {/* Top Header / Page Info */}
           <div className="pointer-events-none absolute top-0 right-0 left-0 z-[450] flex h-20 items-center justify-between px-6 md:px-8">
             <div
-              className={`pointer-events-auto rounded-sm px-4 py-2 text-xs font-medium tracking-wider shadow-sm backdrop-blur-md transition-colors duration-300 md:text-sm ${
+              className={`pointer-events-auto rounded-none px-4 py-2 text-xs font-medium tracking-wider shadow-sm backdrop-blur-md transition-colors duration-300 md:text-sm ${
                 readerBg === "white"
                   ? "border-brand-blue/10 text-brand-blue border bg-white/80"
                   : "border border-white/10 bg-black/40 text-white"
@@ -198,7 +200,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
 
             <button
               onClick={onClose}
-              className={`pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-md transition-all duration-300 ${
+              className={`pointer-events-auto flex h-12 w-12 items-center justify-center rounded-none backdrop-blur-md transition-all duration-300 ${
                 readerBg === "white"
                   ? "text-brand-blue/60 hover:text-brand-blue bg-white/80 shadow-sm"
                   : "bg-black/40 text-white/60 hover:text-white"
@@ -214,24 +216,22 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
             ref={containerRef}
             className="absolute inset-x-0 top-20 bottom-24 z-[400] flex items-center justify-center px-4 md:px-16"
           >
-            {/* Nav Left */}
-            {!isZoomed && (
-              <div className="absolute left-4 z-50 flex flex-col gap-4 md:left-8">
-                <button
-                  onClick={() => {
-                    // @ts-expect-error - pageFlip is added at runtime
-                    flipBookRef.current?.pageFlip()?.flipPrev();
-                  }}
-                  className={`flex h-14 w-14 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition-all ${
-                    readerBg === "white"
-                      ? "text-brand-blue/40 hover:text-brand-blue bg-white/50 hover:bg-white"
-                      : "bg-black/20 text-white/40 hover:bg-black/40 hover:text-white"
-                  }`}
-                >
-                  <Icons.ChevronLeft className="h-8 w-8 stroke-[1.5]" />
-                </button>
-              </div>
-            )}
+            {/* Nav Left - Always visible for accessibility during zoom */}
+            <div className="absolute left-4 z-50 flex flex-col gap-4 md:left-8">
+              <button
+                onClick={() => {
+                  // @ts-expect-error - pageFlip is added at runtime
+                  flipBookRef.current?.pageFlip()?.flipPrev();
+                }}
+                className={`flex h-14 w-14 items-center justify-center rounded-none shadow-lg backdrop-blur-sm transition-all ${
+                  readerBg === "white"
+                    ? "text-brand-blue/40 hover:text-brand-blue bg-white/50 hover:bg-white"
+                    : "bg-black/20 text-white/40 hover:bg-black/40 hover:text-white"
+                }`}
+              >
+                <Icons.ChevronLeft className="h-8 w-8 stroke-[1.5]" />
+              </button>
+            </div>
 
             {/* Dynamic Sized Flipbook Wrapper */}
             <motion.div
@@ -254,14 +254,16 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
               dragElastic={0.1}
               animate={{
                 scale: zoomLevel,
-                x: getDynamicXOffset(),
-                y: isZoomed ? undefined : "0%",
+                x: isZoomed ? undefined : getDynamicXOffset(),
+                y: isZoomed ? undefined : 0,
               }}
               transition={{ type: "spring", stiffness: 200, damping: 25 }}
             >
               <Document
+                key={doc.fileUrl}
                 file={doc.fileUrl}
                 onLoadSuccess={onDocumentLoadSuccess}
+                renderMode="canvas"
                 className="flex h-full w-full items-center justify-center"
                 loading={
                   <div
@@ -291,7 +293,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                     drawShadow={true}
                     useMouseEvents={!isZoomed}
                     showPageCorners={!isZoomed}
-                    className={`pointer-events-auto transition-shadow duration-700 ${
+                    className={`transition-shadow duration-700 ${isZoomed ? "pointer-events-none" : "pointer-events-auto"} ${
                       currentPage === 0
                         ? "shadow-none"
                         : "shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5),0_20px_40px_-10px_rgba(0,0,0,0.3)]"
@@ -299,9 +301,8 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                     ref={flipBookRef}
                   >
                     {Array.from(new Array(numPages), (el, index) => {
-                      // Only render pages near the current spread to drastically improve performance
-                      // We also always force-render the first page to fix the initial load bug
-                      const isVisible = index === 0 || Math.abs(index - currentPage) <= 6;
+                      // Force-render the first 10 pages to ensure cover visibility and instant load
+                      const isVisible = index < 10 || Math.abs(index - currentPage) <= 6;
                       return (
                         <Page key={`page_${index + 1}`} number={index + 1}>
                           {isVisible ? (
@@ -329,29 +330,27 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
               </Document>
             </motion.div>
 
-            {/* Nav Right */}
-            {!isZoomed && (
-              <div className="absolute right-4 z-50 flex flex-col gap-4 md:right-8">
-                <button
-                  onClick={() => {
-                    // @ts-expect-error - pageFlip is added at runtime
-                    flipBookRef.current?.pageFlip()?.flipNext();
-                  }}
-                  className={`flex h-14 w-14 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition-all ${
-                    readerBg === "white"
-                      ? "text-brand-blue/40 hover:text-brand-blue bg-white/50 hover:bg-white"
-                      : "bg-black/20 text-white/40 hover:bg-black/40 hover:text-white"
-                  }`}
-                >
-                  <Icons.ChevronRight className="h-8 w-8 stroke-[1.5]" />
-                </button>
-              </div>
-            )}
+            {/* Nav Right - Always visible for accessibility during zoom */}
+            <div className="absolute right-4 z-50 flex flex-col gap-4 md:right-8">
+              <button
+                onClick={() => {
+                  // @ts-expect-error - pageFlip is added at runtime
+                  flipBookRef.current?.pageFlip()?.flipNext();
+                }}
+                className={`flex h-14 w-14 items-center justify-center rounded-none shadow-lg backdrop-blur-sm transition-all ${
+                  readerBg === "white"
+                    ? "text-brand-blue/40 hover:text-brand-blue bg-white/50 hover:bg-white"
+                    : "bg-black/20 text-white/40 hover:bg-black/40 hover:text-white"
+                }`}
+              >
+                <Icons.ChevronRight className="h-8 w-8 stroke-[1.5]" />
+              </button>
+            </div>
           </div>
 
           {/* Bottom Toolbar */}
           <div
-            className={`absolute bottom-6 left-1/2 z-[450] flex -translate-x-1/2 items-center gap-6 rounded-full border px-4 py-2.5 shadow-2xl backdrop-blur-xl transition-colors duration-300 ${
+            className={`absolute bottom-6 left-1/2 z-[450] flex -translate-x-1/2 items-center gap-6 rounded-none border px-4 py-2.5 shadow-2xl backdrop-blur-xl transition-colors duration-300 ${
               readerBg === "white"
                 ? "border-brand-blue/10 bg-white/90"
                 : "border-white/10 bg-zinc-900/90"
@@ -359,7 +358,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
           >
             <button
               onClick={handleZoomOut}
-              className={`rounded-full p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
+              className={`rounded-none p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
               title="Zoom Out"
             >
               <Icons.Minus className="h-5 w-5" />
@@ -373,7 +372,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
 
             <button
               onClick={handleZoomIn}
-              className={`rounded-full p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
+              className={`rounded-none p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
               title="Zoom In"
             >
               <Icons.Plus className="h-5 w-5" />
@@ -385,7 +384,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
 
             <button
               onClick={() => setShowGrid(true)}
-              className={`rounded-full p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
+              className={`rounded-none p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
               title="Visual Grid"
             >
               <Icons.LayoutGrid className="h-5 w-5" />
@@ -393,7 +392,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
 
             <button
               onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-              className={`rounded-full p-2 transition-colors ${isAutoPlaying ? (readerBg === "white" ? "text-brand-blue bg-brand-blue/10" : "bg-white/20 text-white") : readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5" : "text-white/60 hover:bg-white/10"}`}
+              className={`rounded-none p-2 transition-colors ${isAutoPlaying ? (readerBg === "white" ? "text-brand-blue bg-brand-blue/10" : "bg-white/20 text-white") : readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5" : "text-white/60 hover:bg-white/10"}`}
               title="Auto-play Slideshow"
             >
               {isAutoPlaying ? (
@@ -406,7 +405,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
             <div className="relative">
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className={`rounded-full p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
+                className={`rounded-none p-2 transition-colors ${readerBg === "white" ? "text-brand-blue/60 hover:bg-brand-blue/5 hover:text-brand-blue" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
                 title="Theme Settings"
               >
                 <Icons.Palette className="h-5 w-5" />
@@ -418,7 +417,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className={`absolute bottom-full left-1/2 mb-4 flex min-w-[140px] -translate-x-1/2 flex-col gap-1 rounded-xl border p-2 shadow-2xl backdrop-blur-xl ${
+                    className={`absolute bottom-full left-1/2 mb-4 flex min-w-[140px] -translate-x-1/2 flex-col gap-1 rounded-none border p-2 shadow-2xl backdrop-blur-xl ${
                       readerBg === "white"
                         ? "border-brand-blue/10 bg-white/95"
                         : "border-white/10 bg-zinc-900/95"
@@ -441,7 +440,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                           setReaderBg(bg.id);
                           setShowSettings(false);
                         }}
-                        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-semibold transition-all ${
+                        className={`flex items-center gap-3 rounded-none px-3 py-2.5 text-xs font-semibold transition-all ${
                           readerBg === bg.id
                             ? readerBg === "white"
                               ? "bg-brand-blue/10 text-brand-blue"
