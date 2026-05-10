@@ -241,8 +241,8 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                   ? {
                       aspectRatio: `${spreadRatio}`,
                       width: "100%",
-                      maxHeight: "calc(100vh - 12rem)",
-                      maxWidth: `calc((100vh - 12rem) * ${spreadRatio})`,
+                      maxHeight: "calc(100vh - 5rem)",
+                      maxWidth: `calc((100vh - 5rem) * ${spreadRatio})`,
                     }
                   : {
                       width: "600px",
@@ -283,7 +283,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                     maxWidth={4000}
                     minHeight={300}
                     maxHeight={4000}
-                    maxShadowOpacity={0.4}
+                    maxShadowOpacity={0.5}
                     showCover={true}
                     mobileScrollSupport={true}
                     onFlip={onFlip}
