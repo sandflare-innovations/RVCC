@@ -72,7 +72,8 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
     let interval: NodeJS.Timeout;
     if (isAutoPlaying && flipBookRef.current) {
       interval = setInterval(() => {
-        flipBookRef.current.pageFlip().flipNext();
+        // @ts-expect-error - pageFlip() is added by the library at runtime
+        flipBookRef.current?.pageFlip()?.flipNext();
       }, 4000);
     }
     return () => clearInterval(interval);
@@ -219,7 +220,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                 <button
                   onClick={() => {
                     // @ts-expect-error - pageFlip is added at runtime
-                    flipBookRef.current?.pageFlip().flipPrev();
+                    flipBookRef.current?.pageFlip()?.flipPrev();
                   }}
                   className={`flex h-14 w-14 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition-all ${
                     readerBg === "white"
@@ -270,11 +271,11 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                   </div>
                 }
               >
-                {numPages > 0 && pageDim.w > 0 && (
+                {numPages > 0 && (
                   // @ts-expect-error - HTMLFlipBook types are incomplete for some props
                   <HTMLFlipBook
-                    width={pageDim.w} // Exact native width
-                    height={pageDim.h} // Exact native height
+                    width={pageDim.w || 600} // Use native width or fallback for instant load
+                    height={pageDim.h || 600 * 1.414} // Use native height or A4 fallback
                     size="stretch"
                     minWidth={200}
                     maxWidth={4000}
@@ -299,14 +300,15 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                   >
                     {Array.from(new Array(numPages), (el, index) => {
                       // Only render pages near the current spread to drastically improve performance
-                      const isVisible = Math.abs(index - currentPage) <= 4;
+                      // We also always force-render the first page to fix the initial load bug
+                      const isVisible = index === 0 || Math.abs(index - currentPage) <= 6;
                       return (
                         <Page key={`page_${index + 1}`} number={index + 1}>
                           {isVisible ? (
                             <div className="absolute inset-0 flex items-center justify-center [&_.react-pdf__Page]:!h-full [&_.react-pdf__Page]:!w-full [&_canvas]:!h-full [&_canvas]:!w-full [&_canvas]:!object-contain">
                               <PdfPage
                                 pageNumber={index + 1}
-                                width={pageDim.w * 1.5} // High-res render, scale to fit with CSS
+                                width={(pageDim.w || 600) * 1.5} // Use fallback or native width, always high-res
                                 renderAnnotationLayer={false}
                                 renderTextLayer={false}
                                 loading={
@@ -333,7 +335,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                 <button
                   onClick={() => {
                     // @ts-expect-error - pageFlip is added at runtime
-                    flipBookRef.current?.pageFlip().flipNext();
+                    flipBookRef.current?.pageFlip()?.flipNext();
                   }}
                   className={`flex h-14 w-14 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition-all ${
                     readerBg === "white"
@@ -509,7 +511,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                             className="group relative flex cursor-pointer flex-col gap-4"
                             onClick={() => {
                               // @ts-expect-error - pageFlip is added at runtime
-                              flipBookRef.current?.pageFlip().turnToPage(index);
+                              flipBookRef.current?.pageFlip()?.turnToPage(index);
                               setShowGrid(false);
                             }}
                           >
