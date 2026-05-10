@@ -25,14 +25,14 @@ export const DOCUMENTS: DocumentItem[] = [
   },
   {
     id: "2",
-    slug: "health-safety-standards",
-    title: "Health & Safety Standards",
-    category: "Standard",
+    slug: "rvcc-signature-projects",
+    title: "Signature Projects Profile",
+    category: "Profile",
     description:
-      "Our rigorous safety protocols and compliance standards for all construction and civil sites.",
-    fileSize: "4.8 MB",
-    updatedAt: "January 2026",
-    fileUrl: "#",
+      "A curated showcase of our most ambitious and structurally significant projects across the region.",
+    fileSize: "21.4 MB",
+    updatedAt: "April 2026",
+    fileUrl: "/pdf/books/RVCC-COPMANY-PROFILE-SIGNATURE-PROJECT.pdf",
     image: "/images/books/company-profile.png",
   },
   {
