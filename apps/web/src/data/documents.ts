@@ -16,7 +16,8 @@ export const DOCUMENTS: DocumentItem[] = [
     slug: "rvcc-general-profile",
     title: "RVCC General Profile",
     category: "Profile",
-    description: "A comprehensive overview of our history, expertise, and landmark projects in the Saudi Kingdom.",
+    description:
+      "A comprehensive overview of our history, expertise, and landmark projects in the Saudi Kingdom.",
     fileSize: "12.4 MB",
     updatedAt: "March 2026",
     fileUrl: "/pdf/books/RVCC-General-Profile.pdf",
@@ -27,7 +28,8 @@ export const DOCUMENTS: DocumentItem[] = [
     slug: "health-safety-standards",
     title: "Health & Safety Standards",
     category: "Standard",
-    description: "Our rigorous safety protocols and compliance standards for all construction and civil sites.",
+    description:
+      "Our rigorous safety protocols and compliance standards for all construction and civil sites.",
     fileSize: "4.8 MB",
     updatedAt: "January 2026",
     fileUrl: "#",
@@ -49,7 +51,8 @@ export const DOCUMENTS: DocumentItem[] = [
     slug: "quality-management-system",
     title: "Quality Management System",
     category: "Standard",
-    description: "Documentation of our ISO-aligned quality assurance and project management procedures.",
+    description:
+      "Documentation of our ISO-aligned quality assurance and project management procedures.",
     fileSize: "5.5 MB",
     updatedAt: "December 2025",
     fileUrl: "#",
