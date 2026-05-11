@@ -154,6 +154,7 @@ const DocumentCard = ({
   onRead: (item: DocumentItem) => void;
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showCopied, setShowCopied] = useState(false);
 
   const handleReadClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -163,6 +164,33 @@ const DocumentCard = ({
   const handleDownloadClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsModalOpen(true);
+  };
+
+  const handleShareClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    const shareUrl = `${window.location.origin}/documents/${item.slug}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: item.title,
+          text: item.description,
+          url: shareUrl,
+        });
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          console.error("Error sharing:", err);
+        }
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setShowCopied(true);
+        setTimeout(() => setShowCopied(false), 2000);
+      } catch (err) {
+        console.error("Error copying to clipboard:", err);
+      }
+    }
   };
 
   const handleSuccess = () => {
@@ -220,7 +248,7 @@ const DocumentCard = ({
                 <span className="text-brand-blue mb-3 block text-[10px] font-bold tracking-widest uppercase">
                   {item.category}
                 </span>
-                <h3 className="font-heading group-hover:text-brand-blue mb-4 text-3xl text-zinc-900 uppercase transition-colors">
+                <h3 className="font-heading group-hover:text-brand-blue mb-4 text-3xl leading-[0.75em] text-zinc-900 uppercase transition-colors">
                   {item.title}
                 </h3>
                 <p className="mb-8 line-clamp-3 text-sm leading-relaxed font-medium text-zinc-500">
@@ -235,7 +263,7 @@ const DocumentCard = ({
                   onClick={handleReadClick}
                   className="border-brand-blue text-brand-blue hover:bg-brand-blue border px-6 py-2 text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-300 hover:text-white"
                 >
-                  View Detail
+                  view & Read
                 </button>
                 <button
                   onClick={handleDownloadClick}
@@ -245,12 +273,27 @@ const DocumentCard = ({
                 </button>
               </div>
 
-              <button
-                className="hover:text-brand-blue p-2 text-zinc-400 transition-colors"
-                title="Share Document"
-              >
-                <Icons.Share className="h-5 w-5" />
-              </button>
+              <div className="relative">
+                <button
+                  onClick={handleShareClick}
+                  className="hover:text-brand-blue p-2 text-zinc-400 transition-colors"
+                  title="Share Document"
+                >
+                  <Icons.Share className="h-5 w-5" />
+                </button>
+                <AnimatePresence>
+                  {showCopied && (
+                    <motion.span
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="bg-brand-blue absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded-none px-2 py-1 text-[8px] font-black tracking-widest text-white uppercase"
+                    >
+                      Copied!
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </div>
