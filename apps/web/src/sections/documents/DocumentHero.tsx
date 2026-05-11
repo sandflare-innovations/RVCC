@@ -58,14 +58,14 @@ export const DocumentHero = () => {
               {/* The Book Container */}
               <div className="relative aspect-[3/4.2] w-full max-w-[320px] xl:max-w-[380px]">
                 {/* Thick Stacked Pages Effect (Behind) */}
-                {[...Array(6)].map((_, i) => (
+                {[...Array(3)].map((_, i) => (
                   <div
                     key={i}
                     className="absolute border border-zinc-200 bg-white"
                     style={{
                       inset: `${(i + 1) * 3}px ${-(i + 1) * 6}px ${(i + 1) * 3}px 0`,
                       zIndex: -(i + 1),
-                      boxShadow: i === 5 ? "30px 30px 80px rgba(0,0,0,0.15)" : "none",
+                      boxShadow: i === 2 ? "30px 30px 80px rgba(0,0,0,0.15)" : "none",
                     }}
                   />
                 ))}
