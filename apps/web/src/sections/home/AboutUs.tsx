@@ -262,12 +262,12 @@ export const AboutUs = () => {
                     Profile
                   </h4>
                   <p className="text-brand-blue/70 text-[10px] leading-relaxed font-medium">
-                    Download our comprehensive company profile to learn about our range of services.
+                    Read our comprehensive company profile to learn about our range of services.
                   </p>
                 </div>
                 <Button
                   variant="brand-outline"
-                  href="/pdf/RVCC COPMANY PROFILE SIGNATURE PROJECT.pdf"
+                  href="documents/rvcc-general-profile"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-content-gap h-12 w-full min-w-0"
