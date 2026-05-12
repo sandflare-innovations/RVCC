@@ -124,7 +124,7 @@ export const Footer = () => {
                 Company
               </span>
               {[
-                { name: "Safety & Quality", href: "#" },
+                { name: "Safety & Quality", href: "/quality-policy" },
                 { name: "Sustainability", href: "#" },
                 { name: "Our Team", href: "#" },
                 { name: "Careers", href: "/careers" },
