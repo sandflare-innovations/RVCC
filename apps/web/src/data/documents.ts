@@ -20,7 +20,7 @@ export const DOCUMENTS: DocumentItem[] = [
       "A comprehensive overview of our history, expertise, and landmark projects in the Saudi Kingdom.",
     fileSize: "12.4 MB",
     updatedAt: "March 2026",
-    fileUrl: "/pdf/books/RVCC-General-Profile.pdf",
+    fileUrl: "/pdf/books/rvcc-general-profile.pdf",
     image: "/images/books/company-profile.png",
   },
   {
@@ -32,7 +32,7 @@ export const DOCUMENTS: DocumentItem[] = [
       "A curated showcase of our most ambitious and structurally significant projects across the region.",
     fileSize: "21.4 MB",
     updatedAt: "April 2026",
-    fileUrl: "/pdf/books/RVCC-COPMANY-PROFILE-SIGNATURE-PROJECT.pdf",
+    fileUrl: "/pdf/books/rvcc-signature-project-profile.pdf",
     image: "/images/books/company-profile.png",
   },
   {
@@ -44,7 +44,7 @@ export const DOCUMENTS: DocumentItem[] = [
       "A specialized showcase of our elite water feature engineering and architectural landscape masterworks.",
     fileSize: "166.2 MB",
     updatedAt: "May 2026",
-    fileUrl: "/pdf/books/RVCC%20COMPANY%20PROFILE%20%20WATER%20FEATURE%20%26%20LANDSCAPE.pdf",
+    fileUrl: "/pdf/books/rvcc-water-feature-landscape-profile.pdf",
     image: "/images/books/company-profile.png",
   },
   {
@@ -56,7 +56,7 @@ export const DOCUMENTS: DocumentItem[] = [
       "Comprehensive documentation of our high-precision metal fabrication and structural steel engineering capabilities.",
     fileSize: "8.8 MB",
     updatedAt: "May 2026",
-    fileUrl: "/pdf/books/RVMF%20%20METAL%20FACTORY%20%20STEEL%20WORK%20PROFILE.pdf",
+    fileUrl: "/pdf/books/rvmf-metal-factory-steel-work-profile.pdf",
     image: "/images/books/company-profile.png",
   },
 ];
