@@ -99,7 +99,8 @@ function Model({ url }: { url: string }) {
               depthTest={true}
               depthWrite={false}
               toneMapped={false}
-              onBeforeCompile={(shader: THREE.Shader) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onBeforeCompile={(shader: any) => {
                 shader.fragmentShader = shader.fragmentShader.replace(
                   "#include <map_fragment>",
                   `
