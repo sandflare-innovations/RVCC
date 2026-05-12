@@ -18,9 +18,8 @@ import * as THREE from "three";
  * We place the logo on the front-center forehead area.
  */
 function Model({ url }: { url: string }) {
-  const { scene, nodes } = useGLTF(url);
+  const { scene } = useGLTF(url);
   const logoTexture = useTexture("/images/logo/logo.png");
-  const shellRef = useRef<THREE.Mesh>(null);
 
   // White glossy helmet shell material
   const shellMaterial = useMemo(
@@ -53,7 +52,10 @@ function Model({ url }: { url: string }) {
     scene.traverse((child: THREE.Object3D) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
-        if (!largestMesh || mesh.geometry.attributes.position.count > largestMesh.geometry.attributes.position.count) {
+        if (
+          !largestMesh ||
+          mesh.geometry.attributes.position.count > largestMesh.geometry.attributes.position.count
+        ) {
           largestMesh = mesh;
         }
       }
@@ -82,24 +84,25 @@ function Model({ url }: { url: string }) {
   return (
     <group>
       <primitive object={scene} />
-      {shellMesh && createPortal(
-        <Decal
-          position={[0, 17, -50]}
-          rotation={[0, 0, 0]}
-          scale={[40, 15, 40]} // Increased width, height, and depth to fully wrap the curvature without clipping
-        >
-          <meshBasicMaterial
-            map={decalTexture}
-            transparent={true}
-            polygonOffset={true}
-            polygonOffsetFactor={-4}
-            depthTest={true}
-            depthWrite={false}
-            toneMapped={false}
-            onBeforeCompile={(shader: any) => {
-              shader.fragmentShader = shader.fragmentShader.replace(
-                '#include <map_fragment>',
-                `
+      {shellMesh &&
+        createPortal(
+          <Decal
+            position={[0, 17, -50]}
+            rotation={[0, 0, 0]}
+            scale={[40, 15, 40]} // Increased width, height, and depth to fully wrap the curvature without clipping
+          >
+            <meshBasicMaterial
+              map={decalTexture}
+              transparent={true}
+              polygonOffset={true}
+              polygonOffsetFactor={-4}
+              depthTest={true}
+              depthWrite={false}
+              toneMapped={false}
+              onBeforeCompile={(shader: THREE.Shader) => {
+                shader.fragmentShader = shader.fragmentShader.replace(
+                  "#include <map_fragment>",
+                  `
                 #ifdef USE_MAP
                   vec4 sampledDiffuseColor = texture2D( map, vMapUv );
                   // Key out white background pixels
@@ -110,12 +113,12 @@ function Model({ url }: { url: string }) {
                   diffuseColor *= sampledDiffuseColor;
                 #endif
                 `
-              );
-            }}
-          />
-        </Decal>,
-        shellMesh
-      )}
+                );
+              }}
+            />
+          </Decal>,
+          shellMesh
+        )}
     </group>
   );
 }
@@ -131,7 +134,9 @@ export const ThreeDCanvas: React.FC<ThreeDCanvasProps> = ({ modelUrl }) => {
         <Suspense fallback={null}>
           <Stage environment="city" intensity={0.5} shadows={false}>
             <Float speed={1.5} rotationIntensity={0.5} floatIntensity={0.5}>
-              <Model url={modelUrl} />
+              <group rotation={[0, Math.PI, 0]}>
+                <Model url={modelUrl} />
+              </group>
             </Float>
           </Stage>
         </Suspense>
