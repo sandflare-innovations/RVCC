@@ -7,9 +7,9 @@ import { motion } from "framer-motion";
 
 export const DocumentHero = () => {
   return (
-    <section className="relative flex h-screen min-h-[800px] items-center overflow-hidden bg-white">
+    <section className="relative flex h-screen items-center overflow-hidden">
       <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-24">
+        <div className="grid grid-cols-1 items-center gap-12 pt-20 lg:grid-cols-[1.2fr_1fr] lg:gap-24">
           {/* Left: Content Section */}
           <div className="relative z-10 flex flex-col items-start pt-20 lg:pt-0">
             <motion.div
@@ -26,14 +26,13 @@ export const DocumentHero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="font-heading text-brand-blue text-6xl leading-[0.6] tracking-tighter text-zinc-900 uppercase md:text-8xl lg:text-[8.5rem] xl:text-[10rem]"
+              className="font-heading text-brand-blue text-6xl leading-[0.6] tracking-tighter text-zinc-900 uppercase md:text-8xl lg:text-[8rem] xl:text-[10rem]"
             >
               Documents{" "}
               <span className="text-brand-blue">
                 {" "}
-                <br /> &
+                <br /> & Resources
               </span>
-              Resources
             </motion.h1>
 
             <motion.p
@@ -53,10 +52,10 @@ export const DocumentHero = () => {
               animate={{ opacity: 1, scale: 1, rotateY: -20 }}
               whileHover={{ scale: 1.05, rotateY: -10 }}
               transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-              className="perspective-3000 relative flex cursor-pointer items-center justify-center lg:justify-end"
+              className="perspective-3000 relative flex cursor-pointer items-center justify-center"
             >
               {/* The Book Container */}
-              <div className="relative aspect-[3/4.2] w-full max-w-[320px] xl:max-w-[380px]">
+              <div className="relative aspect-[3/4.2] w-full max-w-[280px] xl:max-w-[340px]">
                 {/* Thick Stacked Pages Effect (Behind) */}
                 {[...Array(3)].map((_, i) => (
                   <div
