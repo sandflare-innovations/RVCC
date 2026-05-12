@@ -263,7 +263,7 @@ const DocumentCard = ({
                   onClick={handleReadClick}
                   className="border-brand-blue text-brand-blue hover:bg-brand-blue border px-6 py-2 text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-300 hover:text-white"
                 >
-                  view & Read
+                  Read
                 </button>
                 <button
                   onClick={handleDownloadClick}
