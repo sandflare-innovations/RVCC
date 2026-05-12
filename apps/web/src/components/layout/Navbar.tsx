@@ -32,13 +32,14 @@ export const Navbar = () => {
   const isContactPage = pathname?.startsWith("/contact");
   const isDocumentsPage = pathname?.startsWith("/documents");
   const isClientsPage = pathname?.startsWith("/clients");
+  const isQualityPage = pathname?.startsWith("/quality-policy");
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       setIsScrolled(
         currentScrollY >
-          (isGallaryPage || isContactPage || isDocumentsPage || isClientsPage
+          (isGallaryPage || isContactPage || isDocumentsPage || isClientsPage || isQualityPage
             ? 50
             : window.innerHeight)
       );
@@ -51,6 +52,7 @@ export const Navbar = () => {
           isContactPage ||
           isDocumentsPage ||
           isClientsPage ||
+          isQualityPage ||
           currentScrollY > window.innerHeight
         ) {
           setIsVisible(false);
@@ -132,7 +134,11 @@ export const Navbar = () => {
   // Force white theme for header elements when in Works section
   const forceWhiteTheme = isWorksSection;
   const isLightAndScrolled =
-    (isScrolled && !forceWhiteTheme) || isContactPage || isDocumentsPage || isClientsPage;
+    (isScrolled && !forceWhiteTheme) ||
+    isContactPage ||
+    isDocumentsPage ||
+    isClientsPage ||
+    isQualityPage;
 
   return (
     <>
@@ -178,13 +184,15 @@ export const Navbar = () => {
                   }
                   className={cn(
                     "group relative flex flex-col py-1 text-[12px] font-bold tracking-[0.3em] transition-colors",
-                    isLightAndScrolled ? "text-brand-blue/70" : "text-white/70"
+                    isLightAndScrolled ? "text-brand-blue" : "text-white/70"
                   )}
                 >
                   <span
                     className={cn(
                       "transition-colors",
-                      isLightAndScrolled ? "group-hover:text-brand-blue" : "group-hover:text-white"
+                      isLightAndScrolled
+                        ? "group-hover:text-brand-blue/80"
+                        : "group-hover:text-white"
                     )}
                   >
                     {link}
@@ -214,7 +222,11 @@ export const Navbar = () => {
               className={cn(
                 "w-28 transition-all duration-500 md:w-32",
                 forceWhiteTheme ||
-                  (!isScrolled && !isContactPage && !isDocumentsPage && !isClientsPage) ||
+                  (!isScrolled &&
+                    !isContactPage &&
+                    !isDocumentsPage &&
+                    !isClientsPage &&
+                    !isQualityPage) ||
                   resolvedTheme === "dark"
                   ? "brightness-0 invert"
                   : "brightness-100 invert-0"
@@ -241,13 +253,15 @@ export const Navbar = () => {
                   }
                   className={cn(
                     "group relative flex flex-col py-1 text-[12px] font-bold tracking-[0.3em] transition-colors",
-                    isLightAndScrolled ? "text-brand-blue/70" : "text-white/70"
+                    isLightAndScrolled ? "text-brand-blue" : "text-white/70"
                   )}
                 >
                   <span
                     className={cn(
                       "transition-colors",
-                      isLightAndScrolled ? "group-hover:text-brand-blue" : "group-hover:text-white"
+                      isLightAndScrolled
+                        ? "group-hover:text-brand-blue/80"
+                        : "group-hover:text-white"
                     )}
                   >
                     {link}
