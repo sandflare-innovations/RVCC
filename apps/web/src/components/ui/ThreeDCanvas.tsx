@@ -104,7 +104,7 @@ function Model({ url }: { url: string }) {
               depthTest={true}
               depthWrite={false}
               toneMapped={false}
-              onBeforeCompile={(shader: THREE.Shader) => {
+              onBeforeCompile={(shader: { fragmentShader: string }) => {
                 shader.fragmentShader = shader.fragmentShader.replace(
                   "#include <map_fragment>",
                   `
