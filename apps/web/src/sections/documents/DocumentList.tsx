@@ -32,9 +32,13 @@ const PasswordModal = ({
 
   useEffect(() => {
     if (isOpen) {
-      setOtp(["", "", "", ""]);
-      setError(false);
-      setTimeout(() => inputs.current[0]?.focus(), 100);
+      // Use setTimeout to avoid synchronous setState warning
+      const timer = setTimeout(() => {
+        setOtp(["", "", "", ""]);
+        setError(false);
+        inputs.current[0]?.focus();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
@@ -73,7 +77,11 @@ const PasswordModal = ({
 
   useEffect(() => {
     if (otp.every((val) => val !== "")) {
-      handleSubmit();
+      // Use setTimeout to avoid synchronous cascading render warning
+      const timer = setTimeout(() => {
+        handleSubmit();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [otp]);
 

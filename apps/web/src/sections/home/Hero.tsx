@@ -7,9 +7,8 @@ import Image from "next/image";
 import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import { FaArrowRight } from "react-icons/fa6";
 
-import { Button } from "@/components/ui/Button";
 import { LogoMarquee } from "@/components/common/LogoMarquee";
-
+import { Button } from "@/components/ui/Button";
 
 import { cn } from "@lib/utils";
 
@@ -58,8 +57,12 @@ export const Hero = () => {
     const isMobile = window.innerWidth < 768;
 
     if (isMobile) {
-      setIsExpanded(true);
-      setShowContent(true);
+      // Small delay to avoid synchronous setState warning in useEffect
+      const timer = setTimeout(() => {
+        setIsExpanded(true);
+        setShowContent(true);
+      }, 0);
+      return () => clearTimeout(timer);
     } else {
       const expandTimer = setTimeout(() => setIsExpanded(true), 800);
       const contentTimer = setTimeout(() => setShowContent(true), 2800);
