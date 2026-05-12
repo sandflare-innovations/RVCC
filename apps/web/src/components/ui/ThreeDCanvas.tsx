@@ -1,37 +1,29 @@
 "use client";
 
-import React, { Suspense, useMemo } from "react";
+import React, { Suspense, useMemo, useRef } from "react";
 
-import { Float, OrbitControls, Stage, useGLTF, useTexture } from "@react-three/drei";
-import { Canvas, useGraph } from "@react-three/fiber";
+import { Decal, Float, OrbitControls, Stage, useGLTF, useTexture } from "@react-three/drei";
+import { Canvas, createPortal } from "@react-three/fiber";
 import * as THREE from "three";
 
-function HelmetLogo({ texture }: { texture: THREE.Texture }) {
-  return (
-    <mesh position={[0.4, 0.45, 0.5]} rotation={[0, Math.PI / 4, 0]}>
-      <planeGeometry args={[0.5, 0.5]} />
-      <meshBasicMaterial
-        map={texture}
-        transparent={true}
-        polygonOffset={true}
-        polygonOffsetFactor={-10}
-        depthWrite={false}
-        side={THREE.DoubleSide}
-        onBeforeCompile={(shader) => {
-          shader.fragmentShader = shader.fragmentShader.replace(
-            "gl_FragColor = vec4( outgoingLight, diffuseColor.a );",
-            "gl_FragColor = vec4( vec3(1.0, 1.0, 1.0), diffuseColor.a );"
-          );
-        }}
-      />
-    </mesh>
-  );
-}
-
+/**
+ * Helmet Model with RVCC logo decal printed on the front.
+ *
+ * GLB structure (from inspection):
+ *   Mesh 0  "pSphere1"  – helmet shell  (3 486 verts)
+ *       X [-47.7 … 47.7], Y [-17.7 … 43.8], Z [-62.3 … 45.1]
+ *   Mesh 1  "sweep1"    – chin strap    (488 verts)
+ *
+ * The front of the helmet (brim) extends towards negative-Z.
+ * We place the logo on the front-center forehead area.
+ */
 function Model({ url }: { url: string }) {
-  const { scene } = useGLTF(url);
+  const { scene, nodes } = useGLTF(url);
+  const logoTexture = useTexture("/images/logo/logo.png");
+  const shellRef = useRef<THREE.Mesh>(null);
 
-  const cleanYellowMaterial = useMemo(
+  // White glossy helmet shell material
+  const shellMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
         color: "#ffffff",
@@ -41,7 +33,8 @@ function Model({ url }: { url: string }) {
     []
   );
 
-  const blackMaterial = useMemo(
+  // Brand blue chin strap material
+  const strapMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
         color: "#0073bc",
@@ -51,35 +44,80 @@ function Model({ url }: { url: string }) {
     []
   );
 
+  const [shellMesh, setShellMesh] = React.useState<THREE.Mesh | null>(null);
+
   React.useLayoutEffect(() => {
     let largestMesh: THREE.Mesh | null = null;
 
-    // First pass to find the shell (largest mesh)
+    // Find the largest mesh (helmet shell)
     scene.traverse((child: THREE.Object3D) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
-        if (
-          !largestMesh ||
-          mesh.geometry.attributes.position.count > largestMesh.geometry.attributes.position.count
-        ) {
+        if (!largestMesh || mesh.geometry.attributes.position.count > largestMesh.geometry.attributes.position.count) {
           largestMesh = mesh;
         }
       }
     });
 
+    // Apply materials
     scene.traverse((child: THREE.Object3D) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
-        if (mesh === largestMesh) {
-          mesh.material = cleanYellowMaterial;
-        } else {
-          mesh.material = blackMaterial;
-        }
+        mesh.material = mesh === largestMesh ? shellMaterial : strapMaterial;
       }
     });
-  }, [scene, cleanYellowMaterial, blackMaterial]);
 
-  return <primitive object={scene} />;
+    setShellMesh(largestMesh);
+  }, [scene, shellMaterial, strapMaterial]);
+
+  // Flip the logo texture horizontally to fix mirroring issue
+  const decalTexture = React.useMemo(() => {
+    const tex = logoTexture.clone();
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.repeat.x = -1;
+    tex.needsUpdate = true;
+    return tex;
+  }, [logoTexture]);
+
+  return (
+    <group>
+      <primitive object={scene} />
+      {shellMesh && createPortal(
+        <Decal
+          position={[0, 17, -50]}
+          rotation={[0, 0, 0]}
+          scale={[40, 15, 40]} // Increased width, height, and depth to fully wrap the curvature without clipping
+        >
+          <meshBasicMaterial
+            map={decalTexture}
+            transparent={true}
+            polygonOffset={true}
+            polygonOffsetFactor={-4}
+            depthTest={true}
+            depthWrite={false}
+            toneMapped={false}
+            onBeforeCompile={(shader: any) => {
+              shader.fragmentShader = shader.fragmentShader.replace(
+                '#include <map_fragment>',
+                `
+                #ifdef USE_MAP
+                  vec4 sampledDiffuseColor = texture2D( map, vMapUv );
+                  // Key out white background pixels
+                  float brightness = (sampledDiffuseColor.r + sampledDiffuseColor.g + sampledDiffuseColor.b) / 3.0;
+                  if (brightness > 0.85) {
+                    discard;
+                  }
+                  diffuseColor *= sampledDiffuseColor;
+                #endif
+                `
+              );
+            }}
+          />
+        </Decal>,
+        shellMesh
+      )}
+    </group>
+  );
 }
 
 interface ThreeDCanvasProps {
