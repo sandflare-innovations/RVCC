@@ -14,10 +14,7 @@ import { DocumentItem } from "@/data/documents";
 
 // Set PDF worker with the required ES module (.mjs) build for modern PDF.js compatibility (Synced with react-pdf version 5.4.296)
 if (typeof window !== "undefined") {
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    "pdfjs-dist/build/pdf.worker.min.mjs",
-    import.meta.url
-  ).toString();
+  pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 }
 
 interface FlipbookReaderProps {
