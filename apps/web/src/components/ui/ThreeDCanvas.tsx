@@ -69,7 +69,12 @@ function Model({ url }: { url: string }) {
       }
     });
 
-    setShellMesh(largestMesh);
+    // Set shell mesh asynchronously to avoid synchronous setState in effect warning
+    const timer = setTimeout(() => {
+      setShellMesh(largestMesh);
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [scene, shellMaterial, strapMaterial]);
 
   // Flip the logo texture horizontally to fix mirroring issue
@@ -99,8 +104,7 @@ function Model({ url }: { url: string }) {
               depthTest={true}
               depthWrite={false}
               toneMapped={false}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              onBeforeCompile={(shader: any) => {
+              onBeforeCompile={(shader: THREE.Shader) => {
                 shader.fragmentShader = shader.fragmentShader.replace(
                   "#include <map_fragment>",
                   `
