@@ -14,7 +14,10 @@ import { DocumentItem } from "@/data/documents";
 
 // Set PDF worker with the required ES module (.mjs) build for modern PDF.js compatibility (Synced with react-pdf version 5.4.296)
 if (typeof window !== "undefined") {
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    "pdfjs-dist/build/pdf.worker.min.mjs",
+    import.meta.url
+  ).toString();
 }
 
 interface FlipbookReaderProps {
@@ -259,13 +262,18 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                 key={doc.fileUrl}
                 file={doc.fileUrl}
                 onLoadSuccess={onDocumentLoadSuccess}
+                onLoadError={(error) => console.error("PDF Load Error:", error)}
+                onSourceError={(error) => console.error("PDF Source Error:", error)}
                 renderMode="canvas"
                 className="flex h-full w-full items-center justify-center"
                 loading={
-                  <div
-                    className={`animate-pulse text-xs font-black tracking-[0.5em] uppercase ${readerBg === "white" ? "text-brand-blue" : "text-white"}`}
-                  >
-                    Loading Monograph...
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="border-brand-blue h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" />
+                    <div
+                      className={`animate-pulse text-xs font-black tracking-[0.5em] uppercase ${readerBg === "white" ? "text-brand-blue" : "text-white"}`}
+                    >
+                      Initializing Reader...
+                    </div>
                   </div>
                 }
               >
