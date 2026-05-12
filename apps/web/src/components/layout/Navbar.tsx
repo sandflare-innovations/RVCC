@@ -28,16 +28,19 @@ export const Navbar = () => {
   const [isWorksSection, setIsWorksSection] = useState(false);
   const lastScrollY = useRef(0);
 
-  const isGallaryPage = pathname?.includes("/gallary");
-  const isContactPage = pathname === "/contact";
-  const isDocumentsPage = pathname === "/documents";
+  const isGallaryPage = pathname?.startsWith("/gallary");
+  const isContactPage = pathname?.startsWith("/contact");
+  const isDocumentsPage = pathname?.startsWith("/documents");
+  const isClientsPage = pathname?.startsWith("/clients");
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       setIsScrolled(
         currentScrollY >
-          (isGallaryPage || isContactPage || isDocumentsPage ? 50 : window.innerHeight)
+          (isGallaryPage || isContactPage || isDocumentsPage || isClientsPage
+            ? 50
+            : window.innerHeight)
       );
 
       // Hide header while scrolling down
@@ -47,6 +50,7 @@ export const Navbar = () => {
           isGallaryPage ||
           isContactPage ||
           isDocumentsPage ||
+          isClientsPage ||
           currentScrollY > window.innerHeight
         ) {
           setIsVisible(false);
@@ -118,6 +122,7 @@ export const Navbar = () => {
     "ABOUT US",
     "SERVICES",
     "PROJECTS",
+    "CLIENTS",
     "GALLERY",
     "CAREERS",
     "DOCUMENTS",
@@ -126,7 +131,8 @@ export const Navbar = () => {
 
   // Force white theme for header elements when in Works section
   const forceWhiteTheme = isWorksSection;
-  const isLightAndScrolled = (isScrolled && !forceWhiteTheme) || isContactPage || isDocumentsPage;
+  const isLightAndScrolled =
+    (isScrolled && !forceWhiteTheme) || isContactPage || isDocumentsPage || isClientsPage;
 
   return (
     <>
@@ -208,7 +214,7 @@ export const Navbar = () => {
               className={cn(
                 "w-28 transition-all duration-500 md:w-32",
                 forceWhiteTheme ||
-                  (!isScrolled && !isContactPage && !isDocumentsPage) ||
+                  (!isScrolled && !isContactPage && !isDocumentsPage && !isClientsPage) ||
                   resolvedTheme === "dark"
                   ? "brightness-0 invert"
                   : "brightness-100 invert-0"
