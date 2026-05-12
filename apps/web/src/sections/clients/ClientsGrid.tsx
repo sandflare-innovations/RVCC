@@ -122,8 +122,10 @@ export const ClientsGrid = () => {
                 />
               </div>
               {/* Architectural Accent Line */}
-              <div className="bg-brand-blue absolute top-0 left-0 h-[1px] w-0 transition-all duration-700 group-hover:w-full" />
-              <div className="bg-brand-blue absolute top-0 left-0 h-0 w-[1px] transition-all duration-700 group-hover:h-full" />
+              <div className="bg-brand-blue absolute top-0 left-0 h-[2px] w-0 transition-all duration-700 group-hover:w-full" />
+              <div className="bg-brand-blue absolute top-0 left-0 h-0 w-[2px] transition-all duration-700 group-hover:h-full" />
+              <div className="bg-brand-blue absolute right-0 bottom-0 h-[2px] w-0 transition-all duration-700 group-hover:w-full" />
+              <div className="bg-brand-blue absolute right-0 bottom-0 h-0 w-[2px] transition-all duration-700 group-hover:h-full" />
             </motion.div>
           ))}
         </div>
