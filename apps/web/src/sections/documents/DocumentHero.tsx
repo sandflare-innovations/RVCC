@@ -7,8 +7,17 @@ import { motion } from "framer-motion";
 
 export const DocumentHero = () => {
   return (
-    <section className="relative flex h-screen items-center overflow-hidden">
-      <div className="container mx-auto px-6">
+    <section className="relative flex h-screen items-center overflow-hidden border-b border-zinc-100 bg-white">
+      {/* Uniform Blueprint Grid */}
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
+      <div className="relative z-10 container mx-auto px-6">
         <div className="grid grid-cols-1 items-center gap-12 pt-20 lg:grid-cols-[1.2fr_1fr] lg:gap-24">
           {/* Left: Content Section */}
           <div className="relative z-10 flex flex-col items-start pt-20 lg:pt-0">
