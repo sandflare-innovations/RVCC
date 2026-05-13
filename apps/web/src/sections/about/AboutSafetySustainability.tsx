@@ -1,0 +1,67 @@
+"use client";
+
+import React from "react";
+import { motion } from "framer-motion";
+import { FaHelmetSafety, FaLeaf, FaShieldHalved, FaGlobe } from "react-icons/fa6";
+
+export const AboutSafetySustainability = () => {
+  return (
+    <section className="bg-zinc-50 py-24 lg:py-32">
+      <div className="container mx-auto px-6">
+        <div className="flex flex-col gap-16 lg:flex-row">
+          {/* Safety Block */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="flex flex-1 flex-col border-l border-brand-blue/20 bg-white p-12"
+          >
+            <div className="mb-8 text-brand-blue">
+              <FaShieldHalved size={48} />
+            </div>
+            <h3 className="font-heading mb-6 text-3xl uppercase text-zinc-900">
+              Quality & <span className="text-brand-blue serif">HSE Excellence</span>
+            </h3>
+            <p className="mb-8 text-lg font-light leading-relaxed text-zinc-500">
+              We maintain a steadfast commitment to quality and HSE excellence in alignment with ISO standards and international best practices, ensuring consistent delivery at the highest level.
+            </p>
+            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {["ISO Compliance", "Zero-Accident Goal", "Site Inspections", "Safety Training"].map((item, i) => (
+                <li key={i} className="flex items-center gap-3 text-sm font-medium text-zinc-700">
+                  <div className="h-1 w-1 rounded-full bg-brand-blue" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          {/* Sustainability Block */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="flex flex-1 flex-col border-l border-zinc-100 bg-white p-12"
+          >
+            <div className="mb-8 text-brand-blue">
+              <FaGlobe size={48} />
+            </div>
+            <h3 className="font-heading mb-6 text-3xl uppercase text-zinc-900">
+              Sustainable <span className="text-brand-blue serif">Progress</span>
+            </h3>
+            <p className="mb-8 text-lg font-light leading-relaxed text-zinc-500">
+              We embed energy-efficient and environmentally responsible construction practices across all operations, supporting iconic national programs and sustainable urban development.
+            </p>
+            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {["Energy Efficiency", "Waste Management", "Green Building", "Responsible Sourcing"].map((item, i) => (
+                <li key={i} className="flex items-center gap-3 text-sm font-medium text-zinc-700">
+                  <div className="h-1 w-1 rounded-full bg-zinc-300" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+};
