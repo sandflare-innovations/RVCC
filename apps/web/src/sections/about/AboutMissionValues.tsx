@@ -186,16 +186,19 @@ export const AboutMissionValues = () => {
 
         {/* Strategic Pillars Section */}
         <div className="mt-40 border-t border-zinc-100 pt-24">
-          <div className="mb-20 text-center">
-            <span className="text-brand-blue mb-4 block text-[10px] font-bold tracking-[0.4em] uppercase">
-              National Alignment
-            </span>
-            <h3 className="font-heading text-4xl tracking-tighter text-zinc-900 uppercase">
+          <div className="mb-20 text-left">
+            <div className="mb-2 flex items-center gap-4">
+              <span className="bg-brand-blue h-px w-12" />
+              <span className="text-brand-blue text-[10px] font-bold tracking-[0.4em] uppercase">
+                National Alignment
+              </span>
+            </div>
+            <h3 className="font-heading text-5xl tracking-tighter text-zinc-900 uppercase">
               Strategic <span className="text-brand-blue serif">Pillars</span>
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 num: "01",
@@ -217,7 +220,7 @@ export const AboutMissionValues = () => {
               },
               {
                 num: "04",
-                icon: FaFlag,
+                icon: FaLeaf,
                 title: "Sustainable Progress",
                 desc: "Embedding energy-efficient, environmentally responsible construction practices across all operations.",
               },
@@ -228,27 +231,32 @@ export const AboutMissionValues = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="group relative flex flex-col items-center p-4 text-center transition-all duration-700"
+                className="group relative flex flex-col p-2 transition-all duration-700"
               >
-                {/* Background Layer */}
+                {/* Background Layer (Slab Style) */}
                 <div className="group-hover:bg-brand-blue/5 absolute inset-0 -z-10 bg-transparent transition-all duration-700" />
 
-                {/* Content Box (Becomes blue on hover) */}
-                <div className="group-hover:bg-brand-blue flex w-full flex-col items-center p-8 transition-all duration-700">
-                  <div className="relative mb-8">
-                    <div className="bg-brand-blue/5 text-brand-blue group-hover:text-brand-blue flex h-20 w-20 items-center justify-center rounded-full transition-all duration-500 group-hover:bg-white">
-                      <pillar.icon size={32} />
+                {/* Content Box */}
+                <div className="group-hover:bg-brand-blue flex h-full flex-col p-8 transition-all duration-700">
+                  {/* Sharp Curve Icon Container */}
+                  <div className="mb-10 flex items-start justify-between">
+                    <div className="bg-brand-blue/5 text-brand-blue group-hover:text-brand-blue flex h-16 w-16 items-center justify-center rounded-tr-[32px] rounded-bl-[12px] transition-all duration-500 group-hover:bg-white">
+                      <pillar.icon size={28} />
                     </div>
-                    <span className="text-brand-blue group-hover:text-brand-blue absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full border border-zinc-100 bg-white text-[10px] font-bold shadow-sm transition-colors group-hover:bg-zinc-100">
+                    <span className="font-heading text-4xl font-bold text-zinc-100 transition-colors duration-500 group-hover:text-white/10">
                       {pillar.num}
                     </span>
                   </div>
-                  <h4 className="font-heading mb-4 px-4 text-lg leading-tight tracking-wider text-zinc-900 uppercase transition-colors duration-500 group-hover:text-white">
+
+                  <h4 className="font-heading mb-4 pr-4 text-xl leading-tight tracking-wider text-zinc-900 uppercase transition-colors duration-500 group-hover:text-white">
                     {pillar.title}
                   </h4>
                   <p className="text-sm leading-relaxed font-light text-zinc-500 transition-colors duration-500 group-hover:text-white/80">
                     {pillar.desc}
                   </p>
+
+                  {/* Decorative Architectural Line */}
+                  <div className="mt-8 h-1 w-0 bg-white/30 transition-all duration-700 group-hover:w-12" />
                 </div>
               </motion.div>
             ))}
