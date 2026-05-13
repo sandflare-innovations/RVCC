@@ -1,9 +1,9 @@
 "use client";
 
-import React, { Suspense, useMemo, useRef } from "react";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 import { Decal, Float, OrbitControls, Stage, useGLTF, useTexture } from "@react-three/drei";
-import { Canvas, createPortal } from "@react-three/fiber";
+import { Canvas, createPortal, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 /**
@@ -128,6 +128,59 @@ function Model({ url }: { url: string }) {
   );
 }
 
+function InteractiveRig({ children }: { children: React.ReactNode }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const [isIdle, setIsIdle] = useState(true);
+  const mousePos = useRef({ x: 0, y: 0, lastMove: Date.now() });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      // Map global window coordinates to [-1, 1] range
+      const x = (e.clientX / window.innerWidth) * 2 - 1;
+      const y = -(e.clientY / window.innerHeight) * 2 + 1;
+      mousePos.current = { x, y, lastMove: Date.now() };
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+
+    const t = state.clock.getElapsedTime();
+    const { x, y, lastMove } = mousePos.current;
+
+    // Detect inactivity (2.5s)
+    const hasMovedRecently = Date.now() - lastMove < 2500;
+
+    if (hasMovedRecently && isIdle) {
+      setIsIdle(false);
+    } else if (!hasMovedRecently && !isIdle) {
+      setIsIdle(true);
+    }
+
+    let targetX = 0;
+    let targetY = 0; // Relative to base rotation
+
+    if (isIdle) {
+      // Idle Animation: "Inspection Mode"
+      targetY = Math.sin(t * 0.5) * 0.25; // Horizontal ± ~14°
+      targetX = Math.cos(t * 0.4) * 0.12; // Vertical ± ~7°
+    } else {
+      // Cursor Tracking (Window-wide):
+      targetY = x * 0.52; // Horizontal (Y-axis): ±30°
+      targetX = -y * 0.26; // Vertical (X-axis): ±15°
+    }
+
+    // Apply smooth rotation using lerp
+    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetX, 0.07);
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetY, 0.07);
+  });
+
+  return <group ref={groupRef}>{children}</group>;
+}
+
 interface ThreeDCanvasProps {
   modelUrl: string;
 }
@@ -138,14 +191,14 @@ export const ThreeDCanvas: React.FC<ThreeDCanvasProps> = ({ modelUrl }) => {
       <Canvas dpr={[1, 2]} camera={{ fov: 45 }} shadows={false}>
         <Suspense fallback={null}>
           <Stage environment="city" intensity={0.5} shadows={false}>
-            <Float speed={1.5} rotationIntensity={0.5} floatIntensity={0.5}>
+            <InteractiveRig>
               <group rotation={[0, Math.PI, 0]}>
                 <Model url={modelUrl} />
               </group>
-            </Float>
+            </InteractiveRig>
           </Stage>
         </Suspense>
-        <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.5} />
+        <OrbitControls enableZoom={false} enablePan={false} />
       </Canvas>
     </div>
   );
