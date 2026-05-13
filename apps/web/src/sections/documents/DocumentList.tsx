@@ -324,7 +324,7 @@ export const DocumentList = () => {
   };
 
   return (
-    <section className="bg-white pb-32">
+    <section className="bg-white py-32">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
           {DOCUMENTS.map((item, index) => (
