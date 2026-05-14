@@ -1,80 +1,145 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 
-import { ThreeDCanvas } from "@ui/ThreeDCanvas";
+import { Button } from "@ui/Button";
+import { SkyscraperCanvas } from "@ui/SkyscraperCanvas";
 
 export const AboutHero = () => {
+  const containerRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  // Rotation and Position values driven by scroll
+  const rotationY = useTransform(scrollYProgress, [0, 1], [0, Math.PI * 1.5]);
+  const rotationX = useTransform(scrollYProgress, [0, 1], [0, -Math.PI * 0.15]);
+  const positionY = useTransform(scrollYProgress, [0, 1], [-500, -450]);
+  const bgTextY = useTransform(scrollYProgress, [0, 1], [0, -150]);
+  const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+
+  // Smooth springs for 3D props
+  const smoothRotationY = useSpring(rotationY, { stiffness: 100, damping: 30 });
+  const smoothRotationX = useSpring(rotationX, { stiffness: 100, damping: 30 });
+  const smoothPositionY = useSpring(positionY, { stiffness: 100, damping: 30 });
+
   return (
-    <section className="relative flex min-h-screen items-center overflow-hidden border-b border-zinc-100 bg-white pt-32 lg:pt-0">
-      {/* Uniform Blueprint Grid Background */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(0,115,188,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,115,188,0.03) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-        }}
-      />
+    <section
+      ref={containerRef}
+      className="bg-background relative flex h-[100vh] items-start overflow-hidden pt-20"
+    >
+      {/* Bottom Gradient Overlay for Section Transition */}
+      <div className="from-background via-background/80 pointer-events-none absolute right-0 bottom-0 left-0 z-30 h-48 bg-gradient-to-t to-transparent" />
 
-      <div className="relative z-10 container mx-auto px-6">
-        <div className="flex flex-col items-center justify-between gap-12 lg:flex-row lg:gap-24">
-          {/* Left Content Column */}
-          <div className="flex w-full flex-col gap-12 lg:w-1/2">
+      {/* Background Large Text "ABOUT RVCC" */}
+      <motion.div
+        style={{ y: bgTextY }}
+        className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
+      >
+        <h2 className="text-brand-blue mb-[52vh] text-[20vw] leading-none tracking-tighter uppercase opacity-10 select-none">
+          ABOUT RVCC
+        </h2>
+      </motion.div>
+
+      <div className="sticky top-0 z-10 container mx-auto flex h-screen items-center justify-center px-6">
+        {/* Center 3D Model - Moved out of grid to prevent cutting/shifting */}
+        <div className="absolute inset-0 z-0 flex items-center justify-center">
+          <motion.div className="h-full w-full max-w-5xl" style={{ opacity }}>
+            <SkyscraperCanvas
+              rotationY={smoothRotationY}
+              rotationX={smoothRotationX}
+              positionY={smoothPositionY}
+            />
+          </motion.div>
+        </div>
+
+        <div className="pointer-events-none relative z-10 grid w-full grid-cols-1 items-center gap-12 lg:grid-cols-12">
+          {/* Left Content */}
+          <div className="pointer-events-auto z-20 lg:col-span-4">
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 1, ease: "easeOut" }}
             >
-              <span className="text-brand-blue mb-4 block text-[10px] font-bold tracking-[0.4em] uppercase">
-                First-Class Classified
-              </span>
-              <h1 className="font-heading mb-0 text-6xl leading-[0.8] tracking-tighter text-zinc-900 uppercase md:text-8xl lg:text-9xl">
-                Legacy of <br />
-                <span className="text-brand-blue serif">Excellence</span>
+              <h1 className="font-heading mb-8 text-6xl leading-[0.6] tracking-tighter text-zinc-900 uppercase md:text-8xl">
+                Shaping <br />
+                <span className="text-brand-blue serif">The Future</span>
               </h1>
-            </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="max-w-md border-l border-zinc-100 pb-6 pl-6"
-            >
-              <div className="mb-6 flex items-baseline gap-2">
-                <span className="font-heading text-brand-blue text-3xl leading-none">ISO 9001</span>
-                <span className="text-[10px] leading-none font-black tracking-widest text-zinc-300 uppercase">
-                  :2018
-                </span>
+              {/* Floating Stat Card - Sharp Borders */}
+              <div className="shadow-brand-blue/5 max-w-[280px] border border-zinc-100 bg-white p-6 shadow-2xl">
+                <div className="mb-2 flex items-baseline gap-2">
+                  <span className="text-brand-blue text-4xl font-bold">99%</span>
+                  <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
+                    Client Satisfied
+                  </span>
+                </div>
+                <p className="text-xs leading-relaxed font-light text-zinc-500">
+                  Turning your aspirations into achievable reality through precision engineering.
+                </p>
+                <div className="mt-6 flex gap-4">
+                  <Button variant="primary" className="h-10 min-w-[120px] text-[8px]">
+                    Contact Now
+                  </Button>
+                </div>
               </div>
-              <p className="text-lg leading-relaxed font-light text-zinc-500">
-                A leading General Contracting Company in Saudi Arabia since 2006. 
-                We transform ideas into enduring structures through precision engineering 
-                and a steadfast commitment to quality and safety.
-              </p>
             </motion.div>
           </div>
 
-          {/* Right 3D Model Column */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, rotateY: 15 }}
-            animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-            transition={{ duration: 1.5, delay: 0.2, ease: "easeOut" }}
-            className="relative h-[400px] w-full lg:h-[600px] lg:w-1/2"
-          >
-            <ThreeDCanvas modelUrl="/3D-Objects/safty-helmet-3D.glb" />
+          {/* Spacer for 3D Model Area */}
+          <div className="lg:col-span-4" />
 
-            {/* Technical visual elements */}
-            <div className="pointer-events-none absolute inset-0 scale-110 rounded-full border border-zinc-100/50 opacity-20" />
-            <div className="pointer-events-none absolute top-1/2 left-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2">
-              <div className="border-brand-blue/30 absolute top-0 left-0 h-8 w-8 border-t border-l" />
-              <div className="border-brand-blue/30 absolute right-0 bottom-0 h-8 w-8 border-r border-b" />
-            </div>
-          </motion.div>
+          {/* Right Content */}
+          <div className="pointer-events-auto z-20 flex flex-col items-end text-right lg:col-span-4">
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+              className="max-w-xs"
+            >
+              <p className="mb-8 text-lg leading-relaxed font-light text-zinc-500">
+                A sanctuary where ideas find harmony, and excellence is built into every brick and
+                beam. RVCC is where the future feels at home.
+              </p>
+
+              {/* Another Card - Sharp Borders */}
+              <div className="border border-zinc-100 bg-zinc-50 p-6 text-left shadow-xl">
+                <div className="mb-6 flex items-center gap-4">
+                  <div className="bg-brand-blue flex h-12 w-12 items-center justify-center rounded-none font-bold text-white">
+                    18+
+                  </div>
+                  <div>
+                    <h4 className="text-[10px] font-bold tracking-widest text-zinc-900 uppercase">
+                      Years of Experience
+                    </h4>
+                    <p className="text-[8px] text-zinc-400 uppercase">Class A Contractor</p>
+                  </div>
+                </div>
+                <div className="mb-4 h-[2px] w-full bg-zinc-200" />
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-zinc-900 uppercase">
+                    ISO CERTIFIED
+                  </span>
+                  <span className="text-brand-blue text-[10px] font-bold">9001:2018</span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
+
+      {/* Decorative Blueprint Grid */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
     </section>
   );
 };
