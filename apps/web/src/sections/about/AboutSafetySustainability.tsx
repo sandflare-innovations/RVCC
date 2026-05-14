@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
+
 import { motion } from "framer-motion";
-import { FaHelmetSafety, FaLeaf, FaShieldHalved, FaGlobe } from "react-icons/fa6";
+import { FaGlobe, FaHelmetSafety, FaLeaf, FaShieldHalved } from "react-icons/fa6";
 
 export const AboutSafetySustainability = () => {
   return (
-    <section className="bg-zinc-50 py-24 lg:py-32">
+    <section className="bg-transparent py-24 lg:py-32">
       <div className="container mx-auto px-6">
         <div className="flex flex-col gap-16 lg:flex-row">
           {/* Safety Block */}
@@ -14,24 +15,28 @@ export const AboutSafetySustainability = () => {
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="flex flex-1 flex-col border-l border-brand-blue/20 bg-white p-12"
+            className="border-brand-blue/20 flex flex-1 flex-col border-l bg-white p-12"
           >
-            <div className="mb-8 text-brand-blue">
+            <div className="text-brand-blue mb-8">
               <FaShieldHalved size={48} />
             </div>
-            <h3 className="font-heading mb-6 text-3xl uppercase text-zinc-900">
+            <h3 className="font-heading mb-6 text-3xl text-zinc-900 uppercase">
               Quality & <span className="text-brand-blue serif">HSE Excellence</span>
             </h3>
-            <p className="mb-8 text-lg font-light leading-relaxed text-zinc-500">
-              We maintain a steadfast commitment to quality and HSE excellence in alignment with ISO standards and international best practices, ensuring consistent delivery at the highest level.
+            <p className="mb-8 text-lg leading-relaxed font-light text-zinc-500">
+              We maintain a steadfast commitment to quality and HSE excellence in alignment with ISO
+              standards and international best practices, ensuring consistent delivery at the
+              highest level.
             </p>
             <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {["ISO Compliance", "Zero-Accident Goal", "Site Inspections", "Safety Training"].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-sm font-medium text-zinc-700">
-                  <div className="h-1 w-1 rounded-full bg-brand-blue" />
-                  {item}
-                </li>
-              ))}
+              {["ISO Compliance", "Zero-Accident Goal", "Site Inspections", "Safety Training"].map(
+                (item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-sm font-medium text-zinc-700">
+                    <div className="bg-brand-blue h-1 w-1 rounded-full" />
+                    {item}
+                  </li>
+                )
+              )}
             </ul>
           </motion.div>
 
@@ -42,17 +47,24 @@ export const AboutSafetySustainability = () => {
             viewport={{ once: true }}
             className="flex flex-1 flex-col border-l border-zinc-100 bg-white p-12"
           >
-            <div className="mb-8 text-brand-blue">
+            <div className="text-brand-blue mb-8">
               <FaGlobe size={48} />
             </div>
-            <h3 className="font-heading mb-6 text-3xl uppercase text-zinc-900">
+            <h3 className="font-heading mb-6 text-3xl text-zinc-900 uppercase">
               Sustainable <span className="text-brand-blue serif">Progress</span>
             </h3>
-            <p className="mb-8 text-lg font-light leading-relaxed text-zinc-500">
-              We embed energy-efficient and environmentally responsible construction practices across all operations, supporting iconic national programs and sustainable urban development.
+            <p className="mb-8 text-lg leading-relaxed font-light text-zinc-500">
+              We embed energy-efficient and environmentally responsible construction practices
+              across all operations, supporting iconic national programs and sustainable urban
+              development.
             </p>
             <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {["Energy Efficiency", "Waste Management", "Green Building", "Responsible Sourcing"].map((item, i) => (
+              {[
+                "Energy Efficiency",
+                "Waste Management",
+                "Green Building",
+                "Responsible Sourcing",
+              ].map((item, i) => (
                 <li key={i} className="flex items-center gap-3 text-sm font-medium text-zinc-700">
                   <div className="h-1 w-1 rounded-full bg-zinc-300" />
                   {item}
