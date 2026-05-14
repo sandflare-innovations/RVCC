@@ -22,7 +22,7 @@ import {
 
 export const AboutMissionValues = () => {
   return (
-    <section className="relative overflow-hidden bg-white py-24 lg:py-40">
+    <section className="relative overflow-hidden bg-transparent py-24 lg:py-40">
       {/* Decorative Grid Pattern */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.03]"
