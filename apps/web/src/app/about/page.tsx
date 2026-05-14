@@ -10,24 +10,32 @@ import { AboutSafetySustainability } from "@/sections/about/AboutSafetySustainab
 import { AboutStats } from "@/sections/about/AboutStats";
 
 import { Footer } from "@layout/Footer";
-import { Navbar } from "@layout/Navbar";
 
 export default function AboutPage() {
   return (
-    <main className="relative bg-white">
-      <Navbar />
+    <main className="relative min-h-screen bg-white">
+      {/* Uniform Blueprint Grid Background - Like Safety Page */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
 
-      {/* 10-Step Premium About Us Experience */}
-      <AboutHero />
-      <AboutOverview />
-      <AboutMissionValues />
-      <AboutJourney />
-      <AboutStats />
-      <AboutDivisions />
-      <AboutCertifications />
-      <AboutClients />
-      <AboutSafetySustainability />
-      <AboutCTA />
+      <div className="relative z-10">
+        <AboutHero />
+        <AboutOverview />
+        <AboutMissionValues />
+        <AboutJourney />
+        <AboutStats />
+        <AboutDivisions />
+        <AboutCertifications />
+        <AboutClients />
+        <AboutSafetySustainability />
+        <AboutCTA />
+      </div>
 
       <Footer />
     </main>
