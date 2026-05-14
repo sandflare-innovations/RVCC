@@ -33,13 +33,19 @@ export const Navbar = () => {
   const isDocumentsPage = pathname?.startsWith("/documents");
   const isClientsPage = pathname?.startsWith("/clients");
   const isQualityPage = pathname?.startsWith("/quality-policy");
+  const isAboutPage = pathname?.startsWith("/about");
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       setIsScrolled(
         currentScrollY >
-          (isGallaryPage || isContactPage || isDocumentsPage || isClientsPage || isQualityPage
+          (isGallaryPage ||
+          isContactPage ||
+          isDocumentsPage ||
+          isClientsPage ||
+          isQualityPage ||
+          isAboutPage
             ? 50
             : window.innerHeight)
       );
@@ -53,6 +59,7 @@ export const Navbar = () => {
           isDocumentsPage ||
           isClientsPage ||
           isQualityPage ||
+          isAboutPage ||
           currentScrollY > window.innerHeight
         ) {
           setIsVisible(false);
@@ -82,7 +89,7 @@ export const Navbar = () => {
       window.removeEventListener("scroll", handleScroll);
       if (worksSection) observer.unobserve(worksSection);
     };
-  }, []);
+  }, [isGallaryPage, isContactPage, isDocumentsPage, isClientsPage, isQualityPage, isAboutPage]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -138,7 +145,8 @@ export const Navbar = () => {
     isContactPage ||
     isDocumentsPage ||
     isClientsPage ||
-    isQualityPage;
+    isQualityPage ||
+    isAboutPage;
 
   return (
     <>
@@ -226,7 +234,8 @@ export const Navbar = () => {
                     !isContactPage &&
                     !isDocumentsPage &&
                     !isClientsPage &&
-                    !isQualityPage) ||
+                    !isQualityPage &&
+                    !isAboutPage) ||
                   resolvedTheme === "dark"
                   ? "brightness-0 invert"
                   : "brightness-100 invert-0"
