@@ -64,7 +64,7 @@ export const AboutJourney = () => {
   });
 
   return (
-    <section ref={containerRef} className="relative overflow-hidden bg-white py-24 lg:py-40">
+    <section ref={containerRef} className="relative overflow-hidden bg-transparent py-24 lg:py-40">
       <div className="container mx-auto px-6">
         <div className="mb-24 text-center">
           <motion.span
