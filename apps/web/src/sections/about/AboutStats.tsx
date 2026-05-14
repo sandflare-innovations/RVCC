@@ -1,66 +1,84 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import { motion, useInView, useMotionValue, animate, useTransform } from "framer-motion";
+import { useEffect, useRef } from "react";
 
-const Counter = ({
-  from = 0,
-  to,
-  suffix = "",
-}: {
-  from?: number;
-  to: number;
-  suffix?: string;
-}) => {
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-50px" });
-  const count = useMotionValue(from);
-  const rounded = useTransform(count, (latest) => Math.round(latest).toString() + suffix);
+import { motion, useInView, useMotionValue, useSpring } from "framer-motion";
+
+const Counter = ({ value, prefix = "+" }: { value: string; prefix?: string }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  // Extract number from string (e.g., "150" from "+150")
+  const numericValue = parseInt(value.replace(/\D/g, ""), 10);
+
+  const motionValue = useMotionValue(0);
+  const springValue = useSpring(motionValue, {
+    damping: 60,
+    stiffness: 100,
+  });
 
   useEffect(() => {
-    if (inView) {
-      animate(count, to, {
-        duration: 2.5,
-        ease: [0.16, 1, 0.3, 1],
-      });
+    if (isInView) {
+      motionValue.set(numericValue);
     }
-  }, [inView, count, to]);
+  }, [isInView, motionValue, numericValue]);
 
-  return (
-    <motion.span ref={ref} className="tabular-nums">
-      {rounded}
-    </motion.span>
-  );
+  useEffect(() => {
+    const unsubscribe = springValue.on("change", (latest) => {
+      if (ref.current) {
+        (ref.current as HTMLElement).textContent = prefix + Math.floor(latest).toLocaleString();
+      }
+    });
+    return () => unsubscribe();
+  }, [springValue, prefix]);
+
+  return <span ref={ref}>{prefix}0</span>;
 };
 
-const STATS = [
-  { label: "Projects Completed", value: 500, suffix: "+" },
-  { label: "Years of Excellence", value: 18, suffix: "+" },
-  { label: "Business Divisions", value: 6, suffix: "" },
-  { label: "Global Presence", value: 4, suffix: " Countries" },
+const METRICS = [
+  {
+    description: "Premier projects successfully delivered across the Saudi Kingdom",
+    value: "150",
+  },
+  {
+    description: "Strategic urban centers and cities served nationwide",
+    value: "12",
+  },
+  {
+    description: "Years of unwavering architectural and engineering excellence",
+    value: "15",
+  },
+  {
+    description: "Dedicated professional teams shaping global visions into reality",
+    value: "50",
+  },
 ];
 
 export const AboutStats = () => {
   return (
-    <section className="bg-white py-24 lg:py-32">
+    <section className="bg-transparent pt-24 pb-32">
       <div className="container mx-auto px-6">
-        <div className="grid grid-cols-2 gap-12 lg:grid-cols-4">
-          {STATS.map((stat, i) => (
+        <div className="grid grid-cols-1 gap-x-12 gap-y-16 md:grid-cols-2 lg:grid-cols-4 lg:gap-x-16">
+          {METRICS.map((metric, index) => (
             <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
+              key={index}
+              initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: i * 0.1 }}
-              className="flex flex-col items-center text-center"
+              transition={{ duration: 0.8, delay: index * 0.1 }}
+              className="group border border-zinc-100 bg-white p-8 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.12)]"
             >
-              <div className="font-heading text-brand-blue text-6xl leading-none md:text-8xl">
-                <Counter to={stat.value} suffix={stat.suffix} />
+              <div className="flex h-full min-h-[250px] flex-col justify-between">
+                {/* Top: Narrative Description */}
+                <p className="max-w-[200px] text-[12px] leading-relaxed font-medium text-zinc-500">
+                  {metric.description}
+                </p>
+
+                {/* Bottom: Impact Number with Counting Animation */}
+                <h4 className="font-primary text-brand-blue mt-8 origin-left text-6xl font-light tracking-tighter transition-transform duration-500 group-hover:scale-105 md:text-7xl lg:text-8xl">
+                  <Counter value={metric.value} />
+                </h4>
               </div>
-              <div className="mt-4 h-1 w-12 bg-zinc-100" />
-              <p className="mt-4 text-[10px] font-bold tracking-[0.4em] text-zinc-400 uppercase">
-                {stat.label}
-              </p>
             </motion.div>
           ))}
         </div>
