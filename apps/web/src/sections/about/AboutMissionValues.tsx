@@ -22,7 +22,7 @@ import {
 
 export const AboutMissionValues = () => {
   return (
-    <section className="relative overflow-hidden bg-transparent py-24 lg:py-40">
+    <section className="relative overflow-hidden bg-transparent py-24 lg:py-24">
       {/* Decorative Grid Pattern */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.03]"
@@ -34,7 +34,7 @@ export const AboutMissionValues = () => {
 
       <div className="relative z-10 container mx-auto px-6">
         {/* Mission & Vision Row */}
-        <div className="mb-40 flex flex-col gap-12 lg:flex-row">
+        <div className="mb-24 flex flex-col gap-12 lg:flex-row">
           {/* Vision Card - The "Luminous Slab" */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -121,7 +121,7 @@ export const AboutMissionValues = () => {
           <span className="text-brand-blue mb-4 block text-[10px] font-bold tracking-[0.4em] uppercase">
             Our Excellence
           </span>
-          <h3 className="font-heading text-8xl tracking-tighter text-zinc-900 uppercase">
+          <h3 className="font-heading text-6xl tracking-tighter text-zinc-900 uppercase">
             Core <span className="text-brand-blue serif">Strengths</span>
           </h3>
         </div>
@@ -185,16 +185,13 @@ export const AboutMissionValues = () => {
         </div>
 
         {/* Strategic Pillars Section */}
-        <div className="mt-40 border-t border-zinc-100 pt-24">
-          <div className="mb-20 text-left">
-            <div className="mb-2 flex items-center gap-4">
-              <span className="bg-brand-blue h-px w-12" />
-              <span className="text-brand-blue text-[10px] font-bold tracking-[0.4em] uppercase">
-                National Alignment
-              </span>
-            </div>
-            <h3 className="font-heading text-5xl tracking-tighter text-zinc-900 uppercase">
-              Strategic <span className="text-brand-blue serif">Pillars</span>
+        <div className="mt-24 border-t border-zinc-100 pt-24">
+          <div className="mb-20 text-center">
+            <span className="text-brand-blue mb-4 block text-[10px] font-bold tracking-[0.4em] uppercase">
+              National Alignment
+            </span>
+            <h3 className="font-heading text-6xl tracking-tighter text-zinc-900 uppercase">
+              National <span className="text-brand-blue serif">Alignment</span>
             </h3>
           </div>
 
