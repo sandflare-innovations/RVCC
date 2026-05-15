@@ -35,7 +35,7 @@ export const AboutMissionValues = () => {
 
       <div className="relative z-10 container mx-auto px-6">
         {/* Mission & Vision Row */}
-        <div className="mb-24 flex flex-col gap-12 lg:flex-row">
+        <div className="mb-24 flex flex-col gap-16 lg:flex-row">
           {/* Vision Card - The "Luminous Slab" */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -43,7 +43,7 @@ export const AboutMissionValues = () => {
             viewport={{ once: true }}
             className="group relative flex flex-1 flex-col"
           >
-            <Interactive3DCard initialOffset={{ x: -0.2, y: 0.15 }}>
+            <Interactive3DCard initialOffset={{ x: -0.3, y: 0.2 }}>
               <div className="absolute -inset-4 -z-10 border border-zinc-100 bg-zinc-50 transition-colors duration-700 group-hover:bg-zinc-100/50" />
               <div className="border-brand-blue relative flex h-full flex-col overflow-hidden border-l-4 bg-white p-10 shadow-[0_20px_50px_rgba(0,115,188,0.05)] lg:p-16">
                 <div className="text-brand-blue/5 pointer-events-none absolute -top-12 -right-12 rotate-12 select-none">
@@ -86,7 +86,7 @@ export const AboutMissionValues = () => {
             transition={{ delay: 0.2 }}
             className="group relative flex flex-1 flex-col"
           >
-            <Interactive3DCard initialOffset={{ x: 0.2, y: -0.15 }}>
+            <Interactive3DCard initialOffset={{ x: 0.3, y: -0.2 }}>
               <div className="bg-brand-blue/5 border-brand-blue/10 absolute -inset-4 -z-10 border" />
               <div className="bg-brand-blue relative flex h-full flex-col overflow-hidden p-10 shadow-[0_20px_60px_rgba(0,115,188,0.2)] lg:p-16">
                 <div className="pointer-events-none absolute -bottom-12 -left-12 -rotate-12 text-white/5 select-none">
