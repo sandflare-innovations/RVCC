@@ -10,10 +10,12 @@ export const AboutClients = () => {
     <section className="bg-transparent py-24">
       <div className="container mx-auto px-6">
         <div className="mx-auto mb-20 flex max-w-3xl flex-col items-center text-center">
-          <h2 className="font-heading text-5xl tracking-tighter text-zinc-900 uppercase lg:text-6xl">
+          <span className="text-brand-blue mb-4 block text-[10px] font-bold tracking-[0.4em] uppercase">
+            Trusted Partners
+          </span>
+          <h3 className="font-heading text-6xl tracking-tighter text-zinc-900 uppercase">
             Our <span className="text-brand-blue serif">Clients</span>
-          </h2>
-
+          </h3>
           <p className="text-lg leading-relaxed font-light text-zinc-500">
             We are honored to have collaborated with some of the most prestigious organizations and
             government entities in Saudi Arabia, building lasting partnerships based on trust and
@@ -33,6 +35,6 @@ export const AboutClients = () => {
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-32 bg-gradient-to-l from-white/0 to-transparent" />
         </div>
       </div>
-    </section>
+    </section >
   );
 };
