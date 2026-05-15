@@ -19,6 +19,7 @@ import {
   FaTreeCity,
   FaUsers,
 } from "react-icons/fa6";
+
 import { Interactive3DCard } from "@/components/ui/Interactive3DCard";
 
 export const AboutMissionValues = () => {
@@ -43,7 +44,7 @@ export const AboutMissionValues = () => {
             viewport={{ once: true }}
             className="group relative flex flex-1 flex-col"
           >
-            <Interactive3DCard initialOffset={{ x: -0.3, y: 0.2 }}>
+            <Interactive3DCard initialOffset={{ x: -0.5, y: 0.5 }}>
               <div className="absolute -inset-4 -z-10 border border-zinc-100 bg-zinc-50 transition-colors duration-700 group-hover:bg-zinc-100/50" />
               <div className="border-brand-blue relative flex h-full flex-col overflow-hidden border-l-4 bg-white p-10 shadow-[0_20px_50px_rgba(0,115,188,0.05)] lg:p-16">
                 <div className="text-brand-blue/5 pointer-events-none absolute -top-12 -right-12 rotate-12 select-none">
@@ -58,10 +59,10 @@ export const AboutMissionValues = () => {
                 </div>
 
                 <p className="relative z-10 flex-grow text-xl leading-relaxed font-light text-zinc-600">
-                  At RVCC, we are committed to partnership, transparency, and reliability. Leveraging
-                  our proven expertise across the construction industry, we build lasting client trust
-                  and support sustainable growth. Our past achievements continue to shape a confident,
-                  promising future.
+                  At RVCC, we are committed to partnership, transparency, and reliability.
+                  Leveraging our proven expertise across the construction industry, we build lasting
+                  client trust and support sustainable growth. Our past achievements continue to
+                  shape a confident, promising future.
                 </p>
 
                 <div className="relative z-10 mt-12 flex gap-4">
@@ -86,7 +87,7 @@ export const AboutMissionValues = () => {
             transition={{ delay: 0.2 }}
             className="group relative flex flex-1 flex-col"
           >
-            <Interactive3DCard initialOffset={{ x: 0.3, y: -0.2 }}>
+            <Interactive3DCard initialOffset={{ x: 0.5, y: -0.5 }}>
               <div className="bg-brand-blue/5 border-brand-blue/10 absolute -inset-4 -z-10 border" />
               <div className="bg-brand-blue relative flex h-full flex-col overflow-hidden p-10 shadow-[0_20px_60px_rgba(0,115,188,0.2)] lg:p-16">
                 <div className="pointer-events-none absolute -bottom-12 -left-12 -rotate-12 text-white/5 select-none">
@@ -102,8 +103,8 @@ export const AboutMissionValues = () => {
 
                 <p className="relative z-10 flex-grow text-xl leading-relaxed font-light text-white/90">
                   We maximize client value by delivering high-quality, timely, and cost-effective
-                  solutions. Backed by modern technology and years of industry expertise, we excel in
-                  both new developments and renovation projects.
+                  solutions. Backed by modern technology and years of industry expertise, we excel
+                  in both new developments and renovation projects.
                 </p>
 
                 <div className="relative z-10 mt-12 flex gap-4">
