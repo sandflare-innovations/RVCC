@@ -41,16 +41,22 @@ export const Interactive3DCard = ({
   useEffect(() => {
     if (!autoAnimate || isHovered) return;
 
-    // Create a gentle floating oscillation
-    const controlsX = animate(mouseX, [0.5 + initialOffset.x, 0.5 - initialOffset.x, 0.5 + initialOffset.x], {
-      duration: 4,
+    // Start animation from current values to ensure smoothness
+    const currentX = mouseX.get();
+    const currentY = mouseY.get();
+
+    // Create a gentle floating oscillation that mimics a "circling" cursor
+    const controlsX = animate(mouseX, [currentX, 0.5 + initialOffset.x, 0.5 - initialOffset.x, 0.5], {
+      duration: 6,
       repeat: Infinity,
+      repeatType: "mirror",
       ease: "easeInOut",
     });
 
-    const controlsY = animate(mouseY, [0.5 + initialOffset.y, 0.5 - initialOffset.y, 0.5 + initialOffset.y], {
-      duration: 5,
+    const controlsY = animate(mouseY, [currentY, 0.5 - initialOffset.y, 0.5 + initialOffset.y, 0.5], {
+      duration: 7,
       repeat: Infinity,
+      repeatType: "mirror",
       ease: "easeInOut",
     });
 
@@ -59,6 +65,7 @@ export const Interactive3DCard = ({
       controlsY.stop();
     };
   }, [autoAnimate, isHovered, mouseX, mouseY, initialOffset]);
+
 
   const handlePointerMove = (e: React.PointerEvent) => {
     setIsHovered(true);
