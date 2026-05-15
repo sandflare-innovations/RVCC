@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { motion, useMotionValue, useTransform, useSpring, animate } from "framer-motion";
+import { motion, useMotionValue, useTransform, useSpring, animate, useAnimationFrame } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -37,34 +37,28 @@ export const Interactive3DCard = ({
   const rotateX = useTransform(mouseYSpring, [0, 1], [rotationFactor * 15, -rotationFactor * 15]);
   const rotateY = useTransform(mouseXSpring, [0, 1], [-rotationFactor * 15, rotationFactor * 15]);
 
-  // Handle Automatic Animation
-  useEffect(() => {
-    if (!autoAnimate || isHovered) return;
+  // Handle Automatic Animation (Circular Pulse)
+  const time = useRef(0);
+  useAnimationFrame((t, delta) => {
+    if (!autoAnimate || isHovered) {
+      time.current = t; // Sync time so it doesn't jump when resuming
+      return;
+    }
 
-    // Start animation from current values to ensure smoothness
-    const currentX = mouseX.get();
-    const currentY = mouseY.get();
+    // Adjust speed and pulsing intensity
+    const elapsed = (t - time.current) / 1000;
+    const angle = elapsed * 0.8; // Speed of rotation
+    const pulse = Math.sin(elapsed * 0.5) * 0.3 + 0.7; // Oscillating radius (0.4 to 1.0)
 
-    // Create a gentle floating oscillation that mimics a "circling" cursor
-    const controlsX = animate(mouseX, [currentX, 0.5 + initialOffset.x, 0.5 - initialOffset.x, 0.5], {
-      duration: 6,
-      repeat: Infinity,
-      repeatType: "mirror",
-      ease: "easeInOut",
-    });
+    // Calculate circular path with pulsing radius
+    // We use initialOffset to define the "density" and direction of the movement
+    const targetX = 0.5 + Math.cos(angle) * (initialOffset.x || 0.15) * pulse;
+    const targetY = 0.5 + Math.sin(angle) * (initialOffset.y || 0.15) * pulse;
 
-    const controlsY = animate(mouseY, [currentY, 0.5 - initialOffset.y, 0.5 + initialOffset.y, 0.5], {
-      duration: 7,
-      repeat: Infinity,
-      repeatType: "mirror",
-      ease: "easeInOut",
-    });
+    mouseX.set(targetX);
+    mouseY.set(targetY);
+  });
 
-    return () => {
-      controlsX.stop();
-      controlsY.stop();
-    };
-  }, [autoAnimate, isHovered, mouseX, mouseY, initialOffset]);
 
 
   const handlePointerMove = (e: React.PointerEvent) => {
