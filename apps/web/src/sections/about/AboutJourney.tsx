@@ -19,7 +19,7 @@ const MILESTONES: Milestone[] = [
     title: "SAGIA Secured Foundation",
     description:
       "RVCC secured 100% foreign investment status under the Ministry of Investment (SAGIA), establishing a robust foundation for long-term growth in the Kingdom.",
-    image: "/images/journey/2006.png",
+    image: "/images/journey/sagia.png",
     align: "left",
   },
   {
@@ -35,7 +35,7 @@ const MILESTONES: Milestone[] = [
     title: "ISO Excellence & Identity",
     description:
       "Attained ISO 9001:2018 and ISO 14001:2015 certifications while undergoing a complete corporate identity uplift and UAF/IAF accreditation.",
-    image: "/images/journey/2023.png",
+    image: "/images/journey/iso.png",
     align: "left",
   },
   {
@@ -43,7 +43,7 @@ const MILESTONES: Milestone[] = [
     title: "Vision 2030 Engineering",
     description:
       "Engineering the future in full alignment with Saudi Vision 2030, focusing on sustainable urban development and trusted client partnerships.",
-    image: "/images/journey/2030.png",
+    image: "/images/journey/vision-2030.png",
     align: "right",
   },
 ];
@@ -97,7 +97,7 @@ export const AboutJourney = () => {
           {/* Animated Progress Track */}
           <motion.div
             style={{ scaleY, originY: 0 }}
-            className="bg-brand-blue absolute top-0 left-1/2 z-0 hidden h-full w-px -translate-x-1/2 shadow-[0_0_15px_rgba(0,115,188,0.3)] lg:block"
+            className="bg-brand-blue/80 absolute top-0 left-1/2 z-0 hidden h-full w-[2px] -translate-x-1/2 shadow-[0_0_15px_rgba(0,115,188,0.3)] lg:block"
           />
 
           {/* Bottom Arrow */}
@@ -135,24 +135,24 @@ const MilestoneRow = ({ item, i }: { item: Milestone; i: number }) => {
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="font-heading z-10 bg-white px-4 text-5xl tracking-tighter"
+          className="font-heading z-10 bg-white px-4 text-6xl tracking-tighter"
         >
           {item.year}
         </motion.span>
       </div>
 
       {/* Content Row: Alternating Image and Text */}
-      <div className="flex flex-col items-center gap-12 lg:grid lg:grid-cols-2 lg:gap-24">
+      <div className="flex flex-col items-center gap-12 pt-20 lg:grid lg:grid-cols-2 lg:gap-24">
         {/* Left Column */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: false, margin: "-100px" }}
           transition={{ duration: 0.8 }}
           className="w-full"
         >
           {i % 2 === 0 ? (
-            <div className="aspect-[4/3] overflow-hidden bg-zinc-100 grayscale transition-all duration-700 hover:grayscale-0">
+            <div className="aspect-[6/3] overflow-hidden bg-zinc-100 transition-all duration-700">
               <img
                 src={item.image}
                 alt={item.title}
@@ -173,7 +173,7 @@ const MilestoneRow = ({ item, i }: { item: Milestone; i: number }) => {
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: false, margin: "-100px" }}
           transition={{ duration: 0.8 }}
           className="w-full"
         >
@@ -185,7 +185,7 @@ const MilestoneRow = ({ item, i }: { item: Milestone; i: number }) => {
               <p className="text-lg leading-relaxed font-light text-zinc-500">{item.description}</p>
             </div>
           ) : (
-            <div className="aspect-[4/3] overflow-hidden bg-zinc-100 grayscale transition-all duration-700 hover:grayscale-0">
+            <div className="aspect-[6/3] overflow-hidden bg-zinc-100 transition-all duration-700">
               <img
                 src={item.image}
                 alt={item.title}
