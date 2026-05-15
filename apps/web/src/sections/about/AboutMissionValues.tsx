@@ -121,7 +121,7 @@ export const AboutMissionValues = () => {
           <span className="text-brand-blue mb-4 block text-[10px] font-bold tracking-[0.4em] uppercase">
             Our Excellence
           </span>
-          <h3 className="font-heading text-5xl tracking-tighter text-zinc-900 uppercase">
+          <h3 className="font-heading text-8xl tracking-tighter text-zinc-900 uppercase">
             Core <span className="text-brand-blue serif">Strengths</span>
           </h3>
         </div>
@@ -173,7 +173,7 @@ export const AboutMissionValues = () => {
                 <div className="text-brand-blue mb-6 transition-colors duration-500 group-hover:text-white">
                   <val.icon size={28} />
                 </div>
-                <h4 className="font-heading mb-3 text-lg leading-tight tracking-wider text-zinc-900 uppercase transition-colors duration-500 group-hover:text-white">
+                <h4 className="font-heading mb-3 text-xl leading-tight text-zinc-900 uppercase transition-colors duration-500 group-hover:text-white">
                   {val.title}
                 </h4>
                 <p className="flex-grow text-sm leading-relaxed font-light text-zinc-500 transition-colors duration-500 group-hover:text-white/80">
