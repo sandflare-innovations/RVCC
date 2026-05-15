@@ -43,7 +43,7 @@ export const AboutOverview = () => {
 
               <div className="mt-12 flex flex-wrap gap-8">
                 <div>
-                  <span className="text-brand-blue block text-3xl font-bold">18+</span>
+                  <span className="text-brand-blue block text-3xl font-bold">20+</span>
                   <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                     Years of Excellence
                   </span>
