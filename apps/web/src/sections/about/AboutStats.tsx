@@ -56,8 +56,19 @@ const METRICS = [
 
 export const AboutStats = () => {
   return (
-    <section className="bg-transparent pt-24 pb-32">
+    <section className="bg-transparent py-24">
       <div className="container mx-auto px-6">
+        <div className="mb-20 text-center">
+          <span className="text-brand-blue mb-4 block text-[10px] font-bold tracking-[0.4em] uppercase">
+            Impact & Scale
+          </span>
+          <h3 className="font-heading text-6xl tracking-tighter text-zinc-900 uppercase">
+            Excellence in <span className="text-brand-blue serif">Numbers</span>
+          </h3>
+          <p className="mx-auto mt-4 max-w-2xl font-light text-zinc-500">
+            A track record of successful deliveries and strategic growth across the Kingdom.
+          </p>
+        </div>
         <div className="grid grid-cols-1 gap-x-12 gap-y-16 md:grid-cols-2 lg:grid-cols-4 lg:gap-x-16">
           {METRICS.map((metric, index) => (
             <motion.div
