@@ -173,7 +173,7 @@ export const AboutMissionValues = () => {
                 <div className="text-brand-blue mb-6 transition-colors duration-500 group-hover:text-white">
                   <val.icon size={28} />
                 </div>
-                <h4 className="font-heading mb-3 text-xl leading-tight text-zinc-900 uppercase transition-colors duration-500 group-hover:text-white">
+                <h4 className="font-heading mb-3 text-2xl leading-tight text-zinc-900 uppercase transition-colors duration-500 group-hover:text-white">
                   {val.title}
                 </h4>
                 <p className="flex-grow text-sm leading-relaxed font-light text-zinc-500 transition-colors duration-500 group-hover:text-white/80">
