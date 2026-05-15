@@ -53,12 +53,15 @@ const DIVISIONS = [
 
 export const AboutDivisions = () => {
   return (
-    <section className="bg-transparent py-24 lg:py-32">
+    <section className="bg-transparent py-24 lg:py-24">
       <div className="container mx-auto px-6">
         <div className="mb-20 text-center">
-          <h2 className="font-heading text-4xl tracking-tight uppercase md:text-5xl">
+          <span className="text-brand-blue mb-4 block text-[10px] font-bold tracking-[0.4em] uppercase">
+            Our Expertise
+          </span>
+          <h3 className="font-heading text-6xl tracking-tighter text-zinc-900 uppercase">
             Our Business <span className="text-brand-blue serif">Divisions</span>
-          </h2>
+          </h3>
           <p className="mx-auto mt-4 max-w-2xl font-light text-zinc-500">
             Integrated expertise across the construction spectrum, delivering comprehensive
             solutions with engineering precision.
