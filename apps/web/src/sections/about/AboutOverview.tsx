@@ -1,88 +1,149 @@
 "use client";
 
-import React from "react";
-
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 
-import { motion } from "framer-motion";
+const IMAGES = [
+  "/images/projects/1.png",
+  "/images/projects/2.png",
+  "/images/projects/3.png",
+  "/images/projects/4.png",
+];
 
 export const AboutOverview = () => {
-  return (
-    <section className="bg-transparent py-24 lg:py-32">
-      <div className="container mx-auto px-6">
-        <div className="flex flex-col items-center gap-16 lg:flex-row">
-          {/* Left Side: Content */}
-          <div className="w-full lg:w-1/2">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className="font-heading mb-8 text-4xl leading-tight text-zinc-900 uppercase md:text-5xl">
-                Where Ideas Are <span className="text-brand-blue serif">Shaped to Reality</span>
-              </h2>
-              <div className="space-y-6 text-lg leading-relaxed font-light text-zinc-500">
-                <p>
-                  Founded in 2006, Riyadh Villas Contracting Company (RVCC) has established itself
-                  as a leading General Contracting Company in Saudi Arabia. We are your trusted
-                  partner for turnkey solutions, specializing in high-end civil construction,
-                  residential masterpieces, and large-scale infrastructure developments.
-                </p>
-                <p>
-                  Our journey is defined by a class-A certification and a distinguished record of
-                  executing fast-track, high-value projects for leading government and private
-                  sector clients. With 18 years of proven excellence, we combine engineering
-                  precision with financial operational resilience.
-                </p>
-                <p className="border-brand-blue border-l-2 pl-6 italic">
-                  "At RVCC, we transform ideas into architectural landmarks that stand the test of
-                  time, ensuring quality, safety, and innovation in every project."
-                </p>
-              </div>
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-              <div className="mt-12 flex flex-wrap gap-8">
-                <div>
-                  <span className="text-brand-blue block text-3xl font-bold">20+</span>
-                  <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
-                    Years of Excellence
-                  </span>
-                </div>
-                <div>
-                  <span className="text-brand-blue block text-3xl font-bold">Class A</span>
-                  <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
-                    Certified Status
-                  </span>
-                </div>
-                <div>
-                  <span className="text-brand-blue block text-3xl font-bold">ISO</span>
-                  <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
-                    9001:2018 Certified
-                  </span>
-                </div>
-              </div>
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % IMAGES.length);
+    }, 5000); // Change image every 5 seconds
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <section className="relative overflow-hidden bg-white py-24 lg:pt-32">
+      <div className="container mx-auto px-6">
+
+        {/* TOP: Refined Header */}
+        <div className="mb-16 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1 }}
+          >
+            <span className="text-brand-blue mb-6 block text-[10px] font-bold tracking-[0.8em] uppercase">
+              Company Profile
+            </span>
+            <h3 className="font-heading mx-auto max-w-4xl text-6xl leading-[0.6] tracking-tighter text-zinc-900 lg:text-[8rem]">
+              The Art of <br />
+              <span className="serif normal-case text-brand-blue">Structural Perfection.</span>
+            </h3>
+          </motion.div>
+        </div>
+
+        {/* MIDDLE: Immersive Gallery Image Slider */}
+        <div className="relative mb-16 aspect-[21/9] w-full overflow-hidden bg-zinc-100 shadow-2xl">
+          {IMAGES.map((img, index) => (
+            <motion.div
+              key={index}
+              initial={false}
+              animate={{ opacity: index === currentIndex ? 1 : 0 }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+              className="absolute inset-0"
+            >
+              <Image
+                src={img}
+                alt={`RVCC Luxury Architecture ${index + 1}`}
+                fill
+                className="object-cover brightness-95"
+                priority={index === 0}
+              />
+            </motion.div>
+          ))}
+
+          {/* Subtle Decorative Frame & Progress Indicator */}
+          <div className="absolute inset-8 border border-white/20 pointer-events-none" />
+          <div className="absolute bottom-12 left-1/2 flex -translate-x-1/2 gap-3 z-20">
+            {IMAGES.map((_, i) => (
+              <div
+                key={i}
+                className={`h-[2px] w-8 transition-all duration-700 ${i === currentIndex ? "bg-white w-12" : "bg-white/30"
+                  }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* BOTTOM: Minimalist Content Grid */}
+        <div className="grid grid-cols-1 gap-16 lg:grid-cols-12">
+
+          {/* Narrative Column */}
+          <div className="lg:col-span-7">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, delay: 0.3 }}
+              className="space-y-8 text-xl font-light leading-relaxed text-zinc-500"
+            >
+              <p>
+                Riyadh Villas Contracting Company (RVCC) stands as a beacon of
+                refined engineering and timeless structural design. For nearly
+                two decades, we have been the quiet force behind the Kingdom's
+                most prestigious developments.
+              </p>
+              <p className="text-lg opacity-80">
+                Our philosophy is simple: perfection is not when there is nothing
+                more to add, but when there is nothing left to take away. We
+                bring this minimalist precision to every civil, structural,
+                and engineering challenge we undertake.
+              </p>
             </motion.div>
           </div>
 
-          {/* Right Side: Image */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative h-[400px] w-full overflow-hidden lg:h-[600px] lg:w-1/2"
-          >
-            <Image
-              src="/images/projects/1.png"
-              alt="RVCC Construction Site in Riyadh"
-              fill
-              className="object-cover transition-transform duration-700 hover:scale-105"
-            />
-            {/* Subtle Overlay */}
-            <div className="bg-brand-blue/5 pointer-events-none absolute inset-0" />
-          </motion.div>
+          {/* Metrics & Accreditation Column */}
+          <div className="flex flex-col justify-between border-l border-zinc-100 pl-12 lg:col-span-5">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, delay: 0.5 }}
+              className="space-y-12"
+            >
+              <div>
+                <span className="text-brand-blue mb-2 block text-5xl font-bold">Class A</span>
+                <p className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
+                  Ministry Accredited Excellence
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-12">
+                <div>
+                  <span className="block text-3xl font-light text-zinc-900">150+</span>
+                  <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Deliveries</span>
+                </div>
+                <div>
+                  <span className="block text-3xl font-light text-zinc-900">20+</span>
+                  <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Years</span>
+                </div>
+              </div>
+
+              {/* Signature Line */}
+              <div className="h-[1px] w-12 bg-brand-blue" />
+            </motion.div>
+          </div>
+
         </div>
       </div>
     </section>
   );
 };
+
+
+
+
+
+
+
