@@ -64,7 +64,7 @@ export const AboutJourney = () => {
   });
 
   return (
-    <section ref={containerRef} className="relative overflow-hidden bg-transparent py-24 lg:py-40">
+    <section ref={containerRef} className="relative overflow-hidden bg-transparent py-24 lg:py-24">
       <div className="container mx-auto px-6">
         <div className="mb-24 text-center">
           <motion.span
@@ -79,9 +79,9 @@ export const AboutJourney = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="font-heading text-4xl tracking-tight uppercase md:text-6xl"
+            className="font-heading text-6xl tracking-tighter text-zinc-900 uppercase"
           >
-            Our Journey: <span className="text-brand-blue serif">Transformation</span>
+            Our <span className="text-brand-blue serif">Journey</span>: Transformation
           </motion.h2>
         </div>
 
