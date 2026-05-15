@@ -41,16 +41,20 @@ const CertificateCard = ({ cert }: { cert: Certificate }) => {
 
 export const AboutCertifications = () => {
   return (
-    <section className="bg-background section-padding relative overflow-hidden">
+    <section className="bg-background py-24 relative overflow-hidden">
       <div className="container mx-auto">
-        <div className="space-y-element-gap">
-          <div className="header-margin gap-element-gap flex flex-col items-center justify-between text-center md:flex-row md:items-end md:text-left">
-            <div className="flex-1">
-              <h2 className="text-brand-blue text-[4rem] leading-[0.7] font-medium tracking-tighter uppercase md:text-[6rem]">
-                Quality <br /> Certificates
-              </h2>
-            </div>
-          </div>
+        <div className="mb-20 text-center">
+          <span className="text-brand-blue mb-4 block text-[10px] font-bold tracking-[0.4em] uppercase">
+            Accreditations
+          </span>
+          <h3 className="font-heading text-6xl tracking-tighter text-zinc-900 uppercase">
+            Quality <span className="text-brand-blue serif">Certificates</span>
+          </h3>
+          <p className="mx-auto mt-4 max-w-2xl font-light text-zinc-500">
+            Our commitment to excellence is reinforced by international certifications and 
+            adherence to the highest industry standards.
+          </p>
+        </div>
 
           <div className="scroll-hide flex snap-x snap-mandatory flex-row items-stretch justify-start gap-4 overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 md:overflow-visible lg:grid-cols-4">
             {certificates.map((cert: Certificate, index: number) => (
@@ -70,7 +74,6 @@ export const AboutCertifications = () => {
               </motion.div>
             ))}
           </div>
-        </div>
       </div>
     </section>
   );
