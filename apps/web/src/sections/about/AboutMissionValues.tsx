@@ -19,6 +19,7 @@ import {
   FaTreeCity,
   FaUsers,
 } from "react-icons/fa6";
+import { Interactive3DCard } from "@/components/ui/Interactive3DCard";
 
 export const AboutMissionValues = () => {
   return (
@@ -42,37 +43,39 @@ export const AboutMissionValues = () => {
             viewport={{ once: true }}
             className="group relative flex flex-1 flex-col"
           >
-            <div className="absolute -inset-4 -z-10 border border-zinc-100 bg-zinc-50 transition-colors duration-700 group-hover:bg-zinc-100/50" />
-            <div className="border-brand-blue relative flex h-full flex-col overflow-hidden border-l-4 bg-white p-10 shadow-[0_20px_50px_rgba(0,115,188,0.05)] lg:p-16">
-              <div className="text-brand-blue/5 pointer-events-none absolute -top-12 -right-12 rotate-12 select-none">
-                <FaEye size={400} />
-              </div>
+            <Interactive3DCard>
+              <div className="absolute -inset-4 -z-10 border border-zinc-100 bg-zinc-50 transition-colors duration-700 group-hover:bg-zinc-100/50" />
+              <div className="border-brand-blue relative flex h-full flex-col overflow-hidden border-l-4 bg-white p-10 shadow-[0_20px_50px_rgba(0,115,188,0.05)] lg:p-16">
+                <div className="text-brand-blue/5 pointer-events-none absolute -top-12 -right-12 rotate-12 select-none">
+                  <FaEye size={400} />
+                </div>
 
-              <div className="relative z-10 mb-10 flex items-center gap-4">
-                <div className="bg-brand-blue h-[2px] w-8" />
-                <h3 className="font-heading text-3xl tracking-widest text-zinc-900 uppercase">
-                  Our <span className="text-brand-blue serif">Vision</span>
-                </h3>
-              </div>
+                <div className="relative z-10 mb-10 flex items-center gap-4">
+                  <div className="bg-brand-blue h-[2px] w-8" />
+                  <h3 className="font-heading text-3xl tracking-widest text-zinc-900 uppercase">
+                    Our <span className="text-brand-blue serif">Vision</span>
+                  </h3>
+                </div>
 
-              <p className="relative z-10 flex-grow text-xl leading-relaxed font-light text-zinc-600">
-                At RVCC, we are committed to partnership, transparency, and reliability. Leveraging
-                our proven expertise across the construction industry, we build lasting client trust
-                and support sustainable growth. Our past achievements continue to shape a confident,
-                promising future.
-              </p>
+                <p className="relative z-10 flex-grow text-xl leading-relaxed font-light text-zinc-600">
+                  At RVCC, we are committed to partnership, transparency, and reliability. Leveraging
+                  our proven expertise across the construction industry, we build lasting client trust
+                  and support sustainable growth. Our past achievements continue to shape a confident,
+                  promising future.
+                </p>
 
-              <div className="relative z-10 mt-12 flex gap-4">
-                {["Integrity", "Reliability", "Sustainability"].map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-brand-blue/60 border-brand-blue/10 bg-brand-blue/5 border px-3 py-1 text-[10px] font-bold tracking-widest uppercase"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                <div className="relative z-10 mt-12 flex gap-4">
+                  {["Integrity", "Reliability", "Sustainability"].map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-brand-blue/60 border-brand-blue/10 bg-brand-blue/5 border px-3 py-1 text-[10px] font-bold tracking-widest uppercase"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
+            </Interactive3DCard>
           </motion.div>
 
           {/* Mission Card - The "Solid Pillar" */}
@@ -83,36 +86,38 @@ export const AboutMissionValues = () => {
             transition={{ delay: 0.2 }}
             className="group relative flex flex-1 flex-col"
           >
-            <div className="bg-brand-blue/5 border-brand-blue/10 absolute -inset-4 -z-10 border" />
-            <div className="bg-brand-blue relative flex h-full flex-col overflow-hidden p-10 shadow-[0_20px_60px_rgba(0,115,188,0.2)] lg:p-16">
-              <div className="pointer-events-none absolute -bottom-12 -left-12 -rotate-12 text-white/5 select-none">
-                <FaBullseye size={400} />
-              </div>
+            <Interactive3DCard>
+              <div className="bg-brand-blue/5 border-brand-blue/10 absolute -inset-4 -z-10 border" />
+              <div className="bg-brand-blue relative flex h-full flex-col overflow-hidden p-10 shadow-[0_20px_60px_rgba(0,115,188,0.2)] lg:p-16">
+                <div className="pointer-events-none absolute -bottom-12 -left-12 -rotate-12 text-white/5 select-none">
+                  <FaBullseye size={400} />
+                </div>
 
-              <div className="relative z-10 mb-10 flex items-center gap-4">
-                <h3 className="font-heading text-3xl tracking-widest text-white uppercase">
-                  Our <span className="serif text-white/60">Mission</span>
-                </h3>
-                <div className="h-[2px] w-8 bg-white" />
-              </div>
+                <div className="relative z-10 mb-10 flex items-center gap-4">
+                  <h3 className="font-heading text-3xl tracking-widest text-white uppercase">
+                    Our <span className="serif text-white/60">Mission</span>
+                  </h3>
+                  <div className="h-[2px] w-8 bg-white" />
+                </div>
 
-              <p className="relative z-10 flex-grow text-xl leading-relaxed font-light text-white/90">
-                We maximize client value by delivering high-quality, timely, and cost-effective
-                solutions. Backed by modern technology and years of industry expertise, we excel in
-                both new developments and renovation projects.
-              </p>
+                <p className="relative z-10 flex-grow text-xl leading-relaxed font-light text-white/90">
+                  We maximize client value by delivering high-quality, timely, and cost-effective
+                  solutions. Backed by modern technology and years of industry expertise, we excel in
+                  both new developments and renovation projects.
+                </p>
 
-              <div className="relative z-10 mt-12 flex gap-4">
-                {["Technology", "Expertise", "Flexibility"].map((tag) => (
-                  <span
-                    key={tag}
-                    className="border border-white/20 bg-white/5 px-3 py-1 text-[10px] font-bold tracking-widest text-white/60 uppercase"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                <div className="relative z-10 mt-12 flex gap-4">
+                  {["Technology", "Expertise", "Flexibility"].map((tag) => (
+                    <span
+                      key={tag}
+                      className="border border-white/20 bg-white/5 px-3 py-1 text-[10px] font-bold tracking-widest text-white/60 uppercase"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
+            </Interactive3DCard>
           </motion.div>
         </div>
 
