@@ -17,7 +17,7 @@ export const AboutHero = () => {
   // Rotation and Position values driven by scroll
   const rotationY = useTransform(scrollYProgress, [0, 1], [0, Math.PI * 1.5]);
   const rotationX = useTransform(scrollYProgress, [0, 1], [0, -Math.PI * 0.15]);
-  const positionY = useTransform(scrollYProgress, [0, 1], [-500, -450]);
+  const positionY = useTransform(scrollYProgress, [0, 1], [-500, -480]);
   const bgTextY = useTransform(scrollYProgress, [0, 1], [0, -150]);
   const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
