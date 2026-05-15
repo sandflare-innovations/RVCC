@@ -109,13 +109,11 @@ export const AboutHero = () => {
               <div className="border border-zinc-100 bg-zinc-50 p-6 text-left shadow-xl">
                 <div className="mb-6 flex items-center gap-4">
                   <div className="bg-brand-blue flex h-12 w-12 items-center justify-center rounded-none font-bold text-white">
-                    18+
+                    20+
                   </div>
                   <div>
-                    <h4 className="text-[10px] font-bold tracking-widest text-zinc-900 uppercase">
-                      Years of Experience
-                    </h4>
-                    <p className="text-[8px] text-zinc-400 uppercase">Class A Contractor</p>
+                    <h4 className="text-[20px] text-zinc-900 uppercase">Years of Experience</h4>
+                    <p className="text-[12px] text-zinc-400 uppercase">Class A Contractor</p>
                   </div>
                 </div>
                 <div className="mb-4 h-[2px] w-full bg-zinc-200" />
