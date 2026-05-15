@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 
 export const AboutCTA = () => {
   return (
-    <section className="relative overflow-hidden py-24 lg:py-32">
+    <section className="relative overflow-hidden py-24 lg:py-24">
       {/* Background with Overlay */}
       <div 
         className="absolute inset-0 z-0 bg-[url('/images/projects/4.png')] bg-cover bg-fixed bg-center"
@@ -22,9 +22,12 @@ export const AboutCTA = () => {
           transition={{ duration: 0.8 }}
           className="mx-auto max-w-3xl"
         >
-          <h2 className="font-heading mb-8 text-5xl uppercase text-white md:text-7xl">
+          <span className="text-brand-blue mb-4 block text-[10px] font-bold tracking-[0.4em] uppercase">
+            Collaboration
+          </span>
+          <h2 className="font-heading mb-8 text-6xl tracking-tighter uppercase text-white">
             Let's Build Something <br />
-            <span className="text-brand-blue serif text-6xl md:text-8xl">Great Together</span>
+            <span className="text-brand-blue serif text-6xl">Great Together</span>
           </h2>
           <p className="mb-12 text-xl font-light leading-relaxed text-zinc-300">
             Whether it's a residential masterpiece or a complex infrastructure project, RVCC has the expertise and dedication to bring your vision to life in Riyadh.
