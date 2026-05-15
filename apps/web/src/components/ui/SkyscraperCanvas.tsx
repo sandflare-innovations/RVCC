@@ -77,7 +77,7 @@ export const SkyscraperCanvas: React.FC<SkyscraperCanvasProps> = ({
             makeDefault
             autoRotate
             autoRotateSpeed={0.5}
-            minPolarAngle={Math.PI / 4}
+            minPolarAngle={Math.PI / 1.5}
             maxPolarAngle={Math.PI / 1.5}
           />
 
