@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import { LenisProvider } from "@/components/providers/LenisProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { CustomCursor } from "@/components/ui/CustomCursor";
 import { LanguageProvider } from "@/context/LanguageContext";
 
 import { Footer } from "@layout/Footer";
@@ -33,7 +32,6 @@ export default function RootLayout({
         >
           <LenisProvider>
             <LanguageProvider>
-              <CustomCursor />
               <Navbar />
               <main className="relative flex-grow">{children}</main>
             </LanguageProvider>
