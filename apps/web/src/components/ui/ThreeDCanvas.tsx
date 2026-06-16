@@ -2,8 +2,8 @@
 
 import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
-import { Decal, Float, OrbitControls, Stage, useGLTF, useTexture } from "@react-three/drei";
-import { Canvas, createPortal, useFrame, useThree } from "@react-three/fiber";
+import { Decal, OrbitControls, Stage, useGLTF, useTexture } from "@react-three/drei";
+import { Canvas, createPortal, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 /**
@@ -131,7 +131,7 @@ function Model({ url }: { url: string }) {
 function InteractiveRig({ children }: { children: React.ReactNode }) {
   const groupRef = useRef<THREE.Group>(null);
   const [isIdle, setIsIdle] = useState(true);
-  const mousePos = useRef({ x: 0, y: 0, lastMove: Date.now() });
+  const mousePos = useRef({ x: 0, y: 0, lastMove: 0 });
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
