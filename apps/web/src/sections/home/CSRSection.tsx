@@ -4,7 +4,13 @@ import React from "react";
 
 import Image from "next/image";
 
-import { type Certificate, certificates, concernLogos, sisterCompanies } from "@data/home/csr";
+import {
+  type Certificate,
+  type ConcernLogo,
+  certificates,
+  concernLogos,
+  sisterCompanies,
+} from "@data/home/csr";
 import { Variants, motion } from "framer-motion";
 
 import { Button } from "@/components/ui/Button";
@@ -49,6 +55,34 @@ const CertificateCard = ({
   );
 };
 
+const LogoMedia = ({ logo, index }: { logo: ConcernLogo; index: number }) => {
+  const image = (
+    <Image
+      src={logo.src}
+      alt={`Concern Company Logo ${index + 1}`}
+      fill
+      className="object-contain"
+      sizes="(max-width: 768px) 200px, 300px"
+    />
+  );
+
+  if (logo.href) {
+    return (
+      <a
+        href={logo.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Visit concern company website`}
+        className="absolute inset-0"
+      >
+        {image}
+      </a>
+    );
+  }
+
+  return image;
+};
+
 const LogoTicker = () => {
   return (
     <div className="relative w-full overflow-hidden">
@@ -73,13 +107,7 @@ const LogoTicker = () => {
               key={index}
               className="group relative h-32 w-48 flex-shrink-0 transition-all duration-700"
             >
-              <Image
-                src={logo}
-                alt={`Concern Company Logo ${index + 1}`}
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 200px, 300px"
-              />
+              <LogoMedia logo={logo} index={index} />
             </div>
           ))}
         </motion.div>
@@ -92,13 +120,7 @@ const LogoTicker = () => {
             key={index}
             className="relative flex aspect-[4/3] items-center justify-center p-0 transition-all duration-700"
           >
-            <Image
-              src={logo}
-              alt={`Concern Company Logo ${index + 1}`}
-              fill
-              className="object-contain"
-              sizes="33vw"
-            />
+            <LogoMedia logo={logo} index={index} />
           </div>
         ))}
       </div>
