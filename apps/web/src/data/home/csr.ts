@@ -40,7 +40,16 @@ export const sisterCompanies: SisterCompany[] = [
   },
 ];
 
-export const concernLogos = Array.from(
-  { length: 9 },
-  (_, i) => `/images/concern-companies/logos/${i + 1}.png`
-);
+export interface ConcernLogo {
+  src: string;
+  href?: string;
+}
+
+const concernLogoLinks: Record<number, string> = {
+  1: "https://www.flyinco.com/",
+};
+
+export const concernLogos: ConcernLogo[] = Array.from({ length: 9 }, (_, i) => ({
+  src: `/images/concern-companies/logos/${i + 1}.png`,
+  href: concernLogoLinks[i + 1],
+}));
