@@ -1,0 +1,19 @@
+{
+  "name": "rvcc-pdf-cdn",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Cloudflare Worker CDN for RVCC PDF books and pdf.js worker",
+  "scripts": {
+    "prepare-assets": "node ./scripts/prepare-assets.mjs",
+    "prepare": "node ./scripts/prepare-assets.mjs",
+    "dev": "npm run prepare-assets && wrangler dev",
+    "deploy": "npm run prepare-assets && wrangler deploy",
+    "tail": "wrangler tail",
+    "upload": "node ./scripts/upload-assets.mjs"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260730.1",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.118.0"
+  }
+}

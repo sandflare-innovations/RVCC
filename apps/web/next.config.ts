@@ -21,6 +21,21 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: "/pdfjs/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
+        source: "/pdf/books/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=86400" },
+          { key: "Accept-Ranges", value: "bytes" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
