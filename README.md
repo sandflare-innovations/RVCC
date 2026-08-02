@@ -5,9 +5,10 @@ This is the primary repository for the RVCC Construction Company web infrastruct
 ## 🏗 Project Structure
 
 - `apps/web`: The main Next.js 15+ application (Sanity CMS integrated).
+- `workers/pdf-cdn`: Cloudflare Worker + R2 edge CDN for PDF books and pdf.js worker.
 - `packages/eslint-config`: Shared, modular ESLint configurations (The industrial standard for monorepos).
 - `packages/ui`: Shared React component library.
-- `.husky/`: Git hooks for automated quality enforcement.
+    - `.husky/`: Git hooks for automated quality enforcement.
 
 ## 💎 Industrial Quality Standards
 
@@ -64,6 +65,26 @@ Manually trigger the organization pass:
 ```bash
 pnpm format
 ```
+
+### 5. PDF CDN (Cloudflare Worker)
+
+**Live:** `https://rvcc-pdf-cdn.rvcc.workers.dev`
+
+Most PDFs and the pdf.js worker are stored on **Cloudflare Workers Static Assets** (edge). The ~166 MB water-feature PDF is pulled from Vercel once and then edge-cached (Workers Assets max file size is 25 MiB).
+
+```bash
+cd workers/pdf-cdn
+npm install
+npm run deploy
+```
+
+App env (`apps/web/.env.local` and Vercel):
+
+```env
+NEXT_PUBLIC_PDF_CDN_URL=https://rvcc-pdf-cdn.rvcc.workers.dev
+```
+
+See `workers/pdf-cdn/README.md`.
 
 ---
 

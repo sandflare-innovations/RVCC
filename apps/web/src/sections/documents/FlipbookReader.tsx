@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AnimatePresence, motion } from "framer-motion";
 import HTMLFlipBook from "react-pageflip";
@@ -11,11 +11,17 @@ import "react-pdf/dist/Page/TextLayer.css";
 import { Icons } from "@repo/ui";
 
 import { DocumentItem } from "@/data/documents";
+import { cdnUrl } from "@/lib/cdn";
 
-// Set PDF worker with the required ES module (.mjs) build for modern PDF.js compatibility (Synced with react-pdf version 5.4.296)
+// Self-hosted worker (local /public or Cloudflare PDF CDN) — no third-party CDN required
 if (typeof window !== "undefined") {
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+  pdfjs.GlobalWorkerOptions.workerSrc = cdnUrl("/pdfjs/pdf.worker.min.mjs");
 }
+
+/** Pages kept mounted around the current index (plus always the cover). */
+const PAGE_RENDER_WINDOW = 2;
+/** Cap canvas backing-store DPR to avoid huge bitmaps on retina displays. */
+const MAX_DEVICE_PIXEL_RATIO = 1.25;
 
 interface FlipbookReaderProps {
   isOpen: boolean;
@@ -27,10 +33,7 @@ const Page = React.forwardRef<HTMLDivElement, { number: number; children: React.
   (props, ref) => {
     return (
       <div className="relative flex h-full w-full flex-col overflow-hidden bg-white" ref={ref}>
-        {/* Softened Depth Crease */}
         <div className="pointer-events-none absolute inset-y-0 left-0 z-[5] w-20 bg-gradient-to-r from-black/[0.08] via-black/[0.02] to-transparent" />
-
-        {/* Page Content Wrapper */}
         <div className="absolute inset-0 flex items-center justify-center">{props.children}</div>
       </div>
     );
@@ -45,8 +48,9 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [currentPage, setCurrentPage] = useState(0);
-  const [numPages, setNumPages] = useState<number>(0);
-  const [pageDim, setPageDim] = useState({ w: 0, h: 0 }); // Stores exact native PDF dimensions
+  const [numPages, setNumPages] = useState(0);
+  const [pageDim, setPageDim] = useState({ w: 0, h: 0 });
+  const [coverReady, setCoverReady] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [showGrid, setShowGrid] = useState(false);
@@ -56,26 +60,47 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
   const [showSettings, setShowSettings] = useState(false);
   const [showTools, setShowTools] = useState(false);
 
-  // Handle Fullscreen
+  const devicePixelRatio = useMemo(() => {
+    if (typeof window === "undefined") return 1;
+    return Math.min(window.devicePixelRatio || 1, MAX_DEVICE_PIXEL_RATIO);
+  }, []);
+
+  // Reset pipeline when switching documents
+  useEffect(() => {
+    setCurrentPage(0);
+    setNumPages(0);
+    setPageDim({ w: 0, h: 0 });
+    setCoverReady(false);
+    setIsZoomed(false);
+    setZoomLevel(1);
+    setShowGrid(false);
+    setIsAutoPlaying(false);
+  }, [doc?.fileUrl]);
+
+  // Safety: never leave users on a stuck boot overlay if cover paint fails
+  useEffect(() => {
+    if (pageDim.w <= 0 || coverReady) return;
+    const timer = setTimeout(() => setCoverReady(true), 12_000);
+    return () => clearTimeout(timer);
+  }, [pageDim.w, coverReady]);
+
   useEffect(() => {
     const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", handleFsChange);
     return () => document.removeEventListener("fullscreenchange", handleFsChange);
   }, []);
 
-  // Handle Autoplay
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isAutoPlaying && flipBookRef.current) {
+    if (isAutoPlaying && flipBookRef.current && coverReady) {
       interval = setInterval(() => {
         // @ts-expect-error - pageFlip() is added by the library at runtime
         flipBookRef.current?.pageFlip()?.flipNext();
       }, 3000);
     }
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, coverReady]);
 
-  // Preload Page Flipping Audio
   useEffect(() => {
     audioRef.current = new Audio("https://www.soundjay.com/misc/sounds/page-flip-01.mp3");
     audioRef.current.volume = 0.5;
@@ -93,35 +118,37 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
     setCurrentPage(e.data);
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {}); // Catch autoplay policy blockers smoothly
+      audioRef.current.play().catch(() => {});
     }
   }, []);
 
-  // Safely extract the exact intrinsic aspect ratio and dimensions of the PDF
-  const onDocumentLoadSuccess = (pdf: {
-    numPages: number;
-    getPage: (n: number) => Promise<unknown>;
-  }) => {
-    setNumPages(pdf.numPages);
-    pdf
-      .getPage(1)
-      .then((page: unknown) => {
-        // Safely extract viewport using a precise type cast to satisfy strict linting
-        const viewport = (
-          page as { getViewport: (o: { scale: number }) => { width: number; height: number } }
-        ).getViewport({ scale: 1 });
-        setPageDim({ w: viewport.width, h: viewport.height });
-      })
-      .catch(() => {
-        console.error("Could not calculate PDF dimensions");
-      });
-  };
+  const onDocumentLoadSuccess = useCallback(
+    (pdf: { numPages: number; getPage: (n: number) => Promise<unknown> }) => {
+      setNumPages(pdf.numPages);
+      pdf
+        .getPage(1)
+        .then((page: unknown) => {
+          const viewport = (
+            page as { getViewport: (o: { scale: number }) => { width: number; height: number } }
+          ).getViewport({ scale: 1 });
+          setPageDim({ w: Math.round(viewport.width), h: Math.round(viewport.height) });
+        })
+        .catch(() => {
+          console.error("Could not calculate PDF dimensions");
+          setPageDim({ w: 600, h: 848 });
+        });
+    },
+    []
+  );
 
-  // Exact centering using percentage offsets
+  const onCoverRenderSuccess = useCallback(() => {
+    setCoverReady(true);
+  }, []);
+
   const getDynamicXOffset = () => {
     if (isZoomed) return "0%";
-    if (currentPage === 0) return "-25%"; // Center front cover
-    if (currentPage === numPages - 1 && numPages % 2 === 0) return "25%"; // Center back cover
+    if (currentPage === 0) return "-25%";
+    if (currentPage === numPages - 1 && numPages % 2 === 0) return "25%";
     return "0%";
   };
 
@@ -139,10 +166,19 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
     }
   };
 
+  const isPageVisible = useCallback(
+    (index: number) => {
+      if (index === 0) return true; // always keep cover warm
+      return Math.abs(index - currentPage) <= PAGE_RENDER_WINDOW;
+    },
+    [currentPage]
+  );
+
   if (!doc) return null;
 
-  // Calculate spread ratio. A spread is exactly 2 pages wide.
-  const spreadRatio = pageDim.w > 0 ? (pageDim.w * 2) / pageDim.h : 1.414; // Default to A4 Spread ratio
+  const dimsReady = pageDim.w > 0 && pageDim.h > 0;
+  const spreadRatio = dimsReady ? (pageDim.w * 2) / pageDim.h : 1.414;
+  const showBootOverlay = isOpen && !coverReady;
 
   return (
     <AnimatePresence>
@@ -176,6 +212,24 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
               }}
             />
           </div>
+
+          {/* Boot overlay — stays until cover canvas has painted (not just PDF parse) */}
+          <AnimatePresence>
+            {showBootOverlay && (
+              <motion.div
+                key="boot"
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35 }}
+                className="absolute inset-0 z-[480] flex flex-col items-center justify-center gap-4 bg-brand-blue"
+              >
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <div className="animate-pulse text-xs font-black tracking-[0.5em] text-white uppercase">
+                  {dimsReady ? "Rendering Cover..." : "Initializing Reader..."}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Top Left - Back Button */}
           <div className="absolute top-8 left-8 z-[450]">
@@ -229,11 +283,10 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
             ref={containerRef}
             className="absolute inset-x-0 top-20 bottom-24 z-[400] flex items-center justify-center px-4 md:px-16"
           >
-            {/* Dynamic Sized Flipbook Wrapper */}
             <motion.div
               className={`relative flex items-center justify-center ${isZoomed ? "z-[460] cursor-grab active:cursor-grabbing" : "z-[400] cursor-pointer"}`}
               style={
-                pageDim.w > 0
+                dimsReady
                   ? {
                       aspectRatio: `${spreadRatio}`,
                       width: "100%",
@@ -241,8 +294,8 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                       maxWidth: `calc((100vh - 2rem) * ${spreadRatio})`,
                     }
                   : {
-                      width: "600px",
-                      height: "850px",
+                      width: "min(600px, 90vw)",
+                      height: "min(850px, 70vh)",
                     }
               }
               drag={isZoomed}
@@ -250,10 +303,14 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
               dragElastic={0.1}
               animate={{
                 scale: zoomLevel,
-                x: isZoomed ? undefined : getDynamicXOffset(),
+                x: !coverReady || isZoomed ? 0 : getDynamicXOffset(),
                 y: isZoomed ? undefined : 0,
               }}
-              transition={{ type: "spring", stiffness: 200, damping: 25 }}
+              transition={
+                coverReady
+                  ? { type: "spring", stiffness: 260, damping: 28 }
+                  : { duration: 0 }
+              }
             >
               <Document
                 key={doc.fileUrl}
@@ -261,24 +318,18 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                 onLoadSuccess={onDocumentLoadSuccess}
                 onLoadError={(error) => console.error("PDF Load Error:", error)}
                 onSourceError={(error) => console.error("PDF Source Error:", error)}
+                // Workers Static Assets serve full objects (no 206). Skip range probes.
+                options={{ disableRange: true, disableStream: true }}
                 renderMode="canvas"
                 className="flex h-full w-full items-center justify-center"
-                loading={
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="border-brand-blue h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" />
-                    <div
-                      className={`animate-pulse text-xs font-black tracking-[0.5em] uppercase ${readerBg === "white" ? "text-brand-blue" : "text-white"}`}
-                    >
-                      Initializing Reader...
-                    </div>
-                  </div>
-                }
+                loading={null}
               >
-                {numPages > 0 && (
+                {/* Mount flipbook only after real page dimensions — avoids stretch race / blank sheets */}
+                {numPages > 0 && dimsReady && (
                   // @ts-expect-error - HTMLFlipBook types are incomplete for some props
                   <HTMLFlipBook
-                    width={pageDim.w || 600} // Use native width or fallback for instant load
-                    height={pageDim.h || 600 * 1.414} // Use native height or A4 fallback
+                    width={pageDim.w}
+                    height={pageDim.h}
                     size="stretch"
                     minWidth={200}
                     maxWidth={4000}
@@ -288,31 +339,32 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                     showCover={true}
                     mobileScrollSupport={true}
                     onFlip={onFlip}
-                    flippingTime={900}
+                    flippingTime={700}
                     usePortrait={false}
                     startPage={0}
                     drawShadow={true}
                     useMouseEvents={!isZoomed}
                     showPageCorners={!isZoomed}
-                    className={`transition-shadow duration-700 ${isZoomed ? "pointer-events-none" : "pointer-events-auto"} ${
+                    className={`transition-shadow duration-500 ${isZoomed ? "pointer-events-none" : "pointer-events-auto"} ${
                       currentPage === 0
                         ? "shadow-none"
                         : "shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5),0_20px_40px_-10px_rgba(0,0,0,0.3)]"
                     }`}
                     ref={flipBookRef}
                   >
-                    {Array.from(new Array(numPages), (el, index) => {
-                      // Force-render the first 10 pages to ensure cover visibility and instant load
-                      const isVisible = index < 10 || Math.abs(index - currentPage) <= 6;
+                    {Array.from(new Array(numPages), (_el, index) => {
+                      const visible = isPageVisible(index);
                       return (
                         <Page key={`page_${index + 1}`} number={index + 1}>
-                          {isVisible ? (
-                            <div className="absolute inset-0 flex items-center justify-center [&_.react-pdf__Page]:!h-full [&_.react-pdf__Page]:!w-full [&_canvas]:!h-full [&_canvas]:!w-full [&_canvas]:!object-contain">
+                          {visible ? (
+                            <div className="absolute inset-0 flex items-center justify-center">
                               <PdfPage
                                 pageNumber={index + 1}
-                                width={(pageDim.w || 600) * 1.5} // Use fallback or native width, always high-res
+                                width={pageDim.w}
+                                devicePixelRatio={devicePixelRatio}
                                 renderAnnotationLayer={false}
                                 renderTextLayer={false}
+                                onRenderSuccess={index === 0 ? onCoverRenderSuccess : undefined}
                                 loading={
                                   <div className="flex h-full w-full items-center justify-center bg-zinc-50">
                                     <div className="border-brand-blue h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
@@ -479,7 +531,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
             </button>
           </div>
 
-          {/* Grid View Overlay Component */}
+          {/* Grid View — thumbnails only when opened; smaller canvases */}
           <AnimatePresence>
             {showGrid && (
               <motion.div
@@ -488,7 +540,6 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-[600] flex flex-col bg-zinc-950/98 backdrop-blur-3xl"
               >
-                {/* Fixed Header */}
                 <div className="flex flex-none items-center justify-between border-b border-white/5 px-8 py-8 md:px-16">
                   <div className="space-y-1">
                     <h3 className="text-2xl font-black tracking-tighter text-white uppercase">
@@ -506,12 +557,11 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                   </button>
                 </div>
 
-                {/* Scrollable Content */}
                 <div className="scrollbar-thin scrollbar-thumb-brand-blue/20 flex-1 overflow-y-auto p-8 md:p-16">
                   <div className="mx-auto max-w-7xl">
                     <Document file={doc.fileUrl}>
                       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-                        {Array.from(new Array(numPages), (el, index) => (
+                        {Array.from(new Array(numPages), (_el, index) => (
                           <div
                             key={`grid_${index}`}
                             className="group relative flex cursor-pointer flex-col gap-4"
@@ -524,18 +574,18 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                             <div
                               className="group-hover:ring-brand-blue group-hover:shadow-brand-blue/20 relative overflow-hidden bg-white shadow-2xl ring-1 ring-white/10 transition-all duration-500 group-hover:scale-[1.02]"
                               style={{
-                                aspectRatio: pageDim.w > 0 ? `${pageDim.w / pageDim.h}` : "0.707",
+                                aspectRatio: dimsReady ? `${pageDim.w / pageDim.h}` : "0.707",
                               }}
                             >
-                              <div className="absolute inset-0 [&_.react-pdf__Page]:!h-full [&_.react-pdf__Page]:!w-full [&_.react-pdf__Page__canvas]:!h-full [&_.react-pdf__Page__canvas]:!w-full [&_.react-pdf__Page__canvas]:!object-cover">
+                              <div className="absolute inset-0 flex items-center justify-center">
                                 <PdfPage
                                   pageNumber={index + 1}
-                                  width={300}
+                                  width={180}
+                                  devicePixelRatio={1}
                                   renderAnnotationLayer={false}
                                   renderTextLayer={false}
                                 />
                               </div>
-                              {/* Overlay on hover */}
                               <div className="bg-brand-blue/0 group-hover:bg-brand-blue/10 absolute inset-0 flex items-center justify-center transition-colors">
                                 <div className="translate-y-4 opacity-0 transition-opacity duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                                   <div className="bg-brand-blue rounded-sm px-4 py-2 text-[10px] font-black tracking-widest text-white uppercase shadow-xl">
@@ -552,7 +602,6 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
                       </div>
                     </Document>
                   </div>
-                  {/* Bottom Spacer */}
                   <div className="h-24" />
                 </div>
               </motion.div>

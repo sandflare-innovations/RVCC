@@ -1,0 +1,27 @@
+name = "rvcc-pdf-cdn"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+workers_dev = true
+
+# Most PDFs + pdf.js live on Cloudflare Workers Static Assets (edge).
+# PDFs > 25 MiB pull from Vercel once, then Cache API.
+#
+#   npm run prepare
+#   npm run deploy
+#   Set NEXT_PUBLIC_PDF_CDN_URL=https://rvcc-pdf-cdn.rvcc.workers.dev
+
+[assets]
+directory = "./public"
+binding = "FILES"
+# Native asset serving preserves HTTP Range (needed by pdf.js).
+# Worker only runs for misses (e.g. 166MB water-feature → Vercel + edge cache).
+not_found_handling = "none"
+
+[vars]
+ORIGIN_URL = "https://rvcc-dev.vercel.app"
+ALLOWED_ORIGINS = "*"
+
+# Optional R2 for the 166MB water-feature PDF (enable R2 in Dashboard first):
+# [[r2_buckets]]
+# binding = "ASSETS"
+# bucket_name = "rvcc-pdf-assets"

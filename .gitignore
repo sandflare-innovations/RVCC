@@ -26,6 +26,12 @@ coverage/
 .env.production.local
 *.env.local
 
+# Cloudflare Workers
+.wrangler/
+.dev.vars
+workers/**/node_modules/
+workers/pdf-cdn/public/
+
 # Vercel
 .vercel
 

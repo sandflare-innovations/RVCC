@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -12,10 +11,6 @@ import { Icons } from "@repo/ui";
 
 import { Button } from "@/components/ui/Button";
 import { DOCUMENTS, DocumentItem } from "@/data/documents";
-
-const FlipbookReader = dynamic(() => import("./FlipbookReader").then((mod) => mod.FlipbookReader), {
-  ssr: false,
-});
 
 const PasswordModal = ({
   isOpen,
@@ -202,9 +197,9 @@ const DocumentCard = ({
   };
 
   const handleSuccess = () => {
-    // Trigger download
+    // Same-origin path so the download attribute works (CDN URLs ignore it)
     const link = document.createElement("a");
-    link.href = item.fileUrl;
+    link.href = item.filePath;
     link.download = item.title;
     document.body.appendChild(link);
     link.click();
