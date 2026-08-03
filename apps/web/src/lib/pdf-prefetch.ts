@@ -1,3 +1,5 @@
+import { pdfjs } from "react-pdf";
+
 /**
  * Warm PDF bytes + pdf.js worker on READ click so the reader isn't blank on first paint.
  */
@@ -5,16 +7,17 @@ export function prefetchDocumentReader(fileUrl: string, filePath?: string) {
   if (typeof window === "undefined") return;
 
   // Prefer CDN when available (origin may serve LFS stubs); then same-origin.
-  const urls = [fileUrl, filePath].filter((u, i, a) => Boolean(u) && a.indexOf(u) === i) as string[];
+  const urls = [fileUrl, filePath].filter(
+    (u, i, a) => Boolean(u) && a.indexOf(u) === i
+  ) as string[];
   for (const url of urls) {
-    const cross =
-      (() => {
-        try {
-          return new URL(url, window.location.href).origin !== window.location.origin;
-        } catch {
-          return false;
-        }
-      })();
+    const cross = (() => {
+      try {
+        return new URL(url, window.location.href).origin !== window.location.origin;
+      } catch {
+        return false;
+      }
+    })();
     void fetch(url, {
       mode: cross ? "cors" : "same-origin",
       credentials: "omit",
