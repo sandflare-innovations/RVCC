@@ -12,9 +12,27 @@ import { Icons } from "@repo/ui";
 
 import { DocumentItem } from "@/data/documents";
 
-// Same-origin worker avoids cross-origin WorkerTransport crashes; PDF files still use CDN.
+/**
+ * Pin worker to the same pdfjs-dist version as the app.
+ * Production was 404ing `/pdfjs/pdf.worker.min.mjs` (stale Vercel 404 cache),
+ * which left the reader stuck at "Loading PDF 99%" with a minified "H" error.
+ */
 if (typeof window !== "undefined") {
-  pdfjs.GlobalWorkerOptions.workerSrc = "/pdfjs/pdf.worker.min.mjs";
+  pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+}
+
+function formatPdfError(error: unknown): string {
+  if (!error) return "Unknown error";
+  if (typeof error === "string") return error;
+  if (error instanceof Error) {
+    const msg = error.message?.trim();
+    if (msg) return msg;
+    if (error.name && error.name !== "Error") return error.name;
+  }
+  const anyErr = error as { message?: string; name?: string };
+  if (typeof anyErr.message === "string" && anyErr.message.trim()) return anyErr.message;
+  if (typeof anyErr.name === "string" && anyErr.name) return anyErr.name;
+  return "Failed to load PDF";
 }
 
 /** Keep a tight live window. Wider windows cause white pages + jank. */
@@ -116,6 +134,8 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
   const [flipLive, setFlipLive] = useState(false);
   const [mountedPages, setMountedPages] = useState<Set<number>>(() => new Set([0, 1, 2, 3]));
   const [loadProgress, setLoadProgress] = useState(0);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadNonce, setLoadNonce] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [showGrid, setShowGrid] = useState(false);
@@ -142,6 +162,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
     setFlipLive(false);
     setMountedPages(new Set([0, 1, 2, 3]));
     setLoadProgress(0);
+    setLoadError(null);
     setIsZoomed(false);
     setZoomLevel(1);
     setShowGrid(false);
@@ -294,6 +315,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
 
   const onDocumentLoadSuccess = useCallback(
     (pdf: { numPages: number; getPage: (n: number) => Promise<unknown> }) => {
+      setLoadError(null);
       setNumPages(pdf.numPages);
       setPdfReady(true);
       setLoadProgress(100);
@@ -323,10 +345,26 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
   );
 
   const onDocumentLoadError = useCallback((error: unknown) => {
-    console.error("PDF Load Error:", error);
+    const message = formatPdfError(error);
+    console.error("PDF Load Error:", message, error);
+    setLoadError(message);
     setPdfReady(false);
     setNumPages(0);
     setCoverReady(false);
+  }, []);
+
+  const retryLoad = useCallback(() => {
+    setLoadError(null);
+    setLoadProgress(0);
+    setPdfReady(false);
+    setNumPages(0);
+    setPageDim({ w: 0, h: 0 });
+    setBookBox({ w: 0, h: 0 });
+    setCoverReady(false);
+    setFlipMounted(false);
+    setFlipLive(false);
+    setMountedPages(new Set([0, 1, 2, 3]));
+    setLoadNonce((n) => n + 1);
   }, []);
 
   const onPreviewRenderSuccess = useCallback(() => {
@@ -433,25 +471,52 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.35 }}
-            className="bg-brand-blue absolute inset-0 z-[480] flex flex-col items-center justify-center gap-4"
+            className="bg-brand-blue absolute inset-0 z-[480] flex flex-col items-center justify-center gap-4 px-6"
           >
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
-            <div className="text-xs font-black tracking-[0.5em] text-white uppercase">
-              {coverReady
-                ? "Opening Book..."
-                : dimsReady
-                  ? "Rendering Cover..."
-                  : loadProgress > 0 && loadProgress < 100
-                    ? `Loading PDF ${loadProgress}%`
-                    : "Initializing Reader..."}
-            </div>
-            {loadProgress > 0 && loadProgress < 100 && (
-              <div className="mt-2 h-1 w-48 overflow-hidden rounded-full bg-white/20">
-                <div
-                  className="h-full bg-white transition-[width] duration-200"
-                  style={{ width: `${loadProgress}%` }}
-                />
-              </div>
+            {loadError ? (
+              <>
+                <div className="text-xs font-black tracking-[0.4em] text-white uppercase">
+                  Could not open PDF
+                </div>
+                <p className="max-w-md text-center text-sm text-white/70">{loadError}</p>
+                <div className="mt-2 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={retryLoad}
+                    className="border border-white/30 bg-white/10 px-4 py-2 text-[10px] font-black tracking-widest text-white uppercase hover:bg-white/20"
+                  >
+                    Retry
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="border border-white/10 px-4 py-2 text-[10px] font-black tracking-widest text-white/60 uppercase hover:text-white"
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <div className="text-xs font-black tracking-[0.5em] text-white uppercase">
+                  {coverReady
+                    ? "Opening Book..."
+                    : dimsReady
+                      ? "Rendering Cover..."
+                      : loadProgress > 0 && loadProgress < 100
+                        ? `Loading PDF ${loadProgress}%`
+                        : "Initializing Reader..."}
+                </div>
+                {loadProgress > 0 && loadProgress < 100 && (
+                  <div className="mt-2 h-1 w-48 overflow-hidden rounded-full bg-white/20">
+                    <div
+                      className="h-full bg-white transition-[width] duration-200"
+                      style={{ width: `${loadProgress}%` }}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </motion.div>
         )}
@@ -536,7 +601,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
           }
         >
           <Document
-            key={doc.filePath}
+            key={`${doc.filePath}:${loadNonce}`}
             file={doc.filePath}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadProgress={onDocumentLoadProgress}
