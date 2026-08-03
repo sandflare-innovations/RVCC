@@ -1,9 +1,9 @@
 /**
  * RVCC PDF CDN — Cloudflare Worker
  *
- * Most files are served natively by Workers Static Assets (Range + CORS via _headers).
- * This Worker handles cache misses only — mainly the oversized water-feature PDF via
- * Vercel origin + Cache API.
+ * run_worker_first=true so we handle OPTIONS + Range before Static Assets.
+ * Assets (≤25MB) are fetched via FILES binding (native 206 when Range works).
+ * Oversized PDFs pull from Vercel once, then Cache API (no fake Accept-Ranges).
  */
 
 export interface Env {
@@ -14,6 +14,8 @@ export interface Env {
 }
 
 const CACHE_CONTROL = "public, max-age=31536000, immutable";
+/** Only slice in-Worker when the object fits comfortably in memory. */
+const MAX_MANUAL_RANGE_BYTES = 30 * 1024 * 1024;
 
 function corsHeaders(request: Request, env: Env): HeadersInit {
   const allowed = (env.ALLOWED_ORIGINS || "*").trim();
@@ -54,26 +56,136 @@ function normalizeKey(pathname: string): string | null {
   return pathname.replace(/^\/+/, "");
 }
 
-function withCdnHeaders(
+function parseByteRange(
+  rangeHeader: string,
+  size: number
+): { start: number; end: number } | "invalid" | null {
+  const m = /^bytes=(\d*)-(\d*)$/i.exec(rangeHeader.trim());
+  if (!m) return "invalid";
+
+  const hasStart = m[1] !== "";
+  const hasEnd = m[2] !== "";
+  if (!hasStart && !hasEnd) return "invalid";
+
+  let start: number;
+  let end: number;
+
+  if (!hasStart) {
+    // bytes=-N (last N bytes)
+    const suffix = parseInt(m[2], 10);
+    if (Number.isNaN(suffix) || suffix <= 0) return "invalid";
+    start = Math.max(0, size - suffix);
+    end = size - 1;
+  } else {
+    start = parseInt(m[1], 10);
+    end = hasEnd ? parseInt(m[2], 10) : size - 1;
+    if (Number.isNaN(start) || Number.isNaN(end)) return "invalid";
+  }
+
+  if (start < 0 || start >= size || end < start) return "invalid";
+  end = Math.min(end, size - 1);
+  return { start, end };
+}
+
+function withCors(
   request: Request,
   env: Env,
-  source: string,
   res: Response,
-  key: string
+  source: string,
+  extra?: HeadersInit
 ): Response {
   const headers = new Headers(res.headers);
   Object.entries(corsHeaders(request, env)).forEach(([k, v]) => headers.set(k, v));
-  headers.set("Cache-Control", CACHE_CONTROL);
   headers.set("X-CDN-Source", source);
-  if (!headers.has("Content-Type")) {
-    headers.set("Content-Type", contentTypeForKey(key));
-  }
-  headers.set("Accept-Ranges", "bytes");
+  headers.set("Cache-Control", headers.get("Cache-Control") || CACHE_CONTROL);
+  if (extra) Object.entries(extra).forEach(([k, v]) => headers.set(k, String(v)));
 
   if (request.method === "HEAD") {
     return new Response(null, { status: res.status, headers });
   }
-  return new Response(res.body, { status: res.status, headers });
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+}
+
+/** Turn a full 200 body into a proper 206 when the platform ignored Range. */
+async function forceByteRangeIfNeeded(
+  request: Request,
+  env: Env,
+  res: Response,
+  source: string,
+  key: string
+): Promise<Response> {
+  const rangeHeader = request.headers.get("Range");
+  if (!rangeHeader || res.status === 206 || res.status === 416) {
+    const out = withCors(request, env, res, source);
+    if (!out.headers.has("Accept-Ranges")) out.headers.set("Accept-Ranges", "bytes");
+    return out;
+  }
+
+  if (res.status !== 200) {
+    return withCors(request, env, res, source);
+  }
+
+  const lenHeader = res.headers.get("Content-Length");
+  const declared = lenHeader ? parseInt(lenHeader, 10) : NaN;
+  if (!Number.isNaN(declared) && declared > MAX_MANUAL_RANGE_BYTES) {
+    // Too large to slice here — do not advertise ranges (avoids pdf.js corruption).
+    const headers = new Headers(withCors(request, env, res, source).headers);
+    headers.delete("Accept-Ranges");
+    return new Response(res.body, { status: 200, headers });
+  }
+
+  const buf = await res.arrayBuffer();
+  if (buf.byteLength > MAX_MANUAL_RANGE_BYTES) {
+    const headers = new Headers(corsHeaders(request, env));
+    headers.set("Content-Type", res.headers.get("Content-Type") || contentTypeForKey(key));
+    headers.set("Cache-Control", CACHE_CONTROL);
+    headers.set("X-CDN-Source", source);
+    headers.set("Content-Length", String(buf.byteLength));
+    // No Accept-Ranges
+    if (request.method === "HEAD") return new Response(null, { status: 200, headers });
+    return new Response(buf, { status: 200, headers });
+  }
+
+  const parsed = parseByteRange(rangeHeader, buf.byteLength);
+  if (parsed === "invalid") {
+    const headers = new Headers(corsHeaders(request, env));
+    headers.set("Content-Range", `bytes */${buf.byteLength}`);
+    headers.set("X-CDN-Source", source);
+    return new Response(null, { status: 416, headers });
+  }
+  if (!parsed) {
+    return withCors(request, env, new Response(buf, { status: 200, headers: res.headers }), source, {
+      "Accept-Ranges": "bytes",
+      "Content-Length": String(buf.byteLength),
+    });
+  }
+
+  const { start, end } = parsed;
+  const slice = buf.slice(start, end + 1);
+  const headers = new Headers(corsHeaders(request, env));
+  headers.set("Content-Type", res.headers.get("Content-Type") || contentTypeForKey(key));
+  headers.set("Cache-Control", CACHE_CONTROL);
+  headers.set("Accept-Ranges", "bytes");
+  headers.set("Content-Range", `bytes ${start}-${end}/${buf.byteLength}`);
+  headers.set("Content-Length", String(slice.byteLength));
+  headers.set("X-CDN-Source", source);
+  if (res.headers.has("ETag")) headers.set("ETag", res.headers.get("ETag")!);
+
+  if (request.method === "HEAD") return new Response(null, { status: 206, headers });
+  return new Response(slice, { status: 206, headers });
+}
+
+async function serveFromFiles(
+  request: Request,
+  env: Env,
+  key: string
+): Promise<Response | null> {
+  if (!env.FILES) return null;
+
+  const assetRes = await env.FILES.fetch(request);
+  if (assetRes.status === 404) return null;
+
+  return forceByteRangeIfNeeded(request, env, assetRes, "cloudflare-assets", key);
 }
 
 function applyRangeHeaders(
@@ -158,46 +270,76 @@ async function serveFromOrigin(
   const cache = caches.default;
   const cacheKey = new Request(`https://pdf-cdn-cache.internal/${key}`, { method: "GET" });
 
-  const cached = await cache.match(cacheKey);
-  if (cached) {
-    return withCdnHeaders(request, env, "edge-cache", cached, key);
+  // Cache API can satisfy Range from a stored full response on some runtimes.
+  const rangeHeader = request.headers.get("Range");
+  if (rangeHeader) {
+    const rangedKey = new Request(cacheKey.url, {
+      method: "GET",
+      headers: { Range: rangeHeader },
+    });
+    const rangedHit = await cache.match(rangedKey);
+    if (rangedHit && rangedHit.status === 206) {
+      return withCors(request, env, rangedHit, "edge-cache");
+    }
   }
 
-  const upstream = await fetch(`${origin}/${key}`, {
-    method: "GET",
-    headers: { Accept: request.headers.get("Accept") || "*/*" },
-    cf: { cacheTtl: 31_536_000, cacheEverything: true },
-  });
+  let cached = await cache.match(cacheKey);
+  if (!cached) {
+    const upstream = await fetch(`${origin}/${key}`, {
+      method: "GET",
+      headers: { Accept: request.headers.get("Accept") || "*/*" },
+      cf: { cacheTtl: 31_536_000, cacheEverything: true },
+    });
 
-  if (!upstream.ok) {
-    return new Response(
-      JSON.stringify({
-        error: "Origin fetch failed",
-        origin: `${origin}/${key}`,
-        status: upstream.status,
-      }),
-      {
-        status: upstream.status === 404 ? 404 : 502,
-        headers: { "Content-Type": "application/json", ...corsHeaders(request, env) },
+    if (!upstream.ok) {
+      return new Response(
+        JSON.stringify({
+          error: "Origin fetch failed",
+          origin: `${origin}/${key}`,
+          status: upstream.status,
+        }),
+        {
+          status: upstream.status === 404 ? 404 : 502,
+          headers: { "Content-Type": "application/json", ...corsHeaders(request, env) },
+        }
+      );
+    }
+
+    const storeHeaders = new Headers();
+    storeHeaders.set("Content-Type", upstream.headers.get("Content-Type") || contentTypeForKey(key));
+    storeHeaders.set("Cache-Control", CACHE_CONTROL);
+    // Intentionally omit Accept-Ranges on stored oversized objects.
+    storeHeaders.set("X-CDN-Source", "origin-vercel");
+
+    const responseForCache = new Response(upstream.body, { status: 200, headers: storeHeaders });
+    ctx.waitUntil(cache.put(cacheKey, responseForCache.clone()));
+    cached = responseForCache;
+  }
+
+  // Large origin objects: never lie about Range support.
+  if (rangeHeader) {
+    const len = parseInt(cached.headers.get("Content-Length") || "0", 10);
+    if (!len || len > MAX_MANUAL_RANGE_BYTES) {
+      const headers = new Headers(corsHeaders(request, env));
+      headers.set("Content-Type", cached.headers.get("Content-Type") || contentTypeForKey(key));
+      headers.set("Cache-Control", CACHE_CONTROL);
+      headers.set("X-CDN-Source", cached.headers.get("X-CDN-Source") || "edge-cache");
+      if (cached.headers.has("Content-Length")) {
+        headers.set("Content-Length", cached.headers.get("Content-Length")!);
       }
-    );
+      // No Accept-Ranges — pdf.js will full-fetch (safe).
+      if (request.method === "HEAD") return new Response(null, { status: 200, headers });
+      return new Response(cached.body, { status: 200, headers });
+    }
+    return forceByteRangeIfNeeded(request, env, cached, "edge-cache", key);
   }
 
-  const headers = new Headers(corsHeaders(request, env));
-  headers.set("Content-Type", upstream.headers.get("Content-Type") || contentTypeForKey(key));
-  headers.set("Cache-Control", CACHE_CONTROL);
-  headers.set("Accept-Ranges", "bytes");
-  headers.set("X-CDN-Source", "origin-vercel");
-
-  const responseForCache = new Response(upstream.body, { status: 200, headers });
-  ctx.waitUntil(cache.put(cacheKey, responseForCache.clone()));
-
-  if (request.method === "HEAD") return new Response(null, { status: 200, headers });
-  return responseForCache;
+  return withCors(request, env, cached, cached.headers.get("X-CDN-Source") || "edge-cache");
 }
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    // Must run before Static Assets (run_worker_first) — assets alone returned 405 for OPTIONS.
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders(request, env) });
     }
@@ -217,8 +359,10 @@ export default {
           ok: true,
           service: "rvcc-pdf-cdn",
           cdn: "https://rvcc-pdf-cdn.rvcc.workers.dev",
+          range: "206 for assets ≤25MB; oversized origin objects do not advertise Range",
           layers: [
-            "cloudflare-assets (most PDFs + pdf.js worker)",
+            "worker-first (OPTIONS + Range)",
+            "cloudflare-assets via FILES binding",
             "r2 (optional)",
             "origin-vercel + edge cache (PDFs > 25MB)",
           ],
@@ -235,8 +379,8 @@ export default {
       return new Response("Not Found", { status: 404, headers: corsHeaders(request, env) });
     }
 
-    // Static Assets are served by the platform before this Worker runs.
-    // We only reach here for files not staged (e.g. water-feature 166MB).
+    const fromFiles = await serveFromFiles(request, env, key);
+    if (fromFiles) return fromFiles;
 
     const fromR2 = await serveFromR2(request, env, key);
     if (fromR2) return fromR2;
