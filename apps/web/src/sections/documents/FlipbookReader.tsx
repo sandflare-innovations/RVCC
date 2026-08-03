@@ -42,16 +42,46 @@ const STICKY_RADIUS = 5;
 /** Cap canvas backing-store DPR. */
 const MAX_DEVICE_PIXEL_RATIO = 1.25;
 
-/**
- * Same-origin PDFs support HTTP Range — pdf.js can open the first page
- * without downloading the entire file (critical for 20–160MB books).
- * CDN full-object mode forced disableRange and made init feel endless.
- */
-const PDF_DOCUMENT_OPTIONS = {
+type PdfDocOptions = {
+  disableAutoFetch: boolean;
+  disableStream: boolean;
+  disableRange: boolean;
+};
+
+/** Same-origin: Range/stream OK (Vercel returns real 206). */
+const SAME_ORIGIN_PDF_OPTIONS: PdfDocOptions = {
   disableAutoFetch: false,
   disableStream: false,
   disableRange: false,
-} as const;
+};
+
+/**
+ * Cross-origin CDN advertises Accept-Ranges but often returns 200 + full body
+ * for Range requests. pdf.js then stitches garbage → "Invalid PDF structure".
+ */
+const CROSS_ORIGIN_PDF_OPTIONS: PdfDocOptions = {
+  disableAutoFetch: true,
+  disableStream: true,
+  disableRange: true,
+};
+
+function isCrossOriginUrl(url: string): boolean {
+  if (typeof window === "undefined") return /^https?:\/\//i.test(url);
+  try {
+    return new URL(url, window.location.href).origin !== window.location.origin;
+  } catch {
+    return false;
+  }
+}
+
+function pdfOptionsForUrl(url: string): PdfDocOptions {
+  return isCrossOriginUrl(url) ? CROSS_ORIGIN_PDF_OPTIONS : SAME_ORIGIN_PDF_OPTIONS;
+}
+
+/** Prefer CDN when configured, then same-origin path (covers LFS-pointer deploys). */
+function pdfSourceCandidates(doc: DocumentItem): string[] {
+  return [doc.fileUrl, doc.filePath].filter((u, i, arr) => Boolean(u) && arr.indexOf(u) === i);
+}
 
 interface FlipbookReaderProps {
   isOpen: boolean;
@@ -136,6 +166,9 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
   const [loadProgress, setLoadProgress] = useState(0);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadNonce, setLoadNonce] = useState(0);
+  const [pdfFile, setPdfFile] = useState<string | null>(null);
+  const [pdfOptions, setPdfOptions] = useState<PdfDocOptions>(SAME_ORIGIN_PDF_OPTIONS);
+  const pdfFallbackTried = useRef(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [showGrid, setShowGrid] = useState(false);
@@ -163,11 +196,23 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
     setMountedPages(new Set([0, 1, 2, 3]));
     setLoadProgress(0);
     setLoadError(null);
+    setPdfFile(null);
+    pdfFallbackTried.current = false;
     setIsZoomed(false);
     setZoomLevel(1);
     setShowGrid(false);
     setIsAutoPlaying(false);
   }, [doc?.filePath]);
+
+  // Resolve PDF URL: CDN first (real bytes), same-origin second (Range when healthy)
+  useEffect(() => {
+    if (!doc || !isOpen) return;
+    const candidates = pdfSourceCandidates(doc);
+    const url = candidates[0] || doc.filePath;
+    setPdfFile(url);
+    setPdfOptions(pdfOptionsForUrl(url));
+    pdfFallbackTried.current = false;
+  }, [doc, isOpen, loadNonce]);
 
   // Fit the book into the real container — useLayoutEffect so size exists before paint
   useLayoutEffect(() => {
@@ -344,14 +389,39 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
     []
   );
 
-  const onDocumentLoadError = useCallback((error: unknown) => {
-    const message = formatPdfError(error);
-    console.error("PDF Load Error:", message, error);
-    setLoadError(message);
-    setPdfReady(false);
-    setNumPages(0);
-    setCoverReady(false);
-  }, []);
+  const onDocumentLoadError = useCallback(
+    (error: unknown) => {
+      const message = formatPdfError(error);
+      console.error("PDF Load Error:", message, error);
+
+      // Auto-fallback once (e.g. LFS pointer / HTML on origin → CDN, or CDN → origin)
+      if (doc && !pdfFallbackTried.current) {
+        const candidates = pdfSourceCandidates(doc);
+        const next = candidates.find((u) => u !== pdfFile);
+        if (next) {
+          pdfFallbackTried.current = true;
+          setLoadProgress(0);
+          setPdfReady(false);
+          setNumPages(0);
+          setCoverReady(false);
+          setPdfFile(next);
+          // Force full-file mode on fallback — safest against bad Range servers
+          setPdfOptions(CROSS_ORIGIN_PDF_OPTIONS);
+          return;
+        }
+      }
+
+      setLoadError(
+        /invalid pdf structure/i.test(message)
+          ? "Invalid PDF structure (host may have returned HTML or a Git LFS stub)."
+          : message
+      );
+      setPdfReady(false);
+      setNumPages(0);
+      setCoverReady(false);
+    },
+    [doc, pdfFile]
+  );
 
   const retryLoad = useCallback(() => {
     setLoadError(null);
@@ -364,6 +434,8 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
     setFlipMounted(false);
     setFlipLive(false);
     setMountedPages(new Set([0, 1, 2, 3]));
+    setPdfFile(null);
+    pdfFallbackTried.current = false;
     setLoadNonce((n) => n + 1);
   }, []);
 
@@ -600,14 +672,15 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
             flipLive ? { type: "tween", duration: 0.28, ease: "easeOut" } : { duration: 0 }
           }
         >
+          {pdfFile && (
           <Document
-            key={`${doc.filePath}:${loadNonce}`}
-            file={doc.filePath}
+            key={`${pdfFile}:${loadNonce}`}
+            file={pdfFile}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadProgress={onDocumentLoadProgress}
             onLoadError={onDocumentLoadError}
             onSourceError={onDocumentLoadError}
-            options={PDF_DOCUMENT_OPTIONS}
+            options={pdfOptions}
             renderMode="canvas"
             className="relative flex h-full w-full items-center justify-center"
             loading={null}
@@ -683,6 +756,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
               </HTMLFlipBook>
             )}
           </Document>
+          )}
         </motion.div>
       </div>
 
@@ -859,7 +933,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
 
             <div className="scrollbar-thumb-brand-blue/20 flex-1 scrollbar-thin overflow-y-auto p-8 md:p-16">
               <div className="mx-auto max-w-7xl">
-                <Document file={doc.filePath} options={PDF_DOCUMENT_OPTIONS}>
+                <Document file={pdfFile || doc.filePath} options={pdfOptions}>
                   <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
                     {Array.from(new Array(numPages), (_el, index) => (
                       <div

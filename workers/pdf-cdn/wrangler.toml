@@ -13,8 +13,10 @@ workers_dev = true
 [assets]
 directory = "./public"
 binding = "FILES"
-# Native asset serving preserves HTTP Range (needed by pdf.js).
-# Worker only runs for misses (e.g. 166MB water-feature → Vercel + edge cache).
+# Worker must run first: Static Assets alone returned 200 for Range (not 206)
+# and 405 for CORS OPTIONS — both break pdf.js cross-origin loads.
+run_worker_first = true
+# Native asset serving via env.FILES.fetch(); Worker adds CORS + Range fixups.
 not_found_handling = "none"
 
 [vars]
