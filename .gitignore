@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 .pnpm-debug.log*
+npm-debug.log*
 
 # Next.js
 .next/
@@ -60,7 +61,6 @@ desktop.ini
 
 # TypeScript
 *.tsbuildinfo
-next-env.d.ts
 
 # Debugging
 .map

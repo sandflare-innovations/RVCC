@@ -1,6 +1,6 @@
 # RVCC Monorepo - Industrial Standard Construction Portal
 
-This is the primary repository for the RVCC Construction Company web infrastructure. It is built as a high-performance monorepo using **pnpm workspaces**, **Turborepo**, and **Next.js**.
+This is the primary repository for the RVCC Construction Company web infrastructure. It is built as a high-performance monorepo using **npm workspaces**, **Turborepo**, and **Next.js**.
 
 ## 🏗 Project Structure
 
@@ -8,7 +8,7 @@ This is the primary repository for the RVCC Construction Company web infrastruct
 - `workers/pdf-cdn`: Cloudflare Worker + R2 edge CDN for PDF books and pdf.js worker.
 - `packages/eslint-config`: Shared, modular ESLint configurations (The industrial standard for monorepos).
 - `packages/ui`: Shared React component library.
-    - `.husky/`: Git hooks for automated quality enforcement.
+- `.husky/`: Git hooks for automated quality enforcement.
 
 ## 💎 Industrial Quality Standards
 
@@ -39,7 +39,7 @@ You cannot commit "dirty" code. Every commit triggers a validation pipeline that
 ### 1. Installation
 
 ```bash
-pnpm install
+npm install
 ```
 
 ### 2. Development
@@ -47,7 +47,7 @@ pnpm install
 Run all apps and packages in parallel with hot-reloading:
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 ### 3. Quality Check
@@ -55,7 +55,7 @@ pnpm dev
 Run linting across the entire monorepo:
 
 ```bash
-pnpm lint
+npm run lint
 ```
 
 ### 4. Code Formatting
@@ -63,7 +63,7 @@ pnpm lint
 Manually trigger the organization pass:
 
 ```bash
-pnpm format
+npm run format
 ```
 
 ### 5. PDF CDN (Cloudflare Worker)
