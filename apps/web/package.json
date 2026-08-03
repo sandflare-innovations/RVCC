@@ -11,7 +11,7 @@
   "dependencies": {
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
-    "@repo/ui": "workspace:*",
+    "@repo/ui": "*",
     "@sanity/client": "^7.21.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
@@ -30,15 +30,8 @@
     "three": "^0.184.0",
     "zod": "^3.24.2"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "sharp",
-      "unrs-resolver"
-    ]
-  },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
+    "@repo/eslint-config": "*",
     "@tailwindcss/postcss": "^4",
     "@types/hast": "^3.0.4",
     "@types/node": "^20",

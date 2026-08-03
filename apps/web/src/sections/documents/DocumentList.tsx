@@ -11,6 +11,7 @@ import { Icons } from "@repo/ui";
 
 import { Button } from "@/components/ui/Button";
 import { DOCUMENTS, DocumentItem } from "@/data/documents";
+import { prefetchDocumentReader } from "@/lib/pdf-prefetch";
 
 const PasswordModal = ({
   isOpen,
@@ -315,6 +316,8 @@ export const DocumentList = () => {
   const router = useRouter();
 
   const handleRead = (doc: DocumentItem) => {
+    // User gesture on READ: start PDF/worker/chunk warm-up before the route mounts the reader
+    prefetchDocumentReader(doc.fileUrl, doc.filePath);
     router.push(`/documents/${doc.slug}`);
   };
 

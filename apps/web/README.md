@@ -34,7 +34,7 @@ This application adheres to the global monorepo standards defined in the root [R
 1. **Install dependencies**:
 
    ```bash
-   pnpm install
+   npm install
    ```
 
 2. **Setup Environment**:
@@ -48,12 +48,12 @@ This application adheres to the global monorepo standards defined in the root [R
 3. **Run Development Server**:
 
    ```bash
-   pnpm dev
+   npm run dev
    ```
 
 4. **Build for Production**:
    ```bash
-   pnpm build
+   npm run build
    ```
 
 ## 📄 License
