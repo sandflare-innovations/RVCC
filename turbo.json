@@ -1,6 +1,12 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["NODE_ENV", "NEXT_PUBLIC_PDF_CDN_URL"],
+  "globalEnv": [
+    "NODE_ENV",
+    "NEXT_PUBLIC_PDF_CDN_URL",
+    "ENQUIRE_WORKER_URL",
+    "ENQUIRE_API_SECRET",
+    "DATABASE_URL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

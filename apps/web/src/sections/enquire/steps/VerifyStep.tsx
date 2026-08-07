@@ -1,0 +1,138 @@
+"use client";
+
+import { useState } from "react";
+
+import { useRouter } from "next/navigation";
+
+import { Button } from "@/components/ui/Button";
+import { useEnquire } from "@/sections/enquire/EnquireContext";
+import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
+
+export function VerifyStep() {
+  const router = useRouter();
+  const { refresh, setError } = useEnquire();
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [phase, setPhase] = useState<"email" | "code">("email");
+  const [busy, setBusy] = useState(false);
+  const [hint, setHint] = useState<string | null>(null);
+
+  const requestCode = async () => {
+    setBusy(true);
+    setError(null);
+    setHint(null);
+    try {
+      const res = await fetch("/api/enquire/otp/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Could not send code");
+        return;
+      }
+      setPhase("code");
+      setHint(data.message);
+    } catch {
+      setError("Network error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const verifyCode = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/enquire/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, code }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Invalid code");
+        return;
+      }
+      await refresh();
+      router.push(`/enquire/${data.currentStep || "company"}`);
+    } catch {
+      setError("Network error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="max-w-lg space-y-8">
+      <p className="text-sm text-zinc-500">
+        Enter your work email to receive a one-time access code. Returning suppliers can use the
+        same email to resume a saved draft.
+      </p>
+
+      <EnquireField label="Email address" required>
+        <input
+          type="email"
+          className={enquireInputClass}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="name@company.com"
+          disabled={phase === "code"}
+        />
+      </EnquireField>
+
+      {phase === "code" && (
+        <EnquireField label="One-time access code" required>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            className={enquireInputClass}
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            placeholder="6-digit code"
+          />
+        </EnquireField>
+      )}
+
+      {hint && <p className="text-xs text-zinc-500">{hint}</p>}
+
+      <div className="flex flex-wrap gap-3">
+        {phase === "email" ? (
+          <Button
+            type="button"
+            variant="primary"
+            className="h-14 rounded-none"
+            onClick={() => void requestCode()}
+          >
+            {busy ? "Sending…" : "Get Access Code"}
+          </Button>
+        ) : (
+          <>
+            <Button
+              type="button"
+              variant="primary"
+              className="h-14 rounded-none"
+              onClick={() => void verifyCode()}
+            >
+              {busy ? "Verifying…" : "Verify & Continue"}
+            </Button>
+            <Button
+              type="button"
+              variant="brand-outline"
+              className="h-14 rounded-none"
+              onClick={() => {
+                setPhase("email");
+                setCode("");
+              }}
+            >
+              Change Email
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
