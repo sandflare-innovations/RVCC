@@ -261,19 +261,34 @@ export const Hero = () => {
                         {content.description}
                       </p>
 
-                      <Button
-                        href="#projects"
-                        borderColor="border-white"
-                        textColor="text-white"
-                        hoverFillColor="bg-white"
-                        hoverTextColor="group-hover:text-brand-blue"
-                        className="group h-16 rounded-none px-10"
-                      >
-                        <span className="flex items-center gap-3 text-xs font-bold tracking-widest uppercase">
-                          Explore Works{" "}
-                          <FaArrowRight className="transition-transform group-hover:translate-x-2" />
-                        </span>
-                      </Button>
+                      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap lg:justify-end">
+                        <Button
+                          href="#projects"
+                          borderColor="border-white"
+                          textColor="text-white"
+                          hoverFillColor="bg-white"
+                          hoverTextColor="group-hover:text-brand-blue"
+                          className="group h-16 rounded-none px-10"
+                        >
+                          <span className="flex items-center gap-3 text-xs font-bold tracking-widest uppercase">
+                            Explore Works{" "}
+                            <FaArrowRight className="transition-transform group-hover:translate-x-2" />
+                          </span>
+                        </Button>
+                        <Button
+                          href="/enquire"
+                          borderColor="border-white"
+                          textColor="text-white"
+                          hoverFillColor="bg-white"
+                          hoverTextColor="group-hover:text-brand-blue"
+                          className="group h-16 rounded-none px-10"
+                        >
+                          <span className="flex items-center gap-3 text-xs font-bold tracking-widest uppercase">
+                            Enquire{" "}
+                            <FaArrowRight className="transition-transform group-hover:translate-x-2" />
+                          </span>
+                        </Button>
+                      </div>
                     </div>
                   </motion.div>
                 </AnimatePresence>

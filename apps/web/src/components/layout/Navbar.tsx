@@ -34,34 +34,25 @@ export const Navbar = () => {
   const isClientsPage = pathname?.startsWith("/clients");
   const isQualityPage = pathname?.startsWith("/quality-policy");
   const isAboutPage = pathname?.startsWith("/about");
+  const isEnquirePage = pathname?.startsWith("/enquire");
+  const isLightPage =
+    isGallaryPage ||
+    isContactPage ||
+    isDocumentsPage ||
+    isClientsPage ||
+    isQualityPage ||
+    isAboutPage ||
+    isEnquirePage;
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      setIsScrolled(
-        currentScrollY >
-          (isGallaryPage ||
-          isContactPage ||
-          isDocumentsPage ||
-          isClientsPage ||
-          isQualityPage ||
-          isAboutPage
-            ? 50
-            : window.innerHeight)
-      );
+      setIsScrolled(currentScrollY > (isLightPage ? 50 : window.innerHeight));
 
       // Hide header while scrolling down
       if (currentScrollY > lastScrollY.current) {
-        // Only hide immediately on gallery, contact and documents pages, otherwise wait for 100vh
-        if (
-          isGallaryPage ||
-          isContactPage ||
-          isDocumentsPage ||
-          isClientsPage ||
-          isQualityPage ||
-          isAboutPage ||
-          currentScrollY > window.innerHeight
-        ) {
+        // Only hide immediately on light pages, otherwise wait for 100vh
+        if (isLightPage || currentScrollY > window.innerHeight) {
           setIsVisible(false);
         }
       } else {
@@ -89,7 +80,7 @@ export const Navbar = () => {
       window.removeEventListener("scroll", handleScroll);
       if (worksSection) observer.unobserve(worksSection);
     };
-  }, [isGallaryPage, isContactPage, isDocumentsPage, isClientsPage, isQualityPage, isAboutPage]);
+  }, [isLightPage]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -140,13 +131,7 @@ export const Navbar = () => {
 
   // Force white theme for header elements when in Works section
   const forceWhiteTheme = isWorksSection;
-  const isLightAndScrolled =
-    (isScrolled && !forceWhiteTheme) ||
-    isContactPage ||
-    isDocumentsPage ||
-    isClientsPage ||
-    isQualityPage ||
-    isAboutPage;
+  const isLightAndScrolled = (isScrolled && !forceWhiteTheme) || isLightPage;
 
   return (
     <>
@@ -159,13 +144,13 @@ export const Navbar = () => {
           isVisible ? "translate-y-0" : "-translate-y-full"
         )}
       >
-        <div className="md:px-container relative container flex items-center justify-between px-6">
-          {/* Menu & Left Nav - Left */}
-          <div className="flex items-center space-x-12">
+        <div className="md:px-container relative container grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-6 xl:gap-6">
+          {/* Left: menu stays edge-left; nav hugs logo */}
+          <div className="relative z-50 flex min-w-0 items-center gap-6 xl:gap-8">
             <button
               onClick={() => setIsOpen(true)}
               className={cn(
-                "group relative z-50 flex items-center space-x-3 transition-all",
+                "group relative z-50 flex shrink-0 items-center space-x-3 transition-all",
                 isLightAndScrolled ? "text-brand-blue" : "text-white"
               )}
             >
@@ -175,7 +160,7 @@ export const Navbar = () => {
               </div>
             </button>
 
-            <nav className="hidden items-center space-x-8 lg:flex">
+            <nav className="ml-auto hidden items-center gap-5 pr-2 lg:flex xl:gap-7 xl:pr-4">
               {menuLinks.slice(0, 3).map((link) => (
                 <Link
                   key={link}
@@ -191,7 +176,7 @@ export const Navbar = () => {
                             : `/${link.toLowerCase().replace(" ", "-")}`
                   }
                   className={cn(
-                    "group relative flex flex-col py-1 text-[12px] font-bold tracking-[0.3em] transition-colors",
+                    "group relative flex flex-col py-1 text-[11px] font-bold tracking-[0.22em] transition-colors xl:text-[12px] xl:tracking-[0.28em]",
                     isLightAndScrolled ? "text-brand-blue" : "text-white/70"
                   )}
                 >
@@ -216,10 +201,10 @@ export const Navbar = () => {
             </nav>
           </div>
 
-          {/* Logo - Center */}
+          {/* Logo — true center column between PROJECTS and CLIENTS */}
           <Link
             href="/"
-            className="absolute left-1/2 z-50 -translate-x-1/2 transform transition-transform hover:scale-105"
+            className="relative z-50 shrink-0 justify-self-center transition-transform hover:scale-105"
           >
             <Image
               src="/images/logo/logo.png"
@@ -229,23 +214,16 @@ export const Navbar = () => {
               priority
               className={cn(
                 "w-28 transition-all duration-500 md:w-32",
-                forceWhiteTheme ||
-                  (!isScrolled &&
-                    !isContactPage &&
-                    !isDocumentsPage &&
-                    !isClientsPage &&
-                    !isQualityPage &&
-                    !isAboutPage) ||
-                  resolvedTheme === "dark"
+                forceWhiteTheme || (!isScrolled && !isLightPage) || resolvedTheme === "dark"
                   ? "brightness-0 invert"
                   : "brightness-100 invert-0"
               )}
             />
           </Link>
 
-          {/* Actions - Right */}
-          <div className="relative z-50 flex items-center space-x-8">
-            <nav className="hidden items-center space-x-8 lg:flex">
+          {/* Right: nav hugs logo; CTAs stay edge-right */}
+          <div className="relative z-50 flex min-w-0 items-center gap-5 xl:gap-7">
+            <nav className="hidden items-center gap-5 pl-2 lg:flex xl:gap-7 xl:pl-4">
               {menuLinks.slice(3, 6).map((link) => (
                 <Link
                   key={link}
@@ -261,7 +239,7 @@ export const Navbar = () => {
                             : `/${link.toLowerCase().replace(" ", "-")}`
                   }
                   className={cn(
-                    "group relative flex flex-col py-1 text-[12px] font-bold tracking-[0.3em] transition-colors",
+                    "group relative flex flex-col py-1 text-[11px] font-bold tracking-[0.22em] transition-colors xl:text-[12px] xl:tracking-[0.28em]",
                     isLightAndScrolled ? "text-brand-blue" : "text-white/70"
                   )}
                 >
@@ -284,19 +262,39 @@ export const Navbar = () => {
                 </Link>
               ))}
             </nav>
-            <Button
-              variant="none"
-              href="/contact"
-              borderColor={isLightAndScrolled ? "border-brand-blue" : "border-white"}
-              textColor={isLightAndScrolled ? "text-brand-blue" : "text-white"}
-              hoverFillColor={isLightAndScrolled ? "bg-brand-blue" : "bg-white"}
-              hoverTextColor={
-                isLightAndScrolled ? "group-hover:text-background" : "group-hover:text-brand-blue"
-              }
-              className="hidden h-10 min-w-[140px] rounded-none px-6 text-[9px] font-bold tracking-widest uppercase transition-all duration-500 lg:flex"
+
+            <div
+              className={cn(
+                "ml-auto hidden items-stretch lg:flex",
+                "border-l pl-5 xl:pl-7",
+                isLightAndScrolled ? "border-brand-blue/25" : "border-white/25"
+              )}
             >
-              Contact
-            </Button>
+              <div className="flex h-9 items-stretch">
+                <Button
+                  variant="none"
+                  href="/contact"
+                  borderColor={isLightAndScrolled ? "border-brand-blue" : "border-white"}
+                  textColor={isLightAndScrolled ? "text-brand-blue" : "text-white"}
+                  hoverFillColor={isLightAndScrolled ? "bg-brand-blue" : "bg-white"}
+                  hoverTextColor={
+                    isLightAndScrolled
+                      ? "group-hover:text-background"
+                      : "group-hover:text-brand-blue"
+                  }
+                  className="h-full min-w-0 rounded-none border-r-0 px-4 py-0 text-[9px] font-bold tracking-[0.2em] uppercase xl:px-5"
+                >
+                  Contact
+                </Button>
+                <Button
+                  variant="primary"
+                  href="/enquire"
+                  className="h-full min-w-0 rounded-none border-l-0 px-4 py-0 text-[9px] font-bold tracking-[0.2em] uppercase xl:px-5"
+                >
+                  Enquiry
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -370,6 +368,17 @@ export const Navbar = () => {
               </Link>
             ))}
           </nav>
+
+          <div className="mt-8 shrink-0">
+            <Button
+              variant="primary"
+              href="/enquire"
+              className="h-14 w-full rounded-none text-[10px] font-black tracking-[0.3em] uppercase"
+              onClick={() => setIsOpen(false)}
+            >
+              Enquiry
+            </Button>
+          </div>
 
           {/* Menu Footer - Compact */}
           <div className="mt-auto shrink-0 pt-10">

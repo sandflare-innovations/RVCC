@@ -1,0 +1,24 @@
+{
+  "name": "rvcc-enquire-api",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Secure Cloudflare Worker API for RVCC supplier registration (Postgres via Hyperdrive)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "dependencies": {
+    "nodemailer": "^9.0.4",
+    "postgres": "^3.4.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250730.0",
+    "@types/nodemailer": "^8.0.1",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.118.0"
+  },
+  "overrides": {
+    "@cloudflare/workers-types": "^4.20250730.0"
+  }
+}

@@ -1,0 +1,24 @@
+name = "rvcc-enquire-api"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# Secrets (wrangler secret put …):
+#   API_SECRET            — shared with Next.js ENQUIRE_API_SECRET
+#   DATABASE_URL          — only if not using Hyperdrive yet
+#   SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS
+#   ENQUIRE_FROM_EMAIL    — e.g. RVCC Procurement <procurement@domain.com>
+#   SMTP_SECURE           — optional "true" for port 465
+#
+# Hyperdrive (recommended — keeps Postgres credentials off Vercel):
+#   npx wrangler hyperdrive create rvcc-enquire --connection-string="postgresql://..."
+#   then set id below.
+
+[vars]
+ALLOWED_ORIGINS = "*"
+
+# Uncomment after creating Hyperdrive:
+# [[hyperdrive]]
+# binding = "HYPERDRIVE"
+# id = "YOUR_HYPERDRIVE_ID"

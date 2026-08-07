@@ -16,8 +16,8 @@ const ACTIONS = [
   },
   {
     icon: FiBook,
-    label: "Contact",
-    href: "#",
+    label: "Documents",
+    href: "/documents",
   },
   {
     icon: FaWhatsapp,

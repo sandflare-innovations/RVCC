@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RegistrationStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum BusinessRelationship {
+  PROSPECTIVE
+  SPEND_AUTHORIZED
+}
+
+model SupplierRegistration {
+  id                 String               @id @default(cuid())
+  referenceNumber    String?              @unique
+  status             RegistrationStatus   @default(DRAFT)
+  businessRelationship BusinessRelationship @default(PROSPECTIVE)
+  email              String
+  currentStep        String               @default("verify")
+  sessionToken       String?              @unique
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  submittedAt        DateTime?
+
+  company            CompanyProfile?
+  contacts           SupplierContact[]
+  addresses          SupplierAddress[]
+  classifications    BusinessClassification[]
+  bankAccounts       BankAccount[]
+  productCategories  String[]             @default([])
+  questionnaire      QuestionnaireAnswer[]
+  attachments        RegistrationAttachment[]
+
+  @@index([email])
+  @@index([status])
+}
+
+model RegistrationOtp {
+  id         String    @id @default(cuid())
+  email      String
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email])
+}
+
+model CompanyProfile {
+  id               String               @id @default(cuid())
+  registrationId   String               @unique
+  registration     SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  legalName        String               @default("")
+  dbaName          String               @default("")
+  country          String               @default("")
+  taxIdentifiers   Json                 @default("{}")
+  organizationType String               @default("")
+  supplierType     String               @default("")
+  website          String               @default("")
+  yearEstablished  String               @default("")
+  dunsNumber       String               @default("")
+  description      String               @default("")
+}
+
+model SupplierContact {
+  id               String               @id @default(cuid())
+  registrationId   String
+  registration     SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  firstName        String               @default("")
+  lastName         String               @default("")
+  email            String               @default("")
+  jobTitle         String               @default("")
+  phone            String               @default("")
+  mobile           String               @default("")
+  isAdministrative Boolean              @default(false)
+  requestUserAccount Boolean            @default(false)
+  sortOrder        Int                  @default(0)
+
+  @@index([registrationId])
+}
+
+model SupplierAddress {
+  id             String               @id @default(cuid())
+  registrationId String
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  label          String               @default("")
+  line1          String               @default("")
+  line2          String               @default("")
+  city           String               @default("")
+  region         String               @default("")
+  postalCode     String               @default("")
+  country        String               @default("")
+  phone          String               @default("")
+  email          String               @default("")
+  purposes       String[]             @default([])
+  sortOrder      Int                  @default(0)
+
+  @@index([registrationId])
+}
+
+model BusinessClassification {
+  id             String               @id @default(cuid())
+  registrationId String
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  classification String               @default("")
+  certificateNumber String            @default("")
+  certifyingAgency String             @default("")
+  effectiveDate  String               @default("")
+  expirationDate String               @default("")
+  sortOrder      Int                  @default(0)
+
+  @@index([registrationId])
+}
+
+model BankAccount {
+  id             String               @id @default(cuid())
+  registrationId String
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  country        String               @default("")
+  bankName       String               @default("")
+  branchName     String               @default("")
+  accountName    String               @default("")
+  accountNumber  String               @default("")
+  iban           String               @default("")
+  routingNumber  String               @default("")
+  currency       String               @default("SAR")
+  sortOrder      Int                  @default(0)
+
+  @@index([registrationId])
+}
+
+model QuestionnaireAnswer {
+  id             String               @id @default(cuid())
+  registrationId String
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  questionKey    String
+  answer         String               @default("")
+
+  @@unique([registrationId, questionKey])
+  @@index([registrationId])
+}
+
+model RegistrationAttachment {
+  id             String               @id @default(cuid())
+  registrationId String
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  section        String
+  fileName       String
+  fileUrl        String
+  mimeType       String               @default("")
+  createdAt      DateTime             @default(now())
+
+  @@index([registrationId])
+}
