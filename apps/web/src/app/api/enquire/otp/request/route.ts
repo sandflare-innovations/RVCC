@@ -5,12 +5,25 @@ import { otpRequestSchema } from "@/lib/enquire-schemas";
 import { OTP_TTL_MS, generateOtpCode, hashValue } from "@/lib/enquire-session";
 import { enquireWorkerFetch, workerConfigured } from "@/lib/enquire-worker";
 
+/** Allow slow Worker / SMTP round-trips on serverless hosts. */
+export const maxDuration = 60;
+
 async function viaWorker(email: string) {
   const res = await enquireWorkerFetch("/otp/request", {
     method: "POST",
     body: { email },
   });
-  const data = await res.json();
+
+  let data: Record<string, unknown> = {};
+  try {
+    data = await res.json();
+  } catch {
+    return NextResponse.json(
+      { error: `Mail service returned ${res.status}` },
+      { status: res.status >= 400 ? res.status : 502 }
+    );
+  }
+
   if (!res.ok) {
     return NextResponse.json(data, { status: res.status });
   }
