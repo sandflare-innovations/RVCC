@@ -9,7 +9,7 @@ import {
 } from "./handlers";
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders(request, env) });
     }
@@ -42,7 +42,7 @@ export default {
 
     try {
       if (url.pathname === "/otp/request" && request.method === "POST") {
-        return await handleOtpRequest(sql, env, request);
+        return await handleOtpRequest(sql, env, request, ctx);
       }
       if (url.pathname === "/otp/verify" && request.method === "POST") {
         return await handleOtpVerify(sql, env, request);
@@ -54,7 +54,7 @@ export default {
         return await handleDraftPatch(sql, env, request);
       }
       if (url.pathname === "/submit" && request.method === "POST") {
-        return await handleSubmit(sql, env, request);
+        return await handleSubmit(sql, env, request, ctx);
       }
 
       return json(env, request, { error: "Not Found" }, 404);

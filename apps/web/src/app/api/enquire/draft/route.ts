@@ -9,13 +9,17 @@ export async function GET() {
   try {
     if (workerConfigured()) {
       const res = await enquireWorkerFetch("/draft", { method: "GET" });
+      // No session yet (verify step) — not an error for the UI.
+      if (res.status === 401) {
+        return NextResponse.json({ registration: null });
+      }
       const data = await res.json();
       return NextResponse.json(data, { status: res.status });
     }
 
     const registration = await getRegistrationFromSession();
     if (!registration) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+      return NextResponse.json({ registration: null });
     }
     return NextResponse.json({ registration });
   } catch (err) {

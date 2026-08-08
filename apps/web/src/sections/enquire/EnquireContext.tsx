@@ -93,15 +93,15 @@ export function EnquireProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const res = await fetch("/api/enquire/draft", { credentials: "include" });
-      if (res.status === 401) {
+      if (!res.ok) {
         setRegistration(null);
         return;
       }
-      if (!res.ok) throw new Error("Failed to load draft");
       const data = await res.json();
-      setRegistration(data.registration);
+      setRegistration(data.registration ?? null);
     } catch (e) {
       console.error(e);
+      setRegistration(null);
     } finally {
       setLoading(false);
     }

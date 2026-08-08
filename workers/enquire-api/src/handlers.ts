@@ -17,7 +17,12 @@ function sessionFrom(request: Request): string | null {
   return request.headers.get("X-Enquire-Session");
 }
 
-export async function handleOtpRequest(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handleOtpRequest(
+  sql: Sql,
+  env: Env,
+  request: Request,
+  ctx: ExecutionContext
+): Promise<Response> {
   const body = (await request.json()) as { email?: string };
   const email = body.email?.trim().toLowerCase();
   if (!email || !email.includes("@")) {
@@ -72,12 +77,12 @@ export async function handleOtpRequest(sql: Sql, env: Env, request: Request): Pr
     registration = { id, email };
   }
 
-  try {
-    await sendOtpEmail(env, email, code, 15);
-  } catch (err) {
-    console.error("[enquire-api] OTP mail failed", err);
-    return json(env, request, { error: "Unable to send access code" }, 502);
-  }
+  // Send mail in background so Next.js / serverless platforms don't time out waiting on SMTP.
+  ctx.waitUntil(
+    sendOtpEmail(env, email, code, 15).catch((err) => {
+      console.error("[enquire-api] OTP mail failed", err);
+    })
+  );
 
   // Never return the plaintext OTP — it only leaves via SMTP from this Worker.
   return json(env, request, {
@@ -314,7 +319,12 @@ export async function handleDraftPatch(sql: Sql, env: Env, request: Request): Pr
   return json(env, request, { ok: true, registration });
 }
 
-export async function handleSubmit(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handleSubmit(
+  sql: Sql,
+  env: Env,
+  request: Request,
+  ctx: ExecutionContext
+): Promise<Response> {
   const session = sessionFrom(request);
   if (!session) return json(env, request, { error: "Not authenticated" }, 401);
   const registration = await loadBySession(sql, session);
@@ -359,15 +369,14 @@ export async function handleSubmit(sql: Sql, env: Env, request: Request): Promis
     WHERE id = ${registration.id}
   `;
 
-  try {
-    if (smtpConfigured(env)) {
-      await sendSubmittedEmail(env, String(registration.email), {
-        referenceNumber,
-        legalName: registration.company?.legalName || "",
-      });
-    }
-  } catch (err) {
-    console.error("[enquire-api] submit mail failed", err);
+  if (smtpConfigured(env)) {
+    const to = String(registration.email);
+    const legalName = registration.company?.legalName || "";
+    ctx.waitUntil(
+      sendSubmittedEmail(env, to, { referenceNumber, legalName }).catch((err) => {
+        console.error("[enquire-api] submit mail failed", err);
+      })
+    );
   }
 
   return json(env, request, {

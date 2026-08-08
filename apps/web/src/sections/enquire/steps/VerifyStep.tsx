@@ -27,15 +27,20 @@ export function VerifyStep() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      const data = await res.json();
+      let data: { error?: string; message?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        /* non-JSON error page */
+      }
       if (!res.ok) {
-        setError(data.error || "Could not send code");
+        setError(data.error || `Could not send code (${res.status})`);
         return;
       }
       setPhase("code");
-      setHint(data.message);
+      setHint(data.message || "Access code sent. Check your email.");
     } catch {
-      setError("Network error");
+      setError("Network error — is the site running? Try again.");
     } finally {
       setBusy(false);
     }
@@ -51,15 +56,20 @@ export function VerifyStep() {
         credentials: "include",
         body: JSON.stringify({ email, code }),
       });
-      const data = await res.json();
+      let data: { error?: string; currentStep?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        /* non-JSON */
+      }
       if (!res.ok) {
-        setError(data.error || "Invalid code");
+        setError(data.error || `Invalid code (${res.status})`);
         return;
       }
       await refresh();
       router.push(`/enquire/${data.currentStep || "company"}`);
     } catch {
-      setError("Network error");
+      setError("Network error — try again.");
     } finally {
       setBusy(false);
     }
