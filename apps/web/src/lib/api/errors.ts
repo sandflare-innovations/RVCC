@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { Prisma } from "@prisma/client";
 import "server-only";
+
+import { Prisma } from "@repo/db";
 
 /**
  * Converts a thrown error into a JSON response.

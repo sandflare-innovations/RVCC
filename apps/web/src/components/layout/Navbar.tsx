@@ -28,10 +28,6 @@ export const Navbar = () => {
   const [isWorksSection, setIsWorksSection] = useState(false);
   const lastScrollY = useRef(0);
 
-  // The admin panel and supplier portal are separate application surfaces with
-  // their own chrome — the public marketing nav must not render over them.
-  const isAppSurface = pathname?.startsWith("/admin") || pathname?.startsWith("/vendor");
-
   const isGallaryPage = pathname?.startsWith("/gallary");
   const isContactPage = pathname?.startsWith("/contact");
   const isDocumentsPage = pathname?.startsWith("/documents");
@@ -138,8 +134,6 @@ export const Navbar = () => {
   const isLightAndScrolled = (isScrolled && !forceWhiteTheme) || isLightPage;
 
   // Placed after the hooks above so hook order stays stable across renders.
-  if (isAppSurface) return null;
-
   return (
     <>
       <header
