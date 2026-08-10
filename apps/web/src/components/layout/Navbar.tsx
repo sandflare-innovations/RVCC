@@ -13,6 +13,8 @@ import { FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa6";
 
 import { Icons } from "@repo/ui";
 
+import { enquireVerifyUrl } from "@/lib/public-urls";
+
 import { AnimatedThemeToggler } from "@ui/AnimatedThemeToggler";
 import { Button } from "@ui/Button";
 
@@ -20,6 +22,7 @@ import { cn } from "@lib/utils";
 
 export const Navbar = () => {
   const pathname = usePathname();
+  const enquireHref = enquireVerifyUrl();
   const { resolvedTheme } = useTheme();
   const lenis = useLenis();
   const [isOpen, setIsOpen] = useState(false);
@@ -289,7 +292,7 @@ export const Navbar = () => {
                 </Button>
                 <Button
                   variant="primary"
-                  href="/enquire"
+                  href={enquireHref}
                   className="h-full min-w-0 rounded-none border-l-0 px-4 py-0 text-[9px] font-bold tracking-[0.14em] whitespace-nowrap uppercase xl:px-5"
                 >
                   E-Vendor Registration
@@ -373,7 +376,7 @@ export const Navbar = () => {
           <div className="mt-8 shrink-0">
             <Button
               variant="primary"
-              href="/enquire"
+              href={enquireHref}
               className="h-14 w-full rounded-none text-[10px] font-black tracking-[0.2em] uppercase"
               onClick={() => setIsOpen(false)}
             >
