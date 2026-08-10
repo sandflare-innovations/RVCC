@@ -1,8 +1,11 @@
 import { Suspense } from "react";
 
+import { enquireVerifyUrl } from "@/lib/public-urls";
 import { VendorLoginForm } from "@/sections/VendorLoginForm";
 
 export default function VendorLoginPage() {
+  const enquireHref = enquireVerifyUrl();
+
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
@@ -13,7 +16,11 @@ export default function VendorLoginPage() {
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">Sign in</h1>
           <p className="mt-1.5 text-sm text-zinc-600">
             Approved suppliers only. Not registered yet?{" "}
-            <a href="/enquire" className="text-brand-blue underline underline-offset-2">
+            <a
+              href={enquireHref}
+              className="text-brand-blue underline underline-offset-2"
+              rel="noopener noreferrer"
+            >
               Start an E-Vendor Registration
             </a>
             .

@@ -4,12 +4,18 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
+import { enquireVerifyUrl, siteUrl, vendorPortalUrl } from "@/lib/public-urls";
 import { useEnquire } from "@/sections/enquire/EnquireContext";
 
 export function DoneStep() {
   const params = useSearchParams();
   const { registration } = useEnquire();
   const ref = params.get("ref") || registration?.referenceNumber || "—";
+  const homeHref = siteUrl("/");
+  const contactHref = siteUrl("/contact");
+  // Portal login is only after approval (email). Submit success stays on marketing.
+  const vendorLogin = vendorPortalUrl("/login");
+  const hasVendorPortal = Boolean(process.env.NEXT_PUBLIC_VENDOR_PORTAL_URL);
 
   return (
     <div className="mx-auto max-w-xl space-y-8 py-8 text-center">
@@ -34,18 +40,38 @@ export function DoneStep() {
       <p className="text-sm text-zinc-600">
         Keep this reference for follow-up. Notifications will be sent to your administrative contact
         email when a decision is made.
+        {hasVendorPortal ? (
+          <>
+            {" "}
+            After approval, you will sign in at the{" "}
+            <a
+              href={vendorLogin}
+              className="text-brand-blue underline underline-offset-2"
+              rel="noopener noreferrer"
+            >
+              supplier portal
+            </a>
+            .
+          </>
+        ) : null}
       </p>
       <div className="flex flex-wrap justify-center gap-3">
-        <Button href="/" variant="primary" className="h-14 rounded-none">
+        <Button href={homeHref} variant="primary" className="h-14 rounded-none">
           Back to Home
         </Button>
         <Link
-          href="/contact"
+          href={contactHref}
           className="border-brand-blue text-brand-blue inline-flex h-14 items-center border-2 px-8 text-xs font-bold tracking-[0.18em] uppercase"
         >
           Contact Procurement
         </Link>
       </div>
+      <p className="text-xs text-zinc-400">
+        Need to start another draft?{" "}
+        <a href={enquireVerifyUrl()} className="underline underline-offset-2">
+          E-Vendor Registration
+        </a>
+      </p>
     </div>
   );
 }

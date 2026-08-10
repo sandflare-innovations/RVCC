@@ -9,6 +9,7 @@ import { FaArrowRight } from "react-icons/fa6";
 
 import { LogoMarquee } from "@/components/common/LogoMarquee";
 import { Button } from "@/components/ui/Button";
+import { enquireVerifyUrl } from "@/lib/public-urls";
 
 import { cn } from "@lib/utils";
 
@@ -38,6 +39,7 @@ const HERO_CONTENT = [
 
 export const Hero = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const enquireHref = enquireVerifyUrl();
   const [showContent, setShowContent] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -276,7 +278,7 @@ export const Hero = () => {
                           </span>
                         </Button>
                         <Button
-                          href="/enquire"
+                          href={enquireHref}
                           borderColor="border-white"
                           textColor="text-white"
                           hoverFillColor="bg-white"

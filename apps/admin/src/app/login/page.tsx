@@ -2,6 +2,7 @@ import { Suspense } from "react";
 
 import type { Metadata } from "next";
 
+import { enquireVerifyUrl } from "@/lib/public-urls";
 import { AdminLoginForm } from "@/sections/AdminLoginForm";
 
 export const metadata: Metadata = {
@@ -11,6 +12,8 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLoginPage() {
+  const enquireHref = enquireVerifyUrl();
+
   return (
     <main className="font-enquire flex min-h-screen items-center justify-center bg-zinc-50 px-6 py-16 antialiased">
       <div className="w-full max-w-sm">
@@ -20,7 +23,15 @@ export default function AdminLoginPage() {
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">Sign in</h1>
           <p className="mt-1.5 text-sm text-zinc-600">
-            Staff access only. Vendor registration is on the public marketing site.
+            Staff access only. Vendor registration is at{" "}
+            <a
+              href={enquireHref}
+              className="text-brand-blue underline underline-offset-2"
+              rel="noopener noreferrer"
+            >
+              E-Vendor Registration
+            </a>
+            .
           </p>
         </div>
         {/*
