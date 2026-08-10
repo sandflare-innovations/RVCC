@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/Button";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { COUNTRIES, ORG_TYPES, SUPPLIER_TYPES } from "@/data/enquire-questionnaire";
+import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
 import {
   EnquireField,
@@ -17,7 +18,9 @@ import {
 export function CompanyStep() {
   useRequireSession("company");
   const router = useRouter();
-  const { registration, saveDraft, loading } = useEnquire();
+  const { registration, saveDraft, loading, saving } = useEnquire();
+  // Which action is in flight, so only that button shows a spinner.
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [form, setForm] = useState({
     legalName: "",
     dbaName: "",
@@ -74,7 +77,7 @@ export function CompanyStep() {
     if (ok) router.push(`/enquire/${nextStep}`);
   };
 
-  if (loading) return <p className="text-sm text-zinc-400">Loading…</p>;
+  if (loading) return <p className="text-base text-zinc-600">Loading…</p>;
 
   return (
     <div className="space-y-8">
@@ -186,24 +189,36 @@ export function CompanyStep() {
         </EnquireField>
       </div>
 
-      <div className="flex flex-wrap gap-3 pt-4">
-        <Button
+      <EnquireActions>
+        <InteractiveHoverButton
           type="button"
-          variant="brand-outline"
-          className="h-14 rounded-none"
-          onClick={() => void persist("company")}
+          variant="outline"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
+          pending={saving && pendingAction === "company"}
+          onClick={() => {
+            setPendingAction("company");
+            void persist("company");
+          }}
         >
           Save for Later
-        </Button>
-        <Button
+        </InteractiveHoverButton>
+        <InteractiveHoverButton
           type="button"
-          variant="primary"
-          className="h-14 rounded-none"
-          onClick={() => void persist("contacts")}
+          variant="solid"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
+          pending={saving && pendingAction === "contacts"}
+          onClick={() => {
+            setPendingAction("contacts");
+            void persist("contacts");
+          }}
         >
           Next: Contacts
-        </Button>
-      </div>
+        </InteractiveHoverButton>
+      </EnquireActions>
     </div>
   );
 }

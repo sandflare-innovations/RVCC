@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/Button";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
+import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
 
 import { cn } from "@lib/utils";
@@ -13,7 +14,9 @@ import { cn } from "@lib/utils";
 export function ProductsStep() {
   useRequireSession("products");
   const router = useRouter();
-  const { registration, saveDraft, loading } = useEnquire();
+  const { registration, saveDraft, loading, saving } = useEnquire();
+  // Which action is in flight, so only that button shows a spinner.
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
 
   useEffect(() => {
@@ -29,7 +32,7 @@ export function ProductsStep() {
     if (ok) router.push(`/enquire/${next}`);
   };
 
-  if (loading) return <p className="text-sm text-zinc-400">Loading…</p>;
+  if (loading) return <p className="text-base text-zinc-600">Loading…</p>;
 
   return (
     <div className="space-y-8">
@@ -52,7 +55,7 @@ export function ProductsStep() {
                   : "hover:border-brand-blue/40 border-zinc-200 text-zinc-700"
               )}
             >
-              <span className="text-[10px] font-black tracking-[0.2em] uppercase opacity-60">
+              <span className="text-xs font-bold tracking-[0.16em] uppercase opacity-60">
                 {on ? "Selected" : "Select"}
               </span>
               <div className="mt-1 font-medium">{cat.label}</div>
@@ -61,32 +64,46 @@ export function ProductsStep() {
         })}
       </div>
 
-      <div className="flex flex-wrap gap-3 pt-4">
-        <Button
+      <EnquireActions>
+        <InteractiveHoverButton
           type="button"
-          variant="brand-outline"
-          className="h-14 rounded-none"
+          variant="outline"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
           onClick={() => router.push("/enquire/bank")}
         >
           Back
-        </Button>
-        <Button
+        </InteractiveHoverButton>
+        <InteractiveHoverButton
           type="button"
-          variant="brand-outline"
-          className="h-14 rounded-none"
-          onClick={() => void persist("products")}
+          variant="outline"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
+          pending={saving && pendingAction === "products"}
+          onClick={() => {
+            setPendingAction("products");
+            void persist("products");
+          }}
         >
           Save for Later
-        </Button>
-        <Button
+        </InteractiveHoverButton>
+        <InteractiveHoverButton
           type="button"
-          variant="primary"
-          className="h-14 rounded-none"
-          onClick={() => void persist("questionnaire")}
+          variant="solid"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
+          pending={saving && pendingAction === "questionnaire"}
+          onClick={() => {
+            setPendingAction("questionnaire");
+            void persist("questionnaire");
+          }}
         >
           Next: Questionnaire
-        </Button>
-      </div>
+        </InteractiveHoverButton>
+      </EnquireActions>
     </div>
   );
 }

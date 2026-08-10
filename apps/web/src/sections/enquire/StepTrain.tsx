@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 
+import { Check } from "lucide-react";
+
 import { ENQUIRE_STEPS, type EnquireStep } from "@/lib/enquire-constants";
 
 import { cn } from "@lib/utils";
@@ -32,7 +34,12 @@ export function StepTrain({ current, unlockedThrough }: Props) {
 
   return (
     <nav aria-label="Registration steps" className="w-full overflow-x-auto pb-2">
-      <ol className="flex min-w-max items-center gap-0">
+      {/*
+        Scrolls on mobile (min-w-max), but from sm up the connectors flex so the
+        train spans the container exactly instead of overflowing and clipping
+        the last step.
+      */}
+      <ol className="flex min-w-max items-start gap-0 sm:w-full sm:min-w-0">
         {VISIBLE.map((step, index) => {
           const stepIdx = ENQUIRE_STEPS.indexOf(step);
           const unlocked = stepIdx <= Math.max(unlockedIdx, 1);
@@ -40,11 +47,11 @@ export function StepTrain({ current, unlockedThrough }: Props) {
           const done = stepIdx < currentIdx && step !== "verify";
 
           return (
-            <li key={step} className="flex items-center">
+            <li key={step} className="flex items-center sm:not-first:flex-1">
               {index > 0 && (
                 <div
                   className={cn(
-                    "mx-1 h-px w-4 sm:mx-2 sm:w-8",
+                    "mx-1.5 mt-[18px] h-0.5 w-5 shrink-0 rounded-full transition-colors sm:mx-2 sm:w-auto sm:min-w-4 sm:flex-1",
                     done || active ? "bg-brand-blue" : "bg-zinc-200"
                   )}
                 />
@@ -52,31 +59,33 @@ export function StepTrain({ current, unlockedThrough }: Props) {
               {unlocked ? (
                 <Link
                   href={`/enquire/${step}`}
+                  aria-current={active ? "step" : undefined}
                   className={cn(
-                    "flex flex-col items-center gap-1 px-1 transition-colors sm:px-2",
-                    active ? "text-brand-blue" : "text-zinc-400 hover:text-zinc-700"
+                    "group flex flex-col items-center gap-1.5 rounded-md px-0.5 transition-colors sm:px-1",
+                    "focus-visible:ring-brand-blue focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+                    active ? "text-brand-blue" : "text-zinc-600 hover:text-zinc-900"
                   )}
                 >
                   <span
                     className={cn(
-                      "flex h-7 w-7 items-center justify-center text-[10px] font-black",
+                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold tabular-nums transition-colors",
                       active || done
-                        ? "bg-brand-blue text-white"
-                        : "border border-zinc-200 text-zinc-400"
+                        ? "border-brand-blue bg-brand-blue text-white"
+                        : "border-zinc-300 bg-zinc-100 text-zinc-600 group-hover:border-zinc-400"
                     )}
                   >
-                    {String(index + 1).padStart(2, "0")}
+                    {done && !active ? <Check className="h-4 w-4" aria-hidden="true" /> : index + 1}
                   </span>
-                  <span className="hidden text-[9px] font-black tracking-[0.15em] uppercase sm:block">
+                  <span className="hidden text-[10px] font-semibold tracking-[0.06em] whitespace-nowrap uppercase sm:block">
                     {LABELS[step]}
                   </span>
                 </Link>
               ) : (
-                <div className="flex flex-col items-center gap-1 px-1 text-zinc-300 sm:px-2">
-                  <span className="flex h-7 w-7 items-center justify-center border border-zinc-100 text-[10px] font-black">
-                    {String(index + 1).padStart(2, "0")}
+                <div className="flex flex-col items-center gap-1.5 px-0.5 text-zinc-400 sm:px-1">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-zinc-200 bg-zinc-50 text-sm font-semibold text-zinc-400 tabular-nums">
+                    {index + 1}
                   </span>
-                  <span className="hidden text-[9px] font-black tracking-[0.15em] uppercase sm:block">
+                  <span className="hidden text-[10px] font-semibold tracking-[0.06em] whitespace-nowrap uppercase sm:block">
                     {LABELS[step]}
                   </span>
                 </div>

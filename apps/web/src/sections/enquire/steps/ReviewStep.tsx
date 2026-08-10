@@ -4,15 +4,16 @@ import { useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/Button";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
 import { ENQUIRE_QUESTIONNAIRE } from "@/data/enquire-questionnaire";
+import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3 border-b border-zinc-100 pb-8">
-      <h3 className="text-brand-blue text-[10px] font-black tracking-[0.3em] uppercase">{title}</h3>
+      <h3 className="text-brand-blue text-xs font-bold tracking-[0.18em] uppercase">{title}</h3>
       <div className="space-y-1 text-sm text-zinc-700">{children}</div>
     </section>
   );
@@ -22,7 +23,7 @@ function Line({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
   return (
     <p>
-      <span className="text-zinc-400">{label}: </span>
+      <span className="text-zinc-600">{label}: </span>
       {value}
     </p>
   );
@@ -58,7 +59,7 @@ export function ReviewStep() {
     }
   };
 
-  if (loading || !registration) return <p className="text-sm text-zinc-400">Loading…</p>;
+  if (loading || !registration) return <p className="text-base text-zinc-600">Loading…</p>;
 
   const catLabels = registration.productCategories
     .map((id) => ENQUIRE_CATEGORIES.find((c) => c.id === id)?.label || id)
@@ -66,13 +67,16 @@ export function ReviewStep() {
 
   return (
     <div className="space-y-8">
-      <p className="text-sm text-zinc-500">
+      <p className="text-base leading-relaxed text-zinc-600">
         Review your registration before submitting. RVCC procurement will receive this request for
         collaborative review.
       </p>
 
       {localErrors.length > 0 && (
-        <ul className="list-inside list-disc border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <ul
+          role="alert"
+          className="list-inside list-disc border-l-4 border-red-500 bg-red-50 px-4 py-3.5 text-sm leading-relaxed font-medium text-red-800"
+        >
           {localErrors.map((e) => (
             <li key={e}>{e}</li>
           ))}
@@ -134,24 +138,28 @@ export function ReviewStep() {
         })}
       </Block>
 
-      <div className="flex flex-wrap gap-3 pt-4">
-        <Button
+      <EnquireActions>
+        <InteractiveHoverButton
           type="button"
-          variant="brand-outline"
-          className="h-14 rounded-none"
+          variant="outline"
+          className="sm:w-auto"
+          fullWidth
+          disabled={busy}
           onClick={() => router.push("/enquire/questionnaire")}
         >
           Back
-        </Button>
-        <Button
+        </InteractiveHoverButton>
+        <InteractiveHoverButton
           type="button"
-          variant="primary"
-          className="h-14 rounded-none"
+          variant="solid"
+          className="sm:w-auto"
+          fullWidth
+          pending={busy}
           onClick={() => void submit()}
         >
           {busy ? "Submitting…" : "Submit Registration"}
-        </Button>
-      </div>
+        </InteractiveHoverButton>
+      </EnquireActions>
     </div>
   );
 }

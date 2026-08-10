@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/Button";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { CLASSIFICATION_OPTIONS } from "@/data/enquire-questionnaire";
+import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
 import {
   EnquireField,
@@ -32,7 +33,9 @@ const empty = (): Row => ({
 export function ClassificationsStep() {
   useRequireSession("classifications");
   const router = useRouter();
-  const { registration, saveDraft, loading } = useEnquire();
+  const { registration, saveDraft, loading, saving } = useEnquire();
+  // Which action is in flight, so only that button shows a spinner.
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
 
   useEffect(() => {
@@ -62,7 +65,7 @@ export function ClassificationsStep() {
     if (ok) router.push(`/enquire/${next}`);
   };
 
-  if (loading) return <p className="text-sm text-zinc-400">Loading…</p>;
+  if (loading) return <p className="text-base text-zinc-600">Loading…</p>;
 
   return (
     <div className="space-y-8">
@@ -119,7 +122,7 @@ export function ClassificationsStep() {
           </EnquireField>
           <button
             type="button"
-            className="text-left text-[10px] font-black tracking-widest text-zinc-400 uppercase hover:text-red-500 md:col-span-2"
+            className="inline-flex min-h-[44px] items-center text-left text-xs font-bold tracking-wider text-zinc-600 uppercase transition-colors hover:text-red-600 md:col-span-2"
             onClick={() => setRows((prev) => prev.filter((_, idx) => idx !== i))}
           >
             Remove
@@ -127,41 +130,57 @@ export function ClassificationsStep() {
         </div>
       ))}
 
-      <Button
+      <InteractiveHoverButton
         type="button"
-        variant="brand-outline"
-        className="h-12 rounded-none"
+        variant="outline"
+        className="sm:w-auto"
+        fullWidth
+        disabled={saving}
         onClick={() => setRows((prev) => [...prev, empty()])}
       >
         Add Classification
-      </Button>
+      </InteractiveHoverButton>
 
-      <div className="flex flex-wrap gap-3 pt-4">
-        <Button
+      <EnquireActions>
+        <InteractiveHoverButton
           type="button"
-          variant="brand-outline"
-          className="h-14 rounded-none"
+          variant="outline"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
           onClick={() => router.push("/enquire/addresses")}
         >
           Back
-        </Button>
-        <Button
+        </InteractiveHoverButton>
+        <InteractiveHoverButton
           type="button"
-          variant="brand-outline"
-          className="h-14 rounded-none"
-          onClick={() => void persist("classifications")}
+          variant="outline"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
+          pending={saving && pendingAction === "classifications"}
+          onClick={() => {
+            setPendingAction("classifications");
+            void persist("classifications");
+          }}
         >
           Save for Later
-        </Button>
-        <Button
+        </InteractiveHoverButton>
+        <InteractiveHoverButton
           type="button"
-          variant="primary"
-          className="h-14 rounded-none"
-          onClick={() => void persist("bank")}
+          variant="solid"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
+          pending={saving && pendingAction === "bank"}
+          onClick={() => {
+            setPendingAction("bank");
+            void persist("bank");
+          }}
         >
           Next: Bank Accounts
-        </Button>
-      </div>
+        </InteractiveHoverButton>
+      </EnquireActions>
     </div>
   );
 }

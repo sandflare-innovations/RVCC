@@ -26,12 +26,12 @@ export function DoneStep() {
         </p>
       </div>
       <div className="border border-zinc-100 bg-zinc-50 px-6 py-5">
-        <p className="text-[10px] font-black tracking-[0.3em] text-zinc-400 uppercase">
+        <p className="text-xs font-bold tracking-[0.18em] text-zinc-600 uppercase">
           Reference number
         </p>
         <p className="text-brand-blue mt-2 font-mono text-xl font-bold tracking-wide">{ref}</p>
       </div>
-      <p className="text-xs text-zinc-400">
+      <p className="text-sm text-zinc-600">
         Keep this reference for follow-up. Notifications will be sent to your administrative contact
         email when a decision is made.
       </p>
@@ -41,7 +41,7 @@ export function DoneStep() {
         </Button>
         <Link
           href="/contact"
-          className="border-brand-blue text-brand-blue inline-flex h-14 items-center border-2 px-8 text-[10px] font-black tracking-[0.3em] uppercase"
+          className="border-brand-blue text-brand-blue inline-flex h-14 items-center border-2 px-8 text-xs font-bold tracking-[0.18em] uppercase"
         >
           Contact Procurement
         </Link>
