@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import { readApiError } from "@/lib/api/read-error";
 import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
 
 const MIN_LENGTH = 12;
@@ -35,9 +36,8 @@ export function VendorPasswordForm({ mustChange }: { mustChange: boolean }) {
         credentials: "include",
         body: JSON.stringify({ currentPassword: current, newPassword: next }),
       });
-      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Could not change your password.");
+        setError(await readApiError(res, "Could not change your password."));
         return;
       }
       setDone(true);

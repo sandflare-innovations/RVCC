@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircle, ExternalLink, Eye, KeyRound, Power } from "lucide-react";
 
 import { Modal } from "@/components/ui/modal";
+import { readApiError } from "@/lib/api/read-error";
 
 export type VendorSummary = {
   id: string;
@@ -55,9 +56,8 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
         credentials: "include",
         body: JSON.stringify({ isActive: !v.isActive }),
       });
-      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Could not update the account.");
+        setError(await readApiError(res, "Could not update the account."));
         return;
       }
       setShowToggle(false);
@@ -77,11 +77,11 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
         method: "POST",
         credentials: "include",
       });
-      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Could not reset the password.");
+        setError(await readApiError(res, "Could not reset the password."));
         return;
       }
+      const data = await res.json().catch(() => ({}));
       setIssued(data.tempPassword);
       router.refresh();
     } catch {
