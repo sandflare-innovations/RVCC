@@ -1,0 +1,4 @@
+# Vendor portal API Worker secrets / setup — see README.md
+#
+# npx wrangler secret put API_SECRET
+# npx wrangler secret put DATABASE_URL   # or Hyperdrive

@@ -4,10 +4,17 @@ This is the primary repository for the RVCC Construction Company web infrastruct
 
 ## 🏗 Project Structure
 
-- `apps/web`: The main Next.js 15+ application (Sanity CMS integrated).
-- `workers/pdf-cdn`: Cloudflare Worker + R2 edge CDN for PDF books and pdf.js worker.
-- `packages/eslint-config`: Shared, modular ESLint configurations (The industrial standard for monorepos).
-- `packages/ui`: Shared React component library.
+- `apps/web`: Public Surface (marketing, enquire BFF, careers).
+- `apps/admin`: Staff admin panel (BFF → `workers/admin-api`).
+- `apps/vendor`: Supplier portal (BFF → `workers/vendor-api`).
+- `workers/enquire-api`: Supplier registration OTP/mail Worker.
+- `workers/admin-api`: Admin auth, reviews, careers, vendors.
+- `workers/vendor-api`: Vendor auth and dashboard API.
+- `workers/pdf-cdn`: Cloudflare Worker + R2/assets CDN for PDF books.
+- `packages/db`: Shared Prisma schema + client.
+- `packages/auth-password`: Shared scrypt password helpers.
+- `packages/eslint-config`: Shared ESLint configurations.
+- `packages/ui`: Shared React component library (`StatusBadge`, icons).
 - `.husky/`: Git hooks for automated quality enforcement.
 
 ## 💎 Industrial Quality Standards

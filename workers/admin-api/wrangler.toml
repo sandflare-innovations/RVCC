@@ -1,0 +1,27 @@
+name = "rvcc-admin-api"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# Secrets (wrangler secret put …):
+#   API_SECRET            — shared with apps/admin ADMIN_API_SECRET
+#   DATABASE_URL          — only if not using Hyperdrive yet
+#   ENQUIRE_API_SECRET    — shared with enquire Worker API_SECRET (for notify)
+#   ENQUIRE_WORKER_URL    — e.g. https://rvcc-enquire-api.<account>.workers.dev
+#   VENDOR_PORTAL_URL     — e.g. https://vendor.example.com (no trailing slash)
+#
+# Hyperdrive (recommended — keeps Postgres credentials off Vercel):
+#   npx wrangler hyperdrive create rvcc-admin --connection-string="postgresql://..."
+#   then set id below.
+#
+# ALLOWED_ORIGINS: comma-separated origins for CORS. Configure explicitly
+# (do not leave unset in production). Local [vars] uses "*" for convenience.
+
+[vars]
+ALLOWED_ORIGINS = "*"
+
+# Uncomment after creating Hyperdrive:
+# [[hyperdrive]]
+# binding = "HYPERDRIVE"
+# id = "YOUR_HYPERDRIVE_ID"

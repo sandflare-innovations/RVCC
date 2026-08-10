@@ -3,9 +3,15 @@
   "globalEnv": [
     "NODE_ENV",
     "NEXT_PUBLIC_PDF_CDN_URL",
+    "NEXT_PUBLIC_VENDOR_PORTAL_URL",
     "ENQUIRE_WORKER_URL",
     "ENQUIRE_API_SECRET",
-    "DATABASE_URL"
+    "DATABASE_URL",
+    "ADMIN_API_URL",
+    "ADMIN_API_SECRET",
+    "VENDOR_API_URL",
+    "VENDOR_API_SECRET",
+    "VENDOR_PORTAL_URL"
   ],
   "tasks": {
     "build": {
