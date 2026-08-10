@@ -4,7 +4,8 @@ import { useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/Button";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire } from "@/sections/enquire/EnquireContext";
 import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
 
@@ -77,7 +78,7 @@ export function VerifyStep() {
 
   return (
     <div className="max-w-lg space-y-8">
-      <p className="text-sm text-zinc-500">
+      <p className="text-base leading-relaxed text-zinc-600">
         Enter your work email to receive a one-time access code. Returning suppliers can use the
         same email to resume a saved draft.
       </p>
@@ -107,42 +108,54 @@ export function VerifyStep() {
         </EnquireField>
       )}
 
-      {hint && <p className="text-xs text-zinc-500">{hint}</p>}
+      {hint && (
+        <p role="status" className="text-brand-blue text-sm font-medium">
+          {hint}
+        </p>
+      )}
 
-      <div className="flex flex-wrap gap-3">
+      <EnquireActions>
         {phase === "email" ? (
-          <Button
+          <InteractiveHoverButton
             type="button"
-            variant="primary"
-            className="h-14 rounded-none"
+            variant="solid"
+            className="sm:w-auto"
+            fullWidth
+            pending={busy}
+            disabled={!email.trim()}
             onClick={() => void requestCode()}
           >
             {busy ? "Sending…" : "Get Access Code"}
-          </Button>
+          </InteractiveHoverButton>
         ) : (
           <>
-            <Button
+            <InteractiveHoverButton
               type="button"
-              variant="primary"
-              className="h-14 rounded-none"
-              onClick={() => void verifyCode()}
-            >
-              {busy ? "Verifying…" : "Verify & Continue"}
-            </Button>
-            <Button
-              type="button"
-              variant="brand-outline"
-              className="h-14 rounded-none"
+              variant="outline"
+              className="sm:w-auto"
+              fullWidth
+              disabled={busy}
               onClick={() => {
                 setPhase("email");
                 setCode("");
               }}
             >
               Change Email
-            </Button>
+            </InteractiveHoverButton>
+            <InteractiveHoverButton
+              type="button"
+              variant="solid"
+              className="sm:w-auto"
+              fullWidth
+              pending={busy}
+              disabled={code.length !== 6}
+              onClick={() => void verifyCode()}
+            >
+              {busy ? "Verifying…" : "Verify & Continue"}
+            </InteractiveHoverButton>
           </>
         )}
-      </div>
+      </EnquireActions>
     </div>
   );
 }

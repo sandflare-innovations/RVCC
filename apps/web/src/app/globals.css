@@ -104,6 +104,22 @@
   }
 }
 
+/*
+ * Supplier portal only — the rest of the site keeps Maven Pro, a geometric
+ * display face whose 1/l/I and 0/O are hard to tell apart. That ambiguity is a
+ * liability in a form collecting IBANs, CR/VAT numbers and one-time codes.
+ * Inter has a tall x-height, disambiguated glyphs and tabular figures.
+ *
+ * Declared as @utility rather than a @theme token on purpose: next/font defines
+ * --font-enquire-sans on the /enquire wrapper element, not on :root. A @theme
+ * entry is emitted at :root, where that variable does not exist yet, so the
+ * var() was invalid and the whole declaration computed to empty. As a utility
+ * the var() resolves on the element it is applied to, where the value inherits.
+ */
+@utility font-enquire {
+  font-family: var(--font-enquire-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
 @layer base {
   :root {
     --background: #ffffff;

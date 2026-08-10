@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/Button";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
 import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
 
@@ -33,7 +34,9 @@ const empty = (email = ""): ContactForm => ({
 export function ContactsStep() {
   useRequireSession("contacts");
   const router = useRouter();
-  const { registration, saveDraft, loading } = useEnquire();
+  const { registration, saveDraft, loading, saving } = useEnquire();
+  // Which action is in flight, so only that button shows a spinner.
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [contacts, setContacts] = useState<ContactForm[]>([empty()]);
 
   useEffect(() => {
@@ -65,20 +68,20 @@ export function ContactsStep() {
     if (ok) router.push(`/enquire/${next}`);
   };
 
-  if (loading) return <p className="text-sm text-zinc-400">Loading…</p>;
+  if (loading) return <p className="text-base text-zinc-600">Loading…</p>;
 
   return (
     <div className="space-y-10">
       {contacts.map((c, i) => (
         <div key={i} className="space-y-6 border-b border-zinc-100 pb-8">
           <div className="flex items-center justify-between">
-            <h3 className="text-[10px] font-black tracking-[0.3em] text-zinc-400 uppercase">
+            <h3 className="text-xs font-bold tracking-[0.18em] text-zinc-600 uppercase">
               Contact {String(i + 1).padStart(2, "0")}
             </h3>
             {contacts.length > 1 && (
               <button
                 type="button"
-                className="text-[10px] font-black tracking-widest text-zinc-400 uppercase hover:text-red-500"
+                className="inline-flex min-h-[44px] items-center text-xs font-bold tracking-wider text-zinc-600 uppercase transition-colors hover:text-red-600"
                 onClick={() => setContacts((prev) => prev.filter((_, idx) => idx !== i))}
               >
                 Remove
@@ -151,41 +154,57 @@ export function ContactsStep() {
         </div>
       ))}
 
-      <Button
+      <InteractiveHoverButton
         type="button"
-        variant="brand-outline"
-        className="h-12 rounded-none"
+        variant="outline"
+        className="sm:w-auto"
+        fullWidth
+        disabled={saving}
         onClick={() => setContacts((prev) => [...prev, empty(registration?.email || "")])}
       >
         Add Contact
-      </Button>
+      </InteractiveHoverButton>
 
-      <div className="flex flex-wrap gap-3 pt-4">
-        <Button
+      <EnquireActions>
+        <InteractiveHoverButton
           type="button"
-          variant="brand-outline"
-          className="h-14 rounded-none"
+          variant="outline"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
           onClick={() => router.push("/enquire/company")}
         >
           Back
-        </Button>
-        <Button
+        </InteractiveHoverButton>
+        <InteractiveHoverButton
           type="button"
-          variant="brand-outline"
-          className="h-14 rounded-none"
-          onClick={() => void persist("contacts")}
+          variant="outline"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
+          pending={saving && pendingAction === "contacts"}
+          onClick={() => {
+            setPendingAction("contacts");
+            void persist("contacts");
+          }}
         >
           Save for Later
-        </Button>
-        <Button
+        </InteractiveHoverButton>
+        <InteractiveHoverButton
           type="button"
-          variant="primary"
-          className="h-14 rounded-none"
-          onClick={() => void persist("addresses")}
+          variant="solid"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
+          pending={saving && pendingAction === "addresses"}
+          onClick={() => {
+            setPendingAction("addresses");
+            void persist("addresses");
+          }}
         >
           Next: Addresses
-        </Button>
-      </div>
+        </InteractiveHoverButton>
+      </EnquireActions>
     </div>
   );
 }

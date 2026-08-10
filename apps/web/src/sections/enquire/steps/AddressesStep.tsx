@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/Button";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { ADDRESS_PURPOSES, COUNTRIES } from "@/data/enquire-questionnaire";
+import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
 import {
   EnquireField,
@@ -42,7 +43,9 @@ const empty = (): AddressForm => ({
 export function AddressesStep() {
   useRequireSession("addresses");
   const router = useRouter();
-  const { registration, saveDraft, loading } = useEnquire();
+  const { registration, saveDraft, loading, saving } = useEnquire();
+  // Which action is in flight, so only that button shows a spinner.
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [addresses, setAddresses] = useState<AddressForm[]>([empty()]);
 
   useEffect(() => {
@@ -85,20 +88,20 @@ export function AddressesStep() {
     if (ok) router.push(`/enquire/${next}`);
   };
 
-  if (loading) return <p className="text-sm text-zinc-400">Loading…</p>;
+  if (loading) return <p className="text-base text-zinc-600">Loading…</p>;
 
   return (
     <div className="space-y-10">
       {addresses.map((a, i) => (
         <div key={i} className="space-y-6 border-b border-zinc-100 pb-8">
           <div className="flex items-center justify-between">
-            <h3 className="text-[10px] font-black tracking-[0.3em] text-zinc-400 uppercase">
+            <h3 className="text-xs font-bold tracking-[0.18em] text-zinc-600 uppercase">
               Address {String(i + 1).padStart(2, "0")}
             </h3>
             {addresses.length > 1 && (
               <button
                 type="button"
-                className="text-[10px] font-black tracking-widest text-zinc-400 uppercase hover:text-red-500"
+                className="inline-flex min-h-[44px] items-center text-xs font-bold tracking-wider text-zinc-600 uppercase transition-colors hover:text-red-600"
                 onClick={() => setAddresses((prev) => prev.filter((_, idx) => idx !== i))}
               >
                 Remove
@@ -171,7 +174,7 @@ export function AddressesStep() {
             </EnquireField>
           </div>
           <div>
-            <p className="mb-3 text-[10px] font-black tracking-[0.2em] text-zinc-400 uppercase">
+            <p className="mb-3 text-xs font-bold tracking-[0.16em] text-zinc-600 uppercase">
               Address purpose
             </p>
             <div className="flex flex-wrap gap-4 text-sm text-zinc-600">
@@ -190,41 +193,57 @@ export function AddressesStep() {
         </div>
       ))}
 
-      <Button
+      <InteractiveHoverButton
         type="button"
-        variant="brand-outline"
-        className="h-12 rounded-none"
+        variant="outline"
+        className="sm:w-auto"
+        fullWidth
+        disabled={saving}
         onClick={() => setAddresses((prev) => [...prev, empty()])}
       >
         Add Address
-      </Button>
+      </InteractiveHoverButton>
 
-      <div className="flex flex-wrap gap-3 pt-4">
-        <Button
+      <EnquireActions>
+        <InteractiveHoverButton
           type="button"
-          variant="brand-outline"
-          className="h-14 rounded-none"
+          variant="outline"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
           onClick={() => router.push("/enquire/contacts")}
         >
           Back
-        </Button>
-        <Button
+        </InteractiveHoverButton>
+        <InteractiveHoverButton
           type="button"
-          variant="brand-outline"
-          className="h-14 rounded-none"
-          onClick={() => void persist("addresses")}
+          variant="outline"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
+          pending={saving && pendingAction === "addresses"}
+          onClick={() => {
+            setPendingAction("addresses");
+            void persist("addresses");
+          }}
         >
           Save for Later
-        </Button>
-        <Button
+        </InteractiveHoverButton>
+        <InteractiveHoverButton
           type="button"
-          variant="primary"
-          className="h-14 rounded-none"
-          onClick={() => void persist("classifications")}
+          variant="solid"
+          className="sm:w-auto"
+          fullWidth
+          disabled={saving}
+          pending={saving && pendingAction === "classifications"}
+          onClick={() => {
+            setPendingAction("classifications");
+            void persist("classifications");
+          }}
         >
           Next: Classifications
-        </Button>
-      </div>
+        </InteractiveHoverButton>
+      </EnquireActions>
     </div>
   );
 }
