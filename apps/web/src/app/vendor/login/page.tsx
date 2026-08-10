@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import { VendorLoginForm } from "@/sections/vendor/VendorLoginForm";
 
 export default function VendorLoginPage() {
@@ -17,8 +19,26 @@ export default function VendorLoginPage() {
             .
           </p>
         </div>
-        <VendorLoginForm />
+        {/*
+          The form reads ?next= via useSearchParams(), which forces a client
+          bailout. Without this boundary the static prerender of this page
+          fails the production build.
+        */}
+        <Suspense fallback={<LoginFormSkeleton />}>
+          <VendorLoginForm />
+        </Suspense>
       </div>
     </main>
+  );
+}
+
+/** Matches the form's height so the shell does not jump when it hydrates. */
+function LoginFormSkeleton() {
+  return (
+    <div className="space-y-5" aria-hidden="true">
+      <div className="h-[68px] animate-pulse rounded-md bg-zinc-100" />
+      <div className="h-[68px] animate-pulse rounded-md bg-zinc-100" />
+      <div className="h-14 animate-pulse rounded-md bg-zinc-100" />
+    </div>
   );
 }
