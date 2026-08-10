@@ -3,6 +3,7 @@ import { createSql } from "./db";
 import {
   handleDraftGet,
   handleDraftPatch,
+  handleNotifyDecision,
   handleOtpRequest,
   handleOtpVerify,
   handleSubmit,
@@ -55,6 +56,10 @@ export default {
       }
       if (url.pathname === "/submit" && request.method === "POST") {
         return await handleSubmit(sql, env, request, ctx);
+      }
+      // Mail-only: the admin panel has already committed the decision.
+      if (url.pathname === "/notify/decision" && request.method === "POST") {
+        return await handleNotifyDecision(env, request);
       }
 
       return json(env, request, { error: "Not Found" }, 404);

@@ -72,7 +72,7 @@ export default function ContactPage() {
         {/* Background Image Container */}
         <div className="absolute inset-0 z-0 bg-white">
           <Image
-            src="/images/hero-bg.png"
+            src="/images/hero-bg.webp"
             alt="Hero Background"
             fill
             className="object-cover opacity-20"
@@ -129,7 +129,7 @@ export default function ContactPage() {
         <div className="relative flex min-h-[700px] w-full flex-col justify-end overflow-hidden bg-white p-8 md:p-16 lg:h-auto lg:w-1/2 lg:p-24">
           <div className="absolute inset-0 z-0">
             <Image
-              src="/images/projects/7.png"
+              src="/images/projects/7.webp"
               alt="Architecture"
               fill
               className="object-cover"

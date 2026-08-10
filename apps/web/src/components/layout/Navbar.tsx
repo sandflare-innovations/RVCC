@@ -28,6 +28,10 @@ export const Navbar = () => {
   const [isWorksSection, setIsWorksSection] = useState(false);
   const lastScrollY = useRef(0);
 
+  // The admin panel and supplier portal are separate application surfaces with
+  // their own chrome — the public marketing nav must not render over them.
+  const isAppSurface = pathname?.startsWith("/admin") || pathname?.startsWith("/vendor");
+
   const isGallaryPage = pathname?.startsWith("/gallary");
   const isContactPage = pathname?.startsWith("/contact");
   const isDocumentsPage = pathname?.startsWith("/documents");
@@ -133,6 +137,9 @@ export const Navbar = () => {
   const forceWhiteTheme = isWorksSection;
   const isLightAndScrolled = (isScrolled && !forceWhiteTheme) || isLightPage;
 
+  // Placed after the hooks above so hook order stays stable across renders.
+  if (isAppSurface) return null;
+
   return (
     <>
       <header
@@ -207,7 +214,7 @@ export const Navbar = () => {
             className="relative z-50 shrink-0 justify-self-center transition-transform hover:scale-105"
           >
             <Image
-              src="/images/logo/logo.png"
+              src="/images/logo/logo.webp"
               alt="Logo"
               width={160}
               height={160}
@@ -289,9 +296,9 @@ export const Navbar = () => {
                 <Button
                   variant="primary"
                   href="/enquire"
-                  className="h-full min-w-0 rounded-none border-l-0 px-4 py-0 text-[9px] font-bold tracking-[0.2em] uppercase xl:px-5"
+                  className="h-full min-w-0 rounded-none border-l-0 px-4 py-0 text-[9px] font-bold tracking-[0.14em] whitespace-nowrap uppercase xl:px-5"
                 >
-                  Enquiry
+                  E-Vendor Registration
                 </Button>
               </div>
             </div>
@@ -373,10 +380,10 @@ export const Navbar = () => {
             <Button
               variant="primary"
               href="/enquire"
-              className="h-14 w-full rounded-none text-[10px] font-black tracking-[0.3em] uppercase"
+              className="h-14 w-full rounded-none text-[10px] font-black tracking-[0.2em] uppercase"
               onClick={() => setIsOpen(false)}
             >
-              Enquiry
+              E-Vendor Registration
             </Button>
           </div>
 

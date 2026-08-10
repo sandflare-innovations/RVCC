@@ -94,7 +94,7 @@ export const DocumentHero = () => {
                   {/* Cover Image */}
                   <div className="absolute inset-2 overflow-hidden bg-zinc-50">
                     <Image
-                      src="/images/books/company-profile.png"
+                      src="/images/books/company-profile.webp"
                       alt="RVCC General Profile"
                       fill
                       className="object-cover"

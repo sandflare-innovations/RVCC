@@ -219,7 +219,7 @@ export const ProjectDetailClient: React.FC<ProjectDetailClientProps> = ({ projec
                   </div>
                   {/* Decorative background logo */}
                   <div className="pointer-events-none absolute -right-10 -bottom-10 h-48 w-48 opacity-5 grayscale invert">
-                    <Image src="/images/logo/logo.png" alt="" fill className="object-contain" />
+                    <Image src="/images/logo/logo.webp" alt="" fill className="object-contain" />
                   </div>
                 </motion.div>
               </div>

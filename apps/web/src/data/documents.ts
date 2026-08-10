@@ -26,7 +26,7 @@ const books = [
     fileSize: "12.4 MB",
     updatedAt: "March 2026",
     filePath: "/pdf/books/rvcc-general-profile.pdf",
-    image: "/images/books/company-profile.png",
+    image: "/images/books/company-profile.webp",
   },
   {
     id: "2",
@@ -38,7 +38,7 @@ const books = [
     fileSize: "21.4 MB",
     updatedAt: "April 2026",
     filePath: "/pdf/books/rvcc-signature-project-profile.pdf",
-    image: "/images/books/company-profile.png",
+    image: "/images/books/company-profile.webp",
   },
   {
     id: "3",
@@ -50,7 +50,7 @@ const books = [
     fileSize: "166.2 MB",
     updatedAt: "May 2026",
     filePath: "/pdf/books/rvcc-water-feature-landscape-profile.pdf",
-    image: "/images/books/company-profile.png",
+    image: "/images/books/company-profile.webp",
   },
   {
     id: "4",
@@ -62,7 +62,7 @@ const books = [
     fileSize: "8.8 MB",
     updatedAt: "May 2026",
     filePath: "/pdf/books/rvmf-metal-factory-steel-work-profile.pdf",
-    image: "/images/books/company-profile.png",
+    image: "/images/books/company-profile.webp",
   },
 ];
 

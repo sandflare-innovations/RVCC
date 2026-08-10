@@ -8,10 +8,83 @@ import {
   makeReferenceNumber,
   timingSafeEqualHex,
 } from "./db";
-import { sendOtpEmail, sendSubmittedEmail, smtpConfigured } from "./mail";
+import {
+  sendApprovedEmail,
+  sendOtpEmail,
+  sendRejectedEmail,
+  sendSubmittedEmail,
+  smtpConfigured,
+} from "./mail";
 
 const OTP_TTL_MS = 15 * 60 * 1000;
 const OTP_MAX_PER_HOUR = 5;
+
+type DecisionRecipient = { to: string; loginEmail?: string; tempPassword?: string };
+
+/**
+ * Sends approval/rejection mail on behalf of the admin panel.
+ *
+ * Mail-only by design: the decision itself is already committed to Postgres by
+ * the Next.js admin route, so this handler touches no data. It is reachable
+ * only with the shared API secret, which never leaves the server side.
+ */
+export async function handleNotifyDecision(env: Env, request: Request): Promise<Response> {
+  const body = (await request.json()) as {
+    decision?: "APPROVED" | "REJECTED";
+    legalName?: string;
+    referenceNumber?: string;
+    portalUrl?: string;
+    reason?: string;
+    recipients?: DecisionRecipient[];
+  };
+
+  const decision = body.decision;
+  if (decision !== "APPROVED" && decision !== "REJECTED") {
+    return json(env, request, { error: "decision must be APPROVED or REJECTED" }, 400);
+  }
+
+  const recipients = (body.recipients ?? []).filter((r) => r?.to?.includes("@"));
+  if (recipients.length === 0) {
+    return json(env, request, { error: "At least one recipient is required" }, 400);
+  }
+
+  if (!smtpConfigured(env)) {
+    return json(env, request, { error: "Mail service unavailable" }, 503);
+  }
+
+  const legalName = body.legalName ?? "";
+  const referenceNumber = body.referenceNumber ?? "";
+
+  // Report per-recipient so a single bad address does not hide the rest.
+  const sent: string[] = [];
+  const failed: { to: string; error: string }[] = [];
+
+  for (const r of recipients) {
+    try {
+      if (decision === "APPROVED") {
+        await sendApprovedEmail(env, r.to, {
+          legalName,
+          referenceNumber,
+          portalUrl: body.portalUrl ?? "",
+          loginEmail: r.loginEmail,
+          tempPassword: r.tempPassword,
+        });
+      } else {
+        await sendRejectedEmail(env, r.to, {
+          legalName,
+          referenceNumber,
+          reason: body.reason ?? "No reason supplied.",
+        });
+      }
+      sent.push(r.to);
+    } catch (err) {
+      console.error("[notify/decision]", r.to, err);
+      failed.push({ to: r.to, error: err instanceof Error ? err.message : "send failed" });
+    }
+  }
+
+  return json(env, request, { ok: failed.length === 0, sent, failed }, failed.length ? 207 : 200);
+}
 
 function sessionFrom(request: Request): string | null {
   return request.headers.get("X-Enquire-Session");

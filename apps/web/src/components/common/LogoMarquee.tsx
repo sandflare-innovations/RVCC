@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
+
 import { motion } from "framer-motion";
+
 import { cn } from "@lib/utils";
 
 interface LogoMarqueeProps {
@@ -31,18 +33,15 @@ export const LogoMarquee = ({ className }: LogoMarqueeProps) => {
           className="flex w-max items-center gap-12 md:gap-16"
         >
           {logos.concat(logos).map((i, index) => (
-            <div
-              key={index}
-              className="relative h-20 w-20 brightness-0 invert transition-opacity"
-            >
-                <Image
-                  src={`/images/clients/${i}.png`}
-                  alt={`Partner Logo ${i}`}
-                  fill
-                  className="object-contain"
-                  loading="lazy"
-                  sizes="80px"
-                />
+            <div key={index} className="relative h-20 w-20 brightness-0 invert transition-opacity">
+              <Image
+                src={`/images/clients/${i}.webp`}
+                alt={`Partner Logo ${i}`}
+                fill
+                className="object-contain"
+                loading="lazy"
+                sizes="80px"
+              />
             </div>
           ))}
         </motion.div>

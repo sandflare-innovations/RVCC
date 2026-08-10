@@ -10,7 +10,7 @@ export const ServicesHero = () => {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/images/services/service_hero_new_v2_1778185307149.png"
+          src="/images/services/service_hero_new_v2_1778185307149.webp"
           alt="Modern Architecture"
           fill
           className="object-cover"

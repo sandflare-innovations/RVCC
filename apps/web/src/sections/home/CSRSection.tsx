@@ -189,7 +189,7 @@ export const CSRSection = () => {
               <div className="absolute inset-0 z-10 bg-black/40 transition-colors group-hover:bg-black/20" />
               <div className="absolute inset-0 transition-all duration-1000">
                 <Image
-                  src="/images/social/daya-trust.png"
+                  src="/images/social/daya-trust.webp"
                   alt="Daya Charitable Trust"
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-105"
@@ -232,7 +232,7 @@ export const CSRSection = () => {
               <div className="absolute inset-0 z-10 bg-black/40 transition-colors group-hover:bg-black/20" />
               <div className="absolute inset-0 transition-all duration-1000">
                 <Image
-                  src="/images/social/daya-academy.png"
+                  src="/images/social/daya-academy.webp"
                   alt="Daya Academy"
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-105"

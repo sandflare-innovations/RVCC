@@ -48,4 +48,4 @@ export const ABOUT_STATS: AboutStat[] = [
   { value: 100, label: "SATISFIED CLIENTS", suffix: "%" },
 ];
 
-export const CLIENT_IMAGES = Array.from({ length: 18 }, (_, i) => `/images/clients/${i + 1}.png`);
+export const CLIENT_IMAGES = Array.from({ length: 18 }, (_, i) => `/images/clients/${i + 1}.webp`);

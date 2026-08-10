@@ -523,11 +523,11 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
         <div
           className={`aspect-square w-full ${readerBg === "brand-blue" ? "bg-white" : "bg-brand-blue"}`}
           style={{
-            maskImage: "url(/images/logo/rvcc-grid.png)",
+            maskImage: "url(/images/logo/rvcc-grid.webp)",
             maskRepeat: "no-repeat",
             maskPosition: "center",
             maskSize: "contain",
-            WebkitMaskImage: "url(/images/logo/rvcc-grid.png)",
+            WebkitMaskImage: "url(/images/logo/rvcc-grid.webp)",
             WebkitMaskRepeat: "no-repeat",
             WebkitMaskPosition: "center",
             WebkitMaskSize: "contain",
@@ -673,89 +673,91 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
           }
         >
           {pdfFile && (
-          <Document
-            key={`${pdfFile}:${loadNonce}`}
-            file={pdfFile}
-            onLoadSuccess={onDocumentLoadSuccess}
-            onLoadProgress={onDocumentLoadProgress}
-            onLoadError={onDocumentLoadError}
-            onSourceError={onDocumentLoadError}
-            options={pdfOptions}
-            renderMode="canvas"
-            className="relative flex h-full w-full items-center justify-center"
-            loading={null}
-          >
-            {/* Instant cover (no StPageFlip) — visible from first paint / after READ prefetch */}
-            {!flipLive && (
-              <div
-                className="relative z-20 flex items-center justify-center shadow-[0_24px_48px_-12px_rgba(0,0,0,0.35)]"
-                style={{ width: pageCanvasWidth, height: coverHeight }}
-              >
-                <div className="absolute inset-0 overflow-hidden bg-white">
-                  <FlipPdfPage
-                    pageNumber={1}
-                    width={pageCanvasWidth}
-                    devicePixelRatio={devicePixelRatio}
-                    onReady={onPreviewRenderSuccess}
-                  />
+            <Document
+              key={`${pdfFile}:${loadNonce}`}
+              file={pdfFile}
+              onLoadSuccess={onDocumentLoadSuccess}
+              onLoadProgress={onDocumentLoadProgress}
+              onLoadError={onDocumentLoadError}
+              onSourceError={onDocumentLoadError}
+              options={pdfOptions}
+              renderMode="canvas"
+              className="relative flex h-full w-full items-center justify-center"
+              loading={null}
+            >
+              {/* Instant cover (no StPageFlip) — visible from first paint / after READ prefetch */}
+              {!flipLive && (
+                <div
+                  className="relative z-20 flex items-center justify-center shadow-[0_24px_48px_-12px_rgba(0,0,0,0.35)]"
+                  style={{ width: pageCanvasWidth, height: coverHeight }}
+                >
+                  <div className="absolute inset-0 overflow-hidden bg-white">
+                    <FlipPdfPage
+                      pageNumber={1}
+                      width={pageCanvasWidth}
+                      devicePixelRatio={devicePixelRatio}
+                      onReady={onPreviewRenderSuccess}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Flipbook mounts under/after preview; shown once update() has run */}
-            {pdfReady && numPages > 0 && dimsReady && layoutReady && flipMounted && (
-              // @ts-expect-error - HTMLFlipBook types are incomplete for some props
-              <HTMLFlipBook
-                key={`flip-${bookBox.w}x${bookBox.h}`}
-                width={Math.max(1, pageSlotW)}
-                height={Math.max(1, pageSlotH)}
-                size="fixed"
-                minWidth={Math.max(1, pageSlotW)}
-                maxWidth={Math.max(1, pageSlotW)}
-                minHeight={Math.max(1, pageSlotH)}
-                maxHeight={Math.max(1, pageSlotH)}
-                maxShadowOpacity={0.25}
-                showCover={true}
-                mobileScrollSupport={true}
-                onFlip={onFlip}
-                flippingTime={550}
-                usePortrait={false}
-                startPage={0}
-                drawShadow={true}
-                useMouseEvents={!isZoomed}
-                showPageCorners={!isZoomed}
-                className={`transition-opacity duration-300 ${
-                  flipLive
-                    ? "relative z-10 opacity-100"
-                    : "pointer-events-none absolute inset-0 opacity-0"
-                } ${isZoomed ? "pointer-events-none" : "pointer-events-auto"} ${
-                  currentPage === 0 ? "shadow-none" : "shadow-[0_24px_48px_-12px_rgba(0,0,0,0.35)]"
-                }`}
-                style={{ width: bookBox.w, height: bookBox.h }}
-                ref={flipBookRef}
-              >
-                {Array.from(new Array(numPages), (_el, index) => {
-                  const mounted = isPageVisible(index);
-                  return (
-                    <Page key={`page_${index + 1}`} number={index + 1}>
-                      {mounted && pdfReady ? (
-                        <FlipPdfPage
-                          pageNumber={index + 1}
-                          width={pageCanvasWidth}
-                          devicePixelRatio={devicePixelRatio}
-                          onReady={index === 0 ? onCoverRenderSuccess : undefined}
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-zinc-100">
-                          <div className="border-brand-blue/30 h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
-                        </div>
-                      )}
-                    </Page>
-                  );
-                })}
-              </HTMLFlipBook>
-            )}
-          </Document>
+              {/* Flipbook mounts under/after preview; shown once update() has run */}
+              {pdfReady && numPages > 0 && dimsReady && layoutReady && flipMounted && (
+                // @ts-expect-error - HTMLFlipBook types are incomplete for some props
+                <HTMLFlipBook
+                  key={`flip-${bookBox.w}x${bookBox.h}`}
+                  width={Math.max(1, pageSlotW)}
+                  height={Math.max(1, pageSlotH)}
+                  size="fixed"
+                  minWidth={Math.max(1, pageSlotW)}
+                  maxWidth={Math.max(1, pageSlotW)}
+                  minHeight={Math.max(1, pageSlotH)}
+                  maxHeight={Math.max(1, pageSlotH)}
+                  maxShadowOpacity={0.25}
+                  showCover={true}
+                  mobileScrollSupport={true}
+                  onFlip={onFlip}
+                  flippingTime={550}
+                  usePortrait={false}
+                  startPage={0}
+                  drawShadow={true}
+                  useMouseEvents={!isZoomed}
+                  showPageCorners={!isZoomed}
+                  className={`transition-opacity duration-300 ${
+                    flipLive
+                      ? "relative z-10 opacity-100"
+                      : "pointer-events-none absolute inset-0 opacity-0"
+                  } ${isZoomed ? "pointer-events-none" : "pointer-events-auto"} ${
+                    currentPage === 0
+                      ? "shadow-none"
+                      : "shadow-[0_24px_48px_-12px_rgba(0,0,0,0.35)]"
+                  }`}
+                  style={{ width: bookBox.w, height: bookBox.h }}
+                  ref={flipBookRef}
+                >
+                  {Array.from(new Array(numPages), (_el, index) => {
+                    const mounted = isPageVisible(index);
+                    return (
+                      <Page key={`page_${index + 1}`} number={index + 1}>
+                        {mounted && pdfReady ? (
+                          <FlipPdfPage
+                            pageNumber={index + 1}
+                            width={pageCanvasWidth}
+                            devicePixelRatio={devicePixelRatio}
+                            onReady={index === 0 ? onCoverRenderSuccess : undefined}
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-zinc-100">
+                            <div className="border-brand-blue/30 h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
+                          </div>
+                        )}
+                      </Page>
+                    );
+                  })}
+                </HTMLFlipBook>
+              )}
+            </Document>
           )}
         </motion.div>
       </div>

@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+
+import { AnimatePresence, motion } from "framer-motion";
 
 const IMAGES = [
-  "/images/projects/1.png",
-  "/images/projects/2.png",
-  "/images/projects/3.png",
-  "/images/projects/4.png",
+  "/images/projects/1.webp",
+  "/images/projects/2.webp",
+  "/images/projects/3.webp",
+  "/images/projects/4.webp",
 ];
 
 export const AboutOverview = () => {
@@ -24,7 +26,6 @@ export const AboutOverview = () => {
   return (
     <section className="relative overflow-hidden bg-white py-24 lg:pt-32">
       <div className="container mx-auto px-6">
-
         {/* TOP: Refined Header */}
         <div className="mb-16 text-center">
           <motion.div
@@ -38,7 +39,7 @@ export const AboutOverview = () => {
             </span>
             <h3 className="font-heading mx-auto max-w-4xl text-6xl leading-[0.6] tracking-tighter text-zinc-900 lg:text-[8rem]">
               The Art of <br />
-              <span className="serif normal-case text-brand-blue">Structural Perfection.</span>
+              <span className="serif text-brand-blue normal-case">Structural Perfection.</span>
             </h3>
           </motion.div>
         </div>
@@ -64,13 +65,14 @@ export const AboutOverview = () => {
           ))}
 
           {/* Subtle Decorative Frame & Progress Indicator */}
-          <div className="absolute inset-8 border border-white/20 pointer-events-none" />
-          <div className="absolute bottom-12 left-1/2 flex -translate-x-1/2 gap-3 z-20">
+          <div className="pointer-events-none absolute inset-8 border border-white/20" />
+          <div className="absolute bottom-12 left-1/2 z-20 flex -translate-x-1/2 gap-3">
             {IMAGES.map((_, i) => (
               <div
                 key={i}
-                className={`h-[2px] w-8 transition-all duration-700 ${i === currentIndex ? "bg-white w-12" : "bg-white/30"
-                  }`}
+                className={`h-[2px] w-8 transition-all duration-700 ${
+                  i === currentIndex ? "w-12 bg-white" : "bg-white/30"
+                }`}
               />
             ))}
           </div>
@@ -78,7 +80,6 @@ export const AboutOverview = () => {
 
         {/* BOTTOM: Minimalist Content Grid */}
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-12">
-
           {/* Narrative Column */}
           <div className="lg:col-span-7">
             <motion.div
@@ -86,19 +87,17 @@ export const AboutOverview = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 1, delay: 0.3 }}
-              className="space-y-8 text-xl font-light leading-relaxed text-zinc-500"
+              className="space-y-8 text-xl leading-relaxed font-light text-zinc-500"
             >
               <p>
-                Riyadh Villas Contracting Company (RVCC) stands as a beacon of
-                refined engineering and timeless structural design. For nearly
-                two decades, we have been the quiet force behind the Kingdom's
-                most prestigious developments.
+                Riyadh Villas Contracting Company (RVCC) stands as a beacon of refined engineering
+                and timeless structural design. For nearly two decades, we have been the quiet force
+                behind the Kingdom's most prestigious developments.
               </p>
               <p className="text-lg opacity-80">
-                Our philosophy is simple: perfection is not when there is nothing
-                more to add, but when there is nothing left to take away. We
-                bring this minimalist precision to every civil, structural,
-                and engineering challenge we undertake.
+                Our philosophy is simple: perfection is not when there is nothing more to add, but
+                when there is nothing left to take away. We bring this minimalist precision to every
+                civil, structural, and engineering challenge we undertake.
               </p>
             </motion.div>
           </div>
@@ -122,28 +121,24 @@ export const AboutOverview = () => {
               <div className="grid grid-cols-2 gap-12">
                 <div>
                   <span className="block text-3xl font-light text-zinc-900">150+</span>
-                  <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Deliveries</span>
+                  <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
+                    Deliveries
+                  </span>
                 </div>
                 <div>
                   <span className="block text-3xl font-light text-zinc-900">20+</span>
-                  <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Years</span>
+                  <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
+                    Years
+                  </span>
                 </div>
               </div>
 
               {/* Signature Line */}
-              <div className="h-[1px] w-12 bg-brand-blue" />
+              <div className="bg-brand-blue h-[1px] w-12" />
             </motion.div>
           </div>
-
         </div>
       </div>
     </section>
   );
 };
-
-
-
-
-
-
-

@@ -20,7 +20,7 @@ export const CareerHero = () => {
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
-          className="h-full w-full bg-[url('/images/careers/premium_studio.png')] bg-cover bg-center grayscale-0"
+          className="h-full w-full bg-[url('/images/careers/premium_studio.webp')] bg-cover bg-center grayscale-0"
         />
         <div className="absolute inset-0 bg-black/50" />
       </div>
