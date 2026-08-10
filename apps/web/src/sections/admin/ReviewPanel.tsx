@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 
 import { AlertCircle, Check, KeyRound, Mail, X } from "lucide-react";
 
+import { readApiError } from "@/lib/api/read-error";
+
 type Credential = { email: string; tempPassword: string };
 type Notified = {
   attempted: boolean;
@@ -44,11 +46,11 @@ export function ReviewPanel({
         credentials: "include",
         body: JSON.stringify({ action, note: note.trim() || undefined }),
       });
-      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Could not complete the review.");
+        setError(await readApiError(res, "Could not complete the review."));
         return;
       }
+      const data = await res.json().catch(() => ({}));
       setOutcome({ credentials: data.credentials ?? [], notified: data.notified ?? null });
       router.refresh();
     } catch {

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircle, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
 
 import { Modal } from "@/components/ui/modal";
+import { readApiError } from "@/lib/api/read-error";
 
 export function CareerRowActions({
   job,
@@ -44,9 +45,8 @@ export function CareerRowActions({
         method: "DELETE",
         credentials: "include",
       });
-      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Could not delete this posting.");
+        setError(await readApiError(res, "Could not delete this posting."));
         return;
       }
       setShowDelete(false);

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircle, ExternalLink, Eye, Trash2 } from "lucide-react";
 
 import { Modal } from "@/components/ui/modal";
+import { readApiError } from "@/lib/api/read-error";
 import { StatusBadge } from "@/sections/admin/StatusBadge";
 
 export type RegistrationSummary = {
@@ -72,9 +73,8 @@ export function RegistrationRowActions({
         method: "DELETE",
         credentials: "include",
       });
-      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Could not delete this registration.");
+        setError(await readApiError(res, "Could not delete this registration."));
         return;
       }
       setShowDelete(false);

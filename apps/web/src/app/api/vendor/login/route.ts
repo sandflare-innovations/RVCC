@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { VENDOR_COOKIE } from "@/lib/admin/constants";
+import { apiError } from "@/lib/api/errors";
 import { attemptVendorLogin } from "@/lib/vendor/auth";
 import { createVendorSession, vendorCookieOptions } from "@/lib/vendor/session";
 
@@ -21,24 +22,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
   }
 
-  const result = await attemptVendorLogin(parsed.data.email, parsed.data.password);
+  // See the admin login route: database faults must stay JSON, not HTML.
+  try {
+    const result = await attemptVendorLogin(parsed.data.email, parsed.data.password);
 
-  if (!result.ok) {
-    if (result.reason === "locked") {
-      const mins = Math.ceil((result.retryAfterMs ?? 0) / 60000);
-      return NextResponse.json(
-        { error: `Too many failed attempts. Try again in ${mins} minute${mins === 1 ? "" : "s"}.` },
-        { status: 429 }
-      );
+    if (!result.ok) {
+      if (result.reason === "locked") {
+        const mins = Math.ceil((result.retryAfterMs ?? 0) / 60000);
+        return NextResponse.json(
+          {
+            error: `Too many failed attempts. Try again in ${mins} minute${mins === 1 ? "" : "s"}.`,
+          },
+          { status: 429 }
+        );
+      }
+      if (result.reason === "disabled") {
+        return NextResponse.json({ error: "This account has been disabled." }, { status: 403 });
+      }
+      return NextResponse.json({ error: "Incorrect email or password." }, { status: 401 });
     }
-    if (result.reason === "disabled") {
-      return NextResponse.json({ error: "This account has been disabled." }, { status: 403 });
-    }
-    return NextResponse.json({ error: "Incorrect email or password." }, { status: 401 });
+
+    const token = await createVendorSession(
+      result.vendorId,
+      request.headers.get("user-agent") ?? ""
+    );
+    const res = NextResponse.json({ ok: true, mustChangePassword: result.mustChangePassword });
+    res.cookies.set(VENDOR_COOKIE, token, vendorCookieOptions());
+    return res;
+  } catch (err) {
+    return apiError(err, "Could not sign in.");
   }
-
-  const token = await createVendorSession(result.vendorId, request.headers.get("user-agent") ?? "");
-  const res = NextResponse.json({ ok: true, mustChangePassword: result.mustChangePassword });
-  res.cookies.set(VENDOR_COOKIE, token, vendorCookieOptions());
-  return res;
 }

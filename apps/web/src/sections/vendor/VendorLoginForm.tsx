@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import { readApiError } from "@/lib/api/read-error";
 import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
 
 export function VendorLoginForm() {
@@ -28,11 +29,11 @@ export function VendorLoginForm() {
         credentials: "include",
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Sign in failed.");
+        setError(await readApiError(res, "Sign in failed."));
         return;
       }
+      const data = await res.json().catch(() => ({}));
       // A temporary password must be replaced before anything else is reachable.
       if (data.mustChangePassword) {
         router.replace("/vendor/password");

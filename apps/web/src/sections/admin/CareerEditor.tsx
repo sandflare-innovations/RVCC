@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import { readApiError } from "@/lib/api/read-error";
 import {
   EnquireField,
   enquireInputClass,
@@ -76,11 +77,11 @@ export function CareerEditor({
         credentials: "include",
         body: JSON.stringify(payload),
       });
-      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Could not save this posting.");
+        setError(await readApiError(res, "Could not save this posting."));
         return;
       }
+      const data = await res.json().catch(() => ({}));
       router.push("/admin/content/careers");
       router.refresh();
     } catch {
