@@ -188,6 +188,16 @@
     line-height: 1.2;
   }
 
+  /*
+   * The admin panel is an internal tool, not brand surface. Ara Hamah Alislam
+   * is a display face and reads badly at UI sizes, so headings there inherit
+   * the same Inter stack as the rest of the panel.
+   */
+  [data-admin] :is(h1, h2, h3, h4, h5, h6) {
+    font-family: inherit;
+    line-height: 1.25;
+  }
+
   .font-heading {
     font-family: var(--font-heading);
   }

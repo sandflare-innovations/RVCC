@@ -19,7 +19,7 @@ import * as THREE from "three";
  */
 function Model({ url }: { url: string }) {
   const { scene } = useGLTF(url);
-  const logoTexture = useTexture("/images/logo/logo.png");
+  const logoTexture = useTexture("/images/logo/logo.webp");
 
   // White glossy helmet shell material
   const shellMaterial = useMemo(

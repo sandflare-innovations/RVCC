@@ -19,6 +19,137 @@ enum BusinessRelationship {
   SPEND_AUTHORIZED
 }
 
+enum AdminRole {
+  SUPER_ADMIN // manage admins + everything below
+  ADMIN // approve/reject vendors, manage content
+  REVIEWER // read-only
+}
+
+/// Staff accounts for the admin panel. Deliberately separate from VendorUser:
+/// a vendor must never be able to escalate into staff access.
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String    @default("")
+  passwordHash String
+  role         AdminRole @default(ADMIN)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+
+  // Throttling — see lib/admin/auth.ts
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions    AdminSession[]
+  auditLogs   AuditLog[]
+  reviewed    SupplierRegistration[]
+  jobPostings JobPosting[]
+
+  @@index([email])
+}
+
+/// Careers content, editable from the admin panel.
+/// department/employmentType are plain strings, not enums, so staff can add a
+/// new department without a schema migration and redeploy.
+model JobPosting {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  title          String
+  department     String   @default("")
+  location       String   @default("")
+  employmentType String   @default("Full-time")
+  description    String   @default("")
+  requirements   String[] @default([])
+  benefits       String[] @default([])
+  isRemote       Boolean  @default(false)
+
+  /// Drafts stay invisible on the public site until this is set.
+  isPublished Boolean  @default(false)
+  postedAt    DateTime @default(now())
+  sortOrder   Int      @default(0)
+
+  createdById String?
+  createdBy   AdminUser? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isPublished, sortOrder])
+}
+
+/// Only the SHA-256 of the session token is stored, so a database leak does not
+/// hand over live sessions. The raw token lives solely in the httpOnly cookie.
+model AdminSession {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  adminId   String
+  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  userAgent String    @default("")
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([adminId])
+}
+
+/// Vendor login, provisioned when a registration is approved.
+model VendorUser {
+  id                 String  @id @default(cuid())
+  email              String  @unique
+  name               String  @default("")
+  passwordHash       String
+  mustChangePassword Boolean @default(true)
+  isActive           Boolean @default(true)
+
+  registrationId String
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+  lastLoginAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions VendorSession[]
+
+  @@index([registrationId])
+  @@index([email])
+}
+
+model VendorSession {
+  id        String     @id @default(cuid())
+  tokenHash String     @unique
+  vendorId  String
+  vendor    VendorUser @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  userAgent String     @default("")
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime   @default(now())
+
+  @@index([vendorId])
+}
+
+/// Append-only trail of privileged actions. Approving a vendor is a commercial
+/// decision, so it needs to be attributable after the fact.
+model AuditLog {
+  id         String     @id @default(cuid())
+  adminId    String?
+  admin      AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  action     String // e.g. "registration.approved"
+  entityType String // e.g. "SupplierRegistration"
+  entityId   String
+  metadata   Json       @default("{}")
+  createdAt  DateTime   @default(now())
+
+  @@index([entityType, entityId])
+  @@index([adminId])
+  @@index([createdAt])
+}
+
 model SupplierRegistration {
   id                 String               @id @default(cuid())
   referenceNumber    String?              @unique
@@ -30,6 +161,13 @@ model SupplierRegistration {
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   submittedAt        DateTime?
+
+  // Review outcome, written by the admin panel.
+  reviewedAt         DateTime?
+  reviewedById       String?
+  reviewedBy         AdminUser?           @relation(fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewNote         String?
+  vendorUsers        VendorUser[]
 
   company            CompanyProfile?
   contacts           SupplierContact[]

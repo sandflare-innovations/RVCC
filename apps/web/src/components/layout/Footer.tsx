@@ -205,7 +205,7 @@ export const Footer = () => {
             style={{ filter: "brightness(0) invert(1)" }}
           >
             <Image
-              src="/images/logo/logo.png"
+              src="/images/logo/logo.webp"
               alt="RVCC Large Logo"
               fill
               className="object-contain"

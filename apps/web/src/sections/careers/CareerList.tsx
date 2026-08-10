@@ -7,11 +7,12 @@ import ReCAPTCHA from "react-google-recaptcha";
 
 import { Icons } from "@repo/ui";
 
-import { JobPosition, OPEN_POSITIONS } from "@/data/careers";
+import type { JobPosition } from "@/data/careers";
 
 import { cn } from "@lib/utils";
 
-export const CareerList = () => {
+/** Postings come from the database via the careers page (server component). */
+export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
   const [activeDepartment, setActiveDepartment] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedJob, setSelectedJob] = useState<JobPosition | null>(null);
@@ -45,9 +46,9 @@ export const CareerList = () => {
     }
   };
 
-  const departments = ["All", ...new Set(OPEN_POSITIONS.map((j) => j.department))];
+  const departments = ["All", ...new Set(positions.map((j) => j.department))];
 
-  const filteredJobs = OPEN_POSITIONS.filter((job) => {
+  const filteredJobs = positions.filter((job) => {
     const matchesDept = activeDepartment === "All" || job.department === activeDepartment;
     const matchesSearch =
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

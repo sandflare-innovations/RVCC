@@ -3,7 +3,7 @@ import { FounderData } from "@types";
 export const FOUNDER_DATA: FounderData = {
   name: "Dr. Sooraj N K",
   role: "Founder & CEO",
-  image: "/images/team/ceo.png",
+  image: "/images/team/ceo.webp",
 };
 
 export const LEADER_MESSAGE = [

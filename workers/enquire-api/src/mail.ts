@@ -89,6 +89,69 @@ function fromAddress(env: Env): string {
   return env.ENQUIRE_FROM_EMAIL || env.SMTP_FROM || "RVCC Procurement <noreply@rvcc.local>";
 }
 
+function approvedEmailHtml(opts: {
+  legalName: string;
+  referenceNumber: string;
+  portalUrl: string;
+  loginEmail?: string;
+  tempPassword?: string;
+}) {
+  const subject = `RVCC Supplier Registration Approved — ${opts.referenceNumber}`;
+  // Credentials are omitted for contacts who were not issued a login.
+  const credentials =
+    opts.loginEmail && opts.tempPassword
+      ? `
+      <div style="margin:24px 0;padding:20px;border:2px solid ${BRAND};">
+        <p style="margin:0 0 12px;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:#a1a1aa;font-weight:700;">Portal sign-in</p>
+        <p style="margin:0 0 6px;font-size:13px;">Email: <strong>${opts.loginEmail}</strong></p>
+        <p style="margin:0;font-size:13px;">Temporary password: <strong style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:16px;color:${BRAND};">${opts.tempPassword}</strong></p>
+      </div>
+      <p style="margin:0 0 16px;">
+        <a href="${opts.portalUrl}" style="display:inline-block;background:${BRAND};color:#ffffff;text-decoration:none;padding:12px 24px;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Sign in to the portal</a>
+      </p>
+      <p style="margin:0;color:#71717a;font-size:13px;">You will be asked to set a new password on first sign-in.</p>`
+      : `<p style="margin:0;color:#71717a;font-size:13px;">Your administrative contact has been sent portal sign-in details separately.</p>`;
+
+  const html = shell({
+    preheader: `Registration ${opts.referenceNumber} approved`,
+    title: "Registration Approved",
+    bodyHtml: `
+      <p style="margin:0 0 16px;">Good news${opts.legalName ? `, <strong>${opts.legalName}</strong>` : ""}. Your prospective supplier registration has been approved by RVCC procurement.</p>
+      <div style="margin:24px 0;padding:20px;background:#f4f4f5;border-left:4px solid ${BRAND};">
+        <p style="margin:0 0 6px;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:#a1a1aa;font-weight:700;">Reference number</p>
+        <p style="margin:0;font-size:20px;font-weight:800;color:${BRAND};font-family:ui-monospace,Menlo,Consolas,monospace;">${opts.referenceNumber}</p>
+      </div>
+      ${credentials}
+    `,
+  });
+
+  const text = `RVCC Supplier Registration\n\nYour registration ${opts.referenceNumber} has been approved.\n${
+    opts.loginEmail && opts.tempPassword
+      ? `\nPortal: ${opts.portalUrl}\nEmail: ${opts.loginEmail}\nTemporary password: ${opts.tempPassword}\nYou will be asked to set a new password on first sign-in.\n`
+      : ""
+  }\n— RVCC Procurement`;
+
+  return { subject, html, text };
+}
+
+function rejectedEmailHtml(opts: { legalName: string; referenceNumber: string; reason: string }) {
+  const subject = `RVCC Supplier Registration Update — ${opts.referenceNumber}`;
+  const html = shell({
+    preheader: `Update on registration ${opts.referenceNumber}`,
+    title: "Registration Update",
+    bodyHtml: `
+      <p style="margin:0 0 16px;">Thank you${opts.legalName ? `, <strong>${opts.legalName}</strong>` : ""} for your interest in supplying RVCC. After review, registration <strong>${opts.referenceNumber}</strong> has not been approved at this time.</p>
+      <div style="margin:24px 0;padding:20px;background:#f4f4f5;border-left:4px solid #27272a;">
+        <p style="margin:0 0 6px;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:#a1a1aa;font-weight:700;">Reviewer note</p>
+        <p style="margin:0;font-size:14px;color:#27272a;">${opts.reason}</p>
+      </div>
+      <p style="margin:0;color:#71717a;font-size:13px;">You are welcome to submit a new registration once these points have been addressed.</p>
+    `,
+  });
+  const text = `RVCC Supplier Registration\n\nRegistration ${opts.referenceNumber} was not approved at this time.\n\nReviewer note: ${opts.reason}\n\n— RVCC Procurement`;
+  return { subject, html, text };
+}
+
 async function sendMail(
   env: Env,
   opts: { to: string; subject: string; text: string; html: string }
@@ -133,5 +196,29 @@ export async function sendSubmittedEmail(
   opts: { referenceNumber: string; legalName: string }
 ): Promise<void> {
   const { subject, html, text } = submittedEmailHtml(opts.referenceNumber, opts.legalName);
+  await sendMail(env, { to, subject, html, text });
+}
+
+export async function sendApprovedEmail(
+  env: Env,
+  to: string,
+  opts: {
+    legalName: string;
+    referenceNumber: string;
+    portalUrl: string;
+    loginEmail?: string;
+    tempPassword?: string;
+  }
+): Promise<void> {
+  const { subject, html, text } = approvedEmailHtml(opts);
+  await sendMail(env, { to, subject, html, text });
+}
+
+export async function sendRejectedEmail(
+  env: Env,
+  to: string,
+  opts: { legalName: string; referenceNumber: string; reason: string }
+): Promise<void> {
+  const { subject, html, text } = rejectedEmailHtml(opts);
   await sendMail(env, { to, subject, html, text });
 }

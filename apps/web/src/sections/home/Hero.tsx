@@ -18,21 +18,21 @@ const HERO_CONTENT = [
     title2: "Legacy",
     description:
       "Redefining the architectural landscape through precision engineering and visionary design. We build structures that define generations.",
-    img: "/images/projects/13.png",
+    img: "/images/projects/13.webp",
   },
   {
     title1: "Shaping",
     title2: "Reality",
     description:
       "Turning ambitious concepts into solid architectural achievements with unparalleled technical expertise and innovative construction methods.",
-    img: "/images/projects/4.png",
+    img: "/images/projects/4.webp",
   },
   {
     title1: "Beyond",
     title2: "Limits",
     description:
       "Creating iconic environments that inspire and endure. Our commitment to quality ensures every project becomes a landmark of excellence.",
-    img: "/images/projects/2.png",
+    img: "/images/projects/2.webp",
   },
 ];
 
@@ -283,8 +283,8 @@ export const Hero = () => {
                           hoverTextColor="group-hover:text-brand-blue"
                           className="group h-16 rounded-none px-10"
                         >
-                          <span className="flex items-center gap-3 text-xs font-bold tracking-widest uppercase">
-                            Enquire{" "}
+                          <span className="flex items-center gap-3 text-xs font-bold tracking-widest whitespace-nowrap uppercase">
+                            E-Vendor Registration{" "}
                             <FaArrowRight className="transition-transform group-hover:translate-x-2" />
                           </span>
                         </Button>
