@@ -24,6 +24,9 @@ const LABELS: Record<string, string> = {
 
 const VISIBLE = ENQUIRE_STEPS.filter((s) => s !== "done");
 
+const CIRCLE =
+  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-base font-semibold tabular-nums transition-colors sm:h-11 sm:w-11";
+
 type Props = {
   current: EnquireStep;
   unlockedThrough: EnquireStep;
@@ -35,58 +38,89 @@ export function StepTrain({ current, unlockedThrough }: Props) {
 
   return (
     <nav aria-label="Registration steps" className="w-full overflow-x-auto pb-2">
-      {/*
-        Scrolls on mobile (min-w-max), but from sm up the connectors flex so the
-        train spans the container exactly instead of overflowing and clipping
-        the last step.
-      */}
       <ol className="flex min-w-max items-start gap-0 sm:w-full sm:min-w-0">
         {VISIBLE.map((step, index) => {
           const stepIdx = ENQUIRE_STEPS.indexOf(step);
           const unlocked = stepIdx <= Math.max(unlockedIdx, 1);
           const active = step === current;
           const done = stepIdx < currentIdx && step !== "verify";
+          const prevIdx = index > 0 ? ENQUIRE_STEPS.indexOf(VISIBLE[index - 1]!) : -1;
+          const leftLineOn = index > 0 && (prevIdx < currentIdx || active);
+          const rightLineOn = index < VISIBLE.length - 1 && (done || active);
+
+          const circleEl = (
+            <span
+              className={cn(
+                CIRCLE,
+                unlocked && (active || done)
+                  ? "border-brand-blue bg-brand-blue text-white"
+                  : unlocked
+                    ? "border-zinc-300 bg-zinc-100 text-zinc-600 group-hover:border-zinc-400"
+                    : "border-zinc-200 bg-zinc-50 text-zinc-400"
+              )}
+            >
+              {done && !active && unlocked ? (
+                <Check className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                index + 1
+              )}
+            </span>
+          );
 
           return (
-            <li key={step} className="flex items-center sm:not-first:flex-1">
-              {index > 0 && (
-                <div
-                  className={cn(
-                    "mx-1.5 mt-5 h-0.5 w-5 shrink-0 rounded-full transition-colors sm:mx-2 sm:w-auto sm:min-w-4 sm:flex-1",
-                    done || active ? "bg-brand-blue" : "bg-zinc-200"
-                  )}
-                />
-              )}
-              {unlocked ? (
-                <Link
-                  href={`/enquire/${step}`}
-                  aria-current={active ? "step" : undefined}
-                  className={cn(
-                    "group flex flex-col items-center gap-1.5 rounded-md px-0.5 transition-colors sm:px-1",
-                    "focus-visible:ring-brand-blue focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
-                    active ? "text-brand-blue" : "text-zinc-600 hover:text-zinc-900"
-                  )}
-                >
-                  <span
+            <li key={step} className="flex min-w-0 flex-col items-center sm:flex-1">
+              <div className="flex w-full items-center">
+                {index > 0 ? (
+                  <div
+                    aria-hidden="true"
                     className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-base font-semibold tabular-nums transition-colors sm:h-11 sm:w-11",
-                      active || done
-                        ? "border-brand-blue bg-brand-blue text-white"
-                        : "border-zinc-300 bg-zinc-100 text-zinc-600 group-hover:border-zinc-400"
+                      "mx-1 h-0.5 min-w-3 flex-1 rounded-full transition-colors sm:mx-2",
+                      leftLineOn ? "bg-brand-blue" : "bg-zinc-200"
+                    )}
+                  />
+                ) : (
+                  <span className="hidden flex-1 sm:block" aria-hidden="true" />
+                )}
+
+                {unlocked ? (
+                  <Link
+                    href={`/enquire/${step}`}
+                    aria-current={active ? "step" : undefined}
+                    className={cn(
+                      "group shrink-0 rounded-md transition-colors",
+                      "focus-visible:ring-brand-blue focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+                      active ? "text-brand-blue" : "text-zinc-600 hover:text-zinc-900"
                     )}
                   >
-                    {done && !active ? <Check className="h-4 w-4" aria-hidden="true" /> : index + 1}
-                  </span>
-                  <span className={enquireStepLabelClass}>{LABELS[step]}</span>
-                </Link>
-              ) : (
-                <div className="flex flex-col items-center gap-1.5 px-0.5 text-zinc-400 sm:px-1">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-zinc-200 bg-zinc-50 text-base font-semibold text-zinc-400 tabular-nums sm:h-11 sm:w-11">
-                    {index + 1}
-                  </span>
-                  <span className={enquireStepLabelClass}>{LABELS[step]}</span>
-                </div>
-              )}
+                    {circleEl}
+                  </Link>
+                ) : (
+                  <div className="shrink-0 text-zinc-400">{circleEl}</div>
+                )}
+
+                {index < VISIBLE.length - 1 ? (
+                  <div
+                    aria-hidden="true"
+                    className={cn(
+                      "mx-1 h-0.5 min-w-3 flex-1 rounded-full transition-colors sm:mx-2",
+                      rightLineOn ? "bg-brand-blue" : "bg-zinc-200"
+                    )}
+                  />
+                ) : (
+                  <span className="hidden flex-1 sm:block" aria-hidden="true" />
+                )}
+              </div>
+
+              <span
+                className={cn(
+                  enquireStepLabelClass,
+                  "mt-1.5",
+                  !unlocked && "text-zinc-400",
+                  active && "text-brand-blue"
+                )}
+              >
+                {LABELS[step]}
+              </span>
             </li>
           );
         })}
