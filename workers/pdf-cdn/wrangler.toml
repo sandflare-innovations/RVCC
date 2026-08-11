@@ -20,8 +20,10 @@ run_worker_first = true
 not_found_handling = "none"
 
 [vars]
-ORIGIN_URL = "https://rvcc-dev.vercel.app"
-ALLOWED_ORIGINS = "*"
+# Large PDFs fallback origin = public Surface
+ORIGIN_URL = "https://rvcc-prod.vercel.app"
+# Prod portals + local Next ports (3000 web / 3001 admin / 3002 vendor)
+ALLOWED_ORIGINS = "https://rvcc-prod.vercel.app,https://rvcc-app.vercel.app,https://rvcc-admin.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002"
 
 # Optional R2 for the 166MB water-feature PDF (enable R2 in Dashboard first):
 # [[r2_buckets]]

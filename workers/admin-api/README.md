@@ -45,7 +45,7 @@ npx wrangler secret put DATABASE_URL
 # Notify (approval/rejection mail via enquire Worker)
 npx wrangler secret put ENQUIRE_WORKER_URL
 npx wrangler secret put ENQUIRE_API_SECRET
-npx wrangler secret put VENDOR_PORTAL_URL   # e.g. https://vendor.example.com
+npx wrangler secret put VENDOR_PORTAL_URL   # https://rvcc-app.vercel.app
 
 npm run deploy
 ```
@@ -53,7 +53,10 @@ npm run deploy
 Set on the admin app (`.env.local`):
 
 ```env
-ADMIN_API_URL=https://rvcc-admin-api.<account>.workers.dev
+ADMIN_API_URL=https://rvcc-admin-api.rvcc.workers.dev
 ADMIN_API_SECRET=<same as Worker API_SECRET>
+NEXT_PUBLIC_SITE_URL=https://rvcc-prod.vercel.app
+NEXT_PUBLIC_VENDOR_PORTAL_URL=https://rvcc-app.vercel.app
+NEXT_PUBLIC_ADMIN_PORTAL_URL=https://rvcc-admin.vercel.app
 DATABASE_URL=postgresql://...
 ```

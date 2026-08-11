@@ -11,17 +11,21 @@ function joinUrl(base: string | undefined, path: string): string {
   return `${b}${p}`;
 }
 
-/** Marketing / Surface origin (`NEXT_PUBLIC_SITE_URL`), e.g. https://rvcc-prod.vercel.app */
+/** Marketing Surface — `NEXT_PUBLIC_SITE_URL` (prod: rvcc-prod / local: :3000). */
 export function siteUrl(path = ""): string {
   return joinUrl(process.env.NEXT_PUBLIC_SITE_URL, path);
 }
 
-/** Vendor portal origin (`NEXT_PUBLIC_VENDOR_PORTAL_URL`), e.g. https://rvcc-app.vercel.app */
+/** Vendor portal — `NEXT_PUBLIC_VENDOR_PORTAL_URL` (prod: rvcc-app / local: :3002). */
 export function vendorPortalUrl(path = ""): string {
   return joinUrl(process.env.NEXT_PUBLIC_VENDOR_PORTAL_URL, path);
 }
 
-/** Canonical start of E-Vendor registration. */
+/** Admin portal — `NEXT_PUBLIC_ADMIN_PORTAL_URL` (prod: rvcc-admin / local: :3001). */
+export function adminPortalUrl(path = ""): string {
+  return joinUrl(process.env.NEXT_PUBLIC_ADMIN_PORTAL_URL, path);
+}
+
 export function enquireVerifyUrl(): string {
   return siteUrl("/enquire/verify");
 }

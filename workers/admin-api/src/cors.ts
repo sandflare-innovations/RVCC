@@ -19,7 +19,7 @@ export interface Env {
 }
 
 export function corsHeaders(request: Request, env: Env): HeadersInit {
-  const allowed = (env.ALLOWED_ORIGINS || "").trim();
+  const allowed = (env.ALLOWED_ORIGINS || "*").trim();
   const origin = request.headers.get("Origin");
   let allowOrigin = "";
   if (allowed === "*") {

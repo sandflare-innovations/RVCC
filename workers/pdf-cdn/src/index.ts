@@ -279,7 +279,7 @@ async function serveFromOrigin(
     return new Response(
       JSON.stringify({
         error: "ORIGIN_URL cannot be localhost on a deployed Worker",
-        hint: "Set ORIGIN_URL to https://rvcc-dev.vercel.app",
+        hint: "Set ORIGIN_URL to https://rvcc-prod.vercel.app",
       }),
       {
         status: 503,
