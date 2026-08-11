@@ -31,9 +31,11 @@ function maskAccount(value?: string | null) {
 
 function DocField({ label, value }: { label: string; value?: string | null }) {
   return (
-    <div className="grid gap-0.5 border-b border-zinc-100 py-2.5 sm:grid-cols-[minmax(140px,220px)_1fr] sm:gap-4">
-      <dt className="text-xs font-semibold tracking-[0.08em] text-zinc-500 uppercase">{label}</dt>
-      <dd className="text-sm leading-relaxed break-words whitespace-pre-wrap text-zinc-950">
+    <div className="grid gap-0.5 border-b border-zinc-100 py-3 sm:grid-cols-[minmax(160px,240px)_1fr] sm:gap-4">
+      <dt className="text-sm font-semibold tracking-[0.06em] text-zinc-500 uppercase sm:text-base">
+        {label}
+      </dt>
+      <dd className="text-base leading-relaxed break-words whitespace-pre-wrap text-zinc-950 sm:text-[17px]">
         {display(value)}
       </dd>
     </div>
@@ -54,13 +56,15 @@ function DocSection({
   return (
     <section className="border-b border-zinc-200 last:border-b-0">
       <div className="flex items-start justify-between gap-3 border-b border-zinc-100 bg-zinc-50/80 px-5 py-3.5 sm:px-7">
-        <h3 className="text-sm font-semibold tracking-tight text-zinc-950">
-          <span className="text-brand-blue mr-2 font-mono text-xs tabular-nums">{number}</span>
+        <h3 className="text-base font-semibold tracking-tight text-zinc-950 sm:text-lg">
+          <span className="text-brand-blue mr-2 font-mono text-sm tabular-nums sm:text-base">
+            {number}
+          </span>
           {title}
         </h3>
         <Link
           href={editHref}
-          className="text-brand-blue inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold tracking-[0.06em] uppercase transition-opacity hover:opacity-80"
+          className="text-brand-blue inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold tracking-[0.06em] uppercase transition-opacity hover:opacity-80"
         >
           <Pencil className="h-3 w-3" aria-hidden="true" />
           Edit
@@ -74,7 +78,9 @@ function DocSection({
 function EntryCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="my-3 rounded-md border border-zinc-200 bg-white px-4 py-3">
-      <p className="mb-2 text-xs font-bold tracking-[0.12em] text-zinc-500 uppercase">{title}</p>
+      <p className="mb-2 text-sm font-bold tracking-[0.1em] text-zinc-500 uppercase sm:text-base">
+        {title}
+      </p>
       <dl>{children}</dl>
     </div>
   );
@@ -89,21 +95,21 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
   return (
     <article className="overflow-hidden rounded-lg border border-zinc-300 bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)]">
       <header className="border-b border-zinc-200 bg-white px-5 py-6 sm:px-7">
-        <p className="text-brand-blue text-[11px] font-bold tracking-[0.22em] uppercase">
+        <p className="text-brand-blue text-sm font-bold tracking-[0.2em] uppercase sm:text-base">
           RVCC Procurement
         </p>
-        <h2 className="mt-1.5 text-xl font-semibold tracking-tight text-zinc-950 sm:text-2xl">
+        <h2 className="mt-1.5 text-2xl font-semibold tracking-[0.04em] text-zinc-950 sm:text-3xl">
           Prospective Supplier Registration
         </h2>
-        <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+        <dl className="mt-4 grid gap-2 text-base sm:grid-cols-2">
           <div>
-            <dt className="text-xs font-semibold tracking-[0.08em] text-zinc-500 uppercase">
+            <dt className="text-sm font-semibold tracking-[0.06em] text-zinc-500 uppercase sm:text-base">
               Applicant email
             </dt>
             <dd className="mt-0.5 text-zinc-950">{display(registration.email)}</dd>
           </div>
           <div>
-            <dt className="text-xs font-semibold tracking-[0.08em] text-zinc-500 uppercase">
+            <dt className="text-sm font-semibold tracking-[0.06em] text-zinc-500 uppercase sm:text-base">
               Status
             </dt>
             <dd className="mt-0.5 text-zinc-950">{display(registration.status)}</dd>
@@ -130,7 +136,7 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
 
       <DocSection number="02" title="Contacts" editHref="/enquire/contacts">
         {registration.contacts.length === 0 ? (
-          <p className="py-4 text-sm text-zinc-500">No contacts provided.</p>
+          <p className="py-4 text-base text-zinc-500">No contacts provided.</p>
         ) : (
           registration.contacts.map((c, i) => (
             <EntryCard key={c.id || i} title={`Contact ${i + 1}`}>
@@ -148,7 +154,7 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
 
       <DocSection number="03" title="Addresses" editHref="/enquire/addresses">
         {registration.addresses.length === 0 ? (
-          <p className="py-4 text-sm text-zinc-500">No addresses provided.</p>
+          <p className="py-4 text-base text-zinc-500">No addresses provided.</p>
         ) : (
           registration.addresses.map((a, i) => (
             <EntryCard key={a.id || i} title={a.label?.trim() || `Address ${i + 1}`}>
@@ -168,7 +174,7 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
 
       <DocSection number="04" title="Classifications" editHref="/enquire/classifications">
         {registration.classifications.length === 0 ? (
-          <p className="py-4 text-sm text-zinc-500">No classifications provided.</p>
+          <p className="py-4 text-base text-zinc-500">No classifications provided.</p>
         ) : (
           registration.classifications.map((c, i) => (
             <EntryCard key={c.id || i} title={`Classification ${i + 1}`}>
@@ -184,7 +190,7 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
 
       <DocSection number="05" title="Bank accounts" editHref="/enquire/bank">
         {registration.bankAccounts.length === 0 ? (
-          <p className="py-4 text-sm text-zinc-500">No bank accounts provided.</p>
+          <p className="py-4 text-base text-zinc-500">No bank accounts provided.</p>
         ) : (
           registration.bankAccounts.map((b, i) => (
             <EntryCard key={b.id || i} title={`Account ${i + 1}`}>
@@ -203,13 +209,13 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
 
       <DocSection number="06" title="Products & services" editHref="/enquire/products">
         {categories.length === 0 ? (
-          <p className="py-4 text-sm text-zinc-500">No categories selected.</p>
+          <p className="py-4 text-base text-zinc-500">No categories selected.</p>
         ) : (
           <ul className="grid gap-2 py-3 sm:grid-cols-2">
             {categories.map((label) => (
               <li
                 key={label}
-                className="border-brand-blue/30 flex items-start gap-2 border-l-2 pl-3 text-sm text-zinc-950"
+                className="border-brand-blue/30 flex items-start gap-2 border-l-2 pl-3 text-base text-zinc-950 sm:text-[17px]"
               >
                 {label}
               </li>
@@ -227,7 +233,7 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
         </dl>
       </DocSection>
 
-      <footer className="border-t border-zinc-200 bg-zinc-50 px-5 py-4 text-xs leading-relaxed text-zinc-500 sm:px-7">
+      <footer className="border-t border-zinc-200 bg-zinc-50 px-5 py-4 text-sm leading-relaxed text-zinc-500 sm:px-7 sm:text-base">
         This document is a read-only summary of your application. Use Edit on any section to change
         details — updates appear here automatically before you submit.
       </footer>
@@ -297,12 +303,12 @@ export function ReviewStep() {
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <p className="max-w-2xl text-base leading-relaxed text-zinc-600">
+        <p className="max-w-2xl text-lg leading-relaxed text-zinc-600">
           Confirm every section below. This is the exact package RVCC procurement will receive —
           read-only here, editable from each prior step.
         </p>
         {syncing ? (
-          <span className="text-xs font-semibold tracking-[0.08em] text-zinc-400 uppercase">
+          <span className="text-sm font-semibold tracking-[0.08em] text-zinc-400 uppercase">
             Updating…
           </span>
         ) : null}
@@ -311,7 +317,7 @@ export function ReviewStep() {
       {localErrors.length > 0 && (
         <ul
           role="alert"
-          className="list-inside list-disc border-l-4 border-red-500 bg-red-50 px-4 py-3.5 text-sm leading-relaxed font-medium text-red-800"
+          className="list-inside list-disc border-l-4 border-red-500 bg-red-50 px-4 py-3.5 text-base leading-relaxed font-medium text-red-800"
         >
           {localErrors.map((e) => (
             <li key={e}>{e}</li>
@@ -322,7 +328,7 @@ export function ReviewStep() {
       {registration ? (
         <ReviewDocument registration={registration} />
       ) : (
-        <p className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-6 text-sm text-zinc-600">
+        <p className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-6 text-base text-zinc-600">
           Your draft could not be loaded. Return to{" "}
           <Link
             href="/enquire/verify"

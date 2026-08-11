@@ -13,6 +13,7 @@ import {
   enquireInputClass,
   enquireSelectClass,
 } from "@/sections/enquire/EnquireField";
+import { enquireActionLinkClass, enquireMutedClass } from "@/sections/enquire/enquire-typography";
 
 type Row = {
   classification: string;
@@ -76,7 +77,7 @@ export function ClassificationsStep() {
 
   return (
     <div className="space-y-8">
-      <p className="text-sm text-zinc-500">
+      <p className={enquireMutedClass}>
         Optional. Add any diversity, SME, or certification classifications that apply to your
         business.
       </p>
@@ -129,7 +130,7 @@ export function ClassificationsStep() {
           </EnquireField>
           <button
             type="button"
-            className="inline-flex min-h-[44px] items-center text-left text-xs font-bold tracking-wider text-zinc-600 uppercase transition-colors hover:text-red-600 md:col-span-2"
+            className={enquireActionLinkClass + " text-left md:col-span-2"}
             onClick={() => setRows((prev) => prev.filter((_, idx) => idx !== i))}
           >
             Remove

@@ -13,6 +13,14 @@ import {
   enquireInputClass,
   enquireSelectClass,
 } from "@/sections/enquire/EnquireField";
+import {
+  enquireActionLinkClass,
+  enquireMutedClass,
+  enquireOptionLabelClass,
+  enquireSectionTitleClass,
+} from "@/sections/enquire/enquire-typography";
+
+import { cn } from "@lib/utils";
 
 type AddressForm = {
   label: string;
@@ -100,13 +108,11 @@ export function AddressesStep() {
       {addresses.map((a, i) => (
         <div key={i} className="space-y-6 border-b border-zinc-100 pb-8">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold tracking-[0.18em] text-zinc-600 uppercase">
-              Address {String(i + 1).padStart(2, "0")}
-            </h3>
+            <h3 className={enquireSectionTitleClass}>Address {String(i + 1).padStart(2, "0")}</h3>
             {addresses.length > 1 && (
               <button
                 type="button"
-                className="inline-flex min-h-[44px] items-center text-xs font-bold tracking-wider text-zinc-600 uppercase transition-colors hover:text-red-600"
+                className={enquireActionLinkClass}
                 onClick={() => setAddresses((prev) => prev.filter((_, idx) => idx !== i))}
               >
                 Remove
@@ -179,10 +185,8 @@ export function AddressesStep() {
             </EnquireField>
           </div>
           <div>
-            <p className="mb-3 text-xs font-bold tracking-[0.16em] text-zinc-600 uppercase">
-              Address purpose
-            </p>
-            <div className="flex flex-wrap gap-4 text-sm text-zinc-600">
+            <p className={cn("mb-3", enquireSectionTitleClass)}>Address purpose</p>
+            <div className={cn("flex flex-wrap gap-4", enquireOptionLabelClass)}>
               {ADDRESS_PURPOSES.map((p) => (
                 <label key={p} className="flex items-center gap-2">
                   <input

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check } from "lucide-react";
 
 import { ENQUIRE_STEPS, type EnquireStep } from "@/lib/enquire-constants";
+import { enquireStepLabelClass } from "@/sections/enquire/enquire-typography";
 
 import { cn } from "@lib/utils";
 
@@ -51,7 +52,7 @@ export function StepTrain({ current, unlockedThrough }: Props) {
               {index > 0 && (
                 <div
                   className={cn(
-                    "mx-1.5 mt-[18px] h-0.5 w-5 shrink-0 rounded-full transition-colors sm:mx-2 sm:w-auto sm:min-w-4 sm:flex-1",
+                    "mx-1.5 mt-5 h-0.5 w-5 shrink-0 rounded-full transition-colors sm:mx-2 sm:w-auto sm:min-w-4 sm:flex-1",
                     done || active ? "bg-brand-blue" : "bg-zinc-200"
                   )}
                 />
@@ -68,7 +69,7 @@ export function StepTrain({ current, unlockedThrough }: Props) {
                 >
                   <span
                     className={cn(
-                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold tabular-nums transition-colors",
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-base font-semibold tabular-nums transition-colors sm:h-11 sm:w-11",
                       active || done
                         ? "border-brand-blue bg-brand-blue text-white"
                         : "border-zinc-300 bg-zinc-100 text-zinc-600 group-hover:border-zinc-400"
@@ -76,18 +77,14 @@ export function StepTrain({ current, unlockedThrough }: Props) {
                   >
                     {done && !active ? <Check className="h-4 w-4" aria-hidden="true" /> : index + 1}
                   </span>
-                  <span className="hidden text-[10px] font-semibold tracking-[0.06em] whitespace-nowrap uppercase sm:block">
-                    {LABELS[step]}
-                  </span>
+                  <span className={enquireStepLabelClass}>{LABELS[step]}</span>
                 </Link>
               ) : (
                 <div className="flex flex-col items-center gap-1.5 px-0.5 text-zinc-400 sm:px-1">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-zinc-200 bg-zinc-50 text-sm font-semibold text-zinc-400 tabular-nums">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-zinc-200 bg-zinc-50 text-base font-semibold text-zinc-400 tabular-nums sm:h-11 sm:w-11">
                     {index + 1}
                   </span>
-                  <span className="hidden text-[10px] font-semibold tracking-[0.06em] whitespace-nowrap uppercase sm:block">
-                    {LABELS[step]}
-                  </span>
+                  <span className={enquireStepLabelClass}>{LABELS[step]}</span>
                 </div>
               )}
             </li>

@@ -9,6 +9,11 @@ import { AlertCircle } from "lucide-react";
 import { ENQUIRE_STEPS, type EnquireStep } from "@/lib/enquire-constants";
 import { useEnquire } from "@/sections/enquire/EnquireContext";
 import { StepTrain } from "@/sections/enquire/StepTrain";
+import {
+  enquireEyebrowClass,
+  enquirePageSubtitleClass,
+  enquirePageTitleClass,
+} from "@/sections/enquire/enquire-typography";
 
 type Props = {
   step: EnquireStep;
@@ -30,7 +35,7 @@ export function EnquireShell({ step, title, subtitle, children }: Props) {
   }, [router, step]);
 
   return (
-    <div className="font-enquire relative min-h-screen bg-white text-zinc-950 antialiased">
+    <div className="font-enquire relative min-h-screen bg-white text-base text-zinc-950 antialiased md:text-[17px]">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="bg-brand-blue/5 absolute -top-32 -right-32 h-96 w-96 rounded-full blur-[100px]" />
         <div className="bg-brand-blue/[0.03] absolute bottom-0 left-0 h-72 w-72 rounded-full blur-[80px]" />
@@ -38,13 +43,9 @@ export function EnquireShell({ step, title, subtitle, children }: Props) {
 
       <div className="relative mx-auto max-w-5xl px-6 pt-28 pb-24 md:pt-32">
         <div className="mb-10 flex flex-col gap-3">
-          <span className="text-brand-blue text-xs font-bold tracking-[0.24em] uppercase">
-            Prospective Supplier Registration
-          </span>
-          <h1 className="font-heading text-4xl leading-[0.9] tracking-tighter uppercase md:text-6xl">
-            {title}
-          </h1>
-          <p className="max-w-2xl text-base leading-relaxed text-zinc-600">{subtitle}</p>
+          <span className={enquireEyebrowClass}>Prospective Supplier Registration</span>
+          <h1 className={enquirePageTitleClass}>{title}</h1>
+          <p className={enquirePageSubtitleClass}>{subtitle}</p>
         </div>
 
         {step !== "done" && (
@@ -56,9 +57,9 @@ export function EnquireShell({ step, title, subtitle, children }: Props) {
         {error && (
           <div
             role="alert"
-            className="mb-6 flex items-start gap-3 border-l-4 border-red-500 bg-red-50 px-4 py-3.5 text-sm leading-relaxed font-medium text-red-800"
+            className="mb-6 flex items-start gap-3 border-l-4 border-red-500 bg-red-50 px-4 py-3.5 text-base leading-relaxed font-medium text-red-800"
           >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
             <span>{error}</span>
           </div>
         )}

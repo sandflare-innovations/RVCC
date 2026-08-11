@@ -13,6 +13,7 @@ import {
   enquireInputClass,
   enquireSelectClass,
 } from "@/sections/enquire/EnquireField";
+import { enquireActionLinkClass, enquireMutedClass } from "@/sections/enquire/enquire-typography";
 
 type Row = {
   country: string;
@@ -83,7 +84,7 @@ export function BankStep() {
 
   return (
     <div className="space-y-8">
-      <p className="text-sm text-zinc-500">
+      <p className={enquireMutedClass}>
         Optional for prospective registration. Provide bank details if you are ready for
         spend-authorized review later.
       </p>
@@ -154,7 +155,7 @@ export function BankStep() {
           </EnquireField>
           <button
             type="button"
-            className="inline-flex min-h-[44px] items-center text-left text-xs font-bold tracking-wider text-zinc-600 uppercase transition-colors hover:text-red-600 md:col-span-2"
+            className={enquireActionLinkClass + " md:col-span-2"}
             onClick={() => setRows((prev) => prev.filter((_, idx) => idx !== i))}
           >
             Remove
