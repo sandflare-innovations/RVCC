@@ -1,7 +1,7 @@
 # RVCC Vendor API (Cloudflare Worker)
 
 Secure BFF for the vendor portal. **Postgres credentials stay on Cloudflare**
-(`DATABASE_URL` / Hyperdrive). Next.js only holds `VENDOR_WORKER_URL` and
+(`DATABASE_URL` / Hyperdrive). Next.js only holds `VENDOR_API_URL` and
 `VENDOR_API_SECRET` — it never talks to Postgres for vendor auth.
 
 Sessions use header `X-Vendor-Session` only. Admin sessions (`X-Admin-Session`)
@@ -40,8 +40,11 @@ npm run deploy
 Set on Vercel / `.env.local` (**no DATABASE_URL here**):
 
 ```env
-VENDOR_WORKER_URL=https://rvcc-vendor-api.<account>.workers.dev
+VENDOR_API_URL=https://rvcc-vendor-api.rvcc.workers.dev
 VENDOR_API_SECRET=<same as Worker API_SECRET>
+NEXT_PUBLIC_SITE_URL=https://rvcc-prod.vercel.app
+NEXT_PUBLIC_VENDOR_PORTAL_URL=https://rvcc-app.vercel.app
+NEXT_PUBLIC_ADMIN_PORTAL_URL=https://rvcc-admin.vercel.app
 ```
 
 Push schema once from the app (Prisma):

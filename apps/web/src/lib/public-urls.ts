@@ -7,19 +7,23 @@ function trimSlash(value: string): string {
 function joinUrl(base: string | undefined, path: string): string {
   const p = path.startsWith("/") ? path : path ? `/${path}` : "";
   const b = base ? trimSlash(base) : "";
-  // On the marketing app itself, prefer same-origin relative paths when unset.
   if (!b) return p || "/";
   return `${b}${p}`;
 }
 
-/** Marketing / Surface origin (`NEXT_PUBLIC_SITE_URL`). */
+/** Marketing Surface — `NEXT_PUBLIC_SITE_URL` (prod: rvcc-prod / local: :3000). */
 export function siteUrl(path = ""): string {
   return joinUrl(process.env.NEXT_PUBLIC_SITE_URL, path);
 }
 
-/** Vendor portal origin (`NEXT_PUBLIC_VENDOR_PORTAL_URL`). */
+/** Vendor portal — `NEXT_PUBLIC_VENDOR_PORTAL_URL` (prod: rvcc-app / local: :3002). */
 export function vendorPortalUrl(path = ""): string {
   return joinUrl(process.env.NEXT_PUBLIC_VENDOR_PORTAL_URL, path);
+}
+
+/** Admin portal — `NEXT_PUBLIC_ADMIN_PORTAL_URL` (prod: rvcc-admin / local: :3001). */
+export function adminPortalUrl(path = ""): string {
+  return joinUrl(process.env.NEXT_PUBLIC_ADMIN_PORTAL_URL, path);
 }
 
 /** Canonical start of E-Vendor registration. */

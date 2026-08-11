@@ -11,14 +11,19 @@ function joinUrl(base: string | undefined, path: string): string {
   return `${b}${p}`;
 }
 
-/** Marketing / Surface origin (`NEXT_PUBLIC_SITE_URL`). */
+/** Marketing Surface — `NEXT_PUBLIC_SITE_URL` (prod: rvcc-prod / local: :3000). */
 export function siteUrl(path = ""): string {
   return joinUrl(process.env.NEXT_PUBLIC_SITE_URL, path);
 }
 
-/** Vendor portal origin (`NEXT_PUBLIC_VENDOR_PORTAL_URL`). */
+/** Vendor portal — `NEXT_PUBLIC_VENDOR_PORTAL_URL` (prod: rvcc-app / local: :3002). */
 export function vendorPortalUrl(path = ""): string {
   return joinUrl(process.env.NEXT_PUBLIC_VENDOR_PORTAL_URL, path);
+}
+
+/** Admin portal — `NEXT_PUBLIC_ADMIN_PORTAL_URL` (prod: rvcc-admin / local: :3001). */
+export function adminPortalUrl(path = ""): string {
+  return joinUrl(process.env.NEXT_PUBLIC_ADMIN_PORTAL_URL, path);
 }
 
 export function enquireVerifyUrl(): string {

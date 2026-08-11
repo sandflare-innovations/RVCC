@@ -4,11 +4,11 @@
 
 ## How files are served (performance order)
 
-| Layer | Where files live | When used |
-|--------|------------------|-----------|
-| **1. Cloudflare Assets** | On the Worker (edge) | pdf.js worker + PDFs ≤ 25 MiB |
-| **2. Edge cache** | Cloudflare Cache API | After first pull of oversized PDFs |
-| **3. Vercel origin** | https://rvcc-dev.vercel.app | Only the ~166 MB water-feature PDF (Workers Assets max file = 25 MiB) |
+| Layer                    | Where files live             | When used                                                             |
+| ------------------------ | ---------------------------- | --------------------------------------------------------------------- |
+| **1. Cloudflare Assets** | On the Worker (edge)         | pdf.js worker + PDFs ≤ 25 MiB                                         |
+| **2. Edge cache**        | Cloudflare Cache API         | After first pull of oversized PDFs                                    |
+| **3. Vercel origin**     | https://rvcc-prod.vercel.app | Only the ~166 MB water-feature PDF (Workers Assets max file = 25 MiB) |
 
 Most readers never hit Vercel. The oversized PDF hits Vercel once per PoP, then stays cached.
 

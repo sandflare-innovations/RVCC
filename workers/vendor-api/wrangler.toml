@@ -13,7 +13,8 @@ workers_dev = true
 #   then set id below.
 
 [vars]
-ALLOWED_ORIGINS = "*"
+# Prod portals + local Next ports (3000 web / 3001 admin / 3002 vendor)
+ALLOWED_ORIGINS = "https://rvcc-prod.vercel.app,https://rvcc-app.vercel.app,https://rvcc-admin.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002"
 
 # Uncomment after creating Hyperdrive:
 # [[hyperdrive]]
