@@ -43,7 +43,7 @@ const empty = (): AddressForm => ({
 export function AddressesStep() {
   useRequireSession("addresses");
   const router = useRouter();
-  const { registration, saveDraft, loading, saving } = useEnquire();
+  const { registration, saveDraft, advanceTo, loading, saving } = useEnquire();
   // Which action is in flight, so only that button shows a spinner.
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [addresses, setAddresses] = useState<AddressForm[]>([empty()]);
@@ -83,12 +83,17 @@ export function AddressesStep() {
     );
   };
 
-  const persist = async (next: string) => {
-    const ok = await saveDraft({ step: next, addresses });
-    if (ok) router.push(`/enquire/${next}`);
+  const saveLater = async () => {
+    setPendingAction("save");
+    await saveDraft({ step: "addresses", addresses });
+    setPendingAction(null);
   };
 
-  if (loading) return <p className="text-base text-zinc-600">Loading…</p>;
+  const goNext = () => {
+    advanceTo("classifications", { addresses });
+  };
+
+  if (loading && !registration) return null;
 
   return (
     <div className="space-y-10">
@@ -221,11 +226,8 @@ export function AddressesStep() {
           className="sm:w-auto"
           fullWidth
           disabled={saving}
-          pending={saving && pendingAction === "addresses"}
-          onClick={() => {
-            setPendingAction("addresses");
-            void persist("addresses");
-          }}
+          pending={pendingAction === "save"}
+          onClick={() => void saveLater()}
         >
           Save for Later
         </InteractiveHoverButton>
@@ -234,12 +236,7 @@ export function AddressesStep() {
           variant="solid"
           className="sm:w-auto"
           fullWidth
-          disabled={saving}
-          pending={saving && pendingAction === "classifications"}
-          onClick={() => {
-            setPendingAction("classifications");
-            void persist("classifications");
-          }}
+          onClick={goNext}
         >
           Next: Classifications
         </InteractiveHoverButton>

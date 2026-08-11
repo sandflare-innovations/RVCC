@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { usePathname, useRouter } from "next/navigation";
 
@@ -101,7 +101,7 @@ function SidebarContents({
             initial={false}
             className="text-sm font-medium whitespace-nowrap"
           >
-            {signingOut ? "Signing out…" : "Sign out"}
+            Sign out
           </motion.span>
         </button>
       </div>
@@ -120,11 +120,18 @@ export function AdminChrome({
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
+  useEffect(() => {
+    for (const item of NAV) {
+      router.prefetch(item.href);
+    }
+    router.prefetch("/registrations?status=SUBMITTED");
+    router.prefetch("/content/careers");
+  }, [router]);
+
   const signOut = async () => {
     setSigningOut(true);
-    await fetch("/api/logout", { method: "POST", credentials: "include" });
     router.replace("/login");
-    router.refresh();
+    void fetch("/api/logout", { method: "POST", credentials: "include" });
   };
 
   return (

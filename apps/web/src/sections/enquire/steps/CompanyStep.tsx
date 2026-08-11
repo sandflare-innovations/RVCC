@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-import { useRouter } from "next/navigation";
-
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { COUNTRIES, ORG_TYPES, SUPPLIER_TYPES } from "@/data/enquire-questionnaire";
 import { EnquireActions } from "@/sections/enquire/EnquireActions";
@@ -17,8 +15,7 @@ import {
 
 export function CompanyStep() {
   useRequireSession("company");
-  const router = useRouter();
-  const { registration, saveDraft, loading, saving } = useEnquire();
+  const { registration, saveDraft, advanceTo, loading, saving } = useEnquire();
   // Which action is in flight, so only that button shows a spinner.
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -58,26 +55,32 @@ export function CompanyStep() {
   const set = (key: keyof typeof form, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const persist = async (nextStep: string) => {
-    const ok = await saveDraft({
-      step: nextStep,
-      company: {
-        legalName: form.legalName,
-        dbaName: form.dbaName,
-        country: form.country,
-        taxIdentifiers: { vat: form.vat, cr: form.cr, tin: form.tin },
-        organizationType: form.organizationType,
-        supplierType: form.supplierType,
-        website: form.website,
-        yearEstablished: form.yearEstablished,
-        dunsNumber: form.dunsNumber,
-        description: form.description,
-      },
-    });
-    if (ok) router.push(`/enquire/${nextStep}`);
+  const companyPayload = () => ({
+    company: {
+      legalName: form.legalName,
+      dbaName: form.dbaName,
+      country: form.country,
+      taxIdentifiers: { vat: form.vat, cr: form.cr, tin: form.tin },
+      organizationType: form.organizationType,
+      supplierType: form.supplierType,
+      website: form.website,
+      yearEstablished: form.yearEstablished,
+      dunsNumber: form.dunsNumber,
+      description: form.description,
+    },
+  });
+
+  const saveLater = async () => {
+    setPendingAction("save");
+    await saveDraft({ step: "company", ...companyPayload() });
+    setPendingAction(null);
   };
 
-  if (loading) return <p className="text-base text-zinc-600">Loading…</p>;
+  const goNext = () => {
+    advanceTo("contacts", companyPayload());
+  };
+
+  if (loading && !registration) return null;
 
   return (
     <div className="space-y-8">
@@ -196,11 +199,8 @@ export function CompanyStep() {
           className="sm:w-auto"
           fullWidth
           disabled={saving}
-          pending={saving && pendingAction === "company"}
-          onClick={() => {
-            setPendingAction("company");
-            void persist("company");
-          }}
+          pending={pendingAction === "save"}
+          onClick={() => void saveLater()}
         >
           Save for Later
         </InteractiveHoverButton>
@@ -209,12 +209,7 @@ export function CompanyStep() {
           variant="solid"
           className="sm:w-auto"
           fullWidth
-          disabled={saving}
-          pending={saving && pendingAction === "contacts"}
-          onClick={() => {
-            setPendingAction("contacts");
-            void persist("contacts");
-          }}
+          onClick={goNext}
         >
           Next: Contacts
         </InteractiveHoverButton>

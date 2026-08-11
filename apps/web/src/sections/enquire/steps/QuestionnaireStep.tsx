@@ -18,7 +18,7 @@ import {
 export function QuestionnaireStep() {
   useRequireSession("questionnaire");
   const router = useRouter();
-  const { registration, saveDraft, loading, saving } = useEnquire();
+  const { registration, saveDraft, advanceTo, loading, saving } = useEnquire();
   // Which action is in flight, so only that button shows a spinner.
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -30,16 +30,23 @@ export function QuestionnaireStep() {
     setAnswers(map);
   }, [registration]);
 
-  const persist = async (next: string) => {
-    const questionnaire = ENQUIRE_QUESTIONNAIRE.map((q) => ({
+  const buildQuestionnaire = () =>
+    ENQUIRE_QUESTIONNAIRE.map((q) => ({
       questionKey: q.key,
       answer: answers[q.key] || "",
     }));
-    const ok = await saveDraft({ step: next, questionnaire });
-    if (ok) router.push(`/enquire/${next}`);
+
+  const saveLater = async () => {
+    setPendingAction("save");
+    await saveDraft({ step: "questionnaire", questionnaire: buildQuestionnaire() });
+    setPendingAction(null);
   };
 
-  if (loading) return <p className="text-base text-zinc-600">Loading…</p>;
+  const goNext = () => {
+    advanceTo("review", { questionnaire: buildQuestionnaire() });
+  };
+
+  if (loading && !registration) return null;
 
   return (
     <div className="space-y-8">
@@ -91,11 +98,8 @@ export function QuestionnaireStep() {
           className="sm:w-auto"
           fullWidth
           disabled={saving}
-          pending={saving && pendingAction === "questionnaire"}
-          onClick={() => {
-            setPendingAction("questionnaire");
-            void persist("questionnaire");
-          }}
+          pending={pendingAction === "save"}
+          onClick={() => void saveLater()}
         >
           Save for Later
         </InteractiveHoverButton>
@@ -104,12 +108,7 @@ export function QuestionnaireStep() {
           variant="solid"
           className="sm:w-auto"
           fullWidth
-          disabled={saving}
-          pending={saving && pendingAction === "review"}
-          onClick={() => {
-            setPendingAction("review");
-            void persist("review");
-          }}
+          onClick={goNext}
         >
           Next: Review
         </InteractiveHoverButton>

@@ -25,7 +25,16 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  const res = NextResponse.next({
+    request: {
+      headers: (() => {
+        const h = new Headers(request.headers);
+        h.set("x-pathname", pathname);
+        return h;
+      })(),
+    },
+  });
+  return res;
 }
 
 export const config = {

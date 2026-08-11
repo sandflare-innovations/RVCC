@@ -80,7 +80,7 @@ function StepBody({ step }: { step: EnquireStep }) {
       return <ReviewStep />;
     case "done":
       return (
-        <Suspense fallback={<p className="text-base text-zinc-600">Loading…</p>}>
+        <Suspense fallback={null}>
           <DoneStep />
         </Suspense>
       );

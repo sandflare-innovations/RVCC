@@ -10,6 +10,8 @@ export async function POST() {
 
   if (token) {
     try {
+      const { clearAdminSessionCache } = await import("@/lib/session");
+      clearAdminSessionCache(token);
       await adminWorkerFetch("/auth/logout", { method: "POST", sessionToken: token });
     } catch (err) {
       console.error("[admin/logout]", err);

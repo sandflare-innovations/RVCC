@@ -39,7 +39,7 @@ const empty = (): Row => ({
 export function BankStep() {
   useRequireSession("bank");
   const router = useRouter();
-  const { registration, saveDraft, loading, saving } = useEnquire();
+  const { registration, saveDraft, advanceTo, loading, saving } = useEnquire();
   // Which action is in flight, so only that button shows a spinner.
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
@@ -64,15 +64,22 @@ export function BankStep() {
     setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, [key]: value } : r)));
   };
 
-  const persist = async (next: string) => {
-    const ok = await saveDraft({
-      step: next,
+  const saveLater = async () => {
+    setPendingAction("save");
+    await saveDraft({
+      step: "bank",
       bankAccounts: rows.filter((r) => r.bankName.trim() && r.accountName.trim()),
     });
-    if (ok) router.push(`/enquire/${next}`);
+    setPendingAction(null);
   };
 
-  if (loading) return <p className="text-base text-zinc-600">Loading…</p>;
+  const goNext = () => {
+    advanceTo("products", {
+      bankAccounts: rows.filter((r) => r.bankName.trim() && r.accountName.trim()),
+    });
+  };
+
+  if (loading && !registration) return null;
 
   return (
     <div className="space-y-8">
@@ -183,11 +190,8 @@ export function BankStep() {
           className="sm:w-auto"
           fullWidth
           disabled={saving}
-          pending={saving && pendingAction === "bank"}
-          onClick={() => {
-            setPendingAction("bank");
-            void persist("bank");
-          }}
+          pending={pendingAction === "save"}
+          onClick={() => void saveLater()}
         >
           Save for Later
         </InteractiveHoverButton>
@@ -196,12 +200,7 @@ export function BankStep() {
           variant="solid"
           className="sm:w-auto"
           fullWidth
-          disabled={saving}
-          pending={saving && pendingAction === "products"}
-          onClick={() => {
-            setPendingAction("products");
-            void persist("products");
-          }}
+          onClick={goNext}
         >
           Next: Products & Services
         </InteractiveHoverButton>

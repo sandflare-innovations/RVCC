@@ -10,6 +10,8 @@ export async function POST() {
 
   if (token) {
     try {
+      const { clearVendorSessionCache } = await import("@/lib/session");
+      clearVendorSessionCache(token);
       await vendorWorkerFetch("/auth/logout", { method: "POST", sessionToken: token });
     } catch (err) {
       console.error("[vendor/logout]", err);
