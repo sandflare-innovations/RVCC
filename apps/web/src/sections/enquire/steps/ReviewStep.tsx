@@ -31,11 +31,11 @@ function maskAccount(value?: string | null) {
 
 function DocField({ label, value }: { label: string; value?: string | null }) {
   return (
-    <div className="grid gap-0.5 border-b border-zinc-100 py-3 sm:grid-cols-[minmax(160px,240px)_1fr] sm:gap-4">
-      <dt className="text-sm font-semibold tracking-[0.06em] text-zinc-500 uppercase sm:text-base">
+    <div className="grid gap-0.5 border-b border-zinc-100 py-1.5 sm:grid-cols-[minmax(140px,200px)_1fr] sm:gap-3 sm:py-2">
+      <dt className="text-[11px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">
         {label}
       </dt>
-      <dd className="text-base leading-relaxed break-words whitespace-pre-wrap text-zinc-950 sm:text-[17px]">
+      <dd className="text-sm leading-snug break-words whitespace-pre-wrap text-zinc-950">
         {display(value)}
       </dd>
     </div>
@@ -55,32 +55,30 @@ function DocSection({
 }) {
   return (
     <section className="border-b border-zinc-200 last:border-b-0">
-      <div className="flex items-start justify-between gap-3 border-b border-zinc-100 bg-zinc-50/80 px-5 py-3.5 sm:px-7">
-        <h3 className="text-base font-semibold tracking-tight text-zinc-950 sm:text-lg">
-          <span className="text-brand-blue mr-2 font-mono text-sm tabular-nums sm:text-base">
+      <div className="flex items-center justify-between gap-3 border-b border-zinc-100 bg-zinc-50/80 px-5 py-4 sm:px-7">
+        <h3 className="font-heading text-xl tracking-[0.04em] text-zinc-950 uppercase sm:text-2xl">
+          <span className="text-brand-blue mr-2 font-mono text-base tabular-nums sm:text-lg">
             {number}
           </span>
           {title}
         </h3>
         <Link
           href={editHref}
-          className="text-brand-blue inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold tracking-[0.06em] uppercase transition-opacity hover:opacity-80"
+          className="text-brand-blue inline-flex shrink-0 items-center gap-1.5 text-sm font-bold tracking-[0.08em] uppercase transition-opacity hover:opacity-80"
         >
           <Pencil className="h-3 w-3" aria-hidden="true" />
           Edit
         </Link>
       </div>
-      <div className="px-5 py-2 sm:px-7">{children}</div>
+      <div className="px-5 py-1 sm:px-7">{children}</div>
     </section>
   );
 }
 
 function EntryCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="my-3 rounded-md border border-zinc-200 bg-white px-4 py-3">
-      <p className="mb-2 text-sm font-bold tracking-[0.1em] text-zinc-500 uppercase sm:text-base">
-        {title}
-      </p>
+    <div className="my-2 rounded-md border border-zinc-200 bg-white px-3 py-2">
+      <p className="mb-1 text-[11px] font-bold tracking-[0.1em] text-zinc-500 uppercase">{title}</p>
       <dl>{children}</dl>
     </div>
   );
@@ -98,21 +96,21 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
         <p className="text-brand-blue text-sm font-bold tracking-[0.2em] uppercase sm:text-base">
           RVCC Procurement
         </p>
-        <h2 className="mt-1.5 text-2xl font-semibold tracking-[0.04em] text-zinc-950 sm:text-3xl">
+        <h2 className="font-heading mt-1.5 text-2xl tracking-[0.04em] text-zinc-950 uppercase sm:text-3xl">
           Prospective Supplier Registration
         </h2>
-        <dl className="mt-4 grid gap-2 text-base sm:grid-cols-2">
+        <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-sm font-semibold tracking-[0.06em] text-zinc-500 uppercase sm:text-base">
+            <dt className="text-[11px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">
               Applicant email
             </dt>
-            <dd className="mt-0.5 text-zinc-950">{display(registration.email)}</dd>
+            <dd className="mt-0.5 text-sm text-zinc-950">{display(registration.email)}</dd>
           </div>
           <div>
-            <dt className="text-sm font-semibold tracking-[0.06em] text-zinc-500 uppercase sm:text-base">
+            <dt className="text-[11px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">
               Status
             </dt>
-            <dd className="mt-0.5 text-zinc-950">{display(registration.status)}</dd>
+            <dd className="mt-0.5 text-sm text-zinc-950">{display(registration.status)}</dd>
           </div>
         </dl>
       </header>
@@ -136,7 +134,7 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
 
       <DocSection number="02" title="Contacts" editHref="/enquire/contacts">
         {registration.contacts.length === 0 ? (
-          <p className="py-4 text-base text-zinc-500">No contacts provided.</p>
+          <p className="py-3 text-sm text-zinc-500">No contacts provided.</p>
         ) : (
           registration.contacts.map((c, i) => (
             <EntryCard key={c.id || i} title={`Contact ${i + 1}`}>
@@ -154,7 +152,7 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
 
       <DocSection number="03" title="Addresses" editHref="/enquire/addresses">
         {registration.addresses.length === 0 ? (
-          <p className="py-4 text-base text-zinc-500">No addresses provided.</p>
+          <p className="py-3 text-sm text-zinc-500">No addresses provided.</p>
         ) : (
           registration.addresses.map((a, i) => (
             <EntryCard key={a.id || i} title={a.label?.trim() || `Address ${i + 1}`}>
@@ -174,7 +172,7 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
 
       <DocSection number="04" title="Classifications" editHref="/enquire/classifications">
         {registration.classifications.length === 0 ? (
-          <p className="py-4 text-base text-zinc-500">No classifications provided.</p>
+          <p className="py-3 text-sm text-zinc-500">No classifications provided.</p>
         ) : (
           registration.classifications.map((c, i) => (
             <EntryCard key={c.id || i} title={`Classification ${i + 1}`}>
@@ -190,7 +188,7 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
 
       <DocSection number="05" title="Bank accounts" editHref="/enquire/bank">
         {registration.bankAccounts.length === 0 ? (
-          <p className="py-4 text-base text-zinc-500">No bank accounts provided.</p>
+          <p className="py-3 text-sm text-zinc-500">No bank accounts provided.</p>
         ) : (
           registration.bankAccounts.map((b, i) => (
             <EntryCard key={b.id || i} title={`Account ${i + 1}`}>
@@ -209,13 +207,13 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
 
       <DocSection number="06" title="Products & services" editHref="/enquire/products">
         {categories.length === 0 ? (
-          <p className="py-4 text-base text-zinc-500">No categories selected.</p>
+          <p className="py-3 text-sm text-zinc-500">No categories selected.</p>
         ) : (
           <ul className="grid gap-2 py-3 sm:grid-cols-2">
             {categories.map((label) => (
               <li
                 key={label}
-                className="border-brand-blue/30 flex items-start gap-2 border-l-2 pl-3 text-base text-zinc-950 sm:text-[17px]"
+                className="border-brand-blue/30 flex items-start gap-2 border-l-2 pl-3 text-sm text-zinc-950"
               >
                 {label}
               </li>
