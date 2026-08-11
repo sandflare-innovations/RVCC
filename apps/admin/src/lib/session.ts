@@ -48,8 +48,12 @@ export const getAdminFromSession = cache(async (): Promise<AdminIdentity | null>
   try {
     const res = await adminWorkerFetch("/auth/me", { method: "GET", sessionToken: token });
     if (!res.ok) {
-      identityCache.delete(key);
-      return null;
+      // Only hard-logout on definitive auth failure — never on 5xx/network blips.
+      if (res.status === 401 || res.status === 403) {
+        identityCache.delete(key);
+        return null;
+      }
+      return hit?.identity ?? null;
     }
     const data = (await res.json()) as AdminIdentity;
     if (!data?.id || !data?.role) return null;

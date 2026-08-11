@@ -1,23 +1,13 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/db";
+import { ENQUIRE_COOKIE, enquireCookieOptions } from "@/lib/enquire-constants";
 import { otpVerifySchema } from "@/lib/enquire-schemas";
-import {
-  ENQUIRE_COOKIE,
-  generateSessionToken,
-  hashValue,
-  safeEqualHash,
-} from "@/lib/enquire-session";
+import { generateSessionToken, hashValue, safeEqualHash } from "@/lib/enquire-session";
 import { enquireWorkerFetch, workerConfigured } from "@/lib/enquire-worker";
 
 function setSessionCookie(res: NextResponse, token: string) {
-  res.cookies.set(ENQUIRE_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 14,
-  });
+  res.cookies.set(ENQUIRE_COOKIE, token, enquireCookieOptions());
 }
 
 async function viaWorker(email: string, code: string) {

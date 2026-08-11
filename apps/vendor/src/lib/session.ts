@@ -44,8 +44,11 @@ export const getVendorFromSession = cache(async (): Promise<VendorIdentity | nul
   try {
     const res = await vendorWorkerFetch("/auth/me", { method: "GET", sessionToken: token });
     if (!res.ok) {
-      identityCache.delete(key);
-      return null;
+      if (res.status === 401 || res.status === 403) {
+        identityCache.delete(key);
+        return null;
+      }
+      return hit?.identity ?? null;
     }
     const data = (await res.json()) as VendorIdentity;
     if (!data?.id || !data?.registrationId) return null;

@@ -130,6 +130,16 @@ export async function getAdminFromSession(
   if (new Date(row.expiresAt as string | Date) < new Date()) return null;
   if (!row.isActive) return null;
 
+  // Sliding expiry — active staff are not forced to re-login mid-shift week.
+  const sessionId = row.sessionId as string;
+  void sql`
+    UPDATE "AdminSession"
+    SET "expiresAt" = ${new Date(Date.now() + ADMIN_SESSION_TTL_MS)}
+    WHERE id = ${sessionId}
+  `.catch(() => {
+    /* non-fatal */
+  });
+
   return {
     id: row.id as string,
     email: row.email as string,

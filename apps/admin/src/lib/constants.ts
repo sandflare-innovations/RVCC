@@ -1,7 +1,8 @@
 /** Shared by proxy (edge) and server — Node-API free. */
 
 export const ADMIN_COOKIE = "rvcc_admin_session";
-export const ADMIN_SESSION_TTL_MS = 1000 * 60 * 60 * 8;
+/** Long-lived staff sessions — activity slides this window further. */
+export const ADMIN_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 14; // 14d
 export const ADMIN_LOGIN_PATH = "/login";
 export const ADMIN_HOME_PATH = "/";
 

@@ -1,9 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { VENDOR_COOKIE, VENDOR_HOME_PATH, VENDOR_LOGIN_PATH } from "@/lib/constants";
+import {
+  VENDOR_COOKIE,
+  VENDOR_HOME_PATH,
+  VENDOR_LOGIN_PATH,
+  vendorCookieOptions,
+} from "@/lib/constants";
 
 /**
  * Cheap cookie-presence gate. Real auth is /auth/me via the vendor-api worker.
+ * Also slides the browser cookie maxAge forward on every page navigation.
  */
 export default function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -19,7 +25,8 @@ export default function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!request.cookies.get(VENDOR_COOKIE)?.value) {
+  const token = request.cookies.get(VENDOR_COOKIE)?.value;
+  if (!token) {
     const url = new URL(VENDOR_LOGIN_PATH, request.url);
     if (pathname !== "/") url.searchParams.set("next", pathname + search);
     return NextResponse.redirect(url);
@@ -34,6 +41,7 @@ export default function proxy(request: NextRequest) {
       })(),
     },
   });
+  res.cookies.set(VENDOR_COOKIE, token, vendorCookieOptions());
   return res;
 }
 

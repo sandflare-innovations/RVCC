@@ -1,5 +1,5 @@
-/** Vendor portal sessions last a week (unlike staff 8h shift sessions). */
-export const VENDOR_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7d
+/** Vendor portal sessions stay signed in for a month with sliding renewal. */
+export const VENDOR_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30d
 
 /** Failed logins allowed before the account is temporarily locked. */
 export const MAX_FAILED_ATTEMPTS = 5;
