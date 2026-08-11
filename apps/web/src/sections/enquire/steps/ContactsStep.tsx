@@ -8,6 +8,13 @@ import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button
 import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
 import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
+import {
+  enquireActionLinkClass,
+  enquireOptionLabelClass,
+  enquireSectionTitleClass,
+} from "@/sections/enquire/enquire-typography";
+
+import { cn } from "@lib/utils";
 
 type ContactForm = {
   firstName: string;
@@ -80,13 +87,11 @@ export function ContactsStep() {
       {contacts.map((c, i) => (
         <div key={i} className="space-y-6 border-b border-zinc-100 pb-8">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold tracking-[0.18em] text-zinc-600 uppercase">
-              Contact {String(i + 1).padStart(2, "0")}
-            </h3>
+            <h3 className={enquireSectionTitleClass}>Contact {String(i + 1).padStart(2, "0")}</h3>
             {contacts.length > 1 && (
               <button
                 type="button"
-                className="inline-flex min-h-[44px] items-center text-xs font-bold tracking-wider text-zinc-600 uppercase transition-colors hover:text-red-600"
+                className={enquireActionLinkClass}
                 onClick={() => setContacts((prev) => prev.filter((_, idx) => idx !== i))}
               >
                 Remove
@@ -138,7 +143,7 @@ export function ContactsStep() {
               />
             </EnquireField>
           </div>
-          <div className="flex flex-wrap gap-6 text-sm text-zinc-600">
+          <div className={cn("flex flex-wrap gap-6", enquireOptionLabelClass)}>
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"

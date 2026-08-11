@@ -8,6 +8,7 @@ import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button
 import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
 import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
+import { enquireMutedClass } from "@/sections/enquire/enquire-typography";
 
 import { cn } from "@lib/utils";
 
@@ -41,7 +42,7 @@ export function ProductsStep() {
 
   return (
     <div className="space-y-8">
-      <p className="text-sm text-zinc-500">
+      <p className={enquireMutedClass}>
         Select all categories of goods and services you can supply to RVCC.
       </p>
 
@@ -54,13 +55,13 @@ export function ProductsStep() {
               type="button"
               onClick={() => toggle(cat.id)}
               className={cn(
-                "border px-4 py-4 text-left text-sm transition-colors",
+                "border px-4 py-4 text-left text-base transition-colors",
                 on
                   ? "border-brand-blue bg-brand-blue text-white"
                   : "hover:border-brand-blue/40 border-zinc-200 text-zinc-700"
               )}
             >
-              <span className="text-xs font-bold tracking-[0.16em] uppercase opacity-60">
+              <span className="text-sm font-bold tracking-[0.12em] uppercase opacity-60">
                 {on ? "Selected" : "Select"}
               </span>
               <div className="mt-1 font-medium">{cat.label}</div>

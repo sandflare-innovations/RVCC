@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { enquireVerifyUrl, siteUrl, vendorPortalUrl } from "@/lib/public-urls";
 import { useEnquire } from "@/sections/enquire/EnquireContext";
+import { enquirePageTitleClass } from "@/sections/enquire/enquire-typography";
 
 export function DoneStep() {
   const params = useSearchParams();
@@ -13,7 +14,6 @@ export function DoneStep() {
   const ref = params.get("ref") || registration?.referenceNumber || "—";
   const homeHref = siteUrl("/");
   const contactHref = siteUrl("/contact");
-  // Portal login is only after approval (email). Submit success stays on marketing.
   const vendorLogin = vendorPortalUrl("/login");
   const hasVendorPortal = Boolean(process.env.NEXT_PUBLIC_VENDOR_PORTAL_URL);
 
@@ -23,21 +23,19 @@ export function DoneStep() {
         <span className="text-2xl font-black">✓</span>
       </div>
       <div className="space-y-3">
-        <h2 className="font-heading text-3xl tracking-tighter uppercase md:text-5xl">
-          Request received
-        </h2>
-        <p className="text-sm leading-relaxed text-zinc-500">
+        <h2 className={enquirePageTitleClass}>Request received</h2>
+        <p className="text-base leading-relaxed text-zinc-600 sm:text-lg">
           Thank you for registering as a prospective supplier with RVCC. Your request is now in our
           procurement review queue.
         </p>
       </div>
       <div className="border border-zinc-100 bg-zinc-50 px-6 py-5">
-        <p className="text-xs font-bold tracking-[0.18em] text-zinc-600 uppercase">
+        <p className="text-sm font-bold tracking-[0.12em] text-zinc-600 uppercase sm:text-base">
           Reference number
         </p>
-        <p className="text-brand-blue mt-2 font-mono text-xl font-bold tracking-wide">{ref}</p>
+        <p className="text-brand-blue mt-2 font-mono text-2xl font-bold tracking-wide">{ref}</p>
       </div>
-      <p className="text-sm text-zinc-600">
+      <p className="text-base text-zinc-600 sm:text-lg">
         Keep this reference for follow-up. Notifications will be sent to your administrative contact
         email when a decision is made.
         {hasVendorPortal ? (
@@ -56,17 +54,17 @@ export function DoneStep() {
         ) : null}
       </p>
       <div className="flex flex-wrap justify-center gap-3">
-        <Button href={homeHref} variant="primary" className="h-14 rounded-none">
+        <Button href={homeHref} variant="primary" className="h-14 rounded-none text-base">
           Back to Home
         </Button>
         <Link
           href={contactHref}
-          className="border-brand-blue text-brand-blue inline-flex h-14 items-center border-2 px-8 text-xs font-bold tracking-[0.18em] uppercase"
+          className="border-brand-blue text-brand-blue inline-flex h-14 items-center border-2 px-8 text-sm font-bold tracking-[0.12em] uppercase sm:text-base"
         >
           Contact Procurement
         </Link>
       </div>
-      <p className="text-xs text-zinc-400">
+      <p className="text-sm text-zinc-500 sm:text-base">
         Need to start another draft?{" "}
         <a href={enquireVerifyUrl()} className="underline underline-offset-2">
           E-Vendor Registration

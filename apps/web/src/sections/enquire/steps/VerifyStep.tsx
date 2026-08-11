@@ -8,6 +8,7 @@ import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button
 import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire } from "@/sections/enquire/EnquireContext";
 import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
+import { enquireMutedClass } from "@/sections/enquire/enquire-typography";
 
 export function VerifyStep() {
   const router = useRouter();
@@ -89,7 +90,7 @@ export function VerifyStep() {
 
   return (
     <div className="max-w-lg space-y-8">
-      <p className="text-base leading-relaxed text-zinc-600">
+      <p className={enquireMutedClass}>
         Enter your work email to receive a one-time access code. Returning suppliers can use the
         same email to resume a saved draft.
       </p>
@@ -120,7 +121,7 @@ export function VerifyStep() {
       )}
 
       {hint && (
-        <p role="status" className="text-brand-blue text-sm font-medium">
+        <p role="status" className="text-brand-blue text-base font-medium">
           {hint}
         </p>
       )}
