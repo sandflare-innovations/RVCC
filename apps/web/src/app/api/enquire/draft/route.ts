@@ -1,9 +1,20 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/db";
+import { ENQUIRE_COOKIE, enquireCookieOptions } from "@/lib/enquire-constants";
 import { draftPatchSchema } from "@/lib/enquire-schemas";
 import { getRegistrationFromSession } from "@/lib/enquire-session";
 import { enquireWorkerFetch, workerConfigured } from "@/lib/enquire-worker";
+
+/** Sliding browser cookie so active drafts do not drop mid-application. */
+async function withRenewedSessionCookie(body: unknown, status = 200) {
+  const out = NextResponse.json(body, { status });
+  const jar = await cookies();
+  const token = jar.get(ENQUIRE_COOKIE)?.value;
+  if (token) out.cookies.set(ENQUIRE_COOKIE, token, enquireCookieOptions());
+  return out;
+}
 
 export async function GET() {
   try {
@@ -14,14 +25,15 @@ export async function GET() {
         return NextResponse.json({ registration: null });
       }
       const data = await res.json();
-      return NextResponse.json(data, { status: res.status });
+      if (!res.ok) return NextResponse.json(data, { status: res.status });
+      return withRenewedSessionCookie(data, res.status);
     }
 
     const registration = await getRegistrationFromSession();
     if (!registration) {
       return NextResponse.json({ registration: null });
     }
-    return NextResponse.json({ registration });
+    return withRenewedSessionCookie({ registration });
   } catch (err) {
     console.error("[enquire/draft GET]", err);
     return NextResponse.json({ error: "Failed to load draft" }, { status: 500 });
@@ -45,7 +57,8 @@ export async function PATCH(request: Request) {
         body: parsed.data,
       });
       const data = await res.json();
-      return NextResponse.json(data, { status: res.status });
+      if (!res.ok) return NextResponse.json(data, { status: res.status });
+      return withRenewedSessionCookie(data, res.status);
     }
 
     const registration = await getRegistrationFromSession();
@@ -205,7 +218,7 @@ export async function PATCH(request: Request) {
     }
 
     const updated = await getRegistrationFromSession();
-    return NextResponse.json({ ok: true, registration: updated });
+    return withRenewedSessionCookie({ ok: true, registration: updated });
   } catch (err) {
     console.error("[enquire/draft PATCH]", err);
     return NextResponse.json({ error: "Failed to save draft" }, { status: 500 });

@@ -11,7 +11,7 @@ import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField
 
 export function VerifyStep() {
   const router = useRouter();
-  const { refresh, setError } = useEnquire();
+  const { hydrateAfterAuth, setError } = useEnquire();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [phase, setPhase] = useState<"email" | "code">("email");
@@ -68,9 +68,18 @@ export function VerifyStep() {
         return;
       }
       const next = data.currentStep || "company";
-      // Navigate immediately — hydrate draft in the background.
-      router.push(`/enquire/${next}`);
-      void refresh();
+      // Cookie is on this response — hydrate draft BEFORE navigating so
+      // useRequireSession never sees a null session and bounces back here.
+      let draft = await hydrateAfterAuth();
+      if (!draft) {
+        await new Promise((r) => setTimeout(r, 100));
+        draft = await hydrateAfterAuth();
+      }
+      if (!draft) {
+        setError("Signed in, but your draft did not load. Please refresh and continue.");
+        return;
+      }
+      router.push(`/enquire/${draft.currentStep || next}`);
     } catch {
       setError("Network error — try again.");
     } finally {

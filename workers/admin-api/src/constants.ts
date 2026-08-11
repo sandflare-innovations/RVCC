@@ -1,4 +1,5 @@
-export const ADMIN_SESSION_TTL_MS = 1000 * 60 * 60 * 8; // 8h — staff shift
+/** Long-lived staff sessions — activity slides this window further. */
+export const ADMIN_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 14; // 14d
 
 /** Failed logins allowed before the account is temporarily locked. */
 export const MAX_FAILED_ATTEMPTS = 5;

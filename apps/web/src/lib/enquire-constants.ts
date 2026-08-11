@@ -1,5 +1,18 @@
 export const ENQUIRE_COOKIE = "enquire_session";
+/** OTP codes are short-lived; the registration session cookie is not. */
 export const OTP_TTL_MS = 15 * 60 * 1000;
+/** Keep enquire drafts signed-in for a month so multi-day applications don't bounce. */
+export const ENQUIRE_SESSION_TTL_SEC = 60 * 60 * 24 * 30;
+
+export function enquireCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: ENQUIRE_SESSION_TTL_SEC,
+  };
+}
 
 export const ENQUIRE_STEPS = [
   "verify",

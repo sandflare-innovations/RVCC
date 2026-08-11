@@ -85,7 +85,9 @@ type EnquireContextValue = {
   saving: boolean;
   error: string | null;
   unlockedThrough: EnquireStep;
-  refresh: () => Promise<void>;
+  refresh: () => Promise<DraftRegistration | null>;
+  /** After OTP verify: load draft before navigating so we never bounce to verify. */
+  hydrateAfterAuth: () => Promise<DraftRegistration | null>;
   /** Blocking save — use for "Save for Later". */
   saveDraft: (payload: Record<string, unknown>) => Promise<boolean>;
   /**
@@ -106,23 +108,33 @@ export function EnquireProvider({ children }: { children: React.ReactNode }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const saveGen = useRef(0);
+  const registrationRef = useRef<DraftRegistration | null>(null);
+  registrationRef.current = registration;
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (): Promise<DraftRegistration | null> => {
     try {
       const res = await fetch("/api/enquire/draft", { credentials: "include" });
       if (!res.ok) {
-        setRegistration(null);
-        return;
+        // Keep an existing draft on transient failures — never fake a logout.
+        return registrationRef.current;
       }
       const data = await res.json();
-      setRegistration(data.registration ?? null);
+      const next = (data.registration as DraftRegistration | null) ?? null;
+      setRegistration(next);
+      return next;
     } catch (e) {
       console.error(e);
-      setRegistration(null);
+      return registrationRef.current;
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const hydrateAfterAuth = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    return refresh();
+  }, [refresh]);
 
   useEffect(() => {
     void refresh();
@@ -172,7 +184,6 @@ export function EnquireProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       // Unlock the step train immediately.
       setRegistration((prev) => (prev ? { ...prev, currentStep: nextStep } : prev));
-      // Push synchronously — startTransition would deprioritize the route change.
       router.push(`/enquire/${nextStep}`);
 
       // Persist off the critical path — never gate navigation on this.
@@ -208,12 +219,23 @@ export function EnquireProvider({ children }: { children: React.ReactNode }) {
       error,
       unlockedThrough,
       refresh,
+      hydrateAfterAuth,
       saveDraft,
       advanceTo,
       setError,
       setRegistration,
     }),
-    [registration, loading, saving, error, unlockedThrough, refresh, saveDraft, advanceTo]
+    [
+      registration,
+      loading,
+      saving,
+      error,
+      unlockedThrough,
+      refresh,
+      hydrateAfterAuth,
+      saveDraft,
+      advanceTo,
+    ]
   );
 
   return <EnquireContext.Provider value={value}>{children}</EnquireContext.Provider>;
@@ -230,6 +252,7 @@ export function useRequireSession(step: EnquireStep) {
   const router = useRouter();
 
   useEffect(() => {
+    // Wait until the first draft hydrate finishes — never bounce mid-load.
     if (loading) return;
     if (step === "verify") return;
     if (!registration) {
