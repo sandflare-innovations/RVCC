@@ -147,7 +147,7 @@ export function VerifyStep() {
           <CheckCircle2 className="text-brand-blue mt-0.5 h-8 w-8 shrink-0" aria-hidden="true" />
           <div className="min-w-0 space-y-1">
             <p className="font-heading text-xl tracking-[0.04em] text-zinc-950 uppercase sm:text-2xl">
-              Just Verified
+              User Verified
             </p>
             <p className="text-base break-all text-zinc-600">{registration!.email}</p>
           </div>

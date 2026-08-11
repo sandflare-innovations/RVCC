@@ -30,9 +30,11 @@ const CIRCLE =
 type Props = {
   current: EnquireStep;
   unlockedThrough: EnquireStep;
+  /** True once OTP verify succeeded and a draft session exists. */
+  emailVerified?: boolean;
 };
 
-export function StepTrain({ current, unlockedThrough }: Props) {
+export function StepTrain({ current, unlockedThrough, emailVerified = false }: Props) {
   const unlockedIdx = ENQUIRE_STEPS.indexOf(unlockedThrough);
   const currentIdx = ENQUIRE_STEPS.indexOf(current);
 
@@ -43,23 +45,30 @@ export function StepTrain({ current, unlockedThrough }: Props) {
           const stepIdx = ENQUIRE_STEPS.indexOf(step);
           const unlocked = stepIdx <= Math.max(unlockedIdx, 1);
           const active = step === current;
-          const done = stepIdx < currentIdx && step !== "verify";
+          const done = step === "verify" ? emailVerified && !active : stepIdx < currentIdx;
           const prevIdx = index > 0 ? ENQUIRE_STEPS.indexOf(VISIBLE[index - 1]!) : -1;
-          const leftLineOn = index > 0 && (prevIdx < currentIdx || active);
-          const rightLineOn = index < VISIBLE.length - 1 && (done || active);
+          const prevDone =
+            index > 0 && VISIBLE[index - 1] === "verify"
+              ? emailVerified
+              : prevIdx >= 0 && prevIdx < currentIdx;
+          const leftLineOn = index > 0 && (prevDone || active);
+          const rightLineOn =
+            index < VISIBLE.length - 1 && (done || active || (step === "verify" && emailVerified));
 
           const circleEl = (
             <span
               className={cn(
                 CIRCLE,
-                unlocked && (active || done)
+                unlocked && (active || done || (step === "verify" && emailVerified))
                   ? "border-brand-blue bg-brand-blue text-white"
                   : unlocked
                     ? "border-zinc-300 bg-zinc-100 text-zinc-600 group-hover:border-zinc-400"
                     : "border-zinc-200 bg-zinc-50 text-zinc-400"
               )}
             >
-              {done && !active && unlocked ? (
+              {done && unlocked ? (
+                <Check className="h-4 w-4" aria-hidden="true" />
+              ) : step === "verify" && emailVerified && active ? (
                 <Check className="h-4 w-4" aria-hidden="true" />
               ) : (
                 index + 1
@@ -89,7 +98,11 @@ export function StepTrain({ current, unlockedThrough }: Props) {
                     className={cn(
                       "group shrink-0 rounded-md transition-colors",
                       "focus-visible:ring-brand-blue focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
-                      active ? "text-brand-blue" : "text-zinc-600 hover:text-zinc-900"
+                      active
+                        ? "text-brand-blue"
+                        : done
+                          ? "text-brand-blue"
+                          : "text-zinc-600 hover:text-zinc-900"
                     )}
                   >
                     {circleEl}
@@ -116,7 +129,7 @@ export function StepTrain({ current, unlockedThrough }: Props) {
                   enquireStepLabelClass,
                   "mt-1.5",
                   !unlocked && "text-zinc-400",
-                  active && "text-brand-blue"
+                  (active || (step === "verify" && emailVerified)) && "text-brand-blue"
                 )}
               >
                 {LABELS[step]}

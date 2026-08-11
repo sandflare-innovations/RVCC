@@ -24,7 +24,7 @@ type Props = {
 
 export function EnquireShell({ step, title, subtitle, children }: Props) {
   const router = useRouter();
-  const { unlockedThrough, error, saving } = useEnquire();
+  const { unlockedThrough, error, saving, registration } = useEnquire();
 
   // Warm adjacent step routes so Next feels instant.
   useEffect(() => {
@@ -50,7 +50,11 @@ export function EnquireShell({ step, title, subtitle, children }: Props) {
 
         {step !== "done" && (
           <div className="mb-10 border-b border-zinc-100 pb-6">
-            <StepTrain current={step} unlockedThrough={unlockedThrough} />
+            <StepTrain
+              current={step}
+              unlockedThrough={unlockedThrough}
+              emailVerified={Boolean(registration?.email)}
+            />
           </div>
         )}
 
