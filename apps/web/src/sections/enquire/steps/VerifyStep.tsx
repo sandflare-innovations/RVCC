@@ -67,8 +67,10 @@ export function VerifyStep() {
         setError(data.error || `Invalid code (${res.status})`);
         return;
       }
-      await refresh();
-      router.push(`/enquire/${data.currentStep || "company"}`);
+      const next = data.currentStep || "company";
+      // Navigate immediately — hydrate draft in the background.
+      router.push(`/enquire/${next}`);
+      void refresh();
     } catch {
       setError("Network error — try again.");
     } finally {

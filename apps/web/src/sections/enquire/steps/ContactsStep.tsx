@@ -34,7 +34,7 @@ const empty = (email = ""): ContactForm => ({
 export function ContactsStep() {
   useRequireSession("contacts");
   const router = useRouter();
-  const { registration, saveDraft, loading, saving } = useEnquire();
+  const { registration, saveDraft, advanceTo, loading, saving } = useEnquire();
   // Which action is in flight, so only that button shows a spinner.
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [contacts, setContacts] = useState<ContactForm[]>([empty()]);
@@ -63,12 +63,17 @@ export function ContactsStep() {
     setContacts((prev) => prev.map((c, idx) => (idx === i ? { ...c, [key]: value } : c)));
   };
 
-  const persist = async (next: string) => {
-    const ok = await saveDraft({ step: next, contacts });
-    if (ok) router.push(`/enquire/${next}`);
+  const saveLater = async () => {
+    setPendingAction("save");
+    await saveDraft({ step: "contacts", contacts });
+    setPendingAction(null);
   };
 
-  if (loading) return <p className="text-base text-zinc-600">Loading…</p>;
+  const goNext = () => {
+    advanceTo("addresses", { contacts });
+  };
+
+  if (loading && !registration) return null;
 
   return (
     <div className="space-y-10">
@@ -182,11 +187,8 @@ export function ContactsStep() {
           className="sm:w-auto"
           fullWidth
           disabled={saving}
-          pending={saving && pendingAction === "contacts"}
-          onClick={() => {
-            setPendingAction("contacts");
-            void persist("contacts");
-          }}
+          pending={pendingAction === "save"}
+          onClick={() => void saveLater()}
         >
           Save for Later
         </InteractiveHoverButton>
@@ -195,12 +197,7 @@ export function ContactsStep() {
           variant="solid"
           className="sm:w-auto"
           fullWidth
-          disabled={saving}
-          pending={saving && pendingAction === "addresses"}
-          onClick={() => {
-            setPendingAction("addresses");
-            void persist("addresses");
-          }}
+          onClick={goNext}
         >
           Next: Addresses
         </InteractiveHoverButton>

@@ -33,7 +33,7 @@ const empty = (): Row => ({
 export function ClassificationsStep() {
   useRequireSession("classifications");
   const router = useRouter();
-  const { registration, saveDraft, loading, saving } = useEnquire();
+  const { registration, saveDraft, advanceTo, loading, saving } = useEnquire();
   // Which action is in flight, so only that button shows a spinner.
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
@@ -57,15 +57,22 @@ export function ClassificationsStep() {
     setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, [key]: value } : r)));
   };
 
-  const persist = async (next: string) => {
-    const ok = await saveDraft({
-      step: next,
+  const saveLater = async () => {
+    setPendingAction("save");
+    await saveDraft({
+      step: "classifications",
       classifications: rows.filter((r) => r.classification.trim()),
     });
-    if (ok) router.push(`/enquire/${next}`);
+    setPendingAction(null);
   };
 
-  if (loading) return <p className="text-base text-zinc-600">Loading…</p>;
+  const goNext = () => {
+    advanceTo("bank", {
+      classifications: rows.filter((r) => r.classification.trim()),
+    });
+  };
+
+  if (loading && !registration) return null;
 
   return (
     <div className="space-y-8">
@@ -158,11 +165,8 @@ export function ClassificationsStep() {
           className="sm:w-auto"
           fullWidth
           disabled={saving}
-          pending={saving && pendingAction === "classifications"}
-          onClick={() => {
-            setPendingAction("classifications");
-            void persist("classifications");
-          }}
+          pending={pendingAction === "save"}
+          onClick={() => void saveLater()}
         >
           Save for Later
         </InteractiveHoverButton>
@@ -171,12 +175,7 @@ export function ClassificationsStep() {
           variant="solid"
           className="sm:w-auto"
           fullWidth
-          disabled={saving}
-          pending={saving && pendingAction === "bank"}
-          onClick={() => {
-            setPendingAction("bank");
-            void persist("bank");
-          }}
+          onClick={goNext}
         >
           Next: Bank Accounts
         </InteractiveHoverButton>

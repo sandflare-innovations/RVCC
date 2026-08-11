@@ -59,7 +59,7 @@ export function ReviewStep() {
     }
   };
 
-  if (loading || !registration) return <p className="text-base text-zinc-600">Loading…</p>;
+  if (loading || !registration) return null;
 
   const catLabels = registration.productCategories
     .map((id) => ENQUIRE_CATEGORIES.find((c) => c.id === id)?.label || id)

@@ -1,6 +1,14 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -78,17 +86,26 @@ type EnquireContextValue = {
   error: string | null;
   unlockedThrough: EnquireStep;
   refresh: () => Promise<void>;
+  /** Blocking save — use for "Save for Later". */
   saveDraft: (payload: Record<string, unknown>) => Promise<boolean>;
+  /**
+   * Instant Next: navigate immediately, persist in the background.
+   * Never blocks the UI on network.
+   */
+  advanceTo: (nextStep: string, payload: Record<string, unknown>) => void;
   setError: (msg: string | null) => void;
+  setRegistration: React.Dispatch<React.SetStateAction<DraftRegistration | null>>;
 };
 
 const EnquireContext = createContext<EnquireContextValue | null>(null);
 
 export function EnquireProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [registration, setRegistration] = useState<DraftRegistration | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const saveGen = useRef(0);
 
   const refresh = useCallback(async () => {
     try {
@@ -111,30 +128,72 @@ export function EnquireProvider({ children }: { children: React.ReactNode }) {
     void refresh();
   }, [refresh]);
 
-  const saveDraft = useCallback(async (payload: Record<string, unknown>) => {
-    setSaving(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/enquire/draft", {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Save failed");
-        return false;
-      }
-      setRegistration(data.registration);
-      return true;
-    } catch {
-      setError("Save failed");
-      return false;
-    } finally {
-      setSaving(false);
+  const patchDraft = useCallback(async (payload: Record<string, unknown>) => {
+    const res = await fetch("/api/enquire/draft", {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return { ok: false as const, error: (data as { error?: string }).error || "Save failed" };
     }
+    return {
+      ok: true as const,
+      registration: (data as { registration?: DraftRegistration }).registration,
+    };
   }, []);
+
+  const saveDraft = useCallback(
+    async (payload: Record<string, unknown>) => {
+      setSaving(true);
+      setError(null);
+      try {
+        const result = await patchDraft(payload);
+        if (!result.ok) {
+          setError(result.error);
+          return false;
+        }
+        if (result.registration) setRegistration(result.registration);
+        return true;
+      } catch {
+        setError("Save failed");
+        return false;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [patchDraft]
+  );
+
+  const advanceTo = useCallback(
+    (nextStep: string, payload: Record<string, unknown>) => {
+      setError(null);
+      // Unlock the step train immediately.
+      setRegistration((prev) => (prev ? { ...prev, currentStep: nextStep } : prev));
+      // Push synchronously — startTransition would deprioritize the route change.
+      router.push(`/enquire/${nextStep}`);
+
+      // Persist off the critical path — never gate navigation on this.
+      const gen = ++saveGen.current;
+      void (async () => {
+        try {
+          const result = await patchDraft({ ...payload, step: nextStep });
+          if (gen !== saveGen.current) return;
+          if (!result.ok) {
+            setError(result.error);
+            return;
+          }
+          if (result.registration) setRegistration(result.registration);
+        } catch {
+          if (gen === saveGen.current)
+            setError("Could not save progress — you can retry Save for Later.");
+        }
+      })();
+    },
+    [patchDraft, router]
+  );
 
   const unlockedThrough = useMemo<EnquireStep>(() => {
     if (!registration) return "verify";
@@ -150,9 +209,11 @@ export function EnquireProvider({ children }: { children: React.ReactNode }) {
       unlockedThrough,
       refresh,
       saveDraft,
+      advanceTo,
       setError,
+      setRegistration,
     }),
-    [registration, loading, saving, error, unlockedThrough, refresh, saveDraft]
+    [registration, loading, saving, error, unlockedThrough, refresh, saveDraft, advanceTo]
   );
 
   return <EnquireContext.Provider value={value}>{children}</EnquireContext.Provider>;

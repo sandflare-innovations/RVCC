@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function VendorPasswordPage() {
   const vendor = await getVendorFromSession();
   if (!vendor) redirect("/login");
+  // Layout already redirects when mustChangePassword and path !== /password.
 
   return (
     <div className="max-w-md space-y-5">

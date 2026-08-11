@@ -1,8 +1,12 @@
 "use client";
 
+import { useEffect } from "react";
+
+import { useRouter } from "next/navigation";
+
 import { AlertCircle } from "lucide-react";
 
-import type { EnquireStep } from "@/lib/enquire-constants";
+import { ENQUIRE_STEPS, type EnquireStep } from "@/lib/enquire-constants";
 import { useEnquire } from "@/sections/enquire/EnquireContext";
 import { StepTrain } from "@/sections/enquire/StepTrain";
 
@@ -14,7 +18,16 @@ type Props = {
 };
 
 export function EnquireShell({ step, title, subtitle, children }: Props) {
+  const router = useRouter();
   const { unlockedThrough, error, saving } = useEnquire();
+
+  // Warm adjacent step routes so Next feels instant.
+  useEffect(() => {
+    const i = ENQUIRE_STEPS.indexOf(step);
+    if (i < 0) return;
+    if (i + 1 < ENQUIRE_STEPS.length) router.prefetch(`/enquire/${ENQUIRE_STEPS[i + 1]}`);
+    if (i > 0) router.prefetch(`/enquire/${ENQUIRE_STEPS[i - 1]}`);
+  }, [router, step]);
 
   return (
     <div className="font-enquire relative min-h-screen bg-white text-zinc-950 antialiased">
@@ -50,11 +63,6 @@ export function EnquireShell({ step, title, subtitle, children }: Props) {
           </div>
         )}
 
-        {/*
-          Progress now lives on the button that was clicked. This stays as a
-          polite live region for screen readers only — a visible bar up here was
-          easy to miss when the action sat a full screen below.
-        */}
         <span aria-live="polite" className="sr-only">
           {saving ? "Saving your progress" : ""}
         </span>

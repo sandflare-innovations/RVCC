@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -26,11 +26,15 @@ export function VendorChrome({
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
 
+  useEffect(() => {
+    for (const item of NAV) router.prefetch(item.href);
+  }, [router]);
+
   const signOut = async () => {
     setSigningOut(true);
-    await fetch("/api/logout", { method: "POST", credentials: "include" });
+    // Navigate first so the UI never waits on the network.
     router.replace("/login");
-    router.refresh();
+    void fetch("/api/logout", { method: "POST", credentials: "include" });
   };
 
   return (
@@ -49,12 +53,10 @@ export function VendorChrome({
           className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3.5 py-2 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-55"
         >
           <LogOut className="h-4 w-4" aria-hidden="true" />
-          {signingOut ? "Signing out…" : "Sign out"}
+          Sign out
         </button>
       </header>
 
-      {/* Hidden while the temporary password is still in force — there is
-          nothing else to navigate to until it has been replaced. */}
       {!vendor.mustChangePassword && (
         <nav className="flex gap-1.5 py-4">
           {NAV.map(({ href, label, icon: Icon, exact }) => {
@@ -63,6 +65,7 @@ export function VendorChrome({
               <Link
                 key={href}
                 href={href}
+                prefetch
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors",

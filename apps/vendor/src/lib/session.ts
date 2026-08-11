@@ -1,5 +1,8 @@
+import { cache } from "react";
+
 import { cookies } from "next/headers";
 
+import { createHash } from "node:crypto";
 import "server-only";
 
 import { VENDOR_COOKIE } from "@/lib/constants";
@@ -13,20 +16,43 @@ export type VendorIdentity = {
   registrationId: string;
 };
 
-/** Authoritative session check via vendor-api worker. */
-export async function getVendorFromSession(): Promise<VendorIdentity | null> {
+type CacheEntry = { at: number; identity: VendorIdentity };
+const identityCache = new Map<string, CacheEntry>();
+const TTL_MS = 45_000;
+
+function tokenKey(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+export function clearVendorSessionCache(token?: string) {
+  if (!token) {
+    identityCache.clear();
+    return;
+  }
+  identityCache.delete(tokenKey(token));
+}
+
+export const getVendorFromSession = cache(async (): Promise<VendorIdentity | null> => {
   const jar = await cookies();
   const token = jar.get(VENDOR_COOKIE)?.value;
   if (!token) return null;
 
+  const key = tokenKey(token);
+  const hit = identityCache.get(key);
+  if (hit && Date.now() - hit.at < TTL_MS) return hit.identity;
+
   try {
     const res = await vendorWorkerFetch("/auth/me", { method: "GET", sessionToken: token });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      identityCache.delete(key);
+      return null;
+    }
     const data = (await res.json()) as VendorIdentity;
     if (!data?.id || !data?.registrationId) return null;
+    identityCache.set(key, { at: Date.now(), identity: data });
     return data;
   } catch (err) {
     console.error("[vendor] /auth/me failed", err);
-    return null;
+    return hit?.identity ?? null;
   }
-}
+});

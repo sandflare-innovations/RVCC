@@ -40,31 +40,71 @@ export default async function RegistrationsPage({
   const active = status && (VALID.has(status) || status === "ALL") ? status : "SUBMITTED";
   const search = (q ?? "").trim();
 
-  const registrations = await prisma.supplierRegistration.findMany({
-    where: {
-      ...(active === "ALL" ? {} : { status: active as RegistrationStatus }),
-      ...(search
-        ? {
-            OR: [
-              { email: { contains: search, mode: "insensitive" as const } },
-              { referenceNumber: { contains: search, mode: "insensitive" as const } },
-              { company: { legalName: { contains: search, mode: "insensitive" as const } } },
-            ],
-          }
-        : {}),
-    },
-    include: {
-      company: true,
-      contacts: { orderBy: { sortOrder: "asc" } },
-      addresses: { orderBy: { sortOrder: "asc" } },
-      vendorUsers: { select: { email: true } },
-      _count: { select: { bankAccounts: true } },
-    },
-    orderBy: [{ submittedAt: "desc" }, { updatedAt: "desc" }],
-    take: 100,
-  });
+  const [registrations, admin] = await Promise.all([
+    prisma.supplierRegistration.findMany({
+      where: {
+        ...(active === "ALL" ? {} : { status: active as RegistrationStatus }),
+        ...(search
+          ? {
+              OR: [
+                { email: { contains: search, mode: "insensitive" as const } },
+                { referenceNumber: { contains: search, mode: "insensitive" as const } },
+                { company: { legalName: { contains: search, mode: "insensitive" as const } } },
+              ],
+            }
+          : {}),
+      },
+      include: {
+        company: {
+          select: {
+            legalName: true,
+            dbaName: true,
+            country: true,
+            organizationType: true,
+            supplierType: true,
+            website: true,
+            yearEstablished: true,
+            dunsNumber: true,
+            description: true,
+            taxIdentifiers: true,
+          },
+        },
+        contacts: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+            jobTitle: true,
+            phone: true,
+            mobile: true,
+            requestUserAccount: true,
+          },
+          orderBy: { sortOrder: "asc" },
+          take: 8,
+        },
+        addresses: {
+          select: {
+            label: true,
+            line1: true,
+            line2: true,
+            city: true,
+            region: true,
+            postalCode: true,
+            country: true,
+            purposes: true,
+          },
+          orderBy: { sortOrder: "asc" },
+          take: 8,
+        },
+        vendorUsers: { select: { email: true } },
+        _count: { select: { bankAccounts: true } },
+      },
+      orderBy: [{ submittedAt: "desc" }, { updatedAt: "desc" }],
+      take: 100,
+    }),
+    getAdminFromSession(),
+  ]);
 
-  const admin = await getAdminFromSession();
   // Deleting destroys commercial records, so it is SUPER_ADMIN only.
   const canDelete = Boolean(admin && hasRole(admin.role, "SUPER_ADMIN"));
 

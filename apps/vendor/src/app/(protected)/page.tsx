@@ -18,18 +18,30 @@ function Row({ label, value }: { label: string; value?: string | null }) {
 }
 
 export default async function VendorDashboard() {
+  // Session already gated in layout. Cache hits here.
   const vendor = await getVendorFromSession();
-  if (!vendor) redirect("/login");
-
-  // Nothing is reachable until the temporary password has been replaced.
+  if (!vendor) return null;
+  // Safety if x-pathname header was unavailable in layout.
   if (vendor.mustChangePassword) redirect("/password");
 
   const registration = await prisma.supplierRegistration.findUnique({
     where: { id: vendor.registrationId },
-    include: {
-      company: true,
-      contacts: { orderBy: { sortOrder: "asc" } },
-      addresses: { orderBy: { sortOrder: "asc" } },
+    select: {
+      email: true,
+      status: true,
+      referenceNumber: true,
+      submittedAt: true,
+      businessRelationship: true,
+      productCategories: true,
+      company: {
+        select: {
+          legalName: true,
+          dbaName: true,
+          country: true,
+          organizationType: true,
+          website: true,
+        },
+      },
     },
   });
 
