@@ -13,7 +13,10 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:db:push": "dotenv -e .env.test -- prisma db push --skip-generate"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -50,10 +53,13 @@
     "@types/react-google-recaptcha": "^2.1.9",
     "@types/three": "^0.184.1",
     "@types/unist": "^3.0.3",
+    "dotenv": "^16.6.1",
+    "dotenv-cli": "^7.4.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "prisma": "^5.22.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }
