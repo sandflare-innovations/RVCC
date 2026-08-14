@@ -36,13 +36,15 @@ export async function attemptAdminLogin(
   }
 
   if (!(await verifyPassword(password, admin.passwordHash))) {
-    const failedAttempts = admin.failedAttempts + 1;
+    const lockExpired = admin.lockedUntil !== null && admin.lockedUntil.getTime() <= Date.now();
+    const priorAttempts = lockExpired ? 0 : admin.failedAttempts;
+    const failedAttempts = priorAttempts + 1;
     const shouldLock = failedAttempts >= MAX_FAILED_ATTEMPTS;
     await prisma.adminUser.update({
       where: { id: admin.id },
       data: {
         failedAttempts,
-        lockedUntil: shouldLock ? new Date(Date.now() + LOCKOUT_MS) : admin.lockedUntil,
+        lockedUntil: shouldLock ? new Date(Date.now() + LOCKOUT_MS) : null,
       },
     });
     return { ok: false, reason: shouldLock ? "locked" : "invalid" };

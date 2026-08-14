@@ -91,4 +91,56 @@ describe("attemptAdminLogin", () => {
     const result = await attemptAdminLogin(testPrisma, EMAIL, PASSWORD);
     expect(result).toEqual({ ok: false, reason: "inactive" });
   });
+
+  it("does not immediately re-lock after an expired lock on a single wrong password", async () => {
+    const admin = await makeAdmin();
+    for (let i = 0; i < 5; i++) {
+      await attemptAdminLogin(testPrisma, EMAIL, "nope");
+    }
+    await testPrisma.adminUser.update({
+      where: { id: admin.id },
+      data: { lockedUntil: new Date(Date.now() - 1000) },
+    });
+
+    const result = await attemptAdminLogin(testPrisma, EMAIL, "nope");
+    expect(result).toEqual({ ok: false, reason: "invalid" });
+
+    const row = await testPrisma.adminUser.findUniqueOrThrow({ where: { id: admin.id } });
+    expect(row.failedAttempts).toBe(1);
+  });
+
+  it("gives a full new allowance of attempts after a lock expires", async () => {
+    const admin = await makeAdmin();
+    for (let i = 0; i < 5; i++) {
+      await attemptAdminLogin(testPrisma, EMAIL, "nope");
+    }
+    await testPrisma.adminUser.update({
+      where: { id: admin.id },
+      data: { lockedUntil: new Date(Date.now() - 1000) },
+    });
+
+    let result;
+    for (let i = 0; i < 5; i++) {
+      result = await attemptAdminLogin(testPrisma, EMAIL, "nope");
+    }
+    expect(result).toEqual({ ok: false, reason: "locked" });
+  });
+
+  it("resets the counter after a success following an expired lock", async () => {
+    const admin = await makeAdmin();
+    for (let i = 0; i < 5; i++) {
+      await attemptAdminLogin(testPrisma, EMAIL, "nope");
+    }
+    await testPrisma.adminUser.update({
+      where: { id: admin.id },
+      data: { lockedUntil: new Date(Date.now() - 1000) },
+    });
+
+    const result = await attemptAdminLogin(testPrisma, EMAIL, PASSWORD);
+    expect(result.ok).toBe(true);
+
+    const row = await testPrisma.adminUser.findUniqueOrThrow({ where: { id: admin.id } });
+    expect(row.failedAttempts).toBe(0);
+    expect(row.lockedUntil).toBeNull();
+  });
 });
