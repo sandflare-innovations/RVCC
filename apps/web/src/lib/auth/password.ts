@@ -1,3 +1,5 @@
+// Keep in sync with scripts/create-admin.mjs (hashing params are duplicated for the .mjs build
+// boundary — scripts/ runs outside the TypeScript build).
 const ITERATIONS = 210_000;
 const SALT_BYTES = 16;
 const KEY_BITS = 256;

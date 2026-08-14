@@ -1,8 +1,11 @@
 import { PrismaClient } from "@prisma/client";
+import { pathToFileURL } from "node:url";
 
 const ITERATIONS = 210_000;
 
-async function hashPassword(plain) {
+// Keep in sync with src/lib/auth/password.ts (hashing params are duplicated for the .mjs build
+// boundary — scripts/ runs outside the TypeScript build).
+export async function hashPassword(plain) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const key = await crypto.subtle.importKey(
     "raw",
@@ -20,35 +23,41 @@ async function hashPassword(plain) {
   return `pbkdf2$sha256$${ITERATIONS}$${b64(salt)}$${b64(new Uint8Array(bits))}`;
 }
 
-const [email, password, ...nameParts] = process.argv.slice(2);
+async function main() {
+  const [email, password, ...nameParts] = process.argv.slice(2);
 
-if (!email || !password) {
-  console.error("Usage: npm run admin:create -- <email> <password> [name]");
-  process.exit(1);
-}
-
-if (password.length < 12) {
-  console.error("Password must be at least 12 characters.");
-  process.exit(1);
-}
-
-const prisma = new PrismaClient();
-
-try {
-  const admin = await prisma.adminUser.create({
-    data: {
-      email: email.trim().toLowerCase(),
-      name: nameParts.join(" ") || email.split("@")[0],
-      passwordHash: await hashPassword(password),
-    },
-  });
-  console.log(`Created admin ${admin.email}`);
-} catch (err) {
-  if (err.code === "P2002") {
-    console.error(`An admin with email ${email} already exists.`);
+  if (!email || !password) {
+    console.error("Usage: npm run admin:create -- <email> <password> [name]");
     process.exit(1);
   }
-  throw err;
-} finally {
-  await prisma.$disconnect();
+
+  if (password.length < 12) {
+    console.error("Password must be at least 12 characters.");
+    process.exit(1);
+  }
+
+  const prisma = new PrismaClient();
+
+  try {
+    const admin = await prisma.adminUser.create({
+      data: {
+        email: email.trim().toLowerCase(),
+        name: nameParts.join(" ") || email.split("@")[0],
+        passwordHash: await hashPassword(password),
+      },
+    });
+    console.log(`Created admin ${admin.email}`);
+  } catch (err) {
+    if (err.code === "P2002") {
+      console.error(`An admin with email ${email} already exists.`);
+      process.exit(1);
+    }
+    throw err;
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
 }
