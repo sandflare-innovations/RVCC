@@ -161,3 +161,29 @@ model RegistrationAttachment {
 
   @@index([registrationId])
 }
+
+model AdminUser {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String    @default("")
+  passwordHash   String
+  isActive       Boolean   @default(true)
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+  lastLoginAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  sessions AdminSession[]
+}
+
+model AdminSession {
+  id          String   @id @default(cuid())
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  tokenHash   String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([adminUserId])
+}
