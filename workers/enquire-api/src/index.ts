@@ -1,3 +1,4 @@
+import { handleAgentOtpMail } from "./agent-mail";
 import { type Env, assertApiSecret, corsHeaders, json, unauthorized } from "./cors";
 import { createSql } from "./db";
 import {
@@ -30,6 +31,12 @@ export default {
     // All data routes require the shared API secret (Next.js BFF only).
     if (!assertApiSecret(request, env)) {
       return unauthorized(env, request);
+    }
+
+    // Mail-only route — no database access, so it is handled before the
+    // per-request Postgres pool is created below.
+    if (url.pathname === "/mail/agent-otp" && request.method === "POST") {
+      return await handleAgentOtpMail(env, request);
     }
 
     let sql;
