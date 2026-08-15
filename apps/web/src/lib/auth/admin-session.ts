@@ -1,21 +1,15 @@
 import type { AdminUser, PrismaClient } from "@prisma/client";
 
 import { ADMIN_SESSION_MS } from "@/lib/auth/constants";
+import { hashToken, randomToken } from "@/lib/auth/token";
 
-function toHex(bytes: Uint8Array): string {
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-export async function hashToken(token: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
-  return toHex(new Uint8Array(digest));
-}
+export { hashToken };
 
 export async function createAdminSession(
   prisma: PrismaClient,
   adminUserId: string
 ): Promise<string> {
-  const token = toHex(crypto.getRandomValues(new Uint8Array(32)));
+  const token = randomToken();
   await prisma.adminSession.create({
     data: {
       adminUserId,
