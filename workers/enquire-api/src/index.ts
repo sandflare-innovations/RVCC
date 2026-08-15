@@ -36,7 +36,12 @@ export default {
     // Mail-only route — no database access, so it is handled before the
     // per-request Postgres pool is created below.
     if (url.pathname === "/mail/agent-otp" && request.method === "POST") {
-      return await handleAgentOtpMail(env, request);
+      try {
+        return await handleAgentOtpMail(env, request);
+      } catch (err) {
+        console.error("[enquire-api] agent-otp mail", err);
+        return json(env, request, { error: "Internal error" }, 500);
+      }
     }
 
     let sql;
