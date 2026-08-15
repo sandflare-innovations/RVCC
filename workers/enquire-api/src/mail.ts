@@ -2,9 +2,9 @@ import nodemailer from "nodemailer";
 
 import type { Env } from "./cors";
 
-const BRAND = "#0073bc";
+export const BRAND = "#0073bc";
 
-function shell(opts: { preheader: string; title: string; bodyHtml: string }): string {
+export function shell(opts: { preheader: string; title: string; bodyHtml: string }): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,7 +89,7 @@ function fromAddress(env: Env): string {
   return env.ENQUIRE_FROM_EMAIL || env.SMTP_FROM || "RVCC Procurement <noreply@rvcc.local>";
 }
 
-async function sendMail(
+export async function sendMail(
   env: Env,
   opts: { to: string; subject: string; text: string; html: string }
 ): Promise<void> {
