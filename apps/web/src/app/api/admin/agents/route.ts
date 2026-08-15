@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { getAdminFromCookies } from "@/lib/auth/admin-guard";
@@ -45,14 +46,27 @@ export async function POST(request: Request) {
     );
   }
 
-  await prisma.agent.create({
-    data: {
-      email,
-      name: parsed.data.name ?? "",
-      company: parsed.data.company ?? "",
-      phone: parsed.data.phone ?? "",
-    },
-  });
+  try {
+    await prisma.agent.create({
+      data: {
+        email,
+        name: parsed.data.name ?? "",
+        company: parsed.data.company ?? "",
+        phone: parsed.data.phone ?? "",
+      },
+    });
+  } catch (err) {
+    // The findUnique check above handles the common case cleanly, but two concurrent
+    // submissions of the same email can both pass it — the @unique constraint is the
+    // real guard, so a P2002 here still means "duplicate", not a server error.
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      return NextResponse.json(
+        { error: "An agent with that email already exists." },
+        { status: 409 }
+      );
+    }
+    throw err;
+  }
 
   return NextResponse.json({ ok: true });
 }
@@ -66,14 +80,21 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  await prisma.agent.update({
-    where: { id: parsed.data.id },
-    data: { isActive: parsed.data.isActive },
-  });
+  try {
+    await prisma.agent.update({
+      where: { id: parsed.data.id },
+      data: { isActive: parsed.data.isActive },
+    });
 
-  // Deactivating must end any live session immediately, not at expiry.
-  if (!parsed.data.isActive) {
-    await prisma.agentSession.deleteMany({ where: { agentId: parsed.data.id } });
+    // Deactivating must end any live session immediately, not at expiry.
+    if (!parsed.data.isActive) {
+      await prisma.agentSession.deleteMany({ where: { agentId: parsed.data.id } });
+    }
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
+      return NextResponse.json({ error: "That agent no longer exists." }, { status: 404 });
+    }
+    throw err;
   }
 
   return NextResponse.json({ ok: true });
