@@ -4,7 +4,7 @@ This is the primary repository for the RVCC Construction Company web infrastruct
 
 ## 🏗 Project Structure
 
-- `apps/web`: Public Surface (marketing, enquire BFF, careers).
+- `apps/web`: Public Surface (marketing, enquire BFF, careers)..
 - `apps/admin`: Staff admin panel (BFF → `workers/admin-api`).
 - `apps/vendor`: Supplier portal (BFF → `workers/vendor-api`).
 - `workers/enquire-api`: Supplier registration OTP/mail Worker.
