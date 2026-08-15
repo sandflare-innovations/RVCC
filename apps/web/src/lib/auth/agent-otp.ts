@@ -29,6 +29,14 @@ export async function issueAgentOtp(
   });
   if (recent >= OTP_MAX_PER_HOUR) return { issued: false };
 
+  // Invalidate any prior unconsumed codes so "newest unconsumed" stays a true
+  // invariant instead of an accident of ordering — otherwise a superseded code
+  // becomes valid again once the newer one is consumed.
+  await prisma.agentOtp.updateMany({
+    where: { email: normalized, consumedAt: null },
+    data: { consumedAt: new Date() },
+  });
+
   const code = generateCode();
   await prisma.agentOtp.create({
     data: {
@@ -55,13 +63,16 @@ export async function verifyAgentOtp(
   });
   if (!otp) return { ok: false };
   if (otp.expiresAt.getTime() <= Date.now()) return { ok: false };
-  if (otp.attempts >= OTP_MAX_ATTEMPTS) return { ok: false };
+
+  // Atomically claim an attempt. Returns count 0 if the cap is already reached,
+  // which closes the race a read-then-check would leave open.
+  const claimed = await prisma.agentOtp.updateMany({
+    where: { id: otp.id, consumedAt: null, attempts: { lt: OTP_MAX_ATTEMPTS } },
+    data: { attempts: { increment: 1 } },
+  });
+  if (claimed.count === 0) return { ok: false };
 
   if (otp.codeHash !== (await hashToken(code))) {
-    await prisma.agentOtp.update({
-      where: { id: otp.id },
-      data: { attempts: { increment: 1 } },
-    });
     return { ok: false };
   }
 

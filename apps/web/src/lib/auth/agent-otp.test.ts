@@ -95,4 +95,43 @@ describe("agent one-time codes", () => {
     expect((await verifyAgentOtp(testPrisma, EMAIL, first.code!)).ok).toBe(false);
     expect((await verifyAgentOtp(testPrisma, EMAIL, second.code!)).ok).toBe(true);
   });
+
+  it("cannot resurrect a superseded code after the newer one is consumed", async () => {
+    await makeAgent();
+    const first = await issueAgentOtp(testPrisma, EMAIL);
+    const second = await issueAgentOtp(testPrisma, EMAIL);
+    expect((await verifyAgentOtp(testPrisma, EMAIL, second.code!)).ok).toBe(true);
+    expect((await verifyAgentOtp(testPrisma, EMAIL, first.code!)).ok).toBe(false);
+  });
+
+  it("rejects a superseded code immediately, without touching the newer one", async () => {
+    await makeAgent();
+    const first = await issueAgentOtp(testPrisma, EMAIL);
+    await issueAgentOtp(testPrisma, EMAIL);
+    expect((await verifyAgentOtp(testPrisma, EMAIL, first.code!)).ok).toBe(false);
+  });
+
+  it("still lets a legitimate user in after a few wrong guesses", async () => {
+    await makeAgent();
+    const { code } = await issueAgentOtp(testPrisma, EMAIL);
+    for (let i = 0; i < OTP_MAX_ATTEMPTS - 1; i++) {
+      expect((await verifyAgentOtp(testPrisma, EMAIL, "000000")).ok).toBe(false);
+    }
+    expect((await verifyAgentOtp(testPrisma, EMAIL, code!)).ok).toBe(true);
+  });
+
+  it("caps attempts under concurrent guessing", async () => {
+    await makeAgent();
+    const { code } = await issueAgentOtp(testPrisma, EMAIL);
+    const attempts = OTP_MAX_ATTEMPTS + 3;
+    const results = await Promise.all(
+      Array.from({ length: attempts }, () => verifyAgentOtp(testPrisma, EMAIL, "000000"))
+    );
+    expect(results.every((r) => r.ok === false)).toBe(true);
+
+    expect((await verifyAgentOtp(testPrisma, EMAIL, code!)).ok).toBe(false);
+
+    const row = await testPrisma.agentOtp.findFirst();
+    expect(row?.attempts).toBeLessThanOrEqual(OTP_MAX_ATTEMPTS);
+  });
 });
