@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { requireAdmin } from "@/lib/auth/admin-guard";
 import { prisma } from "@/lib/db";
 
@@ -14,7 +16,12 @@ export default async function AgentsPage() {
 
   return (
     <main className="mx-auto max-w-3xl p-8">
-      <h1 className="text-2xl font-semibold">Agents</h1>
+      <p>
+        <Link href="/admin" className="text-blue-600 underline">
+          ← Admin
+        </Link>
+      </p>
+      <h1 className="mt-2 text-2xl font-semibold">Agents</h1>
       <p className="mt-2 text-neutral-600">
         Only agents listed here can sign in to the portal and receive requirements.
       </p>
