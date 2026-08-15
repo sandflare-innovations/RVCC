@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 
 import { z } from "zod";
 
@@ -20,12 +20,19 @@ export async function POST(request: Request) {
   const result = await issueAgentOtp(prisma, parsed.data.email);
 
   if (result.issued && result.code) {
-    const mail = await sendAgentOtpEmail(parsed.data.email, result.code);
-    if (!mail.sent) {
-      // Log for operators; the caller still gets the generic message so a mail
-      // outage does not become an account-existence oracle.
-      console.error("[portal/request-code] mail failed:", mail.error);
-    }
+    const email = parsed.data.email;
+    const code = result.code;
+    // Sent after the response goes out: the caller learns nothing from the
+    // send outcome either way, and awaiting the Worker round-trip here would
+    // leak account existence through response latency.
+    after(async () => {
+      const mail = await sendAgentOtpEmail(email, code);
+      if (!mail.sent) {
+        // Log for operators; the caller already got the generic message so a
+        // mail outage does not become an account-existence oracle.
+        console.error("[portal/request-code] mail failed:", mail.error);
+      }
+    });
   }
 
   return NextResponse.json({ message: GENERIC });
