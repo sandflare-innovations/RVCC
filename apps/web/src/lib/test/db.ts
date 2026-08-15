@@ -11,3 +11,8 @@ export const testPrisma = new PrismaClient({ datasources: { db: { url } } });
 export async function resetAdminTables(): Promise<void> {
   await testPrisma.$executeRawUnsafe('TRUNCATE "AdminSession", "AdminUser" CASCADE');
 }
+
+/** Clears agent tables between tests. Sessions cascade from agents. */
+export async function resetAgentTables(): Promise<void> {
+  await testPrisma.$executeRawUnsafe('TRUNCATE "AgentSession", "AgentOtp", "Agent" CASCADE');
+}
