@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
 [vars]
-ALLOWED_ORIGINS = "*"
+ALLOWED_ORIGINS = "https://rvcc-prod.vercel.app,https://rvcc-admin.vercel.app,http://localhost:3000,http://localhost:3001"
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = "587"
 SMTP_SECURE = "false"
@@ -16,4 +16,4 @@ ENQUIRE_FROM_EMAIL = "RVCC Procurement <flyincob2b@gmail.com>"
 # Secrets (wrangler secret put …):
 #   DATABASE_URL
 #   SMTP_PASS
-#   VENDOR_PORTAL_URL
+#   VENDOR_PORTAL_URL   (= https://rvcc-prod.vercel.app)
