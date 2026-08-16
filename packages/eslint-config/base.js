@@ -16,6 +16,23 @@ export const baseConfig = [
       turbo: turboPlugin,
       import: importPlugin,
     },
+    languageOptions: {
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        Buffer: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        fetch: "readonly",
+        Response: "readonly",
+        Request: "readonly",
+        Headers: "readonly",
+        URL: "readonly",
+        URLSearchParams: "readonly",
+      },
+    },
     rules: {
       "turbo/no-undeclared-env-vars": "error",
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
@@ -39,6 +56,12 @@ export const baseConfig = [
     },
   },
   {
-    ignores: ["dist/**", "node_modules/**", ".next/**"],
+    files: ["**/scripts/**"],
+    rules: {
+      "no-console": "off",
+    },
+  },
+  {
+    ignores: ["**/dist/**", "**/node_modules/**", "**/.next/**", "**/.turbo/**", "**/public/**"],
   },
 ];

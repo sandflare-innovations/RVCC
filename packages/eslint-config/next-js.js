@@ -23,6 +23,8 @@ export const nextJsConfig = [
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
       "@next/next/no-html-link-for-pages": "off",
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/refs": "warn",
     },
     settings: {
       react: {
