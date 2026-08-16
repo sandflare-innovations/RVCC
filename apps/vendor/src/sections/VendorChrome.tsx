@@ -9,6 +9,7 @@ import { KeyRound, LayoutDashboard, LogOut } from "lucide-react";
 
 import type { VendorIdentity } from "@/lib/session";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/sections/NotificationBell";
 
 const NAV = [
   { href: "/", label: "Overview", icon: LayoutDashboard, exact: true },
@@ -46,15 +47,18 @@ export function VendorChrome({
           </p>
           <p className="mt-0.5 text-sm text-zinc-600">{vendor.name || vendor.email}</p>
         </div>
-        <button
-          type="button"
-          onClick={() => void signOut()}
-          disabled={signingOut}
-          className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3.5 py-2 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-55"
-        >
-          <LogOut className="h-4 w-4" aria-hidden="true" />
-          Sign out
-        </button>
+        <div className="flex items-center gap-3">
+          <NotificationBell />
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            disabled={signingOut}
+            className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3.5 py-2 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-55"
+          >
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+            Sign out
+          </button>
+        </div>
       </header>
 
       {!vendor.mustChangePassword && (

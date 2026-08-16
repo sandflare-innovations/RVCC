@@ -43,10 +43,13 @@ model AdminUser {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sessions    AdminSession[]
-  auditLogs   AuditLog[]
-  reviewed    SupplierRegistration[]
-  jobPostings JobPosting[]
+  sessions     AdminSession[]
+  auditLogs    AuditLog[]
+  reviewed     SupplierRegistration[]
+  jobPostings  JobPosting[]
+  requirements  Requirement[]  @relation("RequirementAuthor")
+  awarded       Requirement[]  @relation("RequirementAwarder")
+  notifications Notification[]
 
   @@index([email])
 }
@@ -104,8 +107,12 @@ model VendorUser {
   mustChangePassword Boolean @default(true)
   isActive           Boolean @default(true)
 
-  registrationId String
-  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  /// Null for accounts an admin created directly — most RVCC suppliers already
+  /// exist as companies and never use the public registration wizard.
+  /// SetNull rather than Cascade: removing a registration record must never
+  /// destroy a working login.
+  registrationId String?
+  registration   SupplierRegistration? @relation(fields: [registrationId], references: [id], onDelete: SetNull)
 
   failedAttempts Int       @default(0)
   lockedUntil    DateTime?
@@ -114,10 +121,31 @@ model VendorUser {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sessions VendorSession[]
+  sessions      VendorSession[]
+  industries    Industry[]
+  invites       RequirementInvite[]
+  quotes        Quote[]
+  notifications Notification[]
 
   @@index([registrationId])
   @@index([email])
+}
+
+/// A category of work a supplier or agent can be invited for, e.g. "Civil Works".
+/// Plain rows rather than an enum so staff can add one without a migration and
+/// redeploy — the same reasoning as JobPosting.department.
+model Industry {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  slug     String  @unique
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vendors VendorUser[]
+
+  @@index([isActive])
 }
 
 model VendorSession {
@@ -298,4 +326,132 @@ model RegistrationAttachment {
   createdAt      DateTime             @default(now())
 
   @@index([registrationId])
+}
+
+enum RequirementStatus {
+  DRAFT
+  OPEN
+  CANCELLED
+  AWARDED
+}
+
+enum InviteEmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+/// Work put out to quote. Closed is not a status: it means closesAt < now(),
+/// and storing it as well would let the flag and the clock disagree.
+/// CANCELLED and AWARDED are stored because the clock cannot express them.
+model Requirement {
+  id              String  @id @default(cuid())
+  referenceNumber String? @unique
+
+  scopeOfWork String
+  project     String
+  /// Admin reference only — never selected by a participant query.
+  sellingPrice Decimal? @db.Decimal(14, 2)
+  currency     String   @default("SAR")
+
+  closesAt DateTime
+  status   RequirementStatus @default(DRAFT)
+
+  createdByAdminId String
+  createdByAdmin   AdminUser @relation("RequirementAuthor", fields: [createdByAdminId], references: [id])
+
+  /// The winning quote. @unique so one quote cannot win twice.
+  awardedQuoteId   String?    @unique
+  awardedQuote     Quote?     @relation("AwardedQuote", fields: [awardedQuoteId], references: [id], onDelete: SetNull)
+  awardedAt        DateTime?
+  awardedByAdminId String?
+  awardedByAdmin   AdminUser? @relation("RequirementAwarder", fields: [awardedByAdminId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invites RequirementInvite[]
+  quotes  Quote[]
+
+  @@index([status, closesAt])
+}
+
+/// Who was asked to quote. One row per vendor per requirement.
+model RequirementInvite {
+  id            String      @id @default(cuid())
+  requirementId String
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  vendorUserId String
+  vendorUser   VendorUser @relation(fields: [vendorUserId], references: [id], onDelete: Cascade)
+
+  emailStatus InviteEmailStatus @default(PENDING)
+  emailError  String?
+  emailedAt   DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([requirementId, vendorUserId])
+  @@index([vendorUserId])
+}
+
+enum QuoteStatus {
+  DRAFT
+  SUBMITTED
+}
+
+/// One participant's price for one requirement. Rank is never stored: it is
+/// computed when the admin opens the comparison, because a stored rank goes
+/// stale the moment someone edits their price.
+model Quote {
+  id            String      @id @default(cuid())
+  requirementId String
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  vendorUserId String
+  vendorUser   VendorUser @relation(fields: [vendorUserId], references: [id], onDelete: Cascade)
+
+  newPrice Decimal? @db.Decimal(14, 2)
+  remarks  String   @default("")
+
+  status      QuoteStatus @default(DRAFT)
+  submittedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  awardedFor Requirement? @relation("AwardedQuote")
+
+  @@unique([requirementId, vendorUserId])
+  @@index([requirementId, status])
+}
+
+enum NotificationType {
+  REQUIREMENT_POSTED
+  QUOTE_SUBMITTED
+  QUOTE_AWARDED
+}
+
+/// In-app bell. Recipient is a vendor or an admin — the two are separate
+/// nullable links rather than one polymorphic id, so both stay real foreign
+/// keys and a deleted account takes its notifications with it.
+model Notification {
+  id String @id @default(cuid())
+
+  vendorUserId String?
+  vendorUser   VendorUser? @relation(fields: [vendorUserId], references: [id], onDelete: Cascade)
+
+  adminId String?
+  admin   AdminUser? @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  type     NotificationType
+  title    String
+  body     String   @default("")
+  linkPath String
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([vendorUserId, readAt])
+  @@index([adminId, readAt])
 }

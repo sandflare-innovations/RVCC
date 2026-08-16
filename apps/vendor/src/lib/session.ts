@@ -13,7 +13,8 @@ export type VendorIdentity = {
   email: string;
   name: string;
   mustChangePassword: boolean;
-  registrationId: string;
+  /** Null for accounts an admin created directly, with no public registration. */
+  registrationId: string | null;
 };
 
 type CacheEntry = { at: number; identity: VendorIdentity };
@@ -51,7 +52,8 @@ export const getVendorFromSession = cache(async (): Promise<VendorIdentity | nul
       return hit?.identity ?? null;
     }
     const data = (await res.json()) as VendorIdentity;
-    if (!data?.id || !data?.registrationId) return null;
+    // registrationId is intentionally not checked: admin-created vendors have none.
+    if (!data?.id) return null;
     identityCache.set(key, { at: Date.now(), identity: data });
     return data;
   } catch (err) {

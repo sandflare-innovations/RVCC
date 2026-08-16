@@ -4,6 +4,7 @@ import {
   handleDraftGet,
   handleDraftPatch,
   handleNotifyDecision,
+  handleNotifyRequirement,
   handleOtpRequest,
   handleOtpVerify,
   handleSubmit,
@@ -60,6 +61,10 @@ export default {
       // Mail-only: the admin panel has already committed the decision.
       if (url.pathname === "/notify/decision" && request.method === "POST") {
         return await handleNotifyDecision(env, request);
+      }
+      // Mail-only: admin-api has already committed the requirement or award.
+      if (url.pathname === "/notify/requirement" && request.method === "POST") {
+        return await handleNotifyRequirement(env, request);
       }
 
       return json(env, request, { error: "Not Found" }, 404);

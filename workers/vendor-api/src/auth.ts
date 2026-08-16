@@ -11,7 +11,8 @@ export type VendorIdentity = {
   email: string;
   name: string;
   mustChangePassword: boolean;
-  registrationId: string;
+  /** Null for accounts an admin created directly, with no public registration. */
+  registrationId: string | null;
 };
 
 /** Same shape and same anti-enumeration behaviour as the admin login. */
@@ -146,7 +147,8 @@ export async function getVendorFromSession(
     email: String(row.email),
     name: String(row.name ?? ""),
     mustChangePassword: Boolean(row.mustChangePassword),
-    registrationId: String(row.registrationId),
+    // Guarded: String(null) would send the literal "null" to the portal.
+    registrationId: row.registrationId == null ? null : String(row.registrationId),
   };
 }
 

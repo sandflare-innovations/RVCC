@@ -10,8 +10,10 @@ import {
 } from "./db";
 import {
   sendApprovedEmail,
+  sendAwardEmail,
   sendOtpEmail,
   sendRejectedEmail,
+  sendRequirementPostedEmail,
   sendSubmittedEmail,
   smtpConfigured,
 } from "./mail";
@@ -28,6 +30,70 @@ type DecisionRecipient = { to: string; loginEmail?: string; tempPassword?: strin
  * the Next.js admin route, so this handler touches no data. It is reachable
  * only with the shared API secret, which never leaves the server side.
  */
+/**
+ * Sends requirement mail on behalf of workers/admin-api.
+ *
+ * SMTP credentials live only on this Worker, so every other Worker that needs
+ * mail asks this one — the same arrangement as handleNotifyDecision below.
+ *
+ * Reports per-recipient outcomes rather than a single pass/fail: one bad
+ * address must not hide the fact that the others were delivered.
+ */
+export async function handleNotifyRequirement(env: Env, request: Request): Promise<Response> {
+  const body = (await request.json().catch(() => ({}))) as {
+    kind?: "POSTED" | "AWARDED";
+    recipients?: string[];
+    project?: string;
+    scopeOfWork?: string;
+    referenceNumber?: string;
+    closesAt?: string;
+    portalUrl?: string;
+  };
+
+  const kind = body.kind;
+  if (kind !== "POSTED" && kind !== "AWARDED") {
+    return json(env, request, { error: "kind must be POSTED or AWARDED" }, 400);
+  }
+
+  const recipients = (body.recipients ?? []).filter(
+    (r) => typeof r === "string" && r.includes("@")
+  );
+  if (recipients.length === 0) {
+    return json(env, request, { error: "At least one recipient is required" }, 400);
+  }
+  if (!smtpConfigured(env)) {
+    return json(env, request, { error: "Mail service unavailable" }, 503);
+  }
+
+  const sent: string[] = [];
+  const failed: { to: string; error: string }[] = [];
+
+  for (const to of recipients) {
+    try {
+      if (kind === "POSTED") {
+        await sendRequirementPostedEmail(env, to, {
+          project: String(body.project ?? ""),
+          scopeOfWork: String(body.scopeOfWork ?? ""),
+          referenceNumber: String(body.referenceNumber ?? ""),
+          closesAt: String(body.closesAt ?? ""),
+          portalUrl: String(body.portalUrl ?? ""),
+        });
+      } else {
+        await sendAwardEmail(env, to, {
+          project: String(body.project ?? ""),
+          referenceNumber: String(body.referenceNumber ?? ""),
+          portalUrl: String(body.portalUrl ?? ""),
+        });
+      }
+      sent.push(to);
+    } catch (err) {
+      failed.push({ to, error: (err as Error).message });
+    }
+  }
+
+  return json(env, request, { ok: true, sent, failed });
+}
+
 export async function handleNotifyDecision(env: Env, request: Request): Promise<Response> {
   const body = (await request.json()) as {
     decision?: "APPROVED" | "REJECTED";

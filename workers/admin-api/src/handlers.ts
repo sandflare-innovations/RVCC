@@ -5,11 +5,18 @@ import {
   revokeAdminSession,
   writeAudit,
 } from "./auth";
+import { describeAward } from "./award";
 import type { Env } from "./cors";
 import { json } from "./cors";
 import { type Sql, cuid, loadRegistration } from "./db";
-import { notifyDecision } from "./notify";
+import { notifyDecision, sendRequirementMail } from "./notify";
 import { generateTempPassword, hashPassword } from "./password";
+import {
+  type CreateRequirementInput,
+  makeReferenceNumber,
+  normaliseRequirementInput,
+} from "./requirement-input";
+import { type CreateVendorInput, normaliseVendorInput } from "./vendor-input";
 
 const REVIEWABLE = new Set(["SUBMITTED"]);
 const VALID_REG_STATUS = new Set(["SUBMITTED", "APPROVED", "REJECTED", "DRAFT", "ALL"]);
@@ -406,7 +413,9 @@ export async function handleVendorsList(sql: Sql, env: Env, request: Request): P
           AND s."expiresAt" > NOW()
       ) AS "activeSessions"
     FROM "VendorUser" v
-    JOIN "SupplierRegistration" r ON r.id = v."registrationId"
+    -- LEFT JOIN, not JOIN: admin-created vendors have no registration, and an
+    -- inner join would silently hide them from this list entirely.
+    LEFT JOIN "SupplierRegistration" r ON r.id = v."registrationId"
     LEFT JOIN "CompanyProfile" c ON c."registrationId" = r.id
     WHERE
       (${filter} = 'ALL'
@@ -440,12 +449,15 @@ export async function handleVendorsList(sql: Sql, env: Env, request: Request): P
       companyName: v.companyLegalName || "—",
       referenceNumber: v.referenceNumber,
       registrationStatus: v.registrationStatus,
-      registration: {
-        id: v.registrationId,
-        referenceNumber: v.referenceNumber,
-        status: v.registrationStatus,
-        company: v.companyLegalName ? { legalName: v.companyLegalName } : null,
-      },
+      // Null for admin-created vendors; consumers must not assume an object.
+      registration: v.registrationId
+        ? {
+            id: v.registrationId,
+            referenceNumber: v.referenceNumber,
+            status: v.registrationStatus,
+            company: v.companyLegalName ? { legalName: v.companyLegalName } : null,
+          }
+        : null,
     }))
   );
 }
@@ -491,6 +503,356 @@ export async function handleVendorPatch(
   });
 
   return json(env, request, { ok: true, isActive });
+}
+
+export async function handleRequirementsList(
+  sql: Sql,
+  env: Env,
+  request: Request
+): Promise<Response> {
+  const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
+  if (deny) return deny;
+
+  const rows = await sql`
+    SELECT
+      r.id, r."referenceNumber", r."scopeOfWork", r.project, r."sellingPrice",
+      r.currency, r."closesAt", r.status, r."createdAt",
+      (SELECT COUNT(*)::int FROM "RequirementInvite" i WHERE i."requirementId" = r.id) AS invited,
+      (SELECT COUNT(*)::int FROM "Quote" q
+        WHERE q."requirementId" = r.id AND q.status = 'SUBMITTED') AS submitted
+    FROM "Requirement" r
+    ORDER BY
+      CASE WHEN r.status = 'OPEN' AND r."closesAt" > NOW() THEN 0 ELSE 1 END,
+      r."closesAt" ASC
+    LIMIT 100
+  `;
+
+  return json(env, request, rows);
+}
+
+export async function handleRequirementAward(
+  sql: Sql,
+  env: Env,
+  request: Request,
+  id: string
+): Promise<Response> {
+  const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
+  if (deny) return deny;
+
+  const body = (await readJson(request)) as { quoteId?: string } | null;
+  const quoteId = String(body?.quoteId ?? "");
+  if (!quoteId) return json(env, request, { error: "Choose a quote to award." }, 400);
+
+  const [requirement] = await sql`
+    SELECT id, project, "referenceNumber", currency, status
+    FROM "Requirement" WHERE id = ${id} LIMIT 1
+  `;
+  if (!requirement) return json(env, request, { error: "Requirement not found." }, 404);
+  if (requirement.status === "CANCELLED") {
+    return json(env, request, { error: "This requirement was cancelled." }, 409);
+  }
+
+  const quotes = await sql`
+    SELECT q.id, q."newPrice", q."vendorUserId", v.email AS "vendorEmail"
+    FROM "Quote" q
+    JOIN "VendorUser" v ON v.id = q."vendorUserId"
+    WHERE q."requirementId" = ${id} AND q.status = 'SUBMITTED'
+  `;
+
+  let described;
+  try {
+    described = describeAward(
+      quotes.map((q) => ({
+        id: String(q.id),
+        newPrice: String(q.newPrice),
+        vendorEmail: String(q.vendorEmail),
+      })),
+      quoteId
+    );
+  } catch (err) {
+    return json(env, request, { error: (err as Error).message }, 400);
+  }
+
+  const winnerRow = quotes.find((q) => String(q.id) === quoteId)!;
+
+  await sql.begin(async (tx) => {
+    // Awarding closes the requirement early if it was still open. AWARDED is a
+    // stored decision the clock cannot express, unlike "closed".
+    await tx`
+      UPDATE "Requirement"
+      SET "awardedQuoteId" = ${quoteId},
+          "awardedAt" = NOW(),
+          "awardedByAdminId" = ${admin.id},
+          status = 'AWARDED',
+          "updatedAt" = NOW()
+      WHERE id = ${id}
+    `;
+
+    // The winner is told. Losing suppliers are deliberately not notified —
+    // that is a commercial decision for RVCC, not one this code should make.
+    await tx`
+      INSERT INTO "Notification" (id, "vendorUserId", type, title, body, "linkPath", "createdAt")
+      VALUES (
+        ${cuid()}, ${winnerRow.vendorUserId}, 'QUOTE_AWARDED',
+        ${"You won " + String(requirement.project)},
+        ${"RVCC awarded this work to your quote."},
+        ${"/requirements/" + id},
+        NOW()
+      )
+    `;
+
+    // Every admin sees the decision, including staff who did not make it.
+    const admins = await tx`SELECT id FROM "AdminUser" WHERE "isActive" = true`;
+    for (const a of admins) {
+      await tx`
+        INSERT INTO "Notification" (id, "adminId", type, title, body, "linkPath", "createdAt")
+        VALUES (
+          ${cuid()}, ${a.id}, 'QUOTE_AWARDED',
+          ${String(requirement.project) + " awarded"},
+          ${"Awarded to " + described.winner.vendorEmail + " at " + described.winningPrice + " " + String(requirement.currency)},
+          ${"/requirements/" + id},
+          NOW()
+        )
+      `;
+    }
+  });
+
+  // Same ordering as posting: the award is already committed, so mail failure
+  // is reported, never fatal.
+  await sendRequirementMail(env, {
+    kind: "AWARDED",
+    recipients: [described.winner.vendorEmail],
+    project: String(requirement.project),
+    referenceNumber: String(requirement.referenceNumber ?? ""),
+    portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/requirements/${id}`,
+  });
+
+  await writeAudit(sql, {
+    adminId: admin.id,
+    action: "requirement.awarded",
+    entityType: "Requirement",
+    entityId: id,
+    metadata: {
+      quoteId,
+      winner: described.winner.vendorEmail,
+      winningPrice: described.winningPrice,
+      losingPrices: described.losingPrices,
+    },
+  });
+
+  return json(env, request, { ok: true, winner: described.winner.vendorEmail });
+}
+
+export async function handleRequirementGet(
+  sql: Sql,
+  env: Env,
+  request: Request,
+  id: string
+): Promise<Response> {
+  const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
+  if (deny) return deny;
+
+  const [requirement] = await sql`
+    SELECT id, "referenceNumber", "scopeOfWork", project, "sellingPrice", currency,
+           "closesAt", status, "createdAt"
+    FROM "Requirement" WHERE id = ${id} LIMIT 1
+  `;
+  if (!requirement) return json(env, request, { error: "Requirement not found." }, 404);
+
+  // Only SUBMITTED quotes appear: an unsubmitted draft is not a quote.
+  // One query with both participant joins, rather than a lookup per row.
+  const quotes = await sql`
+    SELECT
+      q.id, q."newPrice", q.remarks, q."submittedAt",
+      v.email AS "participantEmail",
+      v.name AS "participantName"
+    FROM "Quote" q
+    JOIN "VendorUser" v ON v.id = q."vendorUserId"
+    WHERE q."requirementId" = ${id} AND q.status = 'SUBMITTED'
+  `;
+
+  const invites = await sql`
+    SELECT
+      v.email,
+      i."emailStatus"
+    FROM "RequirementInvite" i
+    JOIN "VendorUser" v ON v.id = i."vendorUserId"
+    WHERE i."requirementId" = ${id}
+    ORDER BY 1
+  `;
+
+  return json(env, request, { requirement, quotes, invites });
+}
+
+export async function handleRequirementCreate(
+  sql: Sql,
+  env: Env,
+  request: Request
+): Promise<Response> {
+  const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
+  if (deny) return deny;
+
+  // readJson consumes the body, so it is called once and both the validated
+  // fields and the post flag come out of the same parsed object.
+  const body = (await readJson(request)) as CreateRequirementInput & { post?: boolean };
+
+  let input;
+  try {
+    input = normaliseRequirementInput(body);
+  } catch (err) {
+    return json(env, request, { error: (err as Error).message }, 400);
+  }
+
+  /** Defaults to posting; { post: false } saves a draft instead. */
+  const post = body?.post !== false;
+  const id = cuid();
+  let referenceNumber: string | null = null;
+
+  await sql.begin(async (tx) => {
+    if (post) {
+      // Sequence is per UTC day, matching the REQ-YYYYMMDD-NNNN format.
+      const [{ count }] = await tx`
+        SELECT COUNT(*)::int AS count FROM "Requirement"
+        WHERE "referenceNumber" IS NOT NULL
+          AND "createdAt" >= date_trunc('day', NOW() AT TIME ZONE 'UTC')
+      `;
+      referenceNumber = makeReferenceNumber(new Date(), Number(count) + 1);
+    }
+
+    await tx`
+      INSERT INTO "Requirement"
+        (id, "referenceNumber", "scopeOfWork", project, "sellingPrice", currency,
+         "closesAt", status, "createdByAdminId", "createdAt", "updatedAt")
+      VALUES
+        (${id}, ${referenceNumber}, ${input.scopeOfWork}, ${input.project},
+         ${input.sellingPrice}, ${input.currency}, ${input.closesAt},
+         ${post ? "OPEN" : "DRAFT"}, ${admin.id}, NOW(), NOW())
+    `;
+
+    for (const vendorUserId of input.vendorUserIds) {
+      await tx`
+        INSERT INTO "RequirementInvite" (id, "requirementId", "vendorUserId", "createdAt")
+        VALUES (${cuid()}, ${id}, ${vendorUserId}, NOW())
+        ON CONFLICT DO NOTHING
+      `;
+    }
+  });
+
+  // Mail only after the requirement is committed. A slow or failing SMTP
+  // server must never roll back a saved requirement, and one bad address must
+  // not stop the others — each invite records its own outcome.
+  if (post && input.vendorUserIds.length > 0) {
+    const invited = await sql`
+      SELECT v.id, v.email FROM "VendorUser" v
+      WHERE v.id = ANY(${sql.array(input.vendorUserIds)})
+    `;
+
+    const outcome = await sendRequirementMail(env, {
+      kind: "POSTED",
+      recipients: invited.map((v) => String(v.email)),
+      project: input.project,
+      scopeOfWork: input.scopeOfWork,
+      referenceNumber: referenceNumber ?? "",
+      closesAt: input.closesAt.toISOString(),
+      portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/requirements/${id}`,
+    });
+
+    if (outcome.attempted) {
+      for (const v of invited) {
+        const email = String(v.email);
+        const failure = outcome.failed.find((f) => f.to === email);
+        await sql`
+          UPDATE "RequirementInvite"
+          SET "emailStatus" = ${failure ? "FAILED" : "SENT"},
+              "emailError" = ${failure ? failure.error : null},
+              "emailedAt" = ${failure ? null : new Date()}
+          WHERE "requirementId" = ${id} AND "vendorUserId" = ${String(v.id)}
+        `;
+      }
+    }
+  }
+
+  await writeAudit(sql, {
+    adminId: admin.id,
+    action: post ? "requirement.posted" : "requirement.created",
+    entityType: "Requirement",
+    entityId: id,
+    metadata: {
+      project: input.project,
+      closesAt: input.closesAt.toISOString(),
+      invited: input.vendorUserIds.length,
+    },
+  });
+
+  return json(env, request, { ok: true, requirement: { id, referenceNumber } }, 201);
+}
+
+/**
+ * Creates a supplier login directly, for companies RVCC already works with and
+ * who never used the public registration wizard.
+ *
+ * The temporary password is returned once, in this response, and is never
+ * stored in plaintext, emailed, or written to the audit metadata.
+ */
+export async function handleVendorCreate(sql: Sql, env: Env, request: Request): Promise<Response> {
+  const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
+  if (deny) return deny;
+
+  let input;
+  try {
+    input = normaliseVendorInput((await readJson(request)) as CreateVendorInput);
+  } catch (err) {
+    return json(env, request, { error: (err as Error).message }, 400);
+  }
+
+  const [existing] = await sql`
+    SELECT id FROM "VendorUser" WHERE email = ${input.email} LIMIT 1
+  `;
+  if (existing) {
+    return json(env, request, { error: "An account already exists for that email." }, 409);
+  }
+
+  const tempPassword = generateTempPassword();
+  const passwordHash = await hashPassword(tempPassword);
+  const id = cuid();
+
+  // registrationId is left NULL: this supplier never used the public wizard.
+  await sql.begin(async (tx) => {
+    await tx`
+      INSERT INTO "VendorUser"
+        (id, email, name, "passwordHash", "mustChangePassword", "isActive",
+         "failedAttempts", "createdAt", "updatedAt")
+      VALUES
+        (${id}, ${input.email}, ${input.name}, ${passwordHash}, true, true,
+         0, NOW(), NOW())
+    `;
+
+    for (const industryId of input.industryIds) {
+      // Implicit m-n join table Prisma generates for Industry <-> VendorUser:
+      // "A" is Industry (alphabetically first), "B" is VendorUser.
+      await tx`
+        INSERT INTO "_IndustryToVendorUser" ("A", "B")
+        VALUES (${industryId}, ${id})
+        ON CONFLICT DO NOTHING
+      `;
+    }
+  });
+
+  await writeAudit(sql, {
+    adminId: admin.id,
+    action: "vendor.created",
+    entityType: "VendorUser",
+    entityId: id,
+    // Never the password.
+    metadata: { email: input.email, industryIds: input.industryIds },
+  });
+
+  return json(
+    env,
+    request,
+    { ok: true, vendor: { id, email: input.email, name: input.name }, tempPassword },
+    201
+  );
 }
 
 export async function handleVendorResetPassword(
