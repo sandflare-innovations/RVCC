@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { VENDOR_COOKIE } from "@/lib/constants";
+import { ENQUIRE_COOKIE } from "@/lib/enquire-constants";
 import { vendorWorkerFetch } from "@/lib/vendor-api";
 
 export async function POST() {
@@ -20,5 +21,6 @@ export async function POST() {
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set(VENDOR_COOKIE, "", { path: "/", maxAge: 0 });
+  res.cookies.set(ENQUIRE_COOKIE, "", { path: "/", maxAge: 0 });
   return res;
 }

@@ -46,7 +46,7 @@ export function VendorPasswordForm({ mustChange }: { mustChange: boolean }) {
       setConfirm("");
       // The layout reads mustChangePassword server-side, so refresh before moving on.
       router.refresh();
-      if (mustChange) router.replace("/");
+      if (mustChange) router.replace("/portal");
     } catch {
       setError("Network error — please try again.");
     } finally {

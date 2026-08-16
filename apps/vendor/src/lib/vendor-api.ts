@@ -1,32 +1,34 @@
 import "server-only";
 
-/**
- * Server-only client for workers/vendor-api.
- * Browser never sees VENDOR_API_SECRET — only the Next BFF calls this.
- */
-export async function vendorWorkerFetch(
+/** Server-only client for apps/api `/vendor/*`. */
+function vendorBaseUrl(): string {
+  const base = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL)?.replace(/\/$/, "");
+  if (!base) throw new Error("Set API_URL (or NEXT_PUBLIC_API_URL)");
+  return `${base}/vendor`;
+}
+
+export async function vendorApiFetch(
   path: string,
   init: RequestInit & { sessionToken?: string | null } = {}
 ): Promise<Response> {
-  const base = process.env.VENDOR_API_URL?.replace(/\/$/, "");
-  const secret = process.env.VENDOR_API_SECRET;
-  if (!base || !secret) {
-    throw new Error("VENDOR_API_URL and VENDOR_API_SECRET must be set");
-  }
-
   const { sessionToken, headers: initHeaders, ...rest } = init;
   const headers = new Headers(initHeaders);
-  headers.set("Authorization", `Bearer ${secret}`);
   headers.set("Content-Type", headers.get("Content-Type") || "application/json");
   if (sessionToken) headers.set("X-Vendor-Session", sessionToken);
 
-  return fetch(`${base}${path.startsWith("/") ? path : `/${path}`}`, {
+  return fetch(`${vendorBaseUrl()}${path.startsWith("/") ? path : `/${path}`}`, {
     ...rest,
     headers,
     cache: "no-store",
   });
 }
 
-export function workerConfigured(): boolean {
-  return Boolean(process.env.VENDOR_API_URL && process.env.VENDOR_API_SECRET);
+/** @deprecated Use vendorApiFetch */
+export const vendorWorkerFetch = vendorApiFetch;
+
+export function apiConfigured(): boolean {
+  return Boolean(process.env.API_URL || process.env.NEXT_PUBLIC_API_URL);
 }
+
+/** @deprecated Use apiConfigured */
+export const workerConfigured = apiConfigured;

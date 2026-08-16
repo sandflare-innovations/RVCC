@@ -30,16 +30,24 @@ export function VendorLoginForm() {
         body: JSON.stringify({ email, password }),
       });
       if (!res.ok) {
-        setError(await readApiError(res, "Sign in failed."));
+        const data = await res.json().catch(() => ({}));
+        if (data.outcome === "held") {
+          router.replace("/access-held");
+          return;
+        }
+        setError(
+          typeof data.error === "string" ? data.error : await readApiError(res, "Sign in failed.")
+        );
         return;
       }
       const data = await res.json().catch(() => ({}));
       // A temporary password must be replaced before anything else is reachable.
       if (data.mustChangePassword) {
-        router.replace("/password");
+        router.replace("/portal/password");
       } else {
         const next = params.get("next");
-        const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+        const safeNext =
+          next && next.startsWith("/") && !next.startsWith("//") ? next : "/portal";
         router.replace(safeNext);
       }
       router.refresh();

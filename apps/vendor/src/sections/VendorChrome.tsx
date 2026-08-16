@@ -5,15 +5,17 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-import { KeyRound, LayoutDashboard, LogOut } from "lucide-react";
+import { ClipboardList, KeyRound, LayoutDashboard, LogOut } from "lucide-react";
 
 import type { VendorIdentity } from "@/lib/session";
 import { cn } from "@/lib/utils";
+import { clearRegisterCache } from "@/sections/enquire/EnquireContext";
 import { NotificationBell } from "@/sections/NotificationBell";
 
 const NAV = [
-  { href: "/", label: "Overview", icon: LayoutDashboard, exact: true },
-  { href: "/password", label: "Password", icon: KeyRound },
+  { href: "/portal", label: "Overview", icon: LayoutDashboard, exact: true },
+  { href: "/portal/requirements", label: "Requirements", icon: ClipboardList },
+  { href: "/portal/password", label: "Password", icon: KeyRound },
 ];
 
 export function VendorChrome({
@@ -33,9 +35,10 @@ export function VendorChrome({
 
   const signOut = async () => {
     setSigningOut(true);
-    // Navigate first so the UI never waits on the network.
+    clearRegisterCache();
     router.replace("/login");
     void fetch("/api/logout", { method: "POST", credentials: "include" });
+    void fetch("/api/enquire/logout", { method: "POST", credentials: "include" });
   };
 
   return (

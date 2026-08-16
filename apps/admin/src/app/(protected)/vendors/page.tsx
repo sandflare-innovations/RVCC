@@ -9,8 +9,8 @@ import { VendorRowActions, type VendorSummary } from "@/sections/VendorRowAction
 export const dynamic = "force-dynamic";
 
 const FILTERS = [
-  { value: "ACTIVE", label: "Active" },
-  { value: "DISABLED", label: "Disabled" },
+  { value: "RELEASED", label: "Access released" },
+  { value: "HELD", label: "Access held" },
   { value: "PENDING", label: "Temporary password" },
   { value: "ALL", label: "All" },
 ] as const;
@@ -36,12 +36,12 @@ export default async function VendorAccountsPage({
   searchParams: Promise<{ filter?: string; q?: string }>;
 }) {
   const { filter, q } = await searchParams;
-  const active = FILTERS.some((f) => f.value === filter) ? filter! : "ACTIVE";
+  const active = FILTERS.some((f) => f.value === filter) ? filter! : "RELEASED";
   const search = (q ?? "").trim();
 
   const where = {
-    ...(active === "ACTIVE" ? { isActive: true } : {}),
-    ...(active === "DISABLED" ? { isActive: false } : {}),
+    ...(active === "RELEASED" ? { portalAccess: "RELEASED" as const } : {}),
+    ...(active === "HELD" ? { portalAccess: "HELD" as const } : {}),
     ...(active === "PENDING" ? { mustChangePassword: true } : {}),
     ...(search
       ? {
@@ -74,6 +74,7 @@ export default async function VendorAccountsPage({
           id: true,
           referenceNumber: true,
           status: true,
+          registrationComplete: true,
           company: { select: { legalName: true } },
         },
       },
@@ -90,16 +91,18 @@ export default async function VendorAccountsPage({
     email: v.email,
     name: v.name,
     isActive: v.isActive,
+    portalAccess: v.portalAccess === "RELEASED" ? "RELEASED" : "HELD",
     mustChangePassword: v.mustChangePassword,
     lastLoginAt: formatDateTime(v.lastLoginAt),
     createdAt: formatDate(v.createdAt),
     lockedUntil: v.lockedUntil && v.lockedUntil > new Date() ? formatDateTime(v.lockedUntil) : null,
     activeSessions: v._count.sessions,
-    // registration is null for admin-created vendors, who never registered.
     registrationId: v.registration?.id ?? null,
     companyName: v.registration?.company?.legalName || "—",
     referenceNumber: v.registration?.referenceNumber ?? null,
     registrationStatus: v.registration?.status ?? null,
+    registrationComplete:
+      v.registrationId == null ? true : Boolean(v.registration?.registrationComplete),
   });
 
   return (
@@ -107,8 +110,8 @@ export default async function VendorAccountsPage({
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">Vendor Accounts</h1>
         <p className="mt-1 text-sm text-zinc-600">
-          Portal logins issued when a registration is approved, plus accounts added directly by
-          RVCC.
+          User Management — hold or release each supplier&apos;s portal access. Registration can be
+          complete while access stays held.
         </p>
       </div>
 
@@ -158,8 +161,7 @@ export default async function VendorAccountsPage({
             {vendors.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-zinc-600">
-                  No vendor accounts{search ? ` matching “${search}”` : ""} in this view. Accounts
-                  are created when a registration is approved.
+                  No vendor accounts{search ? ` matching “${search}”` : ""} in this view.
                 </td>
               </tr>
             )}
@@ -185,7 +187,6 @@ export default async function VendorAccountsPage({
                       )}
                     </>
                   ) : (
-                    // Created directly by an admin — there is no registration to link to.
                     <span className="text-zinc-500">Added by RVCC</span>
                   )}
                 </td>
@@ -194,7 +195,17 @@ export default async function VendorAccountsPage({
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <StatusBadge status={v.isActive ? "ACTIVE" : "DISABLED"} />
+                    <StatusBadge
+                      status={v.portalAccess === "RELEASED" ? "ACTIVE" : "DISABLED"}
+                    />
+                    <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-xs font-semibold text-zinc-700 whitespace-nowrap">
+                      {v.portalAccess === "RELEASED" ? "Released" : "Held"}
+                    </span>
+                    {(v.registrationId == null || v.registration?.registrationComplete) && (
+                      <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 whitespace-nowrap">
+                        Reg. complete
+                      </span>
+                    )}
                     {v.mustChangePassword && (
                       <span className="border-brand-blue text-brand-blue bg-brand-blue/5 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap">
                         Temp password

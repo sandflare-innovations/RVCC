@@ -11,21 +11,24 @@ function joinUrl(base: string | undefined, path: string): string {
   return `${b}${p}`;
 }
 
-/** Marketing Surface — `NEXT_PUBLIC_SITE_URL` (prod: rvcc-prod / local: :3000). */
+/** Public site (marketing + portal) — `NEXT_PUBLIC_SITE_URL`. */
 export function siteUrl(path = ""): string {
   return joinUrl(process.env.NEXT_PUBLIC_SITE_URL, path);
 }
 
-/** Vendor portal — `NEXT_PUBLIC_VENDOR_PORTAL_URL` (prod: rvcc-app / local: :3002). */
+/** Same host as site after unification; falls back to SITE_URL. */
 export function vendorPortalUrl(path = ""): string {
-  return joinUrl(process.env.NEXT_PUBLIC_VENDOR_PORTAL_URL, path);
+  return joinUrl(
+    process.env.NEXT_PUBLIC_VENDOR_PORTAL_URL || process.env.NEXT_PUBLIC_SITE_URL,
+    path
+  );
 }
 
-/** Admin portal — `NEXT_PUBLIC_ADMIN_PORTAL_URL` (prod: rvcc-admin / local: :3001). */
+/** Admin portal — `NEXT_PUBLIC_ADMIN_PORTAL_URL`. */
 export function adminPortalUrl(path = ""): string {
   return joinUrl(process.env.NEXT_PUBLIC_ADMIN_PORTAL_URL, path);
 }
 
 export function enquireVerifyUrl(): string {
-  return siteUrl("/enquire/verify");
+  return vendorPortalUrl("/register/verify");
 }
