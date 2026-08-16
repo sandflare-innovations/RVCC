@@ -31,23 +31,23 @@ raw token returned by `POST /auth/login`.
 
 ```bash
 cd workers/admin-api
-npm install
+pnpm install
 
-npx wrangler secret put API_SECRET
+pnpm dlx wrangler secret put API_SECRET
 
 # Option A — Hyperdrive (recommended)
-npx wrangler hyperdrive create rvcc-admin --connection-string="postgresql://..."
+pnpm dlx wrangler hyperdrive create rvcc-admin --connection-string="postgresql://..."
 # put the id into wrangler.toml [[hyperdrive]]
 
 # Option B — direct secret (dev / until Hyperdrive is ready)
-npx wrangler secret put DATABASE_URL
+pnpm dlx wrangler secret put DATABASE_URL
 
 # Notify (approval/rejection mail via enquire Worker)
-npx wrangler secret put ENQUIRE_WORKER_URL
-npx wrangler secret put ENQUIRE_API_SECRET
-npx wrangler secret put VENDOR_PORTAL_URL   # https://rvcc-app.vercel.app
+pnpm dlx wrangler secret put ENQUIRE_WORKER_URL
+pnpm dlx wrangler secret put ENQUIRE_API_SECRET
+pnpm dlx wrangler secret put VENDOR_PORTAL_URL   # https://rvcc-app.vercel.app
 
-npm run deploy
+pnpm run deploy
 ```
 
 Set on the admin app (`.env.local`):

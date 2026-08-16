@@ -1,7 +1,7 @@
 /**
  * Creates or updates an admin account.
  *
- *   npm run create-admin -- <email> <password> [name] [role]
+ *   pnpm run create-admin -- <email> <password> [name] [role]
  *
  * role: SUPER_ADMIN | ADMIN | REVIEWER   (default SUPER_ADMIN)
  *

@@ -22,19 +22,19 @@ are never accepted.
 
 ```bash
 cd workers/vendor-api
-npm install
+pnpm install
 
 # Shared secret (same value as apps/vendor VENDOR_API_SECRET)
-npx wrangler secret put API_SECRET
+pnpm dlx wrangler secret put API_SECRET
 
 # Option A — Hyperdrive (recommended)
-npx wrangler hyperdrive create rvcc-vendor --connection-string="postgresql://..."
+pnpm dlx wrangler hyperdrive create rvcc-vendor --connection-string="postgresql://..."
 # put the id into wrangler.toml [[hyperdrive]]
 
 # Option B — direct secret (dev / until Hyperdrive is ready)
-npx wrangler secret put DATABASE_URL
+pnpm dlx wrangler secret put DATABASE_URL
 
-npm run deploy
+pnpm run deploy
 ```
 
 Set on Vercel / `.env.local` (**no DATABASE_URL here**):
@@ -51,5 +51,5 @@ Push schema once from the app (Prisma):
 
 ```bash
 cd apps/web
-npx prisma db push
+pnpm dlx prisma db push
 ```

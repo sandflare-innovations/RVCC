@@ -16,8 +16,8 @@ Most readers never hit Vercel. The oversized PDF hits Vercel once per PoP, then 
 
 ```bash
 cd workers/pdf-cdn
-npm install
-npm run deploy    # runs prepare-assets, then wrangler deploy
+pnpm install
+pnpm run deploy    # runs prepare-assets, then wrangler deploy
 ```
 
 Set on local + Vercel:
@@ -28,7 +28,7 @@ NEXT_PUBLIC_PDF_CDN_URL=https://rvcc-pdf-cdn.rvcc.workers.dev
 
 ## Optional: move the 166 MB PDF fully onto Cloudflare
 
-Enable R2 in the Dashboard (payment method required), uncomment `[[r2_buckets]]` in `wrangler.toml`, then `npm run upload`.
+Enable R2 in the Dashboard (payment method required), uncomment `[[r2_buckets]]` in `wrangler.toml`, then `pnpm run upload`.
 
 ## Verify
 

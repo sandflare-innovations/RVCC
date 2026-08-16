@@ -1,6 +1,6 @@
 # RVCC Monorepo - Industrial Standard Construction Portal
 
-This is the primary repository for the RVCC Construction Company web infrastructure. It is built as a high-performance monorepo using **npm workspaces**, **Turborepo**, and **Next.js**.
+This is the primary repository for the RVCC Construction Company web infrastructure. It is built as a high-performance monorepo using **pnpm workspaces**, **Turborepo**, and **Next.js**.
 
 ## 🏗 Project Structure
 
@@ -46,7 +46,7 @@ You cannot commit "dirty" code. Every commit triggers a validation pipeline that
 ### 1. Installation
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### 2. Development
@@ -54,7 +54,7 @@ npm install
 Run all apps and packages in parallel with hot-reloading:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ### 3. Quality Check
@@ -62,7 +62,7 @@ npm run dev
 Run linting across the entire monorepo:
 
 ```bash
-npm run lint
+pnpm run lint
 ```
 
 ### 4. Code Formatting
@@ -70,7 +70,7 @@ npm run lint
 Manually trigger the organization pass:
 
 ```bash
-npm run format
+pnpm run format
 ```
 
 ### 5. PDF CDN (Cloudflare Worker)
@@ -81,8 +81,8 @@ Most PDFs and the pdf.js worker are stored on **Cloudflare Workers Static Assets
 
 ```bash
 cd workers/pdf-cdn
-npm install
-npm run deploy
+pnpm install
+pnpm run deploy
 ```
 
 App env (`apps/web/.env.local` and Vercel):
