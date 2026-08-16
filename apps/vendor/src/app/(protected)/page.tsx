@@ -24,31 +24,41 @@ export default async function VendorDashboard() {
   // Safety if x-pathname header was unavailable in layout.
   if (vendor.mustChangePassword) redirect("/password");
 
-  const registration = await prisma.supplierRegistration.findUnique({
-    where: { id: vendor.registrationId },
-    select: {
-      email: true,
-      status: true,
-      referenceNumber: true,
-      submittedAt: true,
-      businessRelationship: true,
-      productCategories: true,
-      company: {
+  // Admin-created vendors have no registration to show. Skip the query entirely
+  // rather than passing null into findUnique, which throws. Bound to a local so
+  // the null check narrows the type inside the query.
+  const registrationId = vendor.registrationId;
+  const registration = registrationId
+    ? await prisma.supplierRegistration.findUnique({
+        where: { id: registrationId },
         select: {
-          legalName: true,
-          dbaName: true,
-          country: true,
-          organizationType: true,
-          website: true,
+          email: true,
+          status: true,
+          referenceNumber: true,
+          submittedAt: true,
+          businessRelationship: true,
+          productCategories: true,
+          company: {
+            select: {
+              legalName: true,
+              dbaName: true,
+              country: true,
+              organizationType: true,
+              website: true,
+            },
+          },
         },
-      },
-    },
-  });
+      })
+    : null;
 
   if (!registration) {
     return (
       <p className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
-        We could not find your registration. Please contact RVCC procurement.
+        {registrationId
+          ? "We could not find your registration. Please contact RVCC procurement."
+          : // Account created directly by RVCC — there is no registration to show,
+            // and telling them one is "missing" would send them chasing support.
+            "Your account was set up by RVCC, so there is no registration form to show here."}
       </p>
     );
   }

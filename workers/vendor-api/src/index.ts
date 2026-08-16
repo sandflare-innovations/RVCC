@@ -1,6 +1,15 @@
 import { type Env, assertApiSecret, corsHeaders, json, unauthorized } from "./cors";
 import { createSql } from "./db";
-import { handleDashboard, handleLogin, handleLogout, handleMe, handlePassword } from "./handlers";
+import {
+  handleDashboard,
+  handleLogin,
+  handleLogout,
+  handleMe,
+  handlePassword,
+  handleQuoteSave,
+  handleRequirementGet,
+  handleRequirementsList,
+} from "./handlers";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -47,6 +56,20 @@ export default {
       if (url.pathname === "/auth/password" && request.method === "POST") {
         return await handlePassword(sql, env, request);
       }
+      if (url.pathname === "/requirements" && request.method === "GET") {
+        return await handleRequirementsList(sql, env, request);
+      }
+      // The /quote pattern must be tested before the bare :id pattern, or the
+      // literal string "quote" is read as a requirement id.
+      const quoteSave = url.pathname.match(/^\/requirements\/([^/]+)\/quote$/);
+      if (quoteSave && request.method === "PUT") {
+        return await handleQuoteSave(sql, env, request, decodeURIComponent(quoteSave[1]!));
+      }
+      const reqOne = url.pathname.match(/^\/requirements\/([^/]+)$/);
+      if (reqOne && request.method === "GET") {
+        return await handleRequirementGet(sql, env, request, decodeURIComponent(reqOne[1]!));
+      }
+
       if (url.pathname === "/dashboard" && request.method === "GET") {
         return await handleDashboard(sql, env, request);
       }

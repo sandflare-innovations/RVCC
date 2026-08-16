@@ -65,3 +65,8 @@ desktop.ini
 # Debugging
 .map
 .sourcemap
+.env.test
+
+# iCloud sync conflict copies — this repo lives in a synced folder and they
+# reappear during editing. They are never wanted in git.
+*\ 2.*

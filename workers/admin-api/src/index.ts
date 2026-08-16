@@ -14,6 +14,11 @@ import {
   handleRegistrationGet,
   handleRegistrationReview,
   handleRegistrationsList,
+  handleRequirementAward,
+  handleRequirementCreate,
+  handleRequirementGet,
+  handleRequirementsList,
+  handleVendorCreate,
   handleVendorPatch,
   handleVendorResetPassword,
   handleVendorsList,
@@ -84,6 +89,34 @@ export default {
 
       if (path === "/vendors" && request.method === "GET") {
         return await handleVendorsList(sql, env, request);
+      }
+
+      if (path === "/vendors" && request.method === "POST") {
+        return await handleVendorCreate(sql, env, request);
+      }
+
+      if (path === "/requirements" && request.method === "GET") {
+        return await handleRequirementsList(sql, env, request);
+      }
+      if (path === "/requirements" && request.method === "POST") {
+        return await handleRequirementCreate(sql, env, request);
+      }
+
+      // The /award pattern must be matched before the bare :id pattern, or the
+      // literal string "award" is read as a requirement id.
+      const reqAward = path.match(/^\/requirements\/([^/]+)\/award$/);
+      if (reqAward && request.method === "POST") {
+        return await handleRequirementAward(sql, env, request, decodeURIComponent(reqAward[1]!));
+      }
+
+      const requirementOne = path.match(/^\/requirements\/([^/]+)$/);
+      if (requirementOne && request.method === "GET") {
+        return await handleRequirementGet(
+          sql,
+          env,
+          request,
+          decodeURIComponent(requirementOne[1]!)
+        );
       }
 
       const vendorReset = path.match(/^\/vendors\/([^/]+)\/reset-password$/);

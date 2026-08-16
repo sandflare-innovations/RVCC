@@ -3,6 +3,7 @@ import Link from "next/link";
 import { StatusBadge } from "@repo/ui";
 
 import { prisma } from "@/lib/db";
+import { CreateVendorForm } from "@/sections/CreateVendorForm";
 import { VendorRowActions, type VendorSummary } from "@/sections/VendorRowActions";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +58,14 @@ export default async function VendorAccountsPage({
       : {}),
   };
 
+  // Fetched alongside the list rather than in the form, which is a client
+  // component and cannot query Prisma.
+  const industries = await prisma.industry.findMany({
+    where: { isActive: true },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
+
   const vendors = await prisma.vendorUser.findMany({
     where,
     include: {
@@ -86,10 +95,11 @@ export default async function VendorAccountsPage({
     createdAt: formatDate(v.createdAt),
     lockedUntil: v.lockedUntil && v.lockedUntil > new Date() ? formatDateTime(v.lockedUntil) : null,
     activeSessions: v._count.sessions,
-    registrationId: v.registration.id,
-    companyName: v.registration.company?.legalName || "—",
-    referenceNumber: v.registration.referenceNumber,
-    registrationStatus: v.registration.status,
+    // registration is null for admin-created vendors, who never registered.
+    registrationId: v.registration?.id ?? null,
+    companyName: v.registration?.company?.legalName || "—",
+    referenceNumber: v.registration?.referenceNumber ?? null,
+    registrationStatus: v.registration?.status ?? null,
   });
 
   return (
@@ -97,9 +107,12 @@ export default async function VendorAccountsPage({
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">Vendor Accounts</h1>
         <p className="mt-1 text-sm text-zinc-600">
-          Portal logins issued when a registration is approved.
+          Portal logins issued when a registration is approved, plus accounts added directly by
+          RVCC.
         </p>
       </div>
+
+      <CreateVendorForm industries={industries} />
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap gap-1.5">
@@ -157,16 +170,23 @@ export default async function VendorAccountsPage({
                   {v.name && <p className="text-xs text-zinc-500">{v.name}</p>}
                 </td>
                 <td className="px-4 py-3 text-zinc-700">
-                  <Link
-                    href={`/registrations/${v.registration.id}`}
-                    className="hover:text-brand-blue underline-offset-2 hover:underline"
-                  >
-                    {v.registration.company?.legalName || "—"}
-                  </Link>
-                  {v.registration.referenceNumber && (
-                    <p className="font-mono text-xs text-zinc-500 tabular-nums">
-                      {v.registration.referenceNumber}
-                    </p>
+                  {v.registration ? (
+                    <>
+                      <Link
+                        href={`/registrations/${v.registration.id}`}
+                        className="hover:text-brand-blue underline-offset-2 hover:underline"
+                      >
+                        {v.registration.company?.legalName || "—"}
+                      </Link>
+                      {v.registration.referenceNumber && (
+                        <p className="font-mono text-xs text-zinc-500 tabular-nums">
+                          {v.registration.referenceNumber}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    // Created directly by an admin — there is no registration to link to.
+                    <span className="text-zinc-500">Added by RVCC</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-zinc-600 tabular-nums">

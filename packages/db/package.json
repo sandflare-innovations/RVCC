@@ -12,7 +12,8 @@
     "push": "prisma db push",
     "migrate": "prisma migrate dev",
     "studio": "prisma studio",
-    "build": "prisma generate"
+    "build": "prisma generate",
+    "constraints": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f prisma/constraints.sql"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0"

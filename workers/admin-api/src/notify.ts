@@ -82,3 +82,62 @@ export async function notifyDecision(
     return { ...base, attempted: true, error: "Could not reach the mail service." };
   }
 }
+
+export type RequirementMailOutcome = {
+  attempted: boolean;
+  sent: string[];
+  failed: { to: string; error: string }[];
+};
+
+/**
+ * Asks the enquire Worker to send requirement mail. SMTP lives only there.
+ *
+ * Never throws. By the time this runs the requirement or award is already
+ * committed, so a mail failure must not surface as a failed post — it is
+ * recorded per invite instead, and the admin sees it and can resend.
+ */
+export async function sendRequirementMail(
+  env: Env,
+  input: {
+    kind: "POSTED" | "AWARDED";
+    recipients: string[];
+    project: string;
+    scopeOfWork?: string;
+    referenceNumber: string;
+    closesAt?: string;
+    portalUrl: string;
+  }
+): Promise<RequirementMailOutcome> {
+  const base: RequirementMailOutcome = { attempted: false, sent: [], failed: [] };
+
+  const enquireUrl = (env.ENQUIRE_WORKER_URL || "").replace(/\/$/, "");
+  const secret = env.ENQUIRE_API_SECRET;
+  if (!enquireUrl || !secret || input.recipients.length === 0) return base;
+
+  try {
+    const res = await fetch(`${enquireUrl}/notify/requirement`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${secret}` },
+      body: JSON.stringify(input),
+    });
+
+    const data = (await res.json().catch(() => ({}))) as Partial<RequirementMailOutcome>;
+    if (!res.ok) {
+      return {
+        attempted: true,
+        sent: [],
+        failed: input.recipients.map((to) => ({
+          to,
+          error: `mail service returned ${res.status}`,
+        })),
+      };
+    }
+    return { attempted: true, sent: data.sent ?? [], failed: data.failed ?? [] };
+  } catch (err) {
+    return {
+      attempted: true,
+      sent: [],
+      failed: input.recipients.map((to) => ({ to, error: (err as Error).message })),
+    };
+  }
+}

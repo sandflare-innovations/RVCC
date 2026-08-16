@@ -20,10 +20,11 @@ export type VendorSummary = {
   createdAt: string;
   lockedUntil: string | null;
   activeSessions: number;
-  registrationId: string;
+  /** Null for accounts an admin created directly, with no public registration. */
+  registrationId: string | null;
   companyName: string;
   referenceNumber: string | null;
-  registrationStatus: string;
+  registrationStatus: string | null;
 };
 
 function Row({ label, value }: { label: string; value?: string | null }) {
@@ -136,13 +137,17 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
         title={v.email}
         description={v.companyName}
         footer={
-          <Link
-            href={`/registrations/${v.registrationId}`}
-            className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-semibold text-white transition-colors"
-          >
-            Open registration
-            <ExternalLink className="h-4 w-4" />
-          </Link>
+          // No registration for admin-created vendors; the template literal would
+          // otherwise link to the string "/registrations/null".
+          v.registrationId ? (
+            <Link
+              href={`/registrations/${v.registrationId}`}
+              className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-semibold text-white transition-colors"
+            >
+              Open registration
+              <ExternalLink className="h-4 w-4" />
+            </Link>
+          ) : null
         }
       >
         <dl>
@@ -159,7 +164,7 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
           <Row label="Account created" value={v.createdAt} />
           <Row label="Company" value={v.companyName} />
           <Row label="Reference" value={v.referenceNumber} />
-          <Row label="Registration status" value={v.registrationStatus.toLowerCase()} />
+          <Row label="Registration status" value={v.registrationStatus?.toLowerCase() ?? "—"} />
         </dl>
       </Modal>
 

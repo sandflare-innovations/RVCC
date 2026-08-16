@@ -7,8 +7,9 @@ import {
   vendorSessionFrom,
 } from "./auth";
 import { type Env, json } from "./cors";
-import type { Sql } from "./db";
+import { type Sql, cuid } from "./db";
 import { hashPassword, verifyPassword } from "./password";
+import { getOneForVendor, listOpenForVendor } from "./requirements";
 
 export async function handleLogin(sql: Sql, env: Env, request: Request): Promise<Response> {
   let body: unknown;
@@ -203,4 +204,101 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
         : null,
     },
   });
+}
+
+// ── Requirements and quotes ─────────────────────────────────────────────────
+
+export async function handleRequirementsList(
+  sql: Sql,
+  env: Env,
+  request: Request
+): Promise<Response> {
+  const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
+  if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
+
+  return json(env, request, await listOpenForVendor(sql, vendor.id));
+}
+
+export async function handleRequirementGet(
+  sql: Sql,
+  env: Env,
+  request: Request,
+  id: string
+): Promise<Response> {
+  const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
+  if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
+
+  const [row] = await getOneForVendor(sql, id, vendor.id);
+  // Not invited reads as not found: confirming a requirement exists would leak
+  // that RVCC is running one.
+  if (!row) return json(env, request, { error: "Requirement not found." }, 404);
+
+  return json(env, request, row);
+}
+
+export async function handleQuoteSave(
+  sql: Sql,
+  env: Env,
+  request: Request,
+  requirementId: string
+): Promise<Response> {
+  const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
+  if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
+
+  const body = (await request.json().catch(() => ({}))) as {
+    newPrice?: string | null;
+    remarks?: string;
+    submit?: boolean;
+  };
+
+  const submit = body.submit === true;
+  const price = body.newPrice == null ? "" : String(body.newPrice).trim();
+
+  if (price && !/^\d+(\.\d{1,2})?$/.test(price)) {
+    return json(
+      env,
+      request,
+      { error: "Enter a price as a number with at most two decimals." },
+      400
+    );
+  }
+  if (submit && (!price || Number(price) <= 0)) {
+    return json(env, request, { error: "Enter a price before submitting." }, 400);
+  }
+
+  // Re-check the deadline in the same request that writes. The countdown on
+  // screen is display only; the browser clock is never trusted.
+  const [requirement] = await sql`
+    SELECT r.id FROM "Requirement" r
+    JOIN "RequirementInvite" i ON i."requirementId" = r.id AND i."vendorUserId" = ${vendor.id}
+    WHERE r.id = ${requirementId} AND r.status = 'OPEN' AND r."closesAt" > NOW()
+    LIMIT 1
+  `;
+  if (!requirement) {
+    return json(
+      env,
+      request,
+      { error: "This requirement is closed or not available to you." },
+      409
+    );
+  }
+
+  // The unique constraint makes this an upsert, so a double-clicked submit
+  // cannot create two quotes.
+  const [saved] = await sql`
+    INSERT INTO "Quote"
+      (id, "requirementId", "vendorUserId", "newPrice", remarks, status, "submittedAt", "createdAt", "updatedAt")
+    VALUES
+      (${cuid()}, ${requirementId}, ${vendor.id}, ${price || null}, ${String(body.remarks ?? "")},
+       ${submit ? "SUBMITTED" : "DRAFT"}, ${submit ? new Date() : null}, NOW(), NOW())
+    ON CONFLICT ("requirementId", "vendorUserId") DO UPDATE SET
+      "newPrice"    = EXCLUDED."newPrice",
+      remarks       = EXCLUDED.remarks,
+      status        = EXCLUDED.status,
+      "submittedAt" = COALESCE(EXCLUDED."submittedAt", "Quote"."submittedAt"),
+      "updatedAt"   = NOW()
+    RETURNING id, status, "newPrice", remarks, "submittedAt"
+  `;
+
+  return json(env, request, { ok: true, quote: saved });
 }

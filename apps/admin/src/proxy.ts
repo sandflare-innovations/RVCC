@@ -1,6 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { ADMIN_COOKIE, ADMIN_LOGIN_PATH, adminCookieOptions } from "@/lib/constants";
+import {
+  ADMIN_COOKIE,
+  ADMIN_LOGIN_PATH,
+  ADMIN_SESSION_EXPIRED_PARAM,
+  adminCookieOptions,
+  expiredCookieOptions,
+} from "@/lib/constants";
 
 /**
  * Cheap cookie-presence gate. Real auth is /auth/me via the admin-api worker.
@@ -10,6 +16,15 @@ export default function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   if (pathname === ADMIN_LOGIN_PATH) {
+    // A server-side guard rejected the session and sent us here. Drop the dead
+    // cookie and serve the login form; without this the branch below sees a
+    // cookie, bounces to the home path, the guard rejects it again, and the two
+    // redirect until the browser gives up with ERR_TOO_MANY_REDIRECTS.
+    if (request.nextUrl.searchParams.has(ADMIN_SESSION_EXPIRED_PARAM)) {
+      const res = NextResponse.next();
+      res.cookies.set(ADMIN_COOKIE, "", expiredCookieOptions());
+      return res;
+    }
     if (request.cookies.get(ADMIN_COOKIE)?.value) {
       return NextResponse.redirect(new URL("/", request.url));
     }

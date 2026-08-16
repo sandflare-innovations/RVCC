@@ -5,10 +5,11 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { motion } from "framer-motion";
-import { FileText, FolderOpen, LayoutDashboard, LogOut, Users } from "lucide-react";
+import { ClipboardList, FileText, FolderOpen, LayoutDashboard, LogOut, Users } from "lucide-react";
 
 import { Sidebar, SidebarBody, SidebarLink, useSidebar } from "@/components/ui/sidebar";
 import type { AdminIdentity } from "@/lib/session";
+import { NotificationBell } from "@/sections/NotificationBell";
 
 const ICON = "h-5 w-5 shrink-0";
 
@@ -19,6 +20,7 @@ const NAV = [
     label: "Vendor Registrations",
     icon: <FileText className={ICON} />,
   },
+  { href: "/requirements", label: "Requirements", icon: <ClipboardList className={ICON} /> },
   { href: "/vendors", label: "Vendor Accounts", icon: <Users className={ICON} /> },
   { href: "/content", label: "Site Content", icon: <FolderOpen className={ICON} /> },
 ];
@@ -147,7 +149,12 @@ export function AdminChrome({
         </SidebarBody>
       </Sidebar>
 
-      <main className="min-w-0 flex-1 px-5 py-6 md:px-8 md:py-8">{children}</main>
+      <main className="min-w-0 flex-1 px-5 py-6 md:px-8 md:py-8">
+        <div className="mb-4 flex justify-end">
+          <NotificationBell />
+        </div>
+        {children}
+      </main>
     </div>
   );
 }

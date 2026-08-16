@@ -9,6 +9,8 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "husky"
   },
@@ -17,6 +19,7 @@
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.59.0",
     "@typescript-eslint/parser": "^8.59.0",
+    "dotenv": "^16.6.1",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.4",
     "eslint-plugin-import": "^2.32.0",
@@ -28,7 +31,8 @@
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "0.0.0-insiders.f7d2598",
     "turbo": "latest",
-    "typescript-eslint": "^8.59.0"
+    "typescript-eslint": "^8.59.0",
+    "vitest": "^3.2.7"
   },
   "packageManager": "npm@11.12.1",
   "dependencies": {

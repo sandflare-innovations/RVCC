@@ -222,3 +222,80 @@ export async function sendRejectedEmail(
   const { subject, html, text } = rejectedEmailHtml(opts);
   await sendMail(env, { to, subject, html, text });
 }
+
+/**
+ * Invitation to quote. Deliberately carries scope, project and deadline but
+ * NEVER the selling price — that is RVCC's internal number, and an email is the
+ * easiest place in the system to leak it by accident.
+ */
+function requirementPostedEmailHtml(opts: {
+  project: string;
+  scopeOfWork: string;
+  referenceNumber: string;
+  closesAt: string;
+  portalUrl: string;
+}) {
+  const subject = `RVCC — Request for quotation: ${opts.project}`;
+  const html = shell({
+    preheader: `RVCC invites your quotation for ${opts.project}`,
+    title: "Request for Quotation",
+    bodyHtml: `
+      <p style="margin:0 0 16px;">RVCC invites your quotation for the work below.</p>
+      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+        <tr><td style="padding:6px 0;color:#71717a;font-size:13px;">Reference</td><td style="padding:6px 0;font-weight:600;">${opts.referenceNumber}</td></tr>
+        <tr><td style="padding:6px 0;color:#71717a;font-size:13px;">Project</td><td style="padding:6px 0;font-weight:600;">${opts.project}</td></tr>
+        <tr><td style="padding:6px 0;color:#71717a;font-size:13px;">Closes</td><td style="padding:6px 0;font-weight:600;">${opts.closesAt}</td></tr>
+      </table>
+      <p style="margin:0 0 8px;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:#a1a1aa;font-weight:700;">Scope of work</p>
+      <p style="margin:0 0 24px;white-space:pre-wrap;">${opts.scopeOfWork}</p>
+      <p style="margin:0 0 24px;"><a href="${opts.portalUrl}" style="background:${BRAND};color:#fff;padding:12px 20px;text-decoration:none;font-weight:700;display:inline-block;">Submit your quotation</a></p>
+      <p style="margin:0;color:#71717a;font-size:13px;">Your price is visible only to RVCC. Other invited suppliers cannot see it.</p>
+    `,
+  });
+  const text = `RVCC — Request for Quotation\n\nReference: ${opts.referenceNumber}\nProject: ${opts.project}\nCloses: ${opts.closesAt}\n\nScope of work:\n${opts.scopeOfWork}\n\nSubmit your quotation: ${opts.portalUrl}\n\n— RVCC Procurement`;
+  return { subject, html, text };
+}
+
+/** Award confirmation to the winning supplier. No prices from other suppliers. */
+function awardEmailHtml(opts: { project: string; referenceNumber: string; portalUrl: string }) {
+  const subject = `RVCC — Award confirmation: ${opts.project}`;
+  const html = shell({
+    preheader: `RVCC has awarded ${opts.project} to your quotation`,
+    title: "Award Confirmation",
+    bodyHtml: `
+      <p style="margin:0 0 16px;">We are pleased to confirm that RVCC has awarded the following work to your quotation.</p>
+      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+        <tr><td style="padding:6px 0;color:#71717a;font-size:13px;">Reference</td><td style="padding:6px 0;font-weight:600;">${opts.referenceNumber}</td></tr>
+        <tr><td style="padding:6px 0;color:#71717a;font-size:13px;">Project</td><td style="padding:6px 0;font-weight:600;">${opts.project}</td></tr>
+      </table>
+      <p style="margin:0 0 24px;"><a href="${opts.portalUrl}" style="background:${BRAND};color:#fff;padding:12px 20px;text-decoration:none;font-weight:700;display:inline-block;">View in your portal</a></p>
+      <p style="margin:0;color:#71717a;font-size:13px;">RVCC Procurement will be in touch with next steps.</p>
+    `,
+  });
+  const text = `RVCC — Award Confirmation\n\nReference: ${opts.referenceNumber}\nProject: ${opts.project}\n\nRVCC has awarded this work to your quotation.\n\nView in your portal: ${opts.portalUrl}\n\n— RVCC Procurement`;
+  return { subject, html, text };
+}
+
+export async function sendRequirementPostedEmail(
+  env: Env,
+  to: string,
+  opts: {
+    project: string;
+    scopeOfWork: string;
+    referenceNumber: string;
+    closesAt: string;
+    portalUrl: string;
+  }
+): Promise<void> {
+  const { subject, html, text } = requirementPostedEmailHtml(opts);
+  await sendMail(env, { to, subject, html, text });
+}
+
+export async function sendAwardEmail(
+  env: Env,
+  to: string,
+  opts: { project: string; referenceNumber: string; portalUrl: string }
+): Promise<void> {
+  const { subject, html, text } = awardEmailHtml(opts);
+  await sendMail(env, { to, subject, html, text });
+}

@@ -13,7 +13,8 @@
     "ADMIN_API_SECRET",
     "VENDOR_API_URL",
     "VENDOR_API_SECRET",
-    "VENDOR_PORTAL_URL"
+    "VENDOR_PORTAL_URL",
+    "DATABASE_URL_TEST"
   ],
   "tasks": {
     "build": {
@@ -26,6 +27,10 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "cache": false
     }
   }
 }
