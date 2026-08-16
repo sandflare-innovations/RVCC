@@ -7,6 +7,7 @@ import {
   handleCareerPatch,
   handleCareersList,
   handleDashboard,
+  handleIndustriesList,
   handleLogin,
   handleLogout,
   handleMe,
@@ -83,6 +84,10 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       if (request.method === "DELETE") {
         return await handleRegistrationDelete(sql, env, request, id);
       }
+    }
+
+    if (path === "/industries" && request.method === "GET") {
+      return await handleIndustriesList(sql, env, request);
     }
 
     if (path === "/vendors" && request.method === "GET") {

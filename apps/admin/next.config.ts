@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     root: path.join(__dirname, "..", ".."),
   },
   reactStrictMode: true,
-  transpilePackages: ["@repo/ui", "@repo/db", "@repo/auth-password"],
+  transpilePackages: ["@repo/ui", "@repo/auth-password", "@repo/rfq"],
 };
 
 export default nextConfig;
