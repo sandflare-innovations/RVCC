@@ -6,8 +6,8 @@ workers_dev = true
 # Most PDFs + pdf.js live on Cloudflare Workers Static Assets (edge).
 # PDFs > 25 MiB pull from Vercel once, then Cache API.
 #
-#   npm run prepare
-#   npm run deploy
+#   pnpm run prepare
+#   pnpm run deploy
 #   Set NEXT_PUBLIC_PDF_CDN_URL=https://rvcc-pdf-cdn.rvcc.workers.dev
 
 [assets]

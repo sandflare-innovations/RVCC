@@ -3,7 +3,7 @@
  *
  * Prerequisites:
  *   1. Enable R2 in Cloudflare Dashboard → R2 → Overview (requires payment method even on free tier)
- *   2. npx wrangler r2 bucket create rvcc-pdf-assets
+ *   2. pnpm dlx wrangler r2 bucket create rvcc-pdf-assets
  *   3. Uncomment [[r2_buckets]] in wrangler.toml
  *
  * If you have NOT enabled R2, skip this script — use origin-pull mode instead (see README).
@@ -37,7 +37,7 @@ function listFiles(dir) {
 }
 
 function runWrangler(args) {
-  return spawnSync("npx", ["wrangler", ...args], {
+  return spawnSync("pnpm", ["exec", "wrangler", ...args], {
     encoding: "utf8",
     shell: true,
   });
@@ -55,11 +55,11 @@ R2 is not enabled on this Cloudflare account.
 Fix:
   1. Open https://dash.cloudflare.com → R2 Object Storage
   2. Click "Purchase R2 plan" / Enable (free tier still needs a payment method on file)
-  3. Then: npx wrangler r2 bucket create ${BUCKET}
+  3. Then: pnpm dlx wrangler r2 bucket create ${BUCKET}
   4. Uncomment [[r2_buckets]] in wrangler.toml
-  5. Re-run: npm run upload
+  5. Re-run: pnpm run upload
 
-OR skip R2 entirely — use origin-pull CDN (set ORIGIN_URL, then npm run deploy).
+OR skip R2 entirely — use origin-pull CDN (set ORIGIN_URL, then pnpm run deploy).
 `);
       process.exit(1);
     }
@@ -126,4 +126,4 @@ for (const { localDir, prefix } of TARGETS) {
 }
 
 console.log(`\nDone. Uploaded ${count} object(s).`);
-console.log("Uncomment [[r2_buckets]] in wrangler.toml if needed, then: npm run deploy");
+console.log("Uncomment [[r2_buckets]] in wrangler.toml if needed, then: pnpm run deploy");

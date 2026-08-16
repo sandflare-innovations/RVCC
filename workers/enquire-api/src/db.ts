@@ -44,8 +44,19 @@ export function makeReferenceNumber(): string {
   return `REG-${y}${m}${day}-${rand}`;
 }
 
+export type SupplierRegistrationRow = {
+  id: string;
+  email: string;
+  status: string;
+  referenceNumber?: string | null;
+  currentStep?: string | null;
+  productCategories?: string[] | null;
+  sessionToken?: string | null;
+  [key: string]: unknown;
+};
+
 export async function loadRegistration(sql: Sql, id: string) {
-  const [reg] = await sql`
+  const [reg] = await sql<SupplierRegistrationRow[]>`
     SELECT * FROM "SupplierRegistration" WHERE id = ${id} LIMIT 1
   `;
   if (!reg) return null;

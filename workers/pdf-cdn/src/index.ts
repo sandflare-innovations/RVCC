@@ -1,3 +1,4 @@
+/// <reference types="@cloudflare/workers-types" />
 /**
  * RVCC PDF CDN — Cloudflare Worker
  *
@@ -222,7 +223,8 @@ function applyRangeHeaders(headers: Headers, object: R2ObjectBody, hadRange: boo
   headers.set("etag", object.httpEtag);
 
   if (hadRange && object.range) {
-    const offset = "offset" in object.range ? object.range.offset : 0;
+    const offset =
+      "offset" in object.range && object.range.offset != null ? object.range.offset : 0;
     const length =
       "length" in object.range && object.range.length != null
         ? object.range.length
@@ -416,7 +418,7 @@ export default {
       JSON.stringify({
         error: "Asset not found",
         key,
-        hint: "Run npm run deploy to stage assets, or ensure the file exists on ORIGIN_URL.",
+        hint: "Run pnpm run deploy to stage assets, or ensure the file exists on ORIGIN_URL.",
       }),
       {
         status: 404,

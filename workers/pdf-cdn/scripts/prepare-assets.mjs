@@ -96,4 +96,4 @@ if (deferred.length) {
   console.log(`${deferred.length} file(s) remain on Vercel origin (cached after first edge hit):`);
   for (const d of deferred) console.log(`  - ${d.key} (${d.sizeMb} MB)`);
 }
-console.log("\nNext: npm run deploy");
+console.log("\nNext: pnpm run deploy");
