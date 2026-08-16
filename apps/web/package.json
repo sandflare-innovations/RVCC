@@ -19,9 +19,9 @@
     "@prisma/client": "^5.22.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
-    "@repo/auth-password": "*",
-    "@repo/db": "*",
-    "@repo/ui": "*",
+    "@repo/auth-password": "workspace:*",
+    "@repo/db": "workspace:*",
+    "@repo/ui": "workspace:*",
     "@sanity/client": "^7.21.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
@@ -43,7 +43,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
+    "@repo/eslint-config": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/hast": "^3.0.4",
     "@types/node": "^20",
