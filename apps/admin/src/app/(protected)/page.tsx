@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { summariseVendorPerformance } from "@repo/rfq";
 
-import { prisma } from "@/lib/db";
+import { adminSessionJson } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
 
@@ -13,60 +13,37 @@ const CARDS = [
   { key: "DRAFT", label: "In progress", href: "/registrations?status=DRAFT" },
 ] as const;
 
-/** Ninety days. An all-time average hides a supplier who has recently stopped replying. */
 const WINDOW_DAYS = 90;
 
+type DashboardPayload = {
+  byStatus: Record<string, number>;
+  activeVendors: number;
+  openCount: number;
+  closingSoon: number;
+  awaitingAward: number;
+  performance: { email: string; invited: number; submitted: number; won: number }[];
+};
+
 export default async function AdminDashboard() {
-  const since = new Date(Date.now() - WINDOW_DAYS * 86_400_000);
-  const now = new Date();
-  const in48h = new Date(Date.now() + 48 * 3_600_000);
+  const result = await adminSessionJson<DashboardPayload>("/dashboard");
+  if (!result.ok) {
+    return (
+      <p className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
+        Could not load dashboard ({result.status}).
+      </p>
+    );
+  }
 
-  const [grouped, activeVendors, openCount, closingSoon, awaitingAward, vendors] =
-    await Promise.all([
-      prisma.supplierRegistration.groupBy({ by: ["status"], _count: { _all: true } }),
-      prisma.vendorUser.count({ where: { isActive: true } }),
-      prisma.requirement.count({ where: { status: "OPEN", closesAt: { gt: now } } }),
-      prisma.requirement.count({
-        where: { status: "OPEN", closesAt: { gt: now, lte: in48h } },
-      }),
-      // Closed but not yet awarded — the number that represents work waiting on
-      // staff rather than on suppliers.
-      prisma.requirement.count({ where: { status: "OPEN", closesAt: { lte: now } } }),
-      prisma.vendorUser.findMany({
-        where: { isActive: true },
-        select: {
-          email: true,
-          _count: {
-            select: {
-              invites: { where: { createdAt: { gte: since } } },
-              quotes: { where: { status: "SUBMITTED", submittedAt: { gte: since } } },
-            },
-          },
-          quotes: {
-            where: { status: "SUBMITTED", awardedFor: { isNot: null } },
-            select: { id: true },
-          },
-        },
-        take: 100,
-      }),
-    ]);
-
-  const counts = Object.fromEntries(grouped.map((g) => [g.status, g._count._all]));
-
-  const performance = summariseVendorPerformance(
-    vendors.map((v) => ({
-      email: v.email,
-      invited: v._count.invites,
-      submitted: v._count.quotes,
-      won: v.quotes.length,
-    }))
-  );
+  const { byStatus, activeVendors, openCount, closingSoon, awaitingAward, performance } =
+    result.data;
+  const counts = byStatus ?? {};
+  const rows = summariseVendorPerformance(performance ?? []);
 
   const headline = [
-    { label: "Active suppliers", value: activeVendors, href: "/vendors" },
-    { label: "Open requirements", value: openCount, href: "/requirements" },
-    { label: "Closing in 48h", value: closingSoon, href: "/requirements" },
-    { label: "Awaiting award", value: awaitingAward, href: "/requirements" },
+    { label: "Active suppliers", value: activeVendors ?? 0, href: "/vendors" },
+    { label: "Open requirements", value: openCount ?? 0, href: "/requirements" },
+    { label: "Closing in 48h", value: closingSoon ?? 0, href: "/requirements" },
+    { label: "Awaiting award", value: awaitingAward ?? 0, href: "/requirements" },
   ];
 
   return (
@@ -124,7 +101,7 @@ export default async function AdminDashboard() {
         <h2 className="mb-3 text-sm font-semibold tracking-[0.12em] text-zinc-600 uppercase">
           Supplier performance
         </h2>
-        {performance.length === 0 ? (
+        {rows.length === 0 ? (
           <p className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
             No active suppliers yet.
           </p>
@@ -142,13 +119,12 @@ export default async function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
-                {performance.map((p) => (
+                {rows.map((p) => (
                   <tr key={p.email} className="transition-colors hover:bg-zinc-50">
                     <td className="px-4 py-3 text-zinc-950">{p.email}</td>
                     <td className="px-4 py-3 text-zinc-700 tabular-nums">{p.invited}</td>
                     <td className="px-4 py-3 text-zinc-700 tabular-nums">{p.submitted}</td>
                     <td className="px-4 py-3 tabular-nums">
-                      {/* Never invited reads as a dash: 0% would imply they ignored us. */}
                       <span
                         className={
                           p.invited > 0 && p.responseRate < 50

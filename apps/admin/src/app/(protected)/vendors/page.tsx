@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { StatusBadge } from "@repo/ui";
 
-import { prisma } from "@/lib/db";
+import { adminSessionJson } from "@/lib/admin-data";
 import { CreateVendorForm } from "@/sections/CreateVendorForm";
 import { VendorRowActions, type VendorSummary } from "@/sections/VendorRowActions";
 
@@ -15,9 +15,9 @@ const FILTERS = [
   { value: "ALL", label: "All" },
 ] as const;
 
-function formatDateTime(d: Date | null) {
+function formatDateTime(d: string | null) {
   if (!d) return null;
-  return d.toLocaleString("en-GB", {
+  return new Date(d).toLocaleString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -26,9 +26,39 @@ function formatDateTime(d: Date | null) {
   });
 }
 
-function formatDate(d: Date) {
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
+
+type VendorRow = {
+  id: string;
+  email: string;
+  name: string | null;
+  isActive: boolean;
+  portalAccess: "HELD" | "RELEASED";
+  mustChangePassword: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
+  lockedUntil: string | null;
+  activeSessions: number;
+  registrationId: string | null;
+  companyName: string;
+  referenceNumber: string | null;
+  registrationStatus: string | null;
+  registrationComplete: boolean;
+  registration: {
+    id: string;
+    referenceNumber: string | null;
+    status: string;
+    company: { legalName: string } | null;
+  } | null;
+};
+
+type Industry = { id: string; name: string };
 
 export default async function VendorAccountsPage({
   searchParams,
@@ -39,70 +69,36 @@ export default async function VendorAccountsPage({
   const active = FILTERS.some((f) => f.value === filter) ? filter! : "RELEASED";
   const search = (q ?? "").trim();
 
-  const where = {
-    ...(active === "RELEASED" ? { portalAccess: "RELEASED" as const } : {}),
-    ...(active === "HELD" ? { portalAccess: "HELD" as const } : {}),
-    ...(active === "PENDING" ? { mustChangePassword: true } : {}),
-    ...(search
-      ? {
-          OR: [
-            { email: { contains: search, mode: "insensitive" as const } },
-            { name: { contains: search, mode: "insensitive" as const } },
-            {
-              registration: {
-                company: { legalName: { contains: search, mode: "insensitive" as const } },
-              },
-            },
-          ],
-        }
-      : {}),
-  };
+  const qs = new URLSearchParams({ filter: active });
+  if (search) qs.set("q", search);
 
-  // Fetched alongside the list rather than in the form, which is a client
-  // component and cannot query Prisma.
-  const industries = await prisma.industry.findMany({
-    where: { isActive: true },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
+  const [vendorsResult, industriesResult] = await Promise.all([
+    adminSessionJson<VendorRow[]>(`/vendors?${qs}`),
+    adminSessionJson<Industry[]>("/industries"),
+  ]);
 
-  const vendors = await prisma.vendorUser.findMany({
-    where,
-    include: {
-      registration: {
-        select: {
-          id: true,
-          referenceNumber: true,
-          status: true,
-          registrationComplete: true,
-          company: { select: { legalName: true } },
-        },
-      },
-      _count: {
-        select: { sessions: { where: { revokedAt: null, expiresAt: { gt: new Date() } } } },
-      },
-    },
-    orderBy: [{ createdAt: "desc" }],
-    take: 100,
-  });
+  const vendors = vendorsResult.ok ? vendorsResult.data : [];
+  const industries = industriesResult.ok ? industriesResult.data : [];
 
-  const toSummary = (v: (typeof vendors)[number]): VendorSummary => ({
+  const toSummary = (v: VendorRow): VendorSummary => ({
     id: v.id,
     email: v.email,
-    name: v.name,
+    name: v.name ?? "",
     isActive: v.isActive,
     portalAccess: v.portalAccess === "RELEASED" ? "RELEASED" : "HELD",
     mustChangePassword: v.mustChangePassword,
     lastLoginAt: formatDateTime(v.lastLoginAt),
     createdAt: formatDate(v.createdAt),
-    lockedUntil: v.lockedUntil && v.lockedUntil > new Date() ? formatDateTime(v.lockedUntil) : null,
-    activeSessions: v._count.sessions,
-    registrationId: v.registration?.id ?? null,
-    companyName: v.registration?.company?.legalName || "—",
-    referenceNumber: v.registration?.referenceNumber ?? null,
-    registrationStatus: v.registration?.status ?? null,
-    registrationComplete:
-      v.registrationId == null ? true : Boolean(v.registration?.registrationComplete),
+    lockedUntil:
+      v.lockedUntil && new Date(v.lockedUntil) > new Date()
+        ? formatDateTime(v.lockedUntil)
+        : null,
+    activeSessions: v.activeSessions,
+    registrationId: v.registrationId,
+    companyName: v.companyName || "—",
+    referenceNumber: v.referenceNumber,
+    registrationStatus: v.registrationStatus,
+    registrationComplete: v.registrationComplete,
   });
 
   return (
@@ -161,7 +157,9 @@ export default async function VendorAccountsPage({
             {vendors.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-zinc-600">
-                  No vendor accounts{search ? ` matching “${search}”` : ""} in this view.
+                  {!vendorsResult.ok
+                    ? `Could not load vendors (${vendorsResult.status}).`
+                    : `No vendor accounts${search ? ` matching “${search}”` : ""} in this view.`}
                 </td>
               </tr>
             )}
@@ -201,7 +199,7 @@ export default async function VendorAccountsPage({
                     <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-xs font-semibold text-zinc-700 whitespace-nowrap">
                       {v.portalAccess === "RELEASED" ? "Released" : "Held"}
                     </span>
-                    {(v.registrationId == null || v.registration?.registrationComplete) && (
+                    {v.registrationComplete && (
                       <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 whitespace-nowrap">
                         Reg. complete
                       </span>

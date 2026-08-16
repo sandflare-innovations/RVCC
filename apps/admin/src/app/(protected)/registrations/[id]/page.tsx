@@ -7,8 +7,8 @@ import { StatusBadge } from "@repo/ui";
 
 import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
 import { ENQUIRE_QUESTIONNAIRE } from "@/data/enquire-questionnaire";
+import { adminSessionJson } from "@/lib/admin-data";
 import { hasRole } from "@/lib/constants";
-import { prisma } from "@/lib/db";
 import { getAdminFromSession } from "@/lib/session";
 import { ReviewPanel } from "@/sections/ReviewPanel";
 
@@ -32,29 +32,52 @@ function Row({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
+type RegistrationDetail = {
+  id: string;
+  email: string;
+  status: string;
+  referenceNumber: string | null;
+  reviewedAt: string | null;
+  reviewNote: string | null;
+  productCategories: string[];
+  company: Record<string, unknown> | null;
+  contacts: Array<Record<string, unknown>>;
+  addresses: Array<Record<string, unknown>>;
+  classifications: Array<Record<string, unknown>>;
+  bankAccounts: Array<Record<string, unknown>>;
+  questionnaire: Array<{ questionKey: string; answer: string }>;
+  vendorUsers: Array<{
+    email: string;
+    isActive: boolean;
+    mustChangePassword: boolean;
+  }>;
+  reviewedBy: { name: string; email: string } | null;
+};
+
+function str(v: unknown): string {
+  return v == null ? "" : String(v);
+}
+
 export default async function RegistrationDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const admin = await getAdminFromSession();
+  const [admin, result] = await Promise.all([
+    getAdminFromSession(),
+    adminSessionJson<RegistrationDetail>(`/registrations/${encodeURIComponent(id)}`),
+  ]);
 
-  const r = await prisma.supplierRegistration.findUnique({
-    where: { id },
-    include: {
-      company: true,
-      contacts: { orderBy: { sortOrder: "asc" } },
-      addresses: { orderBy: { sortOrder: "asc" } },
-      classifications: { orderBy: { sortOrder: "asc" } },
-      bankAccounts: { orderBy: { sortOrder: "asc" } },
-      questionnaire: true,
-      attachments: true,
-      reviewedBy: { select: { name: true, email: true } },
-      vendorUsers: { select: { email: true, isActive: true, mustChangePassword: true } },
-    },
-  });
+  if (!result.ok) {
+    if (result.status === 404) notFound();
+    return (
+      <p className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
+        Could not load registration ({result.status}).
+      </p>
+    );
+  }
 
-  if (!r) notFound();
-
-  const tax = (r.company?.taxIdentifiers ?? {}) as Record<string, string>;
-  const categories = r.productCategories
+  const r = result.data;
+  const company = r.company ?? null;
+  const tax = (company?.taxIdentifiers ?? {}) as Record<string, string>;
+  const categories = (r.productCategories ?? [])
     .map((cid) => ENQUIRE_CATEGORIES.find((c) => c.id === cid)?.label ?? cid)
     .join(", ");
 
@@ -72,7 +95,7 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">
-              {r.company?.legalName || "Unnamed company"}
+              {str(company?.legalName) || "Unnamed company"}
             </h1>
             <StatusBadge status={r.status} />
           </div>
@@ -89,7 +112,7 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
             {r.status === "APPROVED" ? "Approved" : "Rejected"}
           </span>{" "}
           <span className="text-zinc-600">
-            on {r.reviewedAt.toLocaleDateString("en-GB")} by{" "}
+            on {new Date(r.reviewedAt).toLocaleDateString("en-GB")} by{" "}
             {r.reviewedBy?.name || r.reviewedBy?.email || "a deleted account"}
           </span>
           {r.reviewNote && <p className="mt-1.5 text-zinc-700">“{r.reviewNote}”</p>}
@@ -106,18 +129,18 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
 
       <Section title="Company">
         <dl>
-          <Row label="Legal name" value={r.company?.legalName} />
-          <Row label="Trading name" value={r.company?.dbaName} />
-          <Row label="Country" value={r.company?.country} />
-          <Row label="Organization type" value={r.company?.organizationType} />
-          <Row label="Supplier type" value={r.company?.supplierType} />
-          <Row label="Year established" value={r.company?.yearEstablished} />
-          <Row label="Website" value={r.company?.website} />
+          <Row label="Legal name" value={str(company?.legalName)} />
+          <Row label="Trading name" value={str(company?.dbaName)} />
+          <Row label="Country" value={str(company?.country)} />
+          <Row label="Organization type" value={str(company?.organizationType)} />
+          <Row label="Supplier type" value={str(company?.supplierType)} />
+          <Row label="Year established" value={str(company?.yearEstablished)} />
+          <Row label="Website" value={str(company?.website)} />
           <Row label="VAT" value={tax.vat} />
           <Row label="CR" value={tax.cr} />
           <Row label="TIN" value={tax.tin} />
-          <Row label="D-U-N-S" value={r.company?.dunsNumber} />
-          <Row label="Description" value={r.company?.description} />
+          <Row label="D-U-N-S" value={str(company?.dunsNumber)} />
+          <Row label="Description" value={str(company?.description)} />
         </dl>
       </Section>
 
@@ -125,11 +148,11 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
         {r.contacts.length === 0 && <p className="text-sm text-zinc-600">None provided.</p>}
         <div className="space-y-4">
           {r.contacts.map((c) => (
-            <dl key={c.id} className="rounded-md border border-zinc-100 p-3">
-              <Row label="Name" value={`${c.firstName} ${c.lastName}`} />
-              <Row label="Email" value={c.email} />
-              <Row label="Job title" value={c.jobTitle} />
-              <Row label="Phone" value={c.phone || c.mobile} />
+            <dl key={str(c.id)} className="rounded-md border border-zinc-100 p-3">
+              <Row label="Name" value={`${str(c.firstName)} ${str(c.lastName)}`.trim()} />
+              <Row label="Email" value={str(c.email)} />
+              <Row label="Job title" value={str(c.jobTitle)} />
+              <Row label="Phone" value={str(c.phone) || str(c.mobile)} />
               <Row label="Administrative" value={c.isAdministrative ? "Yes" : "No"} />
               <Row label="Wants portal login" value={c.requestUserAccount ? "Yes" : "No"} />
             </dl>
@@ -141,16 +164,23 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
         {r.addresses.length === 0 && <p className="text-sm text-zinc-600">None provided.</p>}
         <div className="space-y-4">
           {r.addresses.map((a) => (
-            <dl key={a.id} className="rounded-md border border-zinc-100 p-3">
-              <Row label="Label" value={a.label} />
+            <dl key={str(a.id)} className="rounded-md border border-zinc-100 p-3">
+              <Row label="Label" value={str(a.label)} />
               <Row
                 label="Address"
                 value={[a.line1, a.line2, a.city, a.region, a.postalCode, a.country]
+                  .map(str)
                   .filter(Boolean)
                   .join(", ")}
               />
-              <Row label="Purposes" value={a.purposes.join(", ")} />
-              <Row label="Contact" value={[a.phone, a.email].filter(Boolean).join(" · ")} />
+              <Row
+                label="Purposes"
+                value={Array.isArray(a.purposes) ? (a.purposes as string[]).join(", ") : ""}
+              />
+              <Row
+                label="Contact"
+                value={[str(a.phone), str(a.email)].filter(Boolean).join(" · ")}
+              />
             </dl>
           ))}
         </div>
@@ -160,13 +190,13 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
         <Section title={`Classifications (${r.classifications.length})`}>
           <div className="space-y-4">
             {r.classifications.map((c) => (
-              <dl key={c.id} className="rounded-md border border-zinc-100 p-3">
-                <Row label="Classification" value={c.classification} />
-                <Row label="Certificate no." value={c.certificateNumber} />
-                <Row label="Agency" value={c.certifyingAgency} />
+              <dl key={str(c.id)} className="rounded-md border border-zinc-100 p-3">
+                <Row label="Classification" value={str(c.classification)} />
+                <Row label="Certificate no." value={str(c.certificateNumber)} />
+                <Row label="Agency" value={str(c.certifyingAgency)} />
                 <Row
                   label="Valid"
-                  value={[c.effectiveDate, c.expirationDate].filter(Boolean).join(" → ")}
+                  value={[str(c.effectiveDate), str(c.expirationDate)].filter(Boolean).join(" → ")}
                 />
               </dl>
             ))}
@@ -182,15 +212,18 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
           </p>
           <div className="space-y-4">
             {r.bankAccounts.map((b) => (
-              <dl key={b.id} className="rounded-md border border-zinc-100 p-3">
-                <Row label="Bank" value={[b.bankName, b.branchName].filter(Boolean).join(" — ")} />
-                <Row label="Account name" value={b.accountName} />
-                <Row label="Account number" value={b.accountNumber} />
-                <Row label="IBAN" value={b.iban} />
-                <Row label="Routing" value={b.routingNumber} />
+              <dl key={str(b.id)} className="rounded-md border border-zinc-100 p-3">
+                <Row
+                  label="Bank"
+                  value={[str(b.bankName), str(b.branchName)].filter(Boolean).join(" — ")}
+                />
+                <Row label="Account name" value={str(b.accountName)} />
+                <Row label="Account number" value={str(b.accountNumber)} />
+                <Row label="IBAN" value={str(b.iban)} />
+                <Row label="Routing" value={str(b.routingNumber)} />
                 <Row
                   label="Currency / country"
-                  value={[b.currency, b.country].filter(Boolean).join(" · ")}
+                  value={[str(b.currency), str(b.country)].filter(Boolean).join(" · ")}
                 />
               </dl>
             ))}

@@ -746,14 +746,18 @@ export async function handleRequirementGet(
   if (deny) return deny;
 
   const [requirement] = await sql`
-    SELECT id, "referenceNumber", "scopeOfWork", project, "sellingPrice", currency,
-           "closesAt", status, "createdAt"
-    FROM "Requirement" WHERE id = ${id} LIMIT 1
+    SELECT
+      r.id, r."referenceNumber", r."scopeOfWork", r.project, r."sellingPrice", r.currency,
+      r."closesAt", r.status, r."createdAt", r."awardedAt", r."awardedQuoteId",
+      a.email AS "awardedByEmail"
+    FROM "Requirement" r
+    LEFT JOIN "AdminUser" a ON a.id = r."awardedByAdminId"
+    WHERE r.id = ${id}
+    LIMIT 1
   `;
   if (!requirement) return json(env, request, { error: "Requirement not found." }, 404);
 
   // Only SUBMITTED quotes appear: an unsubmitted draft is not a quote.
-  // One query with both participant joins, rather than a lookup per row.
   const quotes = await sql`
     SELECT
       q.id, q."newPrice", q.remarks, q."submittedAt",
@@ -766,15 +770,48 @@ export async function handleRequirementGet(
 
   const invites = await sql`
     SELECT
+      i.id,
       v.email,
       i."emailStatus"
     FROM "RequirementInvite" i
     JOIN "VendorUser" v ON v.id = i."vendorUserId"
     WHERE i."requirementId" = ${id}
-    ORDER BY 1
+    ORDER BY i."createdAt" ASC
   `;
 
-  return json(env, request, { requirement, quotes, invites });
+  return json(env, request, {
+    requirement: {
+      id: requirement.id,
+      referenceNumber: requirement.referenceNumber,
+      scopeOfWork: requirement.scopeOfWork,
+      project: requirement.project,
+      sellingPrice: requirement.sellingPrice,
+      currency: requirement.currency,
+      closesAt: requirement.closesAt,
+      status: requirement.status,
+      createdAt: requirement.createdAt,
+      awardedAt: requirement.awardedAt,
+      awardedQuoteId: requirement.awardedQuoteId,
+      awardedByAdmin: requirement.awardedByEmail
+        ? { email: String(requirement.awardedByEmail) }
+        : null,
+    },
+    quotes: quotes.map((q) => ({
+      id: q.id,
+      newPrice: q.newPrice,
+      remarks: q.remarks,
+      submittedAt: q.submittedAt,
+      vendorUser: {
+        email: String(q.participantEmail),
+        name: q.participantName == null ? null : String(q.participantName),
+      },
+    })),
+    invites: invites.map((i) => ({
+      id: i.id,
+      emailStatus: i.emailStatus,
+      vendorUser: { email: String(i.email) },
+    })),
+  });
 }
 
 export async function handleRequirementCreate(
@@ -1241,15 +1278,94 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
     byStatus[row.status as string] = Number(row.count);
   }
 
-  const [{ vendors }] = await sql`SELECT COUNT(*)::int AS vendors FROM "VendorUser"`;
+  const [{ vendors }] = await sql`
+    SELECT COUNT(*)::int AS vendors FROM "VendorUser" WHERE "isActive" = true
+  `;
   const [{ publishedJobs }] = await sql`
     SELECT COUNT(*)::int AS "publishedJobs" FROM "JobPosting" WHERE "isPublished" = true
+  `;
+  const [{ totalJobs }] = await sql`
+    SELECT COUNT(*)::int AS "totalJobs" FROM "JobPosting"
+  `;
+
+  const [{ openCount }] = await sql`
+    SELECT COUNT(*)::int AS "openCount"
+    FROM "Requirement"
+    WHERE status = 'OPEN' AND "closesAt" > NOW()
+  `;
+  const [{ closingSoon }] = await sql`
+    SELECT COUNT(*)::int AS "closingSoon"
+    FROM "Requirement"
+    WHERE status = 'OPEN'
+      AND "closesAt" > NOW()
+      AND "closesAt" <= NOW() + INTERVAL '48 hours'
+  `;
+  const [{ awaitingAward }] = await sql`
+    SELECT COUNT(*)::int AS "awaitingAward"
+    FROM "Requirement"
+    WHERE status = 'OPEN' AND "closesAt" <= NOW()
+  `;
+
+  // Ninety-day supplier performance window (same as former Prisma dashboard).
+  const performance = await sql`
+    SELECT
+      v.email,
+      (
+        SELECT COUNT(*)::int FROM "RequirementInvite" i
+        WHERE i."vendorUserId" = v.id AND i."createdAt" >= NOW() - INTERVAL '90 days'
+      ) AS invited,
+      (
+        SELECT COUNT(*)::int FROM "Quote" q
+        WHERE q."vendorUserId" = v.id
+          AND q.status = 'SUBMITTED'
+          AND q."submittedAt" >= NOW() - INTERVAL '90 days'
+      ) AS submitted,
+      (
+        SELECT COUNT(*)::int FROM "Quote" q
+        JOIN "Requirement" r ON r."awardedQuoteId" = q.id
+        WHERE q."vendorUserId" = v.id AND q.status = 'SUBMITTED'
+      ) AS won
+    FROM "VendorUser" v
+    WHERE v."isActive" = true
+    ORDER BY v.email ASC
+    LIMIT 100
   `;
 
   return json(env, request, {
     pendingRegistrations: byStatus.SUBMITTED ?? 0,
+    activeVendors: Number(vendors),
     vendors: Number(vendors),
     publishedJobs: Number(publishedJobs),
+    totalJobs: Number(totalJobs),
+    openCount: Number(openCount),
+    closingSoon: Number(closingSoon),
+    awaitingAward: Number(awaitingAward),
     byStatus,
+    performance: performance.map((p) => ({
+      email: String(p.email),
+      invited: Number(p.invited),
+      submitted: Number(p.submitted),
+      won: Number(p.won),
+    })),
   });
+}
+
+export async function handleIndustriesList(
+  sql: Sql,
+  env: Env,
+  request: Request
+): Promise<Response> {
+  const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
+  if (deny) return deny;
+
+  const rows = await sql`
+    SELECT id, name FROM "Industry"
+    WHERE "isActive" = true
+    ORDER BY name ASC
+  `;
+  return json(
+    env,
+    request,
+    rows.map((r) => ({ id: String(r.id), name: String(r.name) }))
+  );
 }

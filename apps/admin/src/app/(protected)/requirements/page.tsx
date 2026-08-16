@@ -1,12 +1,12 @@
 import Link from "next/link";
 
-import { prisma } from "@/lib/db";
+import { adminSessionJson } from "@/lib/admin-data";
 import { CreateRequirementForm, type ParticipantOption } from "@/sections/CreateRequirementForm";
 
 export const dynamic = "force-dynamic";
 
-function formatDateTime(d: Date) {
-  return d.toLocaleString("en-GB", {
+function formatDateTime(d: string) {
+  return new Date(d).toLocaleString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -15,30 +15,37 @@ function formatDateTime(d: Date) {
   });
 }
 
-/** Closed is not a stored status — it is closesAt in the past. */
-function statusLabel(status: string, closesAt: Date) {
-  if (status === "OPEN" && closesAt.getTime() <= Date.now()) return "Closed";
+function statusLabel(status: string, closesAt: string) {
+  if (status === "OPEN" && new Date(closesAt).getTime() <= Date.now()) return "Closed";
   return status.charAt(0) + status.slice(1).toLowerCase();
 }
 
+type RequirementRow = {
+  id: string;
+  referenceNumber: string | null;
+  project: string;
+  closesAt: string;
+  status: string;
+  invited: number;
+  submitted: number;
+};
+
+type VendorOption = {
+  id: string;
+  email: string;
+  name: string | null;
+};
+
 export default async function RequirementsPage() {
-  const [requirements, vendors] = await Promise.all([
-    prisma.requirement.findMany({
-      include: {
-        _count: { select: { invites: true } },
-        quotes: { where: { status: "SUBMITTED" }, select: { id: true } },
-      },
-      orderBy: [{ closesAt: "asc" }],
-      take: 100,
-    }),
-    prisma.vendorUser.findMany({
-      where: { isActive: true },
-      select: { id: true, email: true, name: true },
-      orderBy: { email: "asc" },
-    }),
+  const [reqResult, vendorsResult] = await Promise.all([
+    adminSessionJson<RequirementRow[]>("/requirements"),
+    adminSessionJson<VendorOption[]>("/vendors?filter=ACTIVE"),
   ]);
 
-  const toOption = (p: { id: string; email: string; name: string }): ParticipantOption => ({
+  const requirements = reqResult.ok ? reqResult.data : [];
+  const vendors = vendorsResult.ok ? vendorsResult.data : [];
+
+  const toOption = (p: VendorOption): ParticipantOption => ({
     id: p.id,
     label: p.name ? `${p.name} (${p.email})` : p.email,
   });
@@ -71,7 +78,9 @@ export default async function RequirementsPage() {
             {requirements.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-zinc-500">
-                  Nothing posted yet.
+                  {!reqResult.ok
+                    ? `Could not load requirements (${reqResult.status}).`
+                    : "Nothing posted yet."}
                 </td>
               </tr>
             ) : (
@@ -89,8 +98,8 @@ export default async function RequirementsPage() {
                   <td className="px-4 py-3 text-zinc-600 tabular-nums">
                     {formatDateTime(r.closesAt)}
                   </td>
-                  <td className="px-4 py-3 text-zinc-700 tabular-nums">{r._count.invites}</td>
-                  <td className="px-4 py-3 text-zinc-700 tabular-nums">{r.quotes.length}</td>
+                  <td className="px-4 py-3 text-zinc-700 tabular-nums">{r.invited}</td>
+                  <td className="px-4 py-3 text-zinc-700 tabular-nums">{r.submitted}</td>
                   <td className="px-4 py-3 text-zinc-700">{statusLabel(r.status, r.closesAt)}</td>
                 </tr>
               ))

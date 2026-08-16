@@ -1,12 +1,9 @@
 import Link from "next/link";
 
-import type { RegistrationStatus } from "@prisma/client";
-
 import { StatusBadge } from "@repo/ui";
 
-import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
+import { adminSessionJson } from "@/lib/admin-data";
 import { hasRole } from "@/lib/constants";
-import { prisma } from "@/lib/db";
 import { getAdminFromSession } from "@/lib/session";
 import {
   RegistrationRowActions,
@@ -23,12 +20,25 @@ const FILTERS = [
   { value: "ALL", label: "All" },
 ] as const;
 
-const VALID = new Set<string>(["SUBMITTED", "APPROVED", "REJECTED", "DRAFT"]);
+const VALID = new Set<string>(["SUBMITTED", "APPROVED", "REJECTED", "DRAFT", "ALL"]);
 
-function formatDate(d: Date | null) {
+function formatDate(d: string | null) {
   if (!d) return "—";
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  return new Date(d).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
+
+type ListRow = {
+  id: string;
+  email: string;
+  status: string;
+  referenceNumber: string | null;
+  submittedAt: string | null;
+  company: { legalName: string; country: string | null } | null;
+};
 
 export default async function RegistrationsPage({
   searchParams,
@@ -36,119 +46,26 @@ export default async function RegistrationsPage({
   searchParams: Promise<{ status?: string; q?: string }>;
 }) {
   const { status, q } = await searchParams;
-  // Default to the queue that actually needs action.
-  const active = status && (VALID.has(status) || status === "ALL") ? status : "SUBMITTED";
+  const active = status && VALID.has(status) ? status : "SUBMITTED";
   const search = (q ?? "").trim();
 
-  const [registrations, admin] = await Promise.all([
-    prisma.supplierRegistration.findMany({
-      where: {
-        ...(active === "ALL" ? {} : { status: active as RegistrationStatus }),
-        ...(search
-          ? {
-              OR: [
-                { email: { contains: search, mode: "insensitive" as const } },
-                { referenceNumber: { contains: search, mode: "insensitive" as const } },
-                { company: { legalName: { contains: search, mode: "insensitive" as const } } },
-              ],
-            }
-          : {}),
-      },
-      include: {
-        company: {
-          select: {
-            legalName: true,
-            dbaName: true,
-            country: true,
-            organizationType: true,
-            supplierType: true,
-            website: true,
-            yearEstablished: true,
-            dunsNumber: true,
-            description: true,
-            taxIdentifiers: true,
-          },
-        },
-        contacts: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
-            jobTitle: true,
-            phone: true,
-            mobile: true,
-            requestUserAccount: true,
-          },
-          orderBy: { sortOrder: "asc" },
-          take: 8,
-        },
-        addresses: {
-          select: {
-            label: true,
-            line1: true,
-            line2: true,
-            city: true,
-            region: true,
-            postalCode: true,
-            country: true,
-            purposes: true,
-          },
-          orderBy: { sortOrder: "asc" },
-          take: 8,
-        },
-        vendorUsers: { select: { email: true } },
-        _count: { select: { bankAccounts: true } },
-      },
-      orderBy: [{ submittedAt: "desc" }, { updatedAt: "desc" }],
-      take: 100,
-    }),
+  const qs = new URLSearchParams({ status: active });
+  if (search) qs.set("q", search);
+
+  const [listResult, admin] = await Promise.all([
+    adminSessionJson<ListRow[]>(`/registrations?${qs}`),
     getAdminFromSession(),
   ]);
 
-  // Deleting destroys commercial records, so it is SUPER_ADMIN only.
+  const registrations = listResult.ok ? listResult.data : [];
   const canDelete = Boolean(admin && hasRole(admin.role, "SUPER_ADMIN"));
 
-  /** Server components cannot hand Date/Decimal objects to a client component. */
-  const toSummary = (r: (typeof registrations)[number]): RegistrationSummary => ({
+  const toSummary = (r: ListRow): RegistrationSummary => ({
     id: r.id,
     email: r.email,
     status: r.status,
     referenceNumber: r.referenceNumber,
-    submittedAt: r.submittedAt ? formatDate(r.submittedAt) : null,
-    createdAt: formatDate(r.createdAt),
-    company: r.company
-      ? {
-          legalName: r.company.legalName,
-          dbaName: r.company.dbaName,
-          country: r.company.country,
-          organizationType: r.company.organizationType,
-          supplierType: r.company.supplierType,
-          website: r.company.website,
-          yearEstablished: r.company.yearEstablished,
-          dunsNumber: r.company.dunsNumber,
-          description: r.company.description,
-          tax: (r.company.taxIdentifiers ?? {}) as Record<string, string>,
-        }
-      : null,
-    contacts: r.contacts.map((c) => ({
-      name: `${c.firstName} ${c.lastName}`.trim(),
-      email: c.email,
-      jobTitle: c.jobTitle,
-      phone: c.phone || c.mobile,
-      wantsLogin: c.requestUserAccount,
-    })),
-    addresses: r.addresses.map((a) => ({
-      label: a.label,
-      full: [a.line1, a.line2, a.city, a.region, a.postalCode, a.country]
-        .filter(Boolean)
-        .join(", "),
-      purposes: a.purposes.join(", "),
-    })),
-    bankAccountCount: r._count.bankAccounts,
-    categories: r.productCategories
-      .map((cid) => ENQUIRE_CATEGORIES.find((c) => c.id === cid)?.label ?? cid)
-      .join(", "),
-    vendorAccounts: r.vendorUsers.map((v) => v.email),
+    companyName: r.company?.legalName ?? null,
   });
 
   return (
@@ -210,7 +127,9 @@ export default async function RegistrationsPage({
             {registrations.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-zinc-600">
-                  No registrations{search ? ` matching “${search}”` : ""} in this view.
+                  {!listResult.ok
+                    ? `Could not load registrations (${listResult.status}).`
+                    : `No registrations${search ? ` matching “${search}”` : ""} in this view.`}
                 </td>
               </tr>
             )}

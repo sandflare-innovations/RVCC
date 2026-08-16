@@ -2,25 +2,21 @@ import Link from "next/link";
 
 import { Briefcase, FileText, ImageIcon, Users } from "lucide-react";
 
-import { prisma } from "@/lib/db";
+import { adminSessionJson } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
 
-export default async function ContentHubPage() {
-  const [total, published] = await Promise.all([
-    prisma.jobPosting.count(),
-    prisma.jobPosting.count({ where: { isPublished: true } }),
-  ]);
+type DashboardJobs = { publishedJobs: number; totalJobs: number };
 
-  /*
-   * Only careers is live. The rest are image-led and blocked on object storage
-   * (Cloudflare R2) — a deployed Next app cannot write to public/, so there is
-   * nowhere to put an uploaded photo yet.
-   */
+export default async function ContentHubPage() {
+  const result = await adminSessionJson<DashboardJobs>("/dashboard");
+  const published = result.ok ? result.data.publishedJobs ?? 0 : 0;
+  const total = result.ok ? result.data.totalJobs ?? published : 0;
+
   const pending = [
     { label: "Project Gallery", icon: ImageIcon, detail: "16 projects · needs image uploads" },
     { label: "Clients", icon: Users, detail: "18 logos · needs image uploads" },
-    { label: "Documents", icon: FileText, detail: "PDFs · served from S3 / Tigris" },
+    { label: "Documents", icon: FileText, detail: "PDFs · served from R2" },
   ];
 
   return (
@@ -78,7 +74,7 @@ export default async function ContentHubPage() {
         <p className="mt-3 text-sm text-zinc-600">
           These need object storage before they can be edited here — a deployed app cannot write
           into its own <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs">public/</code>{" "}
-          folder. Cloudflare R2 is the natural fit alongside the existing workers.
+          folder. Cloudflare R2 is the natural fit alongside the existing API.
         </p>
       </section>
     </div>
