@@ -1,9 +1,0 @@
-# Admin API Worker — local wrangler secrets template
-# API_SECRET=
-# DATABASE_URL=
-# ENQUIRE_WORKER_URL=https://rvcc-enquire-api.rvcc.workers.dev
-# ENQUIRE_API_SECRET=
-# VENDOR_PORTAL_URL=https://rvcc-app.vercel.app
-# (or local) VENDOR_PORTAL_URL=http://localhost:3002
-#
-# ALLOWED_ORIGINS is set in wrangler.toml [vars] for prod + localhost ports.

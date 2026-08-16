@@ -1,0 +1,19 @@
+name = "rvcc-api"
+main = "src/worker.ts"
+compatibility_date = "2025-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGINS = "*"
+SMTP_HOST = "smtp.gmail.com"
+SMTP_PORT = "587"
+SMTP_SECURE = "false"
+SMTP_USER = "flyincob2b@gmail.com"
+ENQUIRE_FROM_EMAIL = "RVCC Procurement <flyincob2b@gmail.com>"
+
+# Secrets (wrangler secret put …):
+#   DATABASE_URL
+#   SMTP_PASS
+#   VENDOR_PORTAL_URL

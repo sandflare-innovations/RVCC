@@ -1,11 +1,8 @@
 import { Suspense } from "react";
 
-import { enquireVerifyUrl } from "@/lib/public-urls";
 import { VendorLoginForm } from "@/sections/VendorLoginForm";
 
 export default function VendorLoginPage() {
-  const enquireHref = enquireVerifyUrl();
-
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
@@ -15,22 +12,17 @@ export default function VendorLoginPage() {
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">Sign in</h1>
           <p className="mt-1.5 text-sm text-zinc-600">
-            Approved suppliers only. Not registered yet?{" "}
+            Approved suppliers use email and password. New suppliers{" "}
             <a
-              href={enquireHref}
+              href="/register/verify"
               className="text-brand-blue underline underline-offset-2"
-              rel="noopener noreferrer"
             >
-              Start an E-Vendor Registration
-            </a>
-            .
+              register here
+            </a>{" "}
+            — after email verification we open the portal if you already have an account, or the
+            registration form if you do not.
           </p>
         </div>
-        {/*
-          The form reads ?next= via useSearchParams(), which forces a client
-          bailout. Without this boundary the static prerender of this page
-          fails the production build.
-        */}
         <Suspense fallback={<LoginFormSkeleton />}>
           <VendorLoginForm />
         </Suspense>
@@ -39,7 +31,6 @@ export default function VendorLoginPage() {
   );
 }
 
-/** Matches the form's height so the shell does not jump when it hydrates. */
 function LoginFormSkeleton() {
   return (
     <div className="space-y-5" aria-hidden="true">

@@ -13,8 +13,9 @@ export type VendorIdentity = {
   email: string;
   name: string;
   mustChangePassword: boolean;
-  /** Null for accounts an admin created directly, with no public registration. */
   registrationId: string | null;
+  portalAccess: "HELD" | "RELEASED";
+  registrationComplete: boolean;
 };
 
 type CacheEntry = { at: number; identity: VendorIdentity };
@@ -52,10 +53,18 @@ export const getVendorFromSession = cache(async (): Promise<VendorIdentity | nul
       return hit?.identity ?? null;
     }
     const data = (await res.json()) as VendorIdentity;
-    // registrationId is intentionally not checked: admin-created vendors have none.
     if (!data?.id) return null;
-    identityCache.set(key, { at: Date.now(), identity: data });
-    return data;
+    const identity: VendorIdentity = {
+      id: data.id,
+      email: data.email,
+      name: data.name,
+      mustChangePassword: Boolean(data.mustChangePassword),
+      registrationId: data.registrationId ?? null,
+      portalAccess: data.portalAccess === "RELEASED" ? "RELEASED" : "HELD",
+      registrationComplete: data.registrationComplete !== false,
+    };
+    identityCache.set(key, { at: Date.now(), identity });
+    return identity;
   } catch (err) {
     console.error("[vendor] /auth/me failed", err);
     return hit?.identity ?? null;

@@ -1,17 +1,288 @@
+/* RVCC Globals - v1.1 */
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Ara Hamah Alislam";
+  src: url("/fonts/Ara Hamah Alislam Regular/Ara Hamah Alislam Regular.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Maven Pro";
+  src: url("/fonts/Maven_Pro/MavenPro-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: thin;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Maven Pro";
+  src: url("/fonts/Maven_Pro/MavenPro-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Maven Pro";
+  src: url("/fonts/Maven_Pro/MavenPro-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: bold;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Maven Pro";
+  src: url("/fonts/Maven_Pro/MavenPro-Black.ttf") format("truetype");
+  font-weight: 900;
+  font-style: extrabold;
+  font-display: swap;
+}
+
 @theme {
+  /* Brand Colors */
   --color-brand-blue: #0073bc;
   --color-brand-black: #000000;
   --color-brand-white: #ffffff;
   --color-brand-grey: #a6a6a6;
+
+  /* Semantic Colors */
+  --color-background: var(--background);
+  --color-theme-bg: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  /* Fonts */
+  --font-heading: "Ara Hamah Alislam", cursive;
+  --font-primary: "Maven Pro", sans-serif;
+  /* Custom Spacing */
+  --spacing-section-py: 8rem;
+  --spacing-section-py-mobile: 4rem;
+  --spacing-header-mb: 5rem;
+  --spacing-header-mb-mobile: 3rem;
+  --spacing-container-gap: 8rem;
+  --spacing-element-gap: 4rem;
+  --spacing-content-gap: 2rem;
+  --spacing-container: var(--spacing-container);
+
+  /* Custom Text Sizes */
+  --text-display: 4.5rem;
+  --text-h1: 3.5rem;
+  --text-h2: 2.5rem;
+  --text-h3: 1.75rem;
+  --text-body-lg: 1.125rem;
+  --text-body: 1rem;
+  --text-body-sm: 0.875rem;
+
+  /* Transitions */
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-slide-up: slide-up 0.5s ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
 }
 
+/*
+ * Supplier portal only — the rest of the site keeps Maven Pro, a geometric
+ * display face whose 1/l/I and 0/O are hard to tell apart. That ambiguity is a
+ * liability in a form collecting IBANs, CR/VAT numbers and one-time codes.
+ * Inter has a tall x-height, disambiguated glyphs and tabular figures.
+ *
+ * Declared as @utility rather than a @theme token on purpose: next/font defines
+ * --font-enquire-sans on the /enquire wrapper element, not on :root. A @theme
+ * entry is emitted at :root, where that variable does not exist yet, so the
+ * var() was invalid and the whole declaration computed to empty. As a utility
+ * the var() resolves on the element it is applied to, where the value inherits.
+ */
 @utility font-enquire {
   font-family: var(--font-enquire-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
-html,
-body {
-  min-height: 100%;
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #000000;
+    --muted: #a6a6a6;
+    --accent: #0073bc;
+    --border: rgba(0, 0, 0, 0.1);
+    --spacing-container: 0.75rem;
+    color-scheme: light;
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --spacing-container: 2.5rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    :root {
+      --spacing-container: 4rem;
+    }
+  }
+
+  .dark {
+    --background: #000000;
+    --foreground: #ffffff;
+    --muted: #a6a6a6;
+    --accent: #0073bc;
+    --border: rgba(255, 255, 255, 0.1);
+    color-scheme: dark;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  html {
+    /* Hide scrollbar for IE, Edge and Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    cursor: auto;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+    line-height: 1.2;
+  }
+
+  /*
+   * The admin panel is an internal tool, not brand surface. Ara Hamah Alislam
+   * is a display face and reads badly at UI sizes, so headings there inherit
+   * the same Inter stack as the rest of the panel.
+   */
+  [data-admin] :is(h1, h2, h3, h4, h5, h6),
+  [data-vendor] :is(h1, h2, h3, h4, h5, h6) {
+    font-family: inherit;
+    line-height: 1.25;
+  }
+
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+
+  .font-heading.italic {
+    font-style: italic;
+  }
+}
+
+@layer utilities {
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    @apply px-container;
+  }
+
+  .section-padding {
+    @apply py-section-py-mobile md:py-section-py;
+  }
+
+  .section-margin {
+    @apply my-section-py-mobile md:my-section-py;
+  }
+
+  .header-margin {
+    @apply mb-header-mb-mobile md:mb-header-mb;
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .text-gradient {
+    background: linear-gradient(to right, var(--accent), #3b82f6);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    display: block;
+    width: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #0073bc;
+  }
+
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .rotate-y-negative-10 {
+    transform: rotateY(-10deg);
+  }
+
+  /* View Transitions API for Theme Toggle */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  ::view-transition-old(root) {
+    z-index: 1;
+  }
+
+  ::view-transition-new(root) {
+    z-index: 2147483647;
+  }
 }

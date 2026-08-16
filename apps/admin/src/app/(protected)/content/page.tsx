@@ -20,7 +20,7 @@ export default async function ContentHubPage() {
   const pending = [
     { label: "Project Gallery", icon: ImageIcon, detail: "16 projects · needs image uploads" },
     { label: "Clients", icon: Users, detail: "18 logos · needs image uploads" },
-    { label: "Documents", icon: FileText, detail: "PDFs · served from the Cloudflare PDF CDN" },
+    { label: "Documents", icon: FileText, detail: "PDFs · served from S3 / Tigris" },
   ];
 
   return (

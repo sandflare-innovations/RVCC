@@ -9,7 +9,7 @@ import {
 } from "@/lib/constants";
 
 /**
- * Cheap cookie-presence gate. Real auth is /auth/me via the admin-api worker.
+ * Cheap cookie-presence gate. Real auth is /auth/me via apps/api.
  * Also slides the browser cookie maxAge forward on every page navigation.
  */
 export default function proxy(request: NextRequest) {

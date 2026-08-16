@@ -1,23 +1,20 @@
-import { Inter } from "next/font/google";
-
 import type { Metadata } from "next";
 
 import "./globals.css";
 
-const vendorSans = Inter({ subsets: ["latin"], display: "swap", variable: "--font-enquire-sans" });
-
 export const metadata: Metadata = {
-  title: "RVCC Supplier Portal",
-  robots: { index: false, follow: false },
+  title: {
+    default: "RVCC | WHERE IDEAS ARE SHAPED TO REALITY",
+    template: "%s | RVCC",
+  },
+  description:
+    "A forward-thinking brand focused on engineering, design, and manufacturing. RVCC: Delivering precision and excellence in every project.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body
-        data-vendor
-        className={`${vendorSans.variable} font-enquire min-h-screen bg-zinc-50 antialiased`}
-      >
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+      <body className="font-primary relative min-h-full" suppressHydrationWarning>
         {children}
       </body>
     </html>

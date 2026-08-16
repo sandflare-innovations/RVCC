@@ -38,7 +38,10 @@ export async function POST(request: Request) {
 
     if (!res.ok || !data.token) {
       return NextResponse.json(
-        { error: data.error || "Incorrect email or password." },
+        {
+          error: data.error || "Incorrect email or password.",
+          outcome: (data as { outcome?: string }).outcome,
+        },
         { status: res.status }
       );
     }
