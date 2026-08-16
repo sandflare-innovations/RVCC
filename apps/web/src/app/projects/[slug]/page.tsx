@@ -1,8 +1,11 @@
-import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PROJECTS } from "@/data/projects/detailed";
-import { ProjectDetailClient } from "../ProjectDetailClient";
+
+import { Metadata } from "next";
+
 import { Footer } from "@/components/layout/Footer";
+import { PROJECTS } from "@/data/projects/detailed";
+
+import { ProjectDetailClient } from "../ProjectDetailClient";
 
 interface Props {
   params: Promise<{ slug: string }>;

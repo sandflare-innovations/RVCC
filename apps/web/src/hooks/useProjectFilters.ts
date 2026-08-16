@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+
 import { PROJECTS } from "../data/projects/detailed";
 
 export const useProjectFilters = () => {

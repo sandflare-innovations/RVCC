@@ -35,6 +35,6 @@ export const AboutClients = () => {
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-32 bg-gradient-to-l from-white/0 to-transparent" />
         </div>
       </div>
-    </section >
+    </section>
   );
 };

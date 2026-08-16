@@ -17,9 +17,7 @@ const LanguageContext = createContext({
 
 export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
   return (
-    <LanguageContext.Provider value={{ t: translations }}>
-      {children}
-    </LanguageContext.Provider>
+    <LanguageContext.Provider value={{ t: translations }}>{children}</LanguageContext.Provider>
   );
 };
 

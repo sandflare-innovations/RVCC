@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 
 export const NewsAndEvents = () => {
   return (
-    <section className="section-padding bg-zinc-50 overflow-hidden" id="news">
+    <section className="section-padding overflow-hidden bg-zinc-50" id="news">
       <div className="container mx-auto">
         {/* Consistent Section Header */}
         <motion.div
@@ -41,7 +41,7 @@ export const NewsAndEvents = () => {
         </motion.div>
 
         {/* Mobile Carousel / Desktop Grid */}
-        <div className="scroll-hide gap-4 flex flex-row items-stretch justify-start snap-x snap-mandatory overflow-x-auto overflow-y-hidden md:grid md:grid-cols-3 md:gap-content-gap md:overflow-visible">
+        <div className="scroll-hide md:gap-content-gap flex snap-x snap-mandatory flex-row items-stretch justify-start gap-4 overflow-x-auto overflow-y-hidden md:grid md:grid-cols-3 md:overflow-visible">
           {NEWS_DATA.map((item, index) => (
             <motion.div
               key={item.id}
