@@ -1,0 +1,127 @@
+RVCC PLATFORM: TECHNICAL & DESIGN DOCUMENTATION
+===============================================
+
+1. PROJECT MISSION & IDENTITY
+-----------------------------
+RVCC (Royal Vision Construction Company) is a premier architectural and engineering platform designed to showcase monumental projects across the Kingdom of Saudi Arabia. The platform's identity is defined by "Architectural Editorialism"—a design philosophy that combines high-fashion typography, technical blueprint aesthetics, and cinematic motion.
+
+
+2. PLATFORM SPECIALITIES
+------------------------
+What makes this platform a "Grade-A" digital asset:
+
+- Bespoke 3D Experiences: Unlike traditional websites, RVCC uses custom-rendered 3D models (Skyscrapers, Safety Helmets, and Books) that respond dynamically to user interaction, creating a high-end "Interactive Brand" feel.
+- High-Performance Motion: Every transition and scroll movement is engineered using Framer Motion to ensure smooth, cinematic movement without sacrificing page speed.
+- Professional Utility Tools: The platform includes enterprise-grade tools like a realistic 3D Flipbook PDF reader and an identity-verification career portal, moving beyond simple information display.
+- Speech Synthesis Branding: A unique audio-feedback system that announces partner names on hover, enhancing brand authority and accessibility.
+
+
+3. TECHNICAL CHALLENGES & SOLUTIONS
+-----------------------------------
+
+Challenge A: Performance vs. High Fidelity
+Problem: Large 3D models and complex animations can slow down a website's load time.
+Management: We implemented "Dynamic Code Splitting" and optimized 3D GLB textures. This ensures that heavy components are only loaded when they enter the user's view, maintaining a "Lightning Fast" initial load.
+
+Challenge B: Cross-Device Consistency
+Problem: Complex 3D sliders and "Angled" layouts often break on mobile screens or different browsers.
+Management: We developed a responsive "Slab-based" design system. By using mathematical viewport calculations, we ensured that even the most complex 3D carousels remain perfectly centered and usable on both mobile devices and large desktop monitors.
+
+Challenge C: Interactive Document Management
+Problem: Standard PDF viewers feel generic and disjointed from a premium brand.
+Management: We engineered a custom Flipbook Reader from scratch. We solved the problem of "dynamic page scaling" by creating a real-time viewport listener that adjusts the book's size based on the specific PDF's native dimensions.
+
+
+4. TECHNOLOGY STACK
+-------------------
+- Framework: Next.js 14+ (App Router) - Optimized for SEO and speed.
+- Styling: Tailwind CSS - Ensuring a pixel-perfect, responsive design.
+- Animations: Framer Motion - Driving the cinematic editorial rhythm.
+- 3D Rendering: Three.js & React Three Fiber - For industry-leading interactive models.
+- Document Management: React-PDF & React-Pageflip.
+- Icons: React Icons (Fi & Fa sets via @repo/ui).
+- Deployment: Turborepo Monorepo structure.
+
+
+5. CORE DESIGN STANDARDS
+------------------------
+
+Editorial Rhythm:
+- Standardized Spacing: Most sections utilize a uniform py-24 or py-32 padding to maintain professional breathing room.
+- Typography Scale: Large, bold headings ranging from 6xl to 10rem, often uppercase with tight tracking.
+- Branding Labels: Sections are introduced with a consistent label pattern: a small accent line and uppercase bold text with high letter-spacing.
+
+Architectural Elements:
+- Blueprint Grids: Subtle background patterns (60px x 60px) that evoke technical drawings.
+- Slab Layouts: "Architectural Slabs"—clean, bordered containers with sharp edges and subtle shadows.
+- Interactive 3D: Dynamic integration of 3D models (Skyscrapers, Safety Helmets, Books) that respond to scroll or mouse movement.
+
+
+6. PAGE & SECTION BREAKDOWN
+---------------------------
+
+A. Home Page (Cinematic Narrative)
+1. Hero: Multi-slide cinematic slider with high-res construction imagery and progress-driven animations.
+2. About Us: Scroll-triggered video interaction and word-by-word text reveals.
+3. Leaders: Dynamic hover-state profile cards for executive leadership.
+4. Services: Editorial grid showcasing core competencies with iconographic support.
+5. Major Project: Immersive full-screen project highlight with detailed "Slab" metrics.
+6. Our Works: Complex image slider with mouse-tracking transforms and radius-based scroll animations.
+7. CSR & News: Standardized cards for corporate social responsibility and media updates.
+
+B. About Page (Heritage & Excellence)
+1. About Hero: Scroll-driven 3D skyscraper animation using SkyscraperCanvas.
+2. Overview: High-fidelity text-and-image layout detailing the company's 2006 origin.
+3. Mission & Values: Interactive 3D cards for vision, mission, and core strengths.
+4. Journey (Timeline): Scroll-triggered milestones using useInView for dynamic entry.
+5. Divisions: Detailed breakdown of RVCC's corporate branches with high-end typography.
+6. Safety & Sustainability: Dedicated section focusing on "Zero Harm" and ecological responsibility.
+
+C. Projects Page (The Portfolio)
+1. Project Hero: Features an AngledSlider—a custom 3D slider that rotates project cards in a carousel.
+2. Project Filters: Search and category-based filtering (Commercial, Infrastructure, etc.).
+3. Project List: Cinematic cards featuring "Architectural Data Bars" (category and location).
+4. Project Metrics: Animated counters detailing 150+ delivered projects across 12 cities.
+
+D. Services Section (Specialized Solutions)
+1. Services Grid: Two-column layout with grayscale-to-color hover effects.
+2. Service Detail Pages:
+   - Detail Hero: Large-scale typography with icon overlays.
+   - Feature List: Bulleted technical capabilities in specialized bordered containers.
+   - Related Projects: Dynamic portfolio integration filtered by the specific service.
+
+E. Documents & Resources (The Knowledge Repository)
+1. Document Hero: 3D book representation that rotates on hover.
+2. Document List: Features password-protected downloads (Secure Access UI).
+3. Flipbook Reader: 
+   - Technical Implementation: Built with react-pageflip and react-pdf.
+   - Features: Realistic page-flip sounds, zoom controls, full-screen mode, and auto-play.
+   - Visual Index: A grid-based overview allowing users to jump to any page in a PDF.
+
+F. Careers (People & Culture)
+1. Career Hero: "Architect the Future" messaging with real-time open role counters.
+2. Career List: Advanced filtering for departments and roles.
+3. Application Flow: Modal-based application form with integrated Google ReCAPTCHA and PDF upload.
+
+G. Clients & Network
+1. Clients Hero: Uses 3DMarquee component for a floating, rotating wall of partner logos.
+2. Partner Grid: Interactive logo grid with professional voice announcement of client names on hover.
+
+H. Quality Management
+1. Quality Hero: 3D interactive Safety Helmet model using ThreeDCanvas.
+2. Content: Detailed ISO standards (9001, 14001, 18001) presented in a "Zero Harm" matrix.
+
+
+7. TECHNICAL COMPONENTS & UTILITIES
+-----------------------------------
+- 3D Marquee: Reusable component for infinite 3D floating image walls.
+- Angled Slider: High-performance CSS/Framer Motion component for 3D carousels.
+- Speech Synthesis Utility: Integrated voice announcements for accessibility and branding.
+- Logo Marquee: Infinite horizontal scrolling marquee for partner trust.
+
+
+8. MAINTENANCE & CONTENT STRATEGY
+---------------------------------
+- Data Providers: Content is centralized in @data/ for easy updates.
+- Asset Management: Assets should be optimized before inclusion to maintain performance.
+- Standardized Sections: New pages should inherit standard padding and heading structures.

@@ -15,6 +15,7 @@ import { createVendorSession } from "../vendor/auth";
 import {
   type Sql,
   cuid,
+  ensureDraftForEmail,
   hashSha256,
   loadBySession,
   loadRegistration,
@@ -161,6 +162,19 @@ function sessionFrom(request: Request): string | null {
   return request.headers.get("X-Enquire-Session");
 }
 
+/** Email-gate token (post-OTP) or legacy DB sessionToken. */
+async function resolveEnquireRegistration(sql: Sql, env: Env, request: Request) {
+  const token = sessionFrom(request);
+  if (!token) return null;
+
+  const byDb = await loadBySession(sql, token);
+  if (byDb) return byDb;
+
+  const email = readEmailGate(env, token);
+  if (!email) return null;
+  return ensureDraftForEmail(sql, email);
+}
+
 export async function handleOtpRequest(sql: Sql, env: Env, request: Request): Promise<Response> {
   const body = (await request.json()) as { email?: string };
   const email = body.email?.trim().toLowerCase();
@@ -293,17 +307,13 @@ export async function handleOtpVerify(sql: Sql, env: Env, request: Request): Pro
 }
 
 export async function handleDraftGet(sql: Sql, env: Env, request: Request): Promise<Response> {
-  const session = sessionFrom(request);
-  if (!session) return json(env, request, { error: "Not authenticated" }, 401);
-  const registration = await loadBySession(sql, session);
+  const registration = await resolveEnquireRegistration(sql, env, request);
   if (!registration) return json(env, request, { error: "Not authenticated" }, 401);
   return json(env, request, { registration });
 }
 
 export async function handleDraftPatch(sql: Sql, env: Env, request: Request): Promise<Response> {
-  const session = sessionFrom(request);
-  if (!session) return json(env, request, { error: "Not authenticated" }, 401);
-  const existing = await loadBySession(sql, session);
+  const existing = await resolveEnquireRegistration(sql, env, request);
   if (!existing) return json(env, request, { error: "Not authenticated" }, 401);
   if (existing.status !== "DRAFT") {
     return json(env, request, { error: "Registration already submitted" }, 400);
@@ -478,26 +488,48 @@ export async function handleSubmit(sql: Sql, env: Env, request: Request): Promis
     });
   }
 
-  const company = (body.company && typeof body.company === "object" ? body.company : {}) as Record<
-    string,
-    unknown
-  >;
-  const contacts = Array.isArray(body.contacts) ? (body.contacts as Record<string, unknown>[]) : [];
+  const draft =
+    existing?.status === "DRAFT" && existing.id
+      ? await loadRegistration(sql, String(existing.id))
+      : null;
+
+  const company = (
+    body.company && typeof body.company === "object"
+      ? body.company
+      : draft?.company && typeof draft.company === "object"
+        ? draft.company
+        : {}
+  ) as Record<string, unknown>;
+  const contacts = Array.isArray(body.contacts)
+    ? (body.contacts as Record<string, unknown>[])
+    : Array.isArray(draft?.contacts)
+      ? (draft.contacts as Record<string, unknown>[])
+      : [];
   const addresses = Array.isArray(body.addresses)
     ? (body.addresses as Record<string, unknown>[])
-    : [];
+    : Array.isArray(draft?.addresses)
+      ? (draft.addresses as Record<string, unknown>[])
+      : [];
   const classifications = Array.isArray(body.classifications)
     ? (body.classifications as Record<string, unknown>[])
-    : [];
+    : Array.isArray(draft?.classifications)
+      ? (draft.classifications as Record<string, unknown>[])
+      : [];
   const bankAccounts = Array.isArray(body.bankAccounts)
     ? (body.bankAccounts as Record<string, unknown>[])
-    : [];
+    : Array.isArray(draft?.bankAccounts)
+      ? (draft.bankAccounts as Record<string, unknown>[])
+      : [];
   const productCategories = Array.isArray(body.productCategories)
     ? (body.productCategories as string[])
-    : [];
+    : Array.isArray(draft?.productCategories)
+      ? (draft.productCategories as string[])
+      : [];
   const questionnaire = Array.isArray(body.questionnaire)
     ? (body.questionnaire as Record<string, unknown>[])
-    : [];
+    : Array.isArray(draft?.questionnaire)
+      ? (draft.questionnaire as Record<string, unknown>[])
+      : [];
 
   const errors: string[] = [];
   if (!String(company.legalName ?? "").trim()) errors.push("Company legal name is required");
@@ -518,9 +550,9 @@ export async function handleSubmit(sql: Sql, env: Env, request: Request): Promis
     referenceNumber = makeReferenceNumber();
   }
 
-  const id = existing?.status === "DRAFT" && existing.id ? String(existing.id) : cuid();
+  const id = draft?.id ? String(draft.id) : cuid();
 
-  if (existing?.status === "DRAFT" && existing.id) {
+  if (draft?.id) {
     await sql`
       UPDATE "SupplierRegistration"
       SET status = 'SUBMITTED',

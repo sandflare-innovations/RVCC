@@ -172,8 +172,10 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
     registrationId: vendor.registrationId,
   };
 
+  const requirements = await listOpenForVendor(sql, vendor.id);
+
   if (!vendor.registrationId) {
-    return json(env, request, { vendor: vendorPayload, registration: null });
+    return json(env, request, { vendor: vendorPayload, registration: null, requirements });
   }
 
   const [registration] = await sql`
@@ -200,7 +202,7 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
   `;
 
   if (!registration) {
-    return json(env, request, { vendor: vendorPayload, registration: null });
+    return json(env, request, { vendor: vendorPayload, registration: null, requirements });
   }
 
   return json(env, request, {
@@ -225,6 +227,7 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
           }
         : null,
     },
+    requirements,
   });
 }
 

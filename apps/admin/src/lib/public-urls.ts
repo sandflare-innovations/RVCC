@@ -11,17 +11,14 @@ function joinUrl(base: string | undefined, path: string): string {
   return `${b}${p}`;
 }
 
-/** Marketing + supplier portal share one public host after unification. */
+/** Marketing site — `NEXT_PUBLIC_SITE_URL`. */
 export function siteUrl(path = ""): string {
   return joinUrl(process.env.NEXT_PUBLIC_SITE_URL, path);
 }
 
-/** Same origin as siteUrl when SITE_URL and VENDOR_PORTAL_URL match. */
+/** Vendor portal — separate deploy (`apps/vendor`). */
 export function vendorPortalUrl(path = ""): string {
-  return joinUrl(
-    process.env.NEXT_PUBLIC_VENDOR_PORTAL_URL || process.env.NEXT_PUBLIC_SITE_URL,
-    path
-  );
+  return joinUrl(process.env.NEXT_PUBLIC_VENDOR_PORTAL_URL, path);
 }
 
 /** Admin portal — `NEXT_PUBLIC_ADMIN_PORTAL_URL` (prod: rvcc-admin / local: :3001). */
@@ -30,5 +27,5 @@ export function adminPortalUrl(path = ""): string {
 }
 
 export function enquireVerifyUrl(): string {
-  return vendorPortalUrl("/register/verify");
+  return siteUrl("/enquire/verify");
 }

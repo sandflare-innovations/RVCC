@@ -690,7 +690,7 @@ export async function handleRequirementAward(
         ${cuid()}, ${winnerRow.vendorUserId}, 'QUOTE_AWARDED',
         ${"You won " + String(requirement.project)},
         ${"RVCC awarded this work to your quote."},
-        ${"/portal/requirements/" + id},
+        ${"/requirements/" + id},
         NOW()
       )
     `;
@@ -718,7 +718,7 @@ export async function handleRequirementAward(
     recipients: [described.winner.vendorEmail],
     project: String(requirement.project),
     referenceNumber: String(requirement.referenceNumber ?? ""),
-    portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/portal/requirements/${id}`,
+    portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/requirements/${id}`,
   });
 
   await writeAudit(sql, {
@@ -885,7 +885,7 @@ export async function handleRequirementCreate(
       scopeOfWork: input.scopeOfWork,
       referenceNumber: referenceNumber ?? "",
       closesAt: input.closesAt.toISOString(),
-      portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/portal/requirements/${id}`,
+      portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/requirements/${id}`,
     });
 
     if (outcome.attempted) {

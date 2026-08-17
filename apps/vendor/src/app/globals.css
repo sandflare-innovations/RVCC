@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-blue: #0073bc;
+  --color-brand-black: #000000;
+  --color-brand-white: #ffffff;
+  --color-brand-grey: #a6a6a6;
+}
+
+@utility font-enquire {
+  font-family: var(--font-enquire-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  min-height: 100%;
+}
