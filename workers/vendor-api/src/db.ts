@@ -4,17 +4,28 @@ import type { Env } from "./cors";
 
 export type Sql = ReturnType<typeof postgres>;
 
+// Worker isolates serve many requests. Keeping one client per database URL lets
+// postgres/Hyperdrive retain its connections instead of paying a new connection
+// setup cost on every authenticated portal request.
+const clients = new Map<string, Sql>();
+
 export function createSql(env: Env): Sql {
   const connectionString = env.HYPERDRIVE?.connectionString || env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("Missing HYPERDRIVE or DATABASE_URL on vendor Worker");
   }
-  return postgres(connectionString, {
+
+  const cached = clients.get(connectionString);
+  if (cached) return cached;
+
+  const client = postgres(connectionString, {
     max: 5,
     idle_timeout: 20,
     connect_timeout: 10,
     prepare: false,
   });
+  clients.set(connectionString, client);
+  return client;
 }
 
 export function cuid(): string {

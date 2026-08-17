@@ -157,12 +157,6 @@ export default {
     } catch (err) {
       console.error("[admin-api]", err);
       return json(env, request, { error: "Internal error" }, 500);
-    } finally {
-      try {
-        await sql.end({ timeout: 2 });
-      } catch {
-        /* ignore */
-      }
     }
   },
 } satisfies ExportedHandler<Env>;
