@@ -23,9 +23,10 @@ const INPUT =
 const LABEL = "text-xs font-bold tracking-[0.14em] text-zinc-600 uppercase";
 
 /**
- * Rendered by both apps/vendor and apps/agent. The only difference between them
- * is `action`, the portal's own BFF path — the price and remarks a participant
- * sees are always and only their own, because the API never sends anyone else's.
+ * The supplier's quote form. `action` is the portal's BFF path, so the form
+ * itself never decides whose quote it is showing — the price and remarks it
+ * renders are always and only the caller's own, because the API never sends
+ * anyone else's.
  *
  * There is no selling price here because the API does not return one.
  */
