@@ -2,9 +2,9 @@ import Link from "next/link";
 
 import type { RegistrationStatus } from "@prisma/client";
 
-import { StatusBadge } from "@repo/ui";
+import { pageCount, pageWindow, parsePage } from "@repo/rfq";
+import { Pagination, StatusBadge } from "@repo/ui";
 
-import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
 import { hasRole } from "@/lib/constants";
 import { prisma } from "@/lib/db";
 import { getAdminFromSession } from "@/lib/session";
@@ -33,77 +33,56 @@ function formatDate(d: Date | null) {
 export default async function RegistrationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; page?: string }>;
 }) {
-  const { status, q } = await searchParams;
+  const { status, q, page: rawPage } = await searchParams;
   // Default to the queue that actually needs action.
   const active = status && (VALID.has(status) || status === "ALL") ? status : "SUBMITTED";
   const search = (q ?? "").trim();
+  const page = parsePage(rawPage);
 
-  const [registrations, admin] = await Promise.all([
+  const where = {
+    ...(active === "ALL" ? {} : { status: active as RegistrationStatus }),
+    ...(search
+      ? {
+          OR: [
+            { email: { contains: search, mode: "insensitive" as const } },
+            { referenceNumber: { contains: search, mode: "insensitive" as const } },
+            { company: { legalName: { contains: search, mode: "insensitive" as const } } },
+          ],
+        }
+      : {}),
+  };
+
+  const [total, registrations, admin] = await Promise.all([
+    prisma.supplierRegistration.count({ where }),
     prisma.supplierRegistration.findMany({
-      where: {
-        ...(active === "ALL" ? {} : { status: active as RegistrationStatus }),
-        ...(search
-          ? {
-              OR: [
-                { email: { contains: search, mode: "insensitive" as const } },
-                { referenceNumber: { contains: search, mode: "insensitive" as const } },
-                { company: { legalName: { contains: search, mode: "insensitive" as const } } },
-              ],
-            }
-          : {}),
-      },
-      include: {
-        company: {
-          select: {
-            legalName: true,
-            dbaName: true,
-            country: true,
-            organizationType: true,
-            supplierType: true,
-            website: true,
-            yearEstablished: true,
-            dunsNumber: true,
-            description: true,
-            taxIdentifiers: true,
-          },
+      where,
+      // Only what the table paints. Contacts, addresses, classifications and
+      // bank accounts belong to the detail page, which already loads them.
+      select: {
+        id: true,
+        referenceNumber: true,
+        status: true,
+        email: true,
+        submittedAt: true,
+        updatedAt: true,
+        company: { select: { legalName: true, country: true } },
+        // Aggregates only, over 25 rows — not the up-to-8 nested records each
+        // over 100 rows this replaced. The delete confirmation names exactly
+        // what it destroys; a vague warning on an irreversible action is
+        // worse than a specific one.
+        _count: {
+          select: { contacts: true, addresses: true, bankAccounts: true, vendorUsers: true },
         },
-        contacts: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
-            jobTitle: true,
-            phone: true,
-            mobile: true,
-            requestUserAccount: true,
-          },
-          orderBy: { sortOrder: "asc" },
-          take: 8,
-        },
-        addresses: {
-          select: {
-            label: true,
-            line1: true,
-            line2: true,
-            city: true,
-            region: true,
-            postalCode: true,
-            country: true,
-            purposes: true,
-          },
-          orderBy: { sortOrder: "asc" },
-          take: 8,
-        },
-        vendorUsers: { select: { email: true } },
-        _count: { select: { bankAccounts: true } },
       },
       orderBy: [{ submittedAt: "desc" }, { updatedAt: "desc" }],
-      take: 100,
+      ...pageWindow(page),
     }),
     getAdminFromSession(),
   ]);
+
+  const pages = pageCount(total);
 
   // Deleting destroys commercial records, so it is SUPER_ADMIN only.
   const canDelete = Boolean(admin && hasRole(admin.role, "SUPER_ADMIN"));
@@ -115,40 +94,11 @@ export default async function RegistrationsPage({
     status: r.status,
     referenceNumber: r.referenceNumber,
     submittedAt: r.submittedAt ? formatDate(r.submittedAt) : null,
-    createdAt: formatDate(r.createdAt),
-    company: r.company
-      ? {
-          legalName: r.company.legalName,
-          dbaName: r.company.dbaName,
-          country: r.company.country,
-          organizationType: r.company.organizationType,
-          supplierType: r.company.supplierType,
-          website: r.company.website,
-          yearEstablished: r.company.yearEstablished,
-          dunsNumber: r.company.dunsNumber,
-          description: r.company.description,
-          tax: (r.company.taxIdentifiers ?? {}) as Record<string, string>,
-        }
-      : null,
-    contacts: r.contacts.map((c) => ({
-      name: `${c.firstName} ${c.lastName}`.trim(),
-      email: c.email,
-      jobTitle: c.jobTitle,
-      phone: c.phone || c.mobile,
-      wantsLogin: c.requestUserAccount,
-    })),
-    addresses: r.addresses.map((a) => ({
-      label: a.label,
-      full: [a.line1, a.line2, a.city, a.region, a.postalCode, a.country]
-        .filter(Boolean)
-        .join(", "),
-      purposes: a.purposes.join(", "),
-    })),
+    company: r.company ? { legalName: r.company.legalName, country: r.company.country } : null,
+    contactCount: r._count.contacts,
+    addressCount: r._count.addresses,
     bankAccountCount: r._count.bankAccounts,
-    categories: r.productCategories
-      .map((cid) => ENQUIRE_CATEGORIES.find((c) => c.id === cid)?.label ?? cid)
-      .join(", "),
-    vendorAccounts: r.vendorUsers.map((v) => v.email),
+    vendorAccountCount: r._count.vendorUsers,
   });
 
   return (
@@ -246,11 +196,19 @@ export default async function RegistrationsPage({
         </table>
       </div>
 
-      {registrations.length === 100 && (
-        <p className="text-xs text-zinc-500">
-          Showing the first 100 results — narrow the search to see more.
-        </p>
-      )}
+      <Pagination
+        page={page}
+        pages={pages}
+        total={total}
+        noun="registrations"
+        href={(n) => {
+          const p = new URLSearchParams();
+          if (status) p.set("status", status);
+          if (q) p.set("q", q);
+          p.set("page", String(n));
+          return `/registrations?${p.toString()}`;
+        }}
+      />
     </div>
   );
 }

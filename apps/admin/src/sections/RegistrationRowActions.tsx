@@ -5,9 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { AlertCircle, ExternalLink, Eye, Trash2 } from "lucide-react";
-
-import { StatusBadge } from "@repo/ui";
+import { AlertCircle, Eye, Trash2 } from "lucide-react";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
@@ -18,34 +16,12 @@ export type RegistrationSummary = {
   status: string;
   referenceNumber: string | null;
   submittedAt: string | null;
-  createdAt: string;
-  company: {
-    legalName: string;
-    dbaName: string;
-    country: string;
-    organizationType: string;
-    supplierType: string;
-    website: string;
-    yearEstablished: string;
-    dunsNumber: string;
-    description: string;
-    tax: Record<string, string>;
-  } | null;
-  contacts: { name: string; email: string; jobTitle: string; phone: string; wantsLogin: boolean }[];
-  addresses: { label: string; full: string; purposes: string }[];
+  company: { legalName: string; country: string } | null;
+  contactCount: number;
+  addressCount: number;
   bankAccountCount: number;
-  categories: string;
-  vendorAccounts: string[];
+  vendorAccountCount: number;
 };
-
-function Row({ label, value }: { label: string; value?: string | null }) {
-  return (
-    <div className="grid grid-cols-[minmax(120px,180px)_1fr] gap-3 border-b border-zinc-100 py-1.5 last:border-0">
-      <dt className="text-sm text-zinc-600">{label}</dt>
-      <dd className="text-sm break-words text-zinc-950">{value?.trim() || "—"}</dd>
-    </div>
-  );
-}
 
 export function RegistrationRowActions({
   registration,
@@ -55,7 +31,6 @@ export function RegistrationRowActions({
   canDelete: boolean;
 }) {
   const router = useRouter();
-  const [showDetails, setShowDetails] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -90,15 +65,14 @@ export function RegistrationRowActions({
   return (
     <>
       <div className="flex items-center justify-end gap-1">
-        <button
-          type="button"
-          onClick={() => setShowDetails(true)}
+        <Link
+          href={`/registrations/${r.id}`}
           aria-label={`View details for ${label}`}
           className="hover:text-brand-blue rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
           title="View details"
         >
           <Eye className="h-4 w-4" />
-        </button>
+        </Link>
         {canDelete && (
           <button
             type="button"
@@ -115,112 +89,6 @@ export function RegistrationRowActions({
           </button>
         )}
       </div>
-
-      <Modal
-        open={showDetails}
-        onClose={() => setShowDetails(false)}
-        title={label}
-        description={[r.email, r.referenceNumber].filter(Boolean).join(" · ")}
-        size="lg"
-        footer={
-          <Link
-            href={`/registrations/${r.id}`}
-            className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-semibold text-white transition-colors"
-          >
-            Open full record
-            <ExternalLink className="h-4 w-4" />
-          </Link>
-        }
-      >
-        <div className="space-y-5">
-          <div className="flex items-center gap-2">
-            <StatusBadge status={r.status} />
-            <span className="text-xs text-zinc-500">
-              {r.submittedAt ? `Submitted ${r.submittedAt}` : `Started ${r.createdAt}`}
-            </span>
-          </div>
-
-          <section>
-            <h3 className="mb-1.5 text-xs font-bold tracking-[0.12em] text-zinc-600 uppercase">
-              Company
-            </h3>
-            <dl>
-              <Row label="Legal name" value={r.company?.legalName} />
-              <Row label="Trading name" value={r.company?.dbaName} />
-              <Row label="Country" value={r.company?.country} />
-              <Row label="Organization" value={r.company?.organizationType} />
-              <Row label="Supplier type" value={r.company?.supplierType} />
-              <Row label="Established" value={r.company?.yearEstablished} />
-              <Row label="Website" value={r.company?.website} />
-              <Row label="VAT" value={r.company?.tax.vat} />
-              <Row label="CR" value={r.company?.tax.cr} />
-              <Row label="D-U-N-S" value={r.company?.dunsNumber} />
-              <Row label="Description" value={r.company?.description} />
-            </dl>
-          </section>
-
-          <section>
-            <h3 className="mb-1.5 text-xs font-bold tracking-[0.12em] text-zinc-600 uppercase">
-              Contacts ({r.contacts.length})
-            </h3>
-            {r.contacts.length === 0 ? (
-              <p className="text-sm text-zinc-600">None provided.</p>
-            ) : (
-              <ul className="space-y-2">
-                {r.contacts.map((c, i) => (
-                  <li key={i} className="rounded-md border border-zinc-100 px-3 py-2 text-sm">
-                    <p className="font-medium text-zinc-950">{c.name || "—"}</p>
-                    <p className="text-zinc-600">
-                      {[c.jobTitle, c.email, c.phone].filter(Boolean).join(" · ") || "—"}
-                    </p>
-                    {c.wantsLogin && (
-                      <p className="text-brand-blue mt-0.5 text-xs font-semibold">
-                        Requested portal login
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section>
-            <h3 className="mb-1.5 text-xs font-bold tracking-[0.12em] text-zinc-600 uppercase">
-              Addresses ({r.addresses.length})
-            </h3>
-            {r.addresses.length === 0 ? (
-              <p className="text-sm text-zinc-600">None provided.</p>
-            ) : (
-              <ul className="space-y-2">
-                {r.addresses.map((a, i) => (
-                  <li key={i} className="rounded-md border border-zinc-100 px-3 py-2 text-sm">
-                    <p className="text-zinc-950">{a.full || "—"}</p>
-                    {a.purposes && <p className="text-xs text-zinc-600">{a.purposes}</p>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section>
-            <h3 className="mb-1.5 text-xs font-bold tracking-[0.12em] text-zinc-600 uppercase">
-              Other
-            </h3>
-            <dl>
-              <Row label="Products & services" value={r.categories} />
-              <Row
-                label="Bank accounts"
-                value={
-                  r.bankAccountCount
-                    ? `${r.bankAccountCount} on file — open full record to view`
-                    : "None"
-                }
-              />
-              <Row label="Portal accounts" value={r.vendorAccounts.join(", ")} />
-            </dl>
-          </section>
-        </div>
-      </Modal>
 
       <Modal
         open={showDelete}
@@ -262,15 +130,14 @@ export function RegistrationRowActions({
 
           <p className="text-sm text-zinc-700">
             Deleting <strong className="text-zinc-950">{label}</strong> also removes its company
-            profile, {r.contacts.length} contact{r.contacts.length === 1 ? "" : "s"},{" "}
-            {r.addresses.length} address{r.addresses.length === 1 ? "" : "es"}, {r.bankAccountCount}{" "}
-            bank account{r.bankAccountCount === 1 ? "" : "s"}, questionnaire answers, attachments
-            {r.vendorAccounts.length > 0 && (
+            profile, {r.contactCount} contact{r.contactCount === 1 ? "" : "s"}, {r.addressCount}{" "}
+            address{r.addressCount === 1 ? "" : "es"}, {r.bankAccountCount} bank account
+            {r.bankAccountCount === 1 ? "" : "s"}, questionnaire answers, attachments
+            {r.vendorAccountCount > 0 && (
               <>
                 {" "}
-                and{" "}
-                <strong className="text-zinc-950">{r.vendorAccounts.length} portal login</strong>
-                {r.vendorAccounts.length === 1 ? "" : "s"}
+                and <strong className="text-zinc-950">{r.vendorAccountCount} portal login</strong>
+                {r.vendorAccountCount === 1 ? "" : "s"}
               </>
             )}
             .
