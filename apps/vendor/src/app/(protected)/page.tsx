@@ -1,116 +1,110 @@
+import { cookies } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { StatusBadge } from "@repo/ui";
+import { type VendorRequirementRow, summariseVendorDashboard } from "@repo/rfq";
+import { KpiCard, StatusBadge } from "@repo/ui";
 
-import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
-import { prisma } from "@/lib/db";
+import { VENDOR_COOKIE } from "@/lib/constants";
 import { getVendorFromSession } from "@/lib/session";
+import { vendorWorkerFetch } from "@/lib/vendor-api";
+import { OverviewNextActions } from "@/sections/OverviewNextActions";
 
 export const dynamic = "force-dynamic";
 
-function Row({ label, value }: { label: string; value?: string | null }) {
-  return (
-    <div className="grid grid-cols-[minmax(140px,220px)_1fr] gap-3 border-b border-zinc-100 py-2 last:border-0">
-      <dt className="text-sm text-zinc-600">{label}</dt>
-      <dd className="text-sm break-words text-zinc-950">{value?.trim() || "—"}</dd>
-    </div>
-  );
-}
+type DashboardPayload = {
+  registration: {
+    status: string;
+    referenceNumber: string | null;
+    submittedAt: string | null;
+    email: string;
+    businessRelationship: string;
+    productCategories: string[];
+    company: {
+      legalName: string;
+      dbaName: string;
+      country: string;
+      organizationType: string;
+      website: string;
+    } | null;
+  } | null;
+  requirements: VendorRequirementRow[];
+};
 
-export default async function VendorDashboard() {
+export default async function VendorOverview() {
   // Session already gated in layout. Cache hits here.
   const vendor = await getVendorFromSession();
   if (!vendor) return null;
   // Safety if x-pathname header was unavailable in layout.
   if (vendor.mustChangePassword) redirect("/password");
 
-  // Admin-created vendors have no registration to show. Skip the query entirely
-  // rather than passing null into findUnique, which throws. Bound to a local so
-  // the null check narrows the type inside the query.
-  const registrationId = vendor.registrationId;
-  const registration = registrationId
-    ? await prisma.supplierRegistration.findUnique({
-        where: { id: registrationId },
-        select: {
-          email: true,
-          status: true,
-          referenceNumber: true,
-          submittedAt: true,
-          businessRelationship: true,
-          productCategories: true,
-          company: {
-            select: {
-              legalName: true,
-              dbaName: true,
-              country: true,
-              organizationType: true,
-              website: true,
-            },
-          },
-        },
-      })
-    : null;
+  const token = (await cookies()).get(VENDOR_COOKIE)?.value;
 
-  if (!registration) {
-    return (
-      <p className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
-        {registrationId
-          ? "We could not find your registration. Please contact RVCC procurement."
-          : // Account created directly by RVCC — there is no registration to show,
-            // and telling them one is "missing" would send them chasing support.
-            "Your account was set up by RVCC, so there is no registration form to show here."}
-      </p>
-    );
+  let payload: DashboardPayload = { registration: null, requirements: [] };
+  try {
+    const res = await vendorWorkerFetch("/dashboard", { method: "GET", sessionToken: token });
+    if (res.ok) payload = (await res.json()) as DashboardPayload;
+  } catch (err) {
+    // A failed overview must still render a usable page with working links.
+    console.error("[vendor] dashboard fetch failed", err);
   }
 
-  const categories = registration.productCategories
-    .map((cid) => ENQUIRE_CATEGORIES.find((c) => c.id === cid)?.label ?? cid)
-    .join(", ");
+  const { counts, nextActions } = summariseVendorDashboard({ requirements: payload.requirements });
+  const companyName = payload.registration?.company?.legalName;
+
+  const kpis = [
+    { label: "Open invitations", value: counts.open },
+    { label: "Due in 48h", value: counts.dueSoon },
+    { label: "Submitted", value: counts.submitted },
+    { label: "Drafts", value: counts.drafts },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">
-          {registration.company?.legalName || "Your registration"}
-        </h1>
-        <StatusBadge status={registration.status} />
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">
+            {companyName || vendor.name || vendor.email}
+          </h1>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-zinc-600">
+            {payload.registration ? (
+              <>
+                <StatusBadge status={payload.registration.status} />
+                {payload.registration.referenceNumber ? (
+                  <span className="font-mono text-xs tabular-nums">
+                    {payload.registration.referenceNumber}
+                  </span>
+                ) : null}
+              </>
+            ) : (
+              <span>Account set up by RVCC</span>
+            )}
+          </div>
+        </div>
+        <Link
+          href="/requirements"
+          className="bg-brand-blue focus-visible:ring-brand-blue inline-flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+        >
+          View requirements
+        </Link>
       </div>
 
-      <section className="rounded-lg border border-zinc-200 bg-white p-5">
-        <h2 className="mb-3 text-xs font-bold tracking-[0.12em] text-zinc-600 uppercase">
-          Registration
-        </h2>
-        <dl>
-          <Row label="Reference" value={registration.referenceNumber} />
-          <Row
-            label="Submitted"
-            value={registration.submittedAt?.toLocaleDateString("en-GB") ?? null}
-          />
-          <Row
-            label="Relationship"
-            value={registration.businessRelationship.replace("_", " ").toLowerCase()}
-          />
-          <Row label="Contact email" value={registration.email} />
-        </dl>
-      </section>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {kpis.map((kpi) => (
+          <KpiCard key={kpi.label} label={kpi.label} value={kpi.value} />
+        ))}
+      </div>
 
-      <section className="rounded-lg border border-zinc-200 bg-white p-5">
-        <h2 className="mb-3 text-xs font-bold tracking-[0.12em] text-zinc-600 uppercase">
-          Company
+      <section>
+        <h2 className="mb-3 text-sm font-semibold tracking-[0.12em] text-zinc-600 uppercase">
+          Your next actions
         </h2>
-        <dl>
-          <Row label="Legal name" value={registration.company?.legalName} />
-          <Row label="Trading name" value={registration.company?.dbaName} />
-          <Row label="Country" value={registration.company?.country} />
-          <Row label="Organization type" value={registration.company?.organizationType} />
-          <Row label="Website" value={registration.company?.website} />
-          <Row label="Products & services" value={categories} />
-        </dl>
+        <OverviewNextActions actions={nextActions} />
       </section>
 
       <p className="text-sm text-zinc-600">
-        To correct any of the details above, contact RVCC procurement — editing from the portal is
-        not yet available.
+        To correct your company details, contact RVCC procurement. Editing from the portal is not
+        yet available.
       </p>
     </div>
   );

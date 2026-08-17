@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-import { KeyRound, LayoutDashboard, LogOut } from "lucide-react";
+import { ClipboardList, KeyRound, LayoutDashboard, LogOut } from "lucide-react";
 
 import type { VendorIdentity } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ import { NotificationBell } from "@/sections/NotificationBell";
 
 const NAV = [
   { href: "/", label: "Overview", icon: LayoutDashboard, exact: true },
+  { href: "/requirements", label: "Requirements", icon: ClipboardList },
   { href: "/password", label: "Password", icon: KeyRound },
 ];
 
@@ -72,7 +73,7 @@ export function VendorChrome({
                 prefetch
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors",
+                  "focus-visible:ring-brand-blue inline-flex min-h-11 items-center gap-2 rounded-md px-4 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none",
                   active
                     ? "bg-brand-blue text-white"
                     : "border border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"

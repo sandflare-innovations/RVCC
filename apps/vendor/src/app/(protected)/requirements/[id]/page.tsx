@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 
+import { describeDeadline } from "@repo/rfq";
 import { QuoteForm, type QuoteFormRequirement } from "@repo/rfq/quote-form";
 
 import { VENDOR_COOKIE } from "@/lib/constants";
@@ -34,6 +35,13 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
   }
 
   const closed = new Date(detail.closesAt).getTime() <= Date.now() || detail.status !== "OPEN";
+  const deadline = describeDeadline(detail.closesAt);
+  const submitted = detail.quoteStatus === "SUBMITTED";
+  const quoteState = submitted
+    ? "Submitted"
+    : detail.quoteStatus === "DRAFT"
+      ? "Draft saved, not submitted"
+      : "Not started";
 
   return (
     <div className="space-y-6">
@@ -43,6 +51,34 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
           {detail.project}
         </h1>
         <p className="mt-3 text-sm whitespace-pre-wrap text-zinc-700">{detail.scopeOfWork}</p>
+      </div>
+
+      <div
+        className={`rounded-lg border border-zinc-200 bg-white p-4 ${
+          deadline.urgent && !submitted && !closed ? "border-l-brand-blue border-l-4" : ""
+        }`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold tracking-[0.12em] text-zinc-600 uppercase">
+              {closed ? "Closed" : "Closes"}
+            </p>
+            <p className="mt-1 text-lg font-semibold text-zinc-950 tabular-nums">
+              {closed ? "This requirement has closed" : deadline.label}
+            </p>
+          </div>
+          <div className="text-left sm:text-right">
+            <p className="text-xs font-semibold tracking-[0.12em] text-zinc-600 uppercase">
+              Your quote
+            </p>
+            <p className="mt-1 text-sm font-semibold text-zinc-950">{quoteState}</p>
+          </div>
+        </div>
+        {deadline.urgent && !submitted && !closed ? (
+          <p className="mt-3 text-sm font-semibold text-zinc-950">
+            Closing soon. Submit your price before the deadline.
+          </p>
+        ) : null}
       </div>
 
       {closed ? (

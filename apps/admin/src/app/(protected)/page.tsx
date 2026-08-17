@@ -1,96 +1,94 @@
+import { Suspense } from "react";
+
 import Link from "next/link";
 
-import { prisma } from "@/lib/db";
+import { SkeletonCard, SkeletonRow } from "@repo/ui";
+
+import { DashboardActivity } from "@/sections/DashboardActivity";
+import { DashboardKpis } from "@/sections/DashboardKpis";
+import { DashboardQueue } from "@/sections/DashboardQueue";
 
 export const dynamic = "force-dynamic";
 
-const CARDS = [
-  { key: "SUBMITTED", label: "Awaiting review", href: "/registrations?status=SUBMITTED" },
-  { key: "APPROVED", label: "Approved", href: "/registrations?status=APPROVED" },
-  { key: "REJECTED", label: "Rejected", href: "/registrations?status=REJECTED" },
-  { key: "DRAFT", label: "In progress", href: "/registrations?status=DRAFT" },
-] as const;
-
-export default async function AdminDashboard() {
-  const now = new Date();
-  const in48h = new Date(Date.now() + 48 * 3_600_000);
-
-  const [grouped, activeVendors, openCount, closingSoon, awaitingAward] = await Promise.all([
-    prisma.supplierRegistration.groupBy({ by: ["status"], _count: { _all: true } }),
-    prisma.vendorUser.count({ where: { isActive: true } }),
-    prisma.requirement.count({ where: { status: "OPEN", closesAt: { gt: now } } }),
-    prisma.requirement.count({
-      where: { status: "OPEN", closesAt: { gt: now, lte: in48h } },
-    }),
-    // Closed but not yet awarded — the number that represents work waiting on
-    // staff rather than on suppliers.
-    prisma.requirement.count({ where: { status: "OPEN", closesAt: { lte: now } } }),
-  ]);
-
-  const counts = Object.fromEntries(grouped.map((g) => [g.status, g._count._all]));
-
-  const headline = [
-    { label: "Active suppliers", value: activeVendors, href: "/vendors" },
-    { label: "Open requirements", value: openCount, href: "/requirements" },
-    { label: "Closing in 48h", value: closingSoon, href: "/requirements" },
-    { label: "Awaiting award", value: awaitingAward, href: "/requirements" },
-  ];
-
+export default function AdminDashboard() {
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">Dashboard</h1>
-        <p className="mt-1 text-sm text-zinc-600">Sourcing activity and vendor registrations.</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">Dashboard</h1>
+          <p className="mt-1 text-sm text-zinc-600">Sourcing activity and vendor registrations.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/requirements"
+            className="bg-brand-blue focus-visible:ring-brand-blue inline-flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            Create requirement
+          </Link>
+          <Link
+            href="/vendors"
+            className="focus-visible:ring-brand-blue inline-flex min-h-11 items-center rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 focus-visible:ring-2 focus-visible:outline-none"
+          >
+            Add vendor
+          </Link>
+        </div>
       </div>
 
+      <Suspense
+        fallback={
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {Array.from({ length: 8 }, (_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        }
+      >
+        <DashboardKpis />
+      </Suspense>
+
       <section>
-        <div className="mb-3 flex items-center justify-between">
+        <h2 className="mb-3 text-sm font-semibold tracking-[0.12em] text-zinc-600 uppercase">
+          Priority work
+        </h2>
+        <Suspense
+          fallback={
+            <div className="grid gap-4 lg:grid-cols-3">
+              {Array.from({ length: 3 }, (_, i) => (
+                <div key={i} className="rounded-lg border border-zinc-200 bg-white p-4">
+                  <SkeletonRow />
+                  <SkeletonRow />
+                </div>
+              ))}
+            </div>
+          }
+        >
+          <DashboardQueue />
+        </Suspense>
+      </section>
+
+      <section>
+        <div className="mb-3 flex items-baseline justify-between gap-3">
           <h2 className="text-sm font-semibold tracking-[0.12em] text-zinc-600 uppercase">
-            Sourcing
+            Recent activity
           </h2>
           <Link
             href="/vendors/performance"
-            className="text-brand-blue focus-visible:ring-brand-blue inline-flex min-h-11 items-center px-2 text-sm font-semibold underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+            className="text-brand-blue text-sm font-semibold underline-offset-2 hover:underline"
           >
             Supplier performance
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {headline.map((c) => (
-            <Link
-              key={c.label}
-              href={c.href}
-              className="hover:border-brand-blue rounded-lg border border-zinc-200 bg-white p-5 transition-colors"
-            >
-              <p className="text-xs font-semibold tracking-[0.12em] text-zinc-600 uppercase">
-                {c.label}
-              </p>
-              <p className="mt-2 text-3xl font-semibold text-zinc-950 tabular-nums">{c.value}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-sm font-semibold tracking-[0.12em] text-zinc-600 uppercase">
-          Registrations
-        </h2>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {CARDS.map((c) => (
-            <Link
-              key={c.key}
-              href={c.href}
-              className="hover:border-brand-blue rounded-lg border border-zinc-200 bg-white p-5 transition-colors"
-            >
-              <p className="text-xs font-semibold tracking-[0.12em] text-zinc-600 uppercase">
-                {c.label}
-              </p>
-              <p className="mt-2 text-3xl font-semibold text-zinc-950 tabular-nums">
-                {counts[c.key] ?? 0}
-              </p>
-            </Link>
-          ))}
-        </div>
+        <Suspense
+          fallback={
+            <div className="rounded-lg border border-zinc-200 bg-white">
+              {Array.from({ length: 5 }, (_, i) => (
+                <SkeletonRow key={i} />
+              ))}
+            </div>
+          }
+        >
+          <DashboardActivity />
+        </Suspense>
       </section>
     </div>
   );
