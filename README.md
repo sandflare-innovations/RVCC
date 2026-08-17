@@ -1,4 +1,4 @@
-# RVCC Monorepo - CI CD
+# RVCC Monorepo
 
 Industrial construction portal — Turborepo + Next.js + Cloudflare API.
 
