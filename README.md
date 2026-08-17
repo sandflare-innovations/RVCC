@@ -41,6 +41,19 @@ cd apps/vendor && npm ci && npm run dev       # :3002
 
 Cloudflare Pages: one project per frontend (`apps/web`, `apps/vendor`, `apps/admin`).
 
+**Vercel (web or admin):** set **Root Directory** to `apps/web` (or `apps/admin`). Required env on the web project:
+
+```env
+API_URL=https://rvcc-api.rvcc.workers.dev
+DOC_PASSWORD=your-4-digit-pin
+NEXT_PUBLIC_SITE_URL=https://your-web.vercel.app
+NEXT_PUBLIC_VENDOR_PORTAL_URL=https://your-vendor-host
+NEXT_PUBLIC_ADMIN_PORTAL_URL=https://your-admin-host
+NEXT_PUBLIC_PDF_CDN_URL=https://pub-7f8ca337d3ac4e7f9f6ed54470da92a0.r2.dev
+```
+
+After deploy, open `/api/enquire/health` — it should report `apiReachable: true`. Enquire UI lives at `/enquire/verify` (legacy `/register` redirects there).
+
 Cloudflare Workers Builds: **Root directory** `apps/api`, install `npm ci`. Deploy with `npm run deploy` from `apps/api`.
 
 PDFs and video are on Cloudflare R2 (not in this repo).

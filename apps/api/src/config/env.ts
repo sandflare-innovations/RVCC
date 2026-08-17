@@ -27,7 +27,7 @@ export function loadEnv(): AppEnv {
     DATABASE_URL: required("DATABASE_URL"),
     ALLOWED_ORIGINS:
       process.env.ALLOWED_ORIGINS?.trim() ||
-      "https://rvcc-prod.pages.dev,https://rvcc-vendor.pages.dev,https://rvcc-admin.pages.dev,http://localhost:3000,http://localhost:3001,http://localhost:3002",
+      "https://rvcc-prod.pages.dev,https://rvcc-vendor.pages.dev,https://rvcc-admin.pages.dev,https://rvcc-prod.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002",
     VENDOR_PORTAL_URL: (
       process.env.VENDOR_PORTAL_URL || "https://rvcc-vendor.pages.dev"
     ).replace(/\/$/, ""),
