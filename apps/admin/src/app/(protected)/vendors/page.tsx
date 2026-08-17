@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { StatusBadge } from "@repo/ui";
+import { StatusBadge } from "@/lib/ui";
 
 import { adminSessionJson } from "@/lib/admin-data";
 import { CreateVendorForm } from "@/sections/CreateVendorForm";
@@ -90,9 +90,7 @@ export default async function VendorAccountsPage({
     lastLoginAt: formatDateTime(v.lastLoginAt),
     createdAt: formatDate(v.createdAt),
     lockedUntil:
-      v.lockedUntil && new Date(v.lockedUntil) > new Date()
-        ? formatDateTime(v.lockedUntil)
-        : null,
+      v.lockedUntil && new Date(v.lockedUntil) > new Date() ? formatDateTime(v.lockedUntil) : null,
     activeSessions: v.activeSessions,
     registrationId: v.registrationId,
     companyName: v.companyName || "—",
@@ -193,14 +191,12 @@ export default async function VendorAccountsPage({
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <StatusBadge
-                      status={v.portalAccess === "RELEASED" ? "ACTIVE" : "DISABLED"}
-                    />
-                    <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-xs font-semibold text-zinc-700 whitespace-nowrap">
+                    <StatusBadge status={v.portalAccess === "RELEASED" ? "ACTIVE" : "DISABLED"} />
+                    <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-zinc-700">
                       {v.portalAccess === "RELEASED" ? "Released" : "Held"}
                     </span>
                     {v.registrationComplete && (
-                      <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 whitespace-nowrap">
+                      <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-emerald-800">
                         Reg. complete
                       </span>
                     )}

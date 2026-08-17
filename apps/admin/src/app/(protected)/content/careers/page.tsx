@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Plus } from "lucide-react";
 
-import { StatusBadge } from "@repo/ui";
+import { StatusBadge } from "@/lib/ui";
 
 import { adminSessionJson } from "@/lib/admin-data";
 import { hasRole } from "@/lib/constants";

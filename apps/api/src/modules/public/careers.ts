@@ -1,6 +1,6 @@
 import type { Env } from "../../config/env";
 import { corsHeaders, json } from "../../lib/http";
-import { createSql, type Sql } from "../../lib/sql";
+import { type Sql, createSql } from "../../lib/sql";
 
 /** Public published careers — no auth. */
 export async function handlePublicCareersList(
@@ -24,9 +24,7 @@ export async function handlePublicCareersList(
     department: String(r.department),
     location: String(r.location),
     type: String(r.employmentType),
-    postedAt: r.postedAt
-      ? new Date(String(r.postedAt)).toISOString().slice(0, 10)
-      : "",
+    postedAt: r.postedAt ? new Date(String(r.postedAt)).toISOString().slice(0, 10) : "",
     description: String(r.description ?? ""),
     requirements: Array.isArray(r.requirements) ? (r.requirements as string[]) : [],
     benefits: Array.isArray(r.benefits) ? (r.benefits as string[]) : [],
@@ -36,10 +34,7 @@ export async function handlePublicCareersList(
   return json(env, request, { jobs });
 }
 
-export async function handlePublicCareersRequest(
-  request: Request,
-  env: Env
-): Promise<Response> {
+export async function handlePublicCareersRequest(request: Request, env: Env): Promise<Response> {
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders(request, env) });
   }

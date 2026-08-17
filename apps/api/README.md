@@ -1,35 +1,29 @@
 # RVCC Unified API
 
-Single Node backend for **admin**, **vendor**, and **enquire** (supplier registration).
+Backend for admin, vendor, and supplier registration.
 
-## Run
+Local: Node. Production: Cloudflare Worker (`wrangler.toml`).
 
 ```bash
-cd apps/api
-cp .env.example .env   # fill DATABASE_URL, SMTP_*, ALLOWED_ORIGINS
-npm install            # from monorepo root is fine
+cp .env.example .env   # DATABASE_URL, SMTP_*, ALLOWED_ORIGINS
+npm ci
 npm run dev            # http://localhost:4000
+npm run deploy         # wrangler deploy
 ```
 
-Production:
+Cloudflare Workers Builds: root directory = this folder, install = `npm ci`.
 
-```bash
-npm run build && npm start
-```
+Schema: `prisma/schema.prisma`. SQL upgrades: `sql/upgrades/` (`npm run db:upgrade-sourcing`).
 
 ## Routes
 
-| Prefix | Domain |
-|--------|--------|
-| `GET /health` | Liveness (`204`) |
-| `/admin/*` | Staff auth, registrations, vendors, careers, requirements, notifications |
-| `/vendor/*` | Vendor auth, password, requirements/quotes, notifications |
-| `/enquire/*` | OTP, draft, submit (+ SMTP) |
+| Prefix        | Domain                                                                   |
+| ------------- | ------------------------------------------------------------------------ |
+| `GET /health` | Liveness (`204`)                                                         |
+| `/admin/*`    | Staff auth, registrations, vendors, careers, requirements, notifications |
+| `/vendor/*`   | Vendor auth, password, requirements/quotes, notifications                |
+| `/enquire/*`  | OTP, draft, submit (+ SMTP)                                              |
 
-Session headers:
+Session headers: `X-Admin-Session`, `X-Vendor-Session`, `X-Enquire-Session`.
 
-- `X-Admin-Session`
-- `X-Vendor-Session`
-- `X-Enquire-Session`
-
-Frontends set `API_URL=http://localhost:4000` (or `NEXT_PUBLIC_API_URL`). Next.js `/api` routes remain thin cookie BFFs that forward to this host.
+Frontends set `API_URL=http://localhost:4000`. Next.js `/api` routes are cookie BFFs that forward here.

@@ -128,7 +128,9 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
             setIssued(null);
             setShowAccess(true);
           }}
-          aria-label={held ? `Release portal access for ${v.email}` : `Hold portal access for ${v.email}`}
+          aria-label={
+            held ? `Release portal access for ${v.email}` : `Hold portal access for ${v.email}`
+          }
           title={held ? "Release portal access" : "Hold portal access"}
           className="rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-900 hover:text-white"
         >
@@ -157,10 +159,7 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
           <Row label="Name" value={v.name} />
           <Row label="Email" value={v.email} />
           <Row label="Portal access" value={held ? "Held" : "Released"} />
-          <Row
-            label="Registration"
-            value={v.registrationComplete ? "Complete" : "Incomplete"}
-          />
+          <Row label="Registration" value={v.registrationComplete ? "Complete" : "Incomplete"} />
           <Row
             label="Password"
             value={v.mustChangePassword ? "Temporary — must be changed" : "Set by vendor"}
@@ -236,7 +235,8 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
           </div>
         ) : (
           <p className="text-sm text-zinc-700">
-            Issues a new temporary password for <strong className="text-zinc-950">{v.email}</strong>.
+            Issues a new temporary password for <strong className="text-zinc-950">{v.email}</strong>
+            .
           </p>
         )}
       </Modal>
@@ -315,8 +315,8 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
           </p>
         ) : (
           <p className="text-sm text-zinc-700">
-            Hold portal access for <strong className="text-zinc-950">{v.email}</strong>? They will be
-            signed out and cannot use vendor pages until you release access again.
+            Hold portal access for <strong className="text-zinc-950">{v.email}</strong>? They will
+            be signed out and cannot use vendor pages until you release access again.
           </p>
         )}
       </Modal>

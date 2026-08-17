@@ -1,6 +1,7 @@
+import { hashPassword, verifyPassword } from "../../lib/password";
+
 import { LOCKOUT_MS, MAX_FAILED_ATTEMPTS, VENDOR_SESSION_TTL_MS } from "./constants";
 import { type Sql, cuid, hashSha256 } from "./db";
-import { hashPassword, verifyPassword } from "./password";
 
 export type VendorLoginResult =
   | { ok: true; vendorId: string; mustChangePassword: boolean; portalAccess: "HELD" | "RELEASED" }

@@ -22,7 +22,10 @@ export function createApp(env: Env) {
   });
 
   app.get("/", (c) => new Response(null, { status: 204, headers: corsHeaders(c.req.raw, env) }));
-  app.get("/health", (c) => new Response(null, { status: 204, headers: corsHeaders(c.req.raw, env) }));
+  app.get(
+    "/health",
+    (c) => new Response(null, { status: 204, headers: corsHeaders(c.req.raw, env) })
+  );
   app.on("HEAD", ["/health", "/"], (c) => {
     return new Response(null, { status: 204, headers: corsHeaders(c.req.raw, env) });
   });

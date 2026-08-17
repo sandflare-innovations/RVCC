@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { rankQuotes } from "@repo/rfq";
+import { rankQuotes } from "@/lib/rfq";
 
 import { adminSessionJson } from "@/lib/admin-data";
 import { AwardButton } from "@/sections/AwardButton";

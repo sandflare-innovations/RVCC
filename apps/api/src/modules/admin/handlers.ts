@@ -1,3 +1,7 @@
+import { generateTempPassword, hashPassword } from "../../lib/password";
+
+import type { Env } from "../../config/env";
+import { json } from "../../lib/http";
 import {
   attemptAdminLogin,
   createAdminSession,
@@ -6,11 +10,8 @@ import {
   writeAudit,
 } from "./auth";
 import { describeAward } from "./award";
-import type { Env } from "../../config/env";
-import { json } from "../../lib/http";
 import { type Sql, cuid, loadRegistration } from "./db";
 import { notifyDecision, sendRequirementMail } from "./notify";
-import { generateTempPassword, hashPassword } from "./password";
 import {
   type CreateRequirementInput,
   makeReferenceNumber,
@@ -1288,48 +1289,73 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
     SELECT COUNT(*)::int AS "totalJobs" FROM "JobPosting"
   `;
 
-  const [{ openCount }] = await sql`
-    SELECT COUNT(*)::int AS "openCount"
-    FROM "Requirement"
-    WHERE status = 'OPEN' AND "closesAt" > NOW()
-  `;
-  const [{ closingSoon }] = await sql`
-    SELECT COUNT(*)::int AS "closingSoon"
-    FROM "Requirement"
-    WHERE status = 'OPEN'
-      AND "closesAt" > NOW()
-      AND "closesAt" <= NOW() + INTERVAL '48 hours'
-  `;
-  const [{ awaitingAward }] = await sql`
-    SELECT COUNT(*)::int AS "awaitingAward"
-    FROM "Requirement"
-    WHERE status = 'OPEN' AND "closesAt" <= NOW()
-  `;
+  let openCount = 0;
+  let closingSoon = 0;
+  let awaitingAward = 0;
+  let performance: { email: string; invited: number; submitted: number; won: number }[] = [];
 
-  // Ninety-day supplier performance window (same as former Prisma dashboard).
-  const performance = await sql`
-    SELECT
-      v.email,
-      (
-        SELECT COUNT(*)::int FROM "RequirementInvite" i
-        WHERE i."vendorUserId" = v.id AND i."createdAt" >= NOW() - INTERVAL '90 days'
-      ) AS invited,
-      (
-        SELECT COUNT(*)::int FROM "Quote" q
-        WHERE q."vendorUserId" = v.id
-          AND q.status = 'SUBMITTED'
-          AND q."submittedAt" >= NOW() - INTERVAL '90 days'
-      ) AS submitted,
-      (
-        SELECT COUNT(*)::int FROM "Quote" q
-        JOIN "Requirement" r ON r."awardedQuoteId" = q.id
-        WHERE q."vendorUserId" = v.id AND q.status = 'SUBMITTED'
-      ) AS won
-    FROM "VendorUser" v
-    WHERE v."isActive" = true
-    ORDER BY v.email ASC
-    LIMIT 100
-  `;
+  try {
+    const [openRow] = await sql`
+      SELECT COUNT(*)::int AS "openCount"
+      FROM "Requirement"
+      WHERE status = 'OPEN' AND "closesAt" > NOW()
+    `;
+    const [soonRow] = await sql`
+      SELECT COUNT(*)::int AS "closingSoon"
+      FROM "Requirement"
+      WHERE status = 'OPEN'
+        AND "closesAt" > NOW()
+        AND "closesAt" <= NOW() + INTERVAL '48 hours'
+    `;
+    const [awardRow] = await sql`
+      SELECT COUNT(*)::int AS "awaitingAward"
+      FROM "Requirement"
+      WHERE status = 'OPEN' AND "closesAt" <= NOW()
+    `;
+    openCount = Number(openRow?.openCount ?? 0);
+    closingSoon = Number(soonRow?.closingSoon ?? 0);
+    awaitingAward = Number(awardRow?.awaitingAward ?? 0);
+
+    // Ninety-day supplier performance window (same as former Prisma dashboard).
+    const performanceRows = await sql`
+      SELECT
+        v.email,
+        (
+          SELECT COUNT(*)::int FROM "RequirementInvite" i
+          WHERE i."vendorUserId" = v.id AND i."createdAt" >= NOW() - INTERVAL '90 days'
+        ) AS invited,
+        (
+          SELECT COUNT(*)::int FROM "Quote" q
+          WHERE q."vendorUserId" = v.id
+            AND q.status = 'SUBMITTED'
+            AND q."submittedAt" >= NOW() - INTERVAL '90 days'
+        ) AS submitted,
+        (
+          SELECT COUNT(*)::int FROM "Quote" q
+          JOIN "Requirement" r ON r."awardedQuoteId" = q.id
+          WHERE q."vendorUserId" = v.id AND q.status = 'SUBMITTED'
+        ) AS won
+      FROM "VendorUser" v
+      WHERE v."isActive" = true
+      ORDER BY v.email ASC
+      LIMIT 100
+    `;
+    performance = performanceRows.map((p) => ({
+      email: String(p.email),
+      invited: Number(p.invited),
+      submitted: Number(p.submitted),
+      won: Number(p.won),
+    }));
+  } catch (err) {
+    const e = err as { code?: string; message?: string };
+    const msg = (e.message || "").toLowerCase();
+    const missing =
+      e.code === "42P01" ||
+      e.code === "42703" ||
+      (msg.includes("does not exist") && (msg.includes("relation") || msg.includes("column")));
+    if (!missing) throw err;
+    console.error("[admin] dashboard sourcing schema missing", err);
+  }
 
   return json(env, request, {
     pendingRegistrations: byStatus.SUBMITTED ?? 0,
@@ -1337,16 +1363,11 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
     vendors: Number(vendors),
     publishedJobs: Number(publishedJobs),
     totalJobs: Number(totalJobs),
-    openCount: Number(openCount),
-    closingSoon: Number(closingSoon),
-    awaitingAward: Number(awaitingAward),
+    openCount,
+    closingSoon,
+    awaitingAward,
     byStatus,
-    performance: performance.map((p) => ({
-      email: String(p.email),
-      invited: Number(p.invited),
-      submitted: Number(p.submitted),
-      won: Number(p.won),
-    })),
+    performance,
   });
 }
 

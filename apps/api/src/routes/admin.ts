@@ -1,5 +1,6 @@
 import type { Env } from "../config/env";
 import { corsHeaders, json } from "../lib/http";
+import { createSql } from "../modules/admin/db";
 import {
   handleCareerCreate,
   handleCareerDelete,
@@ -28,7 +29,6 @@ import {
   handleAdminNotificationsGet,
   handleAdminNotificationsMarkRead,
 } from "../modules/admin/notifications";
-import { createSql } from "../modules/admin/db";
 
 /**
  * Admin domain router. Paths are relative to `/admin` (e.g. `/auth/login`).
@@ -111,12 +111,7 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
 
     const requirementOne = path.match(/^\/requirements\/([^/]+)$/);
     if (requirementOne && request.method === "GET") {
-      return await handleRequirementGet(
-        sql,
-        env,
-        request,
-        decodeURIComponent(requirementOne[1]!)
-      );
+      return await handleRequirementGet(sql, env, request, decodeURIComponent(requirementOne[1]!));
     }
 
     const vendorReset = path.match(/^\/vendors\/([^/]+)\/reset-password$/);

@@ -10,8 +10,8 @@ type DashboardJobs = { publishedJobs: number; totalJobs: number };
 
 export default async function ContentHubPage() {
   const result = await adminSessionJson<DashboardJobs>("/dashboard");
-  const published = result.ok ? result.data.publishedJobs ?? 0 : 0;
-  const total = result.ok ? result.data.totalJobs ?? published : 0;
+  const published = result.ok ? (result.data.publishedJobs ?? 0) : 0;
+  const total = result.ok ? (result.data.totalJobs ?? published) : 0;
 
   const pending = [
     { label: "Project Gallery", icon: ImageIcon, detail: "16 projects · needs image uploads" },
