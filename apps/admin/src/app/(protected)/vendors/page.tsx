@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { StatusBadge } from "@repo/ui";
+import { pageCount, pageWindow, parsePage } from "@repo/rfq";
+import { Pagination, StatusBadge } from "@repo/ui";
 
 import { prisma } from "@/lib/db";
 import { CreateVendorForm } from "@/sections/CreateVendorForm";
@@ -33,11 +34,12 @@ function formatDate(d: Date) {
 export default async function VendorAccountsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string; q?: string }>;
+  searchParams: Promise<{ filter?: string; q?: string; page?: string }>;
 }) {
-  const { filter, q } = await searchParams;
+  const { filter, q, page: rawPage } = await searchParams;
   const active = FILTERS.some((f) => f.value === filter) ? filter! : "ACTIVE";
   const search = (q ?? "").trim();
+  const page = parsePage(rawPage);
 
   const where = {
     ...(active === "ACTIVE" ? { isActive: true } : {}),
@@ -59,31 +61,36 @@ export default async function VendorAccountsPage({
   };
 
   // Fetched alongside the list rather than in the form, which is a client
-  // component and cannot query Prisma.
-  const industries = await prisma.industry.findMany({
-    where: { isActive: true },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
-
-  const vendors = await prisma.vendorUser.findMany({
-    where,
-    include: {
-      registration: {
-        select: {
-          id: true,
-          referenceNumber: true,
-          status: true,
-          company: { select: { legalName: true } },
+  // component and cannot query Prisma. The industries lookup and the vendor
+  // list/count are unrelated, so they run concurrently.
+  const [industries, total, vendors] = await Promise.all([
+    prisma.industry.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.vendorUser.count({ where }),
+    prisma.vendorUser.findMany({
+      where,
+      include: {
+        registration: {
+          select: {
+            id: true,
+            referenceNumber: true,
+            status: true,
+            company: { select: { legalName: true } },
+          },
+        },
+        _count: {
+          select: { sessions: { where: { revokedAt: null, expiresAt: { gt: new Date() } } } },
         },
       },
-      _count: {
-        select: { sessions: { where: { revokedAt: null, expiresAt: { gt: new Date() } } } },
-      },
-    },
-    orderBy: [{ createdAt: "desc" }],
-    take: 100,
-  });
+      orderBy: [{ createdAt: "desc" }],
+      ...pageWindow(page),
+    }),
+  ]);
+
+  const pages = pageCount(total);
 
   const toSummary = (v: (typeof vendors)[number]): VendorSummary => ({
     id: v.id,
@@ -210,6 +217,20 @@ export default async function VendorAccountsPage({
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        page={page}
+        pages={pages}
+        total={total}
+        noun="vendors"
+        href={(n) => {
+          const p = new URLSearchParams();
+          if (filter) p.set("filter", filter);
+          if (q) p.set("q", q);
+          p.set("page", String(n));
+          return `/vendors?${p.toString()}`;
+        }}
+      />
     </div>
   );
 }
