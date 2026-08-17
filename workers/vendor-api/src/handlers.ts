@@ -156,6 +156,7 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
         SELECT
           r.id, r.status, r."referenceNumber", r."submittedAt",
           r.email, r."businessRelationship", r."productCategories",
+          c.id AS "companyId",
           c."legalName" AS "companyLegalName",
           c."dbaName" AS "companyDbaName",
           c.country AS "companyCountry",
@@ -194,7 +195,9 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
           email: String(registration.email ?? ""),
           businessRelationship: String(registration.businessRelationship ?? ""),
           productCategories: (registration.productCategories as string[]) ?? [],
-          company: registration.companyLegalName
+          // Gate on the id, not the name: a real profile whose legalName is
+          // blank must still surface as a company object, not vanish.
+          company: registration.companyId
             ? {
                 legalName: String(registration.companyLegalName ?? ""),
                 dbaName: String(registration.companyDbaName ?? ""),
