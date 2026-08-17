@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+import { pageCount, pageWindow, parsePage } from "@repo/rfq";
+import { Pagination } from "@repo/ui";
+
 import { prisma } from "@/lib/db";
 import { CreateRequirementForm, type ParticipantOption } from "@/sections/CreateRequirementForm";
 
@@ -21,15 +24,35 @@ function statusLabel(status: string, closesAt: Date) {
   return status.charAt(0) + status.slice(1).toLowerCase();
 }
 
-export default async function RequirementsPage() {
-  const [requirements, vendors] = await Promise.all([
+export default async function RequirementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: rawPage } = await searchParams;
+  const page = parsePage(rawPage);
+
+  const [total, requirements, vendors] = await Promise.all([
+    prisma.requirement.count(),
     prisma.requirement.findMany({
-      include: {
-        _count: { select: { invites: true } },
-        quotes: { where: { status: "SUBMITTED" }, select: { id: true } },
+      select: {
+        id: true,
+        referenceNumber: true,
+        project: true,
+        status: true,
+        closesAt: true,
+        awardedQuoteId: true,
+        _count: {
+          select: {
+            invites: true,
+            // Counted, not listed: the page renders a number, and shipping one
+            // row per quote to produce it is pure waste.
+            quotes: { where: { status: "SUBMITTED" } },
+          },
+        },
       },
       orderBy: [{ closesAt: "asc" }],
-      take: 100,
+      ...pageWindow(page),
     }),
     prisma.vendorUser.findMany({
       where: { isActive: true },
@@ -37,6 +60,8 @@ export default async function RequirementsPage() {
       orderBy: { email: "asc" },
     }),
   ]);
+
+  const pages = pageCount(total);
 
   const toOption = (p: { id: string; email: string; name: string }): ParticipantOption => ({
     id: p.id,
@@ -90,7 +115,7 @@ export default async function RequirementsPage() {
                     {formatDateTime(r.closesAt)}
                   </td>
                   <td className="px-4 py-3 text-zinc-700 tabular-nums">{r._count.invites}</td>
-                  <td className="px-4 py-3 text-zinc-700 tabular-nums">{r.quotes.length}</td>
+                  <td className="px-4 py-3 text-zinc-700 tabular-nums">{r._count.quotes}</td>
                   <td className="px-4 py-3 text-zinc-700">{statusLabel(r.status, r.closesAt)}</td>
                 </tr>
               ))
@@ -98,6 +123,14 @@ export default async function RequirementsPage() {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        page={page}
+        pages={pages}
+        total={total}
+        noun="requirements"
+        href={(n) => `/requirements?page=${n}`}
+      />
     </div>
   );
 }
