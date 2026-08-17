@@ -50,7 +50,7 @@ export default async function AdminDashboard() {
           </h2>
           <Link
             href="/vendors/performance"
-            className="text-brand-blue text-sm font-semibold underline-offset-2 hover:underline"
+            className="text-brand-blue focus-visible:ring-brand-blue inline-flex min-h-11 items-center px-2 text-sm font-semibold underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
           >
             Supplier performance
           </Link>
