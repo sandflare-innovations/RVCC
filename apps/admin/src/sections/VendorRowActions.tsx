@@ -5,7 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { AlertCircle, ExternalLink, Eye, KeyRound, Power } from "lucide-react";
+import { AlertCircle, ExternalLink, Eye, KeyRound, Lock, Unlock } from "lucide-react";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
@@ -15,16 +15,17 @@ export type VendorSummary = {
   email: string;
   name: string;
   isActive: boolean;
+  portalAccess: "HELD" | "RELEASED";
   mustChangePassword: boolean;
   lastLoginAt: string | null;
   createdAt: string;
   lockedUntil: string | null;
   activeSessions: number;
-  /** Null for accounts an admin created directly, with no public registration. */
   registrationId: string | null;
   companyName: string;
   referenceNumber: string | null;
   registrationStatus: string | null;
+  registrationComplete: boolean;
 };
 
 function Row({ label, value }: { label: string; value?: string | null }) {
@@ -39,15 +40,16 @@ function Row({ label, value }: { label: string; value?: string | null }) {
 export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
   const router = useRouter();
   const [showDetails, setShowDetails] = useState(false);
-  const [showToggle, setShowToggle] = useState(false);
+  const [showAccess, setShowAccess] = useState(false);
   const [showReset, setShowReset] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [issued, setIssued] = useState<string | null>(null);
 
   const v = vendor;
+  const held = v.portalAccess !== "RELEASED";
 
-  const toggleActive = async () => {
+  const setPortalAccess = async (portalAccess: "HELD" | "RELEASED", notifyEmail: boolean) => {
     setBusy(true);
     setError(null);
     try {
@@ -55,13 +57,15 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ isActive: !v.isActive }),
+        body: JSON.stringify({ portalAccess, notifyEmail }),
       });
       if (!res.ok) {
-        setError(await readApiError(res, "Could not update the account."));
+        setError(await readApiError(res, "Could not update portal access."));
         return;
       }
-      setShowToggle(false);
+      const data = await res.json().catch(() => ({}));
+      if (data.tempPassword) setIssued(data.tempPassword);
+      setShowAccess(false);
       router.refresh();
     } catch {
       setError("Network error — please try again.");
@@ -121,13 +125,16 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
           type="button"
           onClick={() => {
             setError(null);
-            setShowToggle(true);
+            setIssued(null);
+            setShowAccess(true);
           }}
-          aria-label={`${v.isActive ? "Disable" : "Enable"} ${v.email}`}
-          title={v.isActive ? "Disable account" : "Enable account"}
+          aria-label={
+            held ? `Release portal access for ${v.email}` : `Hold portal access for ${v.email}`
+          }
+          title={held ? "Release portal access" : "Hold portal access"}
           className="rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-900 hover:text-white"
         >
-          <Power className="h-4 w-4" />
+          {held ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
         </button>
       </div>
 
@@ -137,8 +144,6 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
         title={v.email}
         description={v.companyName}
         footer={
-          // No registration for admin-created vendors; the template literal would
-          // otherwise link to the string "/registrations/null".
           v.registrationId ? (
             <Link
               href={`/registrations/${v.registrationId}`}
@@ -153,7 +158,8 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
         <dl>
           <Row label="Name" value={v.name} />
           <Row label="Email" value={v.email} />
-          <Row label="Status" value={v.isActive ? "Active" : "Disabled"} />
+          <Row label="Portal access" value={held ? "Held" : "Released"} />
+          <Row label="Registration" value={v.registrationComplete ? "Complete" : "Incomplete"} />
           <Row
             label="Password"
             value={v.mustChangePassword ? "Temporary — must be changed" : "Set by vendor"}
@@ -220,56 +226,76 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
             <span>{error}</span>
           </div>
         )}
-
         {issued ? (
           <div className="border-brand-blue bg-brand-blue/5 rounded-md border-l-4 p-4">
             <p className="text-sm font-semibold text-zinc-900">New temporary password</p>
             <p className="border-brand-blue/40 mt-2 rounded-md border bg-white px-3 py-2 font-mono text-sm">
               {issued}
             </p>
-            <p className="mt-3 text-xs text-zinc-900">
-              Shown <strong>once</strong> — only a hash is stored. All existing sessions were signed
-              out, and the vendor must set a new password on next sign-in.
-            </p>
           </div>
         ) : (
           <p className="text-sm text-zinc-700">
             Issues a new temporary password for <strong className="text-zinc-950">{v.email}</strong>
-            , signs out all their devices, and forces a password change on next sign-in. Their
-            current password stops working immediately.
+            .
           </p>
         )}
       </Modal>
 
       <Modal
-        open={showToggle}
-        onClose={() => setShowToggle(false)}
-        title={v.isActive ? "Disable account" : "Enable account"}
+        open={showAccess}
+        onClose={() => setShowAccess(false)}
+        title={held ? "Release portal access" : "Hold portal access"}
         description={v.email}
         footer={
-          <>
-            <button
-              type="button"
-              onClick={() => setShowToggle(false)}
-              disabled={busy}
-              className="h-10 rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-55"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => void toggleActive()}
-              disabled={busy}
-              className={
-                v.isActive
-                  ? "inline-flex h-10 items-center gap-2 rounded-md bg-zinc-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-black disabled:opacity-55"
-                  : "bg-brand-blue hover:bg-brand-blue/90 inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-semibold text-white transition-colors disabled:opacity-55"
-              }
-            >
-              <Power className="h-4 w-4" />
-              {busy ? "Saving…" : v.isActive ? "Disable" : "Enable"}
-            </button>
-          </>
+          held ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowAccess(false)}
+                disabled={busy}
+                className="h-10 rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-55"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void setPortalAccess("RELEASED", false)}
+                disabled={busy}
+                className="h-10 rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-55"
+              >
+                {busy ? "Saving…" : "No Need"}
+              </button>
+              <button
+                type="button"
+                onClick={() => void setPortalAccess("RELEASED", true)}
+                disabled={busy}
+                className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-semibold text-white transition-colors disabled:opacity-55"
+              >
+                <Unlock className="h-4 w-4" />
+                {busy ? "Releasing…" : "Notify Via Email"}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowAccess(false)}
+                disabled={busy}
+                className="h-10 rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-55"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void setPortalAccess("HELD", false)}
+                disabled={busy}
+                className="inline-flex h-10 items-center gap-2 rounded-md bg-zinc-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-black disabled:opacity-55"
+              >
+                <Lock className="h-4 w-4" />
+                {busy ? "Holding…" : "Hold access"}
+              </button>
+            </>
+          )
         }
       >
         {error && (
@@ -281,20 +307,18 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
             <span>{error}</span>
           </div>
         )}
-        <p className="text-sm text-zinc-700">
-          {v.isActive ? (
-            <>
-              <strong className="text-zinc-950">{v.email}</strong> will be signed out of{" "}
-              {v.activeSessions} active session{v.activeSessions === 1 ? "" : "s"} and blocked from
-              signing in. The registration itself is unaffected, and you can re-enable at any time.
-            </>
-          ) : (
-            <>
-              <strong className="text-zinc-950">{v.email}</strong> will be able to sign in again
-              using their existing password.
-            </>
-          )}
-        </p>
+        {held ? (
+          <p className="text-sm text-zinc-700">
+            Release portal access for <strong className="text-zinc-950">{v.email}</strong>? Choose{" "}
+            <strong>Notify Via Email</strong> to send “Access Your Vendor Portal”, or{" "}
+            <strong>No Need</strong> to release without email.
+          </p>
+        ) : (
+          <p className="text-sm text-zinc-700">
+            Hold portal access for <strong className="text-zinc-950">{v.email}</strong>? They will
+            be signed out and cannot use vendor pages until you release access again.
+          </p>
+        )}
       </Modal>
     </>
   );

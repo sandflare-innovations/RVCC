@@ -9,18 +9,36 @@ import {
   vendorCookieOptions,
 } from "@/lib/constants";
 
+/** Public marketing + registration surfaces — no vendor session required. */
+function isPublicPath(pathname: string): boolean {
+  if (pathname === "/" || pathname === "/login" || pathname === "/access-held") return true;
+  if (pathname.startsWith("/register")) return true;
+  if (pathname.startsWith("/enquire")) return true;
+  if (pathname.startsWith("/api/")) return true;
+
+  const marketing = [
+    "/about",
+    "/services",
+    "/projects",
+    "/gallary",
+    "/clients",
+    "/documents",
+    "/careers",
+    "/quality-policy",
+    "/contact",
+  ];
+  return marketing.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
 /**
- * Cheap cookie-presence gate. Real auth is /auth/me via the vendor-api worker.
- * Also slides the browser cookie maxAge forward on every page navigation.
+ * Cheap cookie-presence gate for /portal only.
+ * Real auth is /auth/me via apps/api.
+ * Also slides the browser cookie maxAge forward on every portal navigation.
  */
 export default function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   if (pathname === VENDOR_LOGIN_PATH) {
-    // A server-side guard rejected the session and sent us here. Drop the dead
-    // cookie and serve the login form; without this the branch below sees a
-    // cookie, bounces to the home path, the guard rejects it again, and the two
-    // redirect until the browser gives up with ERR_TOO_MANY_REDIRECTS.
     if (request.nextUrl.searchParams.has(VENDOR_SESSION_EXPIRED_PARAM)) {
       const res = NextResponse.next();
       res.cookies.set(VENDOR_COOKIE, "", expiredCookieOptions());
@@ -32,14 +50,19 @@ export default function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (pathname.startsWith("/api/")) {
+  if (isPublicPath(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Only /portal/** requires a session cookie.
+  if (!pathname.startsWith("/portal")) {
     return NextResponse.next();
   }
 
   const token = request.cookies.get(VENDOR_COOKIE)?.value;
   if (!token) {
     const url = new URL(VENDOR_LOGIN_PATH, request.url);
-    if (pathname !== "/") url.searchParams.set("next", pathname + search);
+    url.searchParams.set("next", pathname + search);
     return NextResponse.redirect(url);
   }
 
@@ -57,5 +80,7 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|images/|fonts/|videos/|3D-Objects/|media/).*)",
+  ],
 };

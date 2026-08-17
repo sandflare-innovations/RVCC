@@ -1,33 +1,42 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/db";
-import { getAdminFromSession } from "@/lib/session";
+import { adminWorkerFetch } from "@/lib/admin-api";
+import { ADMIN_COOKIE } from "@/lib/constants";
 
-/** This admin's own notifications, scoped by the session — never a parameter. */
+/** This admin's own notifications — proxied to the unified API. */
 export async function GET() {
-  const admin = await getAdminFromSession();
-  if (!admin) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  const jar = await cookies();
+  const token = jar.get(ADMIN_COOKIE)?.value;
+  if (!token) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  const items = await prisma.notification.findMany({
-    where: { adminId: admin.id },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  });
-
-  return NextResponse.json({
-    items,
-    unread: items.filter((n) => n.readAt === null).length,
-  });
+  try {
+    const res = await adminWorkerFetch("/notifications", {
+      method: "GET",
+      sessionToken: token,
+    });
+    const data = await res.json().catch(() => ({}));
+    return NextResponse.json(data, { status: res.status });
+  } catch (err) {
+    console.error("[admin/notifications]", err);
+    return NextResponse.json({ error: "Could not load notifications." }, { status: 503 });
+  }
 }
 
 export async function POST() {
-  const admin = await getAdminFromSession();
-  if (!admin) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  const jar = await cookies();
+  const token = jar.get(ADMIN_COOKIE)?.value;
+  if (!token) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  await prisma.notification.updateMany({
-    where: { adminId: admin.id, readAt: null },
-    data: { readAt: new Date() },
-  });
-
-  return NextResponse.json({ ok: true });
+  try {
+    const res = await adminWorkerFetch("/notifications", {
+      method: "POST",
+      sessionToken: token,
+    });
+    const data = await res.json().catch(() => ({}));
+    return NextResponse.json(data, { status: res.status });
+  } catch (err) {
+    console.error("[admin/notifications]", err);
+    return NextResponse.json({ error: "Could not update notifications." }, { status: 503 });
+  }
 }

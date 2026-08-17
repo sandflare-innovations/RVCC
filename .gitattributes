@@ -1,1 +1,1 @@
-*.pdf filter=lfs diff=lfs merge=lfs -text
+# No LFS needed — large PDFs/video are on Cloudflare R2, not in git.

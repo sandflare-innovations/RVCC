@@ -33,7 +33,7 @@ export function OverviewNextActions({ actions }: { actions: VendorNextAction[] }
               </p>
             </div>
             <Link
-              href={`/requirements/${action.id}`}
+              href={`/portal/requirements/${action.id}`}
               className="bg-brand-blue focus-visible:ring-brand-blue inline-flex min-h-11 shrink-0 items-center rounded-md px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               {action.actionLabel}

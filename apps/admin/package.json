@@ -4,16 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo --port 3001",
-    "build": "prisma generate --schema=../../packages/db/prisma/schema.prisma && next build",
+    "build": "next build",
     "start": "next start --port 3001",
     "lint": "eslint",
-    "create-admin": "node ./scripts/create-admin.mjs",
-    "db:generate": "prisma generate --schema=../../packages/db/prisma/schema.prisma"
+    "create-admin": "node ./scripts/create-admin.mjs"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0",
     "@repo/auth-password": "*",
-    "@repo/db": "*",
+    "@repo/rfq": "*",
     "@repo/ui": "*",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
@@ -23,8 +21,7 @@
     "react-dom": "^19.2.8",
     "server-only": "^0.0.1",
     "tailwind-merge": "^3.5.0",
-    "zod": "^3.24.2",
-    "@repo/rfq": "*"
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
@@ -34,7 +31,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
-    "prisma": "^5.22.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

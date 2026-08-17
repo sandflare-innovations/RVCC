@@ -1,33 +1,42 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/db";
-import { getVendorFromSession } from "@/lib/session";
+import { VENDOR_COOKIE } from "@/lib/constants";
+import { vendorWorkerFetch } from "@/lib/vendor-api";
 
-/** This vendor's own notifications, scoped by the session — never a parameter. */
+/** This vendor's own notifications — proxied to the unified API. */
 export async function GET() {
-  const vendor = await getVendorFromSession();
-  if (!vendor) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  const jar = await cookies();
+  const token = jar.get(VENDOR_COOKIE)?.value;
+  if (!token) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  const items = await prisma.notification.findMany({
-    where: { vendorUserId: vendor.id },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  });
-
-  return NextResponse.json({
-    items,
-    unread: items.filter((n) => n.readAt === null).length,
-  });
+  try {
+    const res = await vendorWorkerFetch("/notifications", {
+      method: "GET",
+      sessionToken: token,
+    });
+    const data = await res.json().catch(() => ({}));
+    return NextResponse.json(data, { status: res.status });
+  } catch (err) {
+    console.error("[vendor/notifications]", err);
+    return NextResponse.json({ error: "Could not load notifications." }, { status: 503 });
+  }
 }
 
 export async function POST() {
-  const vendor = await getVendorFromSession();
-  if (!vendor) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  const jar = await cookies();
+  const token = jar.get(VENDOR_COOKIE)?.value;
+  if (!token) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  await prisma.notification.updateMany({
-    where: { vendorUserId: vendor.id, readAt: null },
-    data: { readAt: new Date() },
-  });
-
-  return NextResponse.json({ ok: true });
+  try {
+    const res = await vendorWorkerFetch("/notifications", {
+      method: "POST",
+      sessionToken: token,
+    });
+    const data = await res.json().catch(() => ({}));
+    return NextResponse.json(data, { status: res.status });
+  } catch (err) {
+    console.error("[vendor/notifications]", err);
+    return NextResponse.json({ error: "Could not update notifications." }, { status: 503 });
+  }
 }

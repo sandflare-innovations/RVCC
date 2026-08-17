@@ -4,18 +4,29 @@ import { Plus } from "lucide-react";
 
 import { StatusBadge } from "@repo/ui";
 
+import { adminSessionJson } from "@/lib/admin-data";
 import { hasRole } from "@/lib/constants";
-import { prisma } from "@/lib/db";
 import { getAdminFromSession } from "@/lib/session";
 import { CareerRowActions } from "@/sections/CareerRowActions";
 
 export const dynamic = "force-dynamic";
 
+type JobRow = {
+  id: string;
+  title: string;
+  slug: string;
+  department: string;
+  location: string;
+  isRemote: boolean;
+  isPublished: boolean;
+};
+
 export default async function CareersAdminPage() {
-  const [jobs, admin] = await Promise.all([
-    prisma.jobPosting.findMany({ orderBy: [{ sortOrder: "asc" }, { postedAt: "desc" }] }),
+  const [jobsResult, admin] = await Promise.all([
+    adminSessionJson<JobRow[]>("/careers"),
     getAdminFromSession(),
   ]);
+  const jobs = jobsResult.ok ? jobsResult.data : [];
   const canDelete = Boolean(admin && hasRole(admin.role, "SUPER_ADMIN"));
 
   return (
@@ -54,7 +65,9 @@ export default async function CareersAdminPage() {
             {jobs.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-zinc-600">
-                  No postings yet.
+                  {!jobsResult.ok
+                    ? `Could not load careers (${jobsResult.status}).`
+                    : "No postings yet."}
                 </td>
               </tr>
             )}

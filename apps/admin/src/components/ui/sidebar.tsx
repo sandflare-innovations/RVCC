@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 import Link from "next/link";
 
@@ -119,17 +119,36 @@ export const MobileSidebar = ({
   children: React.ReactNode;
 }) => {
   const { open, setOpen } = useSidebar();
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+
+  const closeMenu = useCallback(() => {
+    setOpen(false);
+    requestAnimationFrame(() => triggerRef.current?.focus());
+  }, [setOpen]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeMenu();
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [closeMenu, open]);
+
   return (
     <div className="sticky top-0 z-40 flex h-14 w-full items-center justify-between border-b border-zinc-200 bg-white px-4 md:hidden">
       <span className="text-brand-blue text-[11px] font-bold tracking-[0.2em] uppercase">
         RVCC Admin
       </span>
       <button
+        ref={triggerRef}
         type="button"
-        aria-label="Open navigation"
+        aria-label="Open navigation menu"
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="rounded-md p-1.5 text-zinc-700 transition-colors hover:bg-zinc-100"
+        className="focus-visible:ring-brand-blue inline-flex h-11 w-11 items-center justify-center rounded-md border border-zinc-300 text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:ring-2 focus-visible:outline-none"
       >
         <Menu className="h-5 w-5" />
       </button>
@@ -146,8 +165,8 @@ export const MobileSidebar = ({
             <button
               type="button"
               aria-label="Close navigation"
-              onClick={() => setOpen(false)}
-              className="absolute top-5 right-5 rounded-md p-1.5 text-zinc-700 transition-colors hover:bg-zinc-100"
+              onClick={closeMenu}
+              className="focus-visible:ring-brand-blue absolute top-5 right-5 inline-flex h-11 w-11 items-center justify-center rounded-md text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:ring-2 focus-visible:outline-none"
             >
               <X className="h-5 w-5" />
             </button>
@@ -178,7 +197,7 @@ export const SidebarLink = ({
       aria-current={active ? "page" : undefined}
       title={link.label}
       className={cn(
-        "group/sidebar flex items-center gap-3 rounded-md px-2.5 py-2 transition-colors",
+        "group/sidebar focus-visible:ring-brand-blue flex min-h-11 items-center gap-3 rounded-md px-2.5 py-2 transition-colors focus-visible:ring-2 focus-visible:outline-none",
         active ? "bg-brand-blue text-white" : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950",
         className
       )}

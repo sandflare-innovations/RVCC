@@ -25,6 +25,14 @@ enum AdminRole {
   REVIEWER // read-only
 }
 
+/// Portal login gate — separate from registration completeness.
+/// HELD: account may exist but supplier cannot use vendor pages.
+/// RELEASED: admin granted portal access (optionally emailed).
+enum PortalAccess {
+  HELD
+  RELEASED
+}
+
 /// Staff accounts for the admin panel. Deliberately separate from VendorUser:
 /// a vendor must never be able to escalate into staff access.
 model AdminUser {
@@ -98,7 +106,8 @@ model AdminSession {
   @@index([adminId])
 }
 
-/// Vendor login, provisioned when a registration is approved.
+/// Vendor login. Public registration creates the row with portalAccess=HELD;
+/// admin Release grants portal pages (and optional email).
 model VendorUser {
   id                 String  @id @default(cuid())
   email              String  @unique
@@ -106,6 +115,8 @@ model VendorUser {
   passwordHash       String
   mustChangePassword Boolean @default(true)
   isActive           Boolean @default(true)
+  /// HELD until admin releases portal access from User Management.
+  portalAccess       PortalAccess @default(HELD)
 
   /// Null for accounts an admin created directly — most RVCC suppliers already
   /// exist as companies and never use the public registration wizard.
@@ -129,6 +140,7 @@ model VendorUser {
 
   @@index([registrationId])
   @@index([email])
+  @@index([portalAccess])
 }
 
 /// A category of work a supplier or agent can be invited for, e.g. "Civil Works".
@@ -186,6 +198,8 @@ model SupplierRegistration {
   email              String
   currentStep        String               @default("verify")
   sessionToken       String?              @unique
+  /// True after the supplier finishes and submits the full registration form.
+  registrationComplete Boolean            @default(false)
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   submittedAt        DateTime?
@@ -209,6 +223,7 @@ model SupplierRegistration {
   @@index([email])
   @@index([status])
   @@index([status, submittedAt])
+  @@index([registrationComplete])
 }
 
 model RegistrationOtp {

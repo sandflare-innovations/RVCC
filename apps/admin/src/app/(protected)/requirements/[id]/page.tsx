@@ -2,13 +2,13 @@ import { notFound } from "next/navigation";
 
 import { rankQuotes } from "@repo/rfq";
 
-import { prisma } from "@/lib/db";
+import { adminSessionJson } from "@/lib/admin-data";
 import { AwardButton } from "@/sections/AwardButton";
 
 export const dynamic = "force-dynamic";
 
-function formatDateTime(d: Date) {
-  return d.toLocaleString("en-GB", {
+function formatDateTime(d: string) {
+  return new Date(d).toLocaleString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -17,44 +17,64 @@ function formatDateTime(d: Date) {
   });
 }
 
+type Payload = {
+  requirement: {
+    id: string;
+    referenceNumber: string | null;
+    scopeOfWork: string;
+    project: string;
+    sellingPrice: string | number | null;
+    currency: string;
+    closesAt: string;
+    status: string;
+    awardedAt: string | null;
+    awardedQuoteId: string | null;
+    awardedByAdmin: { email: string } | null;
+  };
+  quotes: Array<{
+    id: string;
+    newPrice: string | number;
+    remarks: string | null;
+    submittedAt: string | null;
+    vendorUser: { email: string; name: string | null };
+  }>;
+  invites: Array<{
+    id: string;
+    emailStatus: string;
+    vendorUser: { email: string };
+  }>;
+};
+
 export default async function RequirementComparisonPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const result = await adminSessionJson<Payload>(`/requirements/${encodeURIComponent(id)}`);
+  if (!result.ok) {
+    if (result.status === 404) notFound();
+    return (
+      <p className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
+        Could not load requirement ({result.status}).
+      </p>
+    );
+  }
 
-  const requirement = await prisma.requirement.findUnique({
-    where: { id },
-    include: {
-      // Only SUBMITTED quotes are quotes; an unsubmitted draft is not one.
-      quotes: {
-        where: { status: "SUBMITTED" },
-        include: { vendorUser: { select: { email: true, name: true } } },
-      },
-      awardedByAdmin: { select: { email: true } },
-      invites: {
-        include: { vendorUser: { select: { email: true } } },
-        orderBy: { createdAt: "asc" },
-      },
-    },
-  });
-
-  if (!requirement) notFound();
+  const { requirement, quotes, invites } = result.data;
 
   const ranked = rankQuotes(
-    requirement.quotes.map((q) => ({
+    quotes.map((q) => ({
       id: q.id,
-      // Decimal -> string keeps the precision the column was chosen for.
-      newPrice: q.newPrice!.toString(),
+      newPrice: String(q.newPrice),
       remarks: q.remarks,
-      submittedAt: q.submittedAt,
+      submittedAt: q.submittedAt ? new Date(q.submittedAt) : null,
       who: q.vendorUser.name || q.vendorUser.email,
       vendorEmail: q.vendorUser.email,
     }))
   );
 
-  const closed = requirement.closesAt.getTime() <= Date.now();
+  const closed = new Date(requirement.closesAt).getTime() <= Date.now();
 
   return (
     <div className="space-y-6">
@@ -76,11 +96,10 @@ export default async function RequirementComparisonPage({
             </dd>
           </div>
           <div>
-            {/* Admin-only. The participant API never returns this column. */}
             <dt className="text-zinc-500">Selling price</dt>
             <dd className="text-zinc-950 tabular-nums">
-              {requirement.sellingPrice
-                ? `${requirement.sellingPrice.toString()} ${requirement.currency}`
+              {requirement.sellingPrice != null
+                ? `${String(requirement.sellingPrice)} ${requirement.currency}`
                 : "—"}
             </dd>
           </div>
@@ -127,7 +146,13 @@ export default async function RequirementComparisonPage({
                     </td>
                     <td className="px-4 py-3 text-zinc-600">{q.remarks || "—"}</td>
                     <td className="px-4 py-3 text-zinc-600 tabular-nums">
-                      {q.submittedAt ? formatDateTime(q.submittedAt) : "—"}
+                      {q.submittedAt
+                        ? formatDateTime(
+                            typeof q.submittedAt === "string"
+                              ? q.submittedAt
+                              : q.submittedAt.toISOString()
+                          )
+                        : "—"}
                     </td>
                     <td className="px-4 py-3">
                       {requirement.awardedQuoteId === q.id ? (
@@ -142,7 +167,7 @@ export default async function RequirementComparisonPage({
                           price={q.newPrice}
                           currency={requirement.currency}
                           project={requirement.project}
-                          closesAt={requirement.closesAt.toISOString()}
+                          closesAt={requirement.closesAt}
                         />
                       )}
                     </td>
@@ -157,10 +182,9 @@ export default async function RequirementComparisonPage({
       <section>
         <h2 className="mb-3 text-lg font-semibold text-zinc-950">Invited</h2>
         <ul className="space-y-1.5 text-sm">
-          {requirement.invites.map((i) => (
+          {invites.map((i) => (
             <li key={i.id} className="flex flex-wrap items-center gap-2 text-zinc-700">
               <span className="text-zinc-950">{i.vendorUser.email}</span>
-              {/* FAILED is shown so a bad address is visible rather than silent. */}
               <span
                 className={
                   i.emailStatus === "FAILED"

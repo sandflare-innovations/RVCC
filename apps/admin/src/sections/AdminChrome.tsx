@@ -95,7 +95,7 @@ function SidebarContents({
           onClick={onSignOut}
           disabled={signingOut}
           title="Sign out"
-          className="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-950 disabled:opacity-50"
+          className="focus-visible:ring-brand-blue flex min-h-11 w-full items-center gap-3 rounded-md px-2.5 py-2 text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-950 focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
         >
           <LogOut className={ICON} aria-hidden="true" />
           <motion.span

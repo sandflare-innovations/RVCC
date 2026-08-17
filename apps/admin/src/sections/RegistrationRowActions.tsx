@@ -5,22 +5,18 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { AlertCircle, Eye, Trash2 } from "lucide-react";
+import { AlertCircle, ExternalLink, Eye, Trash2 } from "lucide-react";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
 
+/** Slim list row — full record lives on the detail page. */
 export type RegistrationSummary = {
   id: string;
   email: string;
   status: string;
   referenceNumber: string | null;
-  submittedAt: string | null;
-  company: { legalName: string; country: string } | null;
-  contactCount: number;
-  addressCount: number;
-  bankAccountCount: number;
-  vendorAccountCount: number;
+  companyName: string | null;
 };
 
 export function RegistrationRowActions({
@@ -37,8 +33,7 @@ export function RegistrationRowActions({
   const [error, setError] = useState<string | null>(null);
 
   const r = registration;
-  const label = r.company?.legalName?.trim() || r.email;
-  // Typed confirmation stands in for the colour cue a red button would give.
+  const label = r.companyName?.trim() || r.email;
   const confirmTarget = r.referenceNumber || r.email;
 
   const remove = async () => {
@@ -130,17 +125,18 @@ export function RegistrationRowActions({
 
           <p className="text-sm text-zinc-700">
             Deleting <strong className="text-zinc-950">{label}</strong> also removes its company
-            profile, {r.contactCount} contact{r.contactCount === 1 ? "" : "s"}, {r.addressCount}{" "}
-            address{r.addressCount === 1 ? "" : "es"}, {r.bankAccountCount} bank account
-            {r.bankAccountCount === 1 ? "" : "s"}, questionnaire answers, attachments
-            {r.vendorAccountCount > 0 && (
-              <>
-                {" "}
-                and <strong className="text-zinc-950">{r.vendorAccountCount} portal login</strong>
-                {r.vendorAccountCount === 1 ? "" : "s"}
-              </>
-            )}
-            .
+            profile, contacts, addresses, bank accounts, questionnaire answers, attachments, and any
+            portal logins linked to this registration.
+          </p>
+
+          <p className="text-sm text-zinc-600">
+            Prefer the full record?{" "}
+            <Link
+              href={`/registrations/${r.id}`}
+              className="text-brand-blue inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline"
+            >
+              Open <ExternalLink className="h-3.5 w-3.5" />
+            </Link>
           </p>
 
           <div>

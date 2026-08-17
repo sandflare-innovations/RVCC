@@ -22,16 +22,18 @@ coverage/
 # Environment Variables
 .env
 .env.local
+.env.s3
 .env.development.local
 .env.test.local
 .env.production.local
 *.env.local
 
-# Cloudflare Workers
+# Local tool caches
 .wrangler/
 .dev.vars
-workers/**/node_modules/
-workers/pdf-cdn/public/
+
+# Optional local PDF/video copies (served from R2 — do not commit)
+Assets/
 
 # Vercel
 .vercel
