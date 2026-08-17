@@ -1,17 +1,7 @@
+import { generateTempPassword, hashPassword } from "../../lib/password";
+
 import type { Env } from "../../config/env";
-import { json, runInBackground } from "../../lib/http";
-import { generateTempPassword, hashPassword } from "../admin/password";
-import { createVendorSession } from "../vendor/auth";
-import { issueEmailGate, readEmailGate } from "./email-gate";
-import {
-  type Sql,
-  cuid,
-  hashSha256,
-  loadBySession,
-  loadRegistration,
-  makeReferenceNumber,
-  timingSafeEqualHex,
-} from "./db";
+import { json } from "../../lib/http";
 import {
   sendApprovedEmail,
   sendAwardEmail,
@@ -21,6 +11,17 @@ import {
   sendSubmittedEmail,
   smtpConfigured,
 } from "../mail/mail";
+import { createVendorSession } from "../vendor/auth";
+import {
+  type Sql,
+  cuid,
+  hashSha256,
+  loadBySession,
+  loadRegistration,
+  makeReferenceNumber,
+  timingSafeEqualHex,
+} from "./db";
+import { issueEmailGate, readEmailGate } from "./email-gate";
 
 const OTP_TTL_MS = 15 * 60 * 1000;
 const OTP_MAX_PER_HOUR = 5;
@@ -160,11 +161,7 @@ function sessionFrom(request: Request): string | null {
   return request.headers.get("X-Enquire-Session");
 }
 
-export async function handleOtpRequest(
-  sql: Sql,
-  env: Env,
-  request: Request
-): Promise<Response> {
+export async function handleOtpRequest(sql: Sql, env: Env, request: Request): Promise<Response> {
   const body = (await request.json()) as { email?: string };
   const email = body.email?.trim().toLowerCase();
   if (!email || !email.includes("@")) {
@@ -193,11 +190,13 @@ export async function handleOtpRequest(
   `;
 
   // OTP only — registration rows are created on final submit (browser holds drafts).
-  runInBackground(
-    sendOtpEmail(env, email, code, 15).catch((err) => {
-      console.error("[enquire] OTP mail failed", err);
-    })
-  );
+  // Await delivery: Workers cancel fire-and-forget work when the response is sent.
+  try {
+    await sendOtpEmail(env, email, code, 15);
+  } catch (err) {
+    console.error("[enquire] OTP mail failed", err);
+    return json(env, request, { error: "Unable to send access code." }, 500);
+  }
 
   return json(env, request, {
     ok: true,
@@ -452,19 +451,14 @@ export async function handleDraftPatch(sql: Sql, env: Env, request: Request): Pr
   return json(env, request, { ok: true, registration });
 }
 
-export async function handleSubmit(
-  sql: Sql,
-  env: Env,
-  request: Request
-): Promise<Response> {
+export async function handleSubmit(sql: Sql, env: Env, request: Request): Promise<Response> {
   const gateEmail = readEmailGate(env, sessionFrom(request));
   if (!gateEmail) {
     return json(env, request, { error: "Not authenticated — verify your email again." }, 401);
   }
 
   const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
-  const email =
-    typeof body.email === "string" ? body.email.trim().toLowerCase() : gateEmail;
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : gateEmail;
   if (email !== gateEmail) {
     return json(env, request, { error: "Email does not match verified session." }, 403);
   }
@@ -484,9 +478,10 @@ export async function handleSubmit(
     });
   }
 
-  const company = (body.company && typeof body.company === "object"
-    ? body.company
-    : {}) as Record<string, unknown>;
+  const company = (body.company && typeof body.company === "object" ? body.company : {}) as Record<
+    string,
+    unknown
+  >;
   const contacts = Array.isArray(body.contacts) ? (body.contacts as Record<string, unknown>[]) : [];
   const addresses = Array.isArray(body.addresses)
     ? (body.addresses as Record<string, unknown>[])
@@ -523,8 +518,7 @@ export async function handleSubmit(
     referenceNumber = makeReferenceNumber();
   }
 
-  const id =
-    existing?.status === "DRAFT" && existing.id ? String(existing.id) : cuid();
+  const id = existing?.status === "DRAFT" && existing.id ? String(existing.id) : cuid();
 
   if (existing?.status === "DRAFT" && existing.id) {
     await sql`
@@ -669,11 +663,11 @@ export async function handleSubmit(
   }
 
   if (smtpConfigured(env)) {
-    runInBackground(
-      sendSubmittedEmail(env, email, { referenceNumber, legalName }).catch((err) => {
-        console.error("[enquire] submit mail failed", err);
-      })
-    );
+    try {
+      await sendSubmittedEmail(env, email, { referenceNumber, legalName });
+    } catch (err) {
+      console.error("[enquire] submit mail failed", err);
+    }
   }
 
   return json(env, request, {

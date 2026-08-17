@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { summariseVendorPerformance } from "@repo/rfq";
+import { summariseVendorPerformance } from "@/lib/rfq";
 
 import { adminSessionJson } from "@/lib/admin-data";
 

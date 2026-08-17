@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ArrowLeft } from "lucide-react";
 
-import { StatusBadge } from "@repo/ui";
+import { StatusBadge } from "@/lib/ui";
 
 import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
 import { ENQUIRE_QUESTIONNAIRE } from "@/data/enquire-questionnaire";

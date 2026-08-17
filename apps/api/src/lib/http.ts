@@ -43,8 +43,3 @@ export function json(env: Env, request: Request, data: unknown, status = 200): R
 export function unauthorized(env: Env, request: Request): Response {
   return json(env, request, { error: "Unauthorized" }, 401);
 }
-
-/** Fire-and-forget for mail / side effects (replaces Workers `waitUntil`). */
-export function runInBackground(task: Promise<unknown>): void {
-  void task.catch((err) => console.error("[background]", err));
-}

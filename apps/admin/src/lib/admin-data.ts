@@ -1,14 +1,12 @@
 import { cookies } from "next/headers";
+
 import "server-only";
 
 import { adminApiFetch } from "@/lib/admin-api";
 import { ADMIN_COOKIE } from "@/lib/constants";
 
 /** Cookie-backed fetch to apps/api `/admin/*` for RSC pages. */
-export async function adminSessionFetch(
-  path: string,
-  init: RequestInit = {}
-): Promise<Response> {
+export async function adminSessionFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const jar = await cookies();
   const token = jar.get(ADMIN_COOKIE)?.value;
   if (!token) {

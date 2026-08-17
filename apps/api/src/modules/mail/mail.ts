@@ -1,5 +1,3 @@
-import nodemailer from "nodemailer";
-
 import type { Env } from "../../config/env";
 
 const BRAND = "#0073bc";
@@ -122,6 +120,22 @@ function fromAddress(env: Env): string {
   return env.ENQUIRE_FROM_EMAIL || env.SMTP_FROM || "RVCC Procurement <noreply@rvcc.local>";
 }
 
+/** Cloudflare Workers expose this UA; Node (`tsx` / local API) does not. */
+function isCloudflareWorkerRuntime(): boolean {
+  if (typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers") {
+    return true;
+  }
+  return typeof (globalThis as { WebSocketPair?: unknown }).WebSocketPair === "function";
+}
+
+function parseMailbox(raw: string): string | { name: string; email: string } {
+  const angle = raw.trim().match(/^(.*)<([^>]+)>\s*$/);
+  if (!angle) return raw.trim();
+  const name = angle[1].trim().replace(/^"|"$/g, "");
+  const email = angle[2].trim();
+  return name ? { name, email } : email;
+}
+
 function approvedEmailHtml(opts: {
   legalName: string;
   referenceNumber: string;
@@ -194,10 +208,42 @@ async function sendMail(
   }
 
   const port = Number(env.SMTP_PORT || 587);
+  const implicitTls = port === 465 || env.SMTP_SECURE === "true";
+  const from = fromAddress(env);
+
+  // Nodemailer cannot open TCP sockets on Cloudflare Workers; mail would fail
+  // silently if we fire-and-forget. worker-mailer uses cloudflare:sockets.
+  if (isCloudflareWorkerRuntime()) {
+    const { WorkerMailer } = await import("worker-mailer");
+    await WorkerMailer.send(
+      {
+        host: env.SMTP_HOST!,
+        port,
+        secure: implicitTls,
+        startTls: !implicitTls,
+        credentials: {
+          username: env.SMTP_USER!,
+          password: env.SMTP_PASS!,
+        },
+        authType: ["plain", "login"],
+      },
+      {
+        from: parseMailbox(from),
+        to: opts.to,
+        subject: opts.subject,
+        text: opts.text,
+        html: opts.html,
+      }
+    );
+    return;
+  }
+
+  const nodemailerMod = await import("nodemailer");
+  const nodemailer = nodemailerMod.default ?? nodemailerMod;
   const transport = nodemailer.createTransport({
     host: env.SMTP_HOST,
     port,
-    secure: port === 465 || env.SMTP_SECURE === "true",
+    secure: implicitTls,
     auth: {
       user: env.SMTP_USER,
       pass: env.SMTP_PASS,
@@ -205,7 +251,7 @@ async function sendMail(
   });
 
   await transport.sendMail({
-    from: fromAddress(env),
+    from,
     to: opts.to,
     subject: opts.subject,
     text: opts.text,

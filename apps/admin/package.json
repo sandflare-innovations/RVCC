@@ -7,16 +7,14 @@
     "build": "next build",
     "start": "next start --port 3001",
     "lint": "eslint",
-    "create-admin": "node ./scripts/create-admin.mjs"
+    "test": "vitest run",
+    "create-admin": "tsx ./scripts/create-admin.ts"
   },
   "dependencies": {
-    "@repo/auth-password": "*",
-    "@repo/rfq": "*",
-    "@repo/ui": "*",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.23.0",
-    "next": "16.2.4",
+    "next": "16.3.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "server-only": "^0.0.1",
@@ -24,14 +22,19 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.4",
+    "eslint-config-next": "16.3.1",
+    "postgres": "^3.4.5",
+    "tsx": "^4.20.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

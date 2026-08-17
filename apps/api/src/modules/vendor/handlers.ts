@@ -1,3 +1,7 @@
+import { hashPassword, verifyPassword } from "../../lib/password";
+
+import type { Env } from "../../config/env";
+import { json } from "../../lib/http";
 import {
   attemptVendorLogin,
   createVendorSession,
@@ -6,10 +10,7 @@ import {
   revokeVendorSession,
   vendorSessionFrom,
 } from "./auth";
-import type { Env } from "../../config/env";
-import { json } from "../../lib/http";
 import { type Sql, cuid } from "./db";
-import { hashPassword, verifyPassword } from "./password";
 import { getOneForVendor, listOpenForVendor } from "./requirements";
 
 export async function handleLogin(sql: Sql, env: Env, request: Request): Promise<Response> {
