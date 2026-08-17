@@ -2,6 +2,12 @@ export { rankQuotes } from "./rank";
 export { summariseVendorPerformance, type VendorPerformanceRow } from "./kpi";
 export { PAGE_SIZE, pageCount, pageWindow, parsePage } from "./pagination";
 export { describeDeadline, type Deadline } from "./deadline";
+export {
+  summariseVendorDashboard,
+  type VendorDashboardInput,
+  type VendorNextAction,
+  type VendorRequirementRow,
+} from "./vendor-dashboard";
 
 /**
  * The vendor authenticated in the supplier portal.
