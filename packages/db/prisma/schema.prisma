@@ -208,6 +208,7 @@ model SupplierRegistration {
 
   @@index([email])
   @@index([status])
+  @@index([status, submittedAt])
 }
 
 model RegistrationOtp {
@@ -392,7 +393,7 @@ model RequirementInvite {
   createdAt DateTime @default(now())
 
   @@unique([requirementId, vendorUserId])
-  @@index([vendorUserId])
+  @@index([vendorUserId, createdAt])
 }
 
 enum QuoteStatus {
@@ -424,6 +425,7 @@ model Quote {
 
   @@unique([requirementId, vendorUserId])
   @@index([requirementId, status])
+  @@index([vendorUserId, status])
 }
 
 enum NotificationType {
