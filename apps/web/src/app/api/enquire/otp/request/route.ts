@@ -30,7 +30,11 @@ export async function POST(request: Request) {
     }
 
     if (!res.ok) {
-      return NextResponse.json(data, { status: res.status });
+      const hint =
+        res.status === 404
+          ? "Enquire API route not found. Set API_URL to https://rvcc-api.rvcc.workers.dev (no /enquire suffix) and redeploy apps/api."
+          : undefined;
+      return NextResponse.json({ ...data, hint }, { status: res.status });
     }
 
     return NextResponse.json({
@@ -39,6 +43,10 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     console.error("[enquire/otp/request]", err);
-    return NextResponse.json({ error: "Unable to send access code." }, { status: 503 });
+    const message =
+      err instanceof Error && err.message.includes("API_URL")
+        ? err.message
+        : "Unable to send access code. Check API_URL on Vercel.";
+    return NextResponse.json({ error: message }, { status: 503 });
   }
 }

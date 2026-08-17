@@ -3,12 +3,11 @@ import { cookies } from "next/headers";
 import "server-only";
 
 import { ENQUIRE_COOKIE } from "@/lib/enquire-constants";
+import { apiRoot } from "@/lib/api/root";
 
 /** Server-only client for apps/api `/enquire/*`. */
 function enquireBaseUrl(): string {
-  const base = process.env.API_URL?.replace(/\/$/, "");
-  if (!base) throw new Error("Set API_URL");
-  return `${base}/enquire`;
+  return `${apiRoot()}/enquire`;
 }
 
 export async function enquireApiFetch(
@@ -33,6 +32,4 @@ export async function enquireApiFetch(
   });
 }
 
-export function apiConfigured(): boolean {
-  return Boolean(process.env.API_URL);
-}
+export { apiConfigured } from "@/lib/api/root";

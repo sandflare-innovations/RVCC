@@ -21,8 +21,13 @@ export type WorkerEnv = {
 function toAppEnv(env: WorkerEnv): Env {
   return {
     DATABASE_URL: env.DATABASE_URL,
-    ALLOWED_ORIGINS: env.ALLOWED_ORIGINS?.trim() || "*",
-    VENDOR_PORTAL_URL: (env.VENDOR_PORTAL_URL || "").replace(/\/$/, ""),
+    ALLOWED_ORIGINS:
+      env.ALLOWED_ORIGINS?.trim() ||
+      "https://rvcc-prod.pages.dev,https://rvcc-vendor.pages.dev,https://rvcc-admin.pages.dev,https://rvcc-prod.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002",
+    VENDOR_PORTAL_URL: (env.VENDOR_PORTAL_URL || "https://rvcc-vendor.pages.dev").replace(
+      /\/$/,
+      ""
+    ),
     SMTP_HOST: env.SMTP_HOST,
     SMTP_PORT: env.SMTP_PORT,
     SMTP_SECURE: env.SMTP_SECURE,

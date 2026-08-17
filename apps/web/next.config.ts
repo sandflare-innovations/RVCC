@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
-import path from "node:path";
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    root: path.join(__dirname, "..", ".."),
-  },
   reactStrictMode: false,
   transpilePackages: [
     "three",
@@ -24,6 +20,14 @@ const nextConfig: NextConfig = {
         hostname: "pub-7f8ca337d3ac4e7f9f6ed54470da92a0.r2.dev",
       },
     ],
+  },
+  async redirects() {
+    return [
+      { source: "/register", destination: "/enquire/verify", permanent: true },
+      { source: "/register/:path*", destination: "/enquire/:path*", permanent: true },
+      { source: "/enquiry", destination: "/enquire/verify", permanent: true },
+      { source: "/enquiry/:path*", destination: "/enquire/:path*", permanent: true },
+    ];
   },
   async headers() {
     return [
