@@ -1,5 +1,7 @@
 export { rankQuotes } from "./rank";
 export { summariseVendorPerformance, type VendorPerformanceRow } from "./kpi";
+export { PAGE_SIZE, pageCount, pageWindow, parsePage } from "./pagination";
+export { describeDeadline, type Deadline } from "./deadline";
 
 /**
  * The vendor authenticated in the supplier portal.
