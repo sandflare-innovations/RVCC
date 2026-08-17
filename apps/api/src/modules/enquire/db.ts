@@ -1,4 +1,5 @@
 import type { Sql } from "../../lib/sql";
+import { cuid } from "../../lib/sql";
 
 export { createSql, cuid, hashSha256, type Sql } from "../../lib/sql";
 
@@ -65,4 +66,34 @@ export async function loadBySession(sql: Sql, sessionToken: string) {
   `;
   if (!reg) return null;
   return loadRegistration(sql, reg.id as string);
+}
+
+/** Create or return the in-progress draft for a verified email (email-gate sessions). */
+export async function ensureDraftForEmail(sql: Sql, email: string) {
+  const normalized = email.trim().toLowerCase();
+  const [existing] = await sql`
+    SELECT id FROM "SupplierRegistration"
+    WHERE lower(email) = ${normalized} AND status = 'DRAFT'
+    ORDER BY "updatedAt" DESC
+    LIMIT 1
+  `;
+  if (existing) return loadRegistration(sql, String(existing.id));
+
+  const id = cuid();
+  await sql`
+    INSERT INTO "SupplierRegistration"
+      (id, email, status, "businessRelationship", "currentStep", "createdAt", "updatedAt")
+    VALUES
+      (${id}, ${normalized}, 'DRAFT', 'PROSPECTIVE', 'company', NOW(), NOW())
+  `;
+  await sql`
+    INSERT INTO "CompanyProfile" (id, "registrationId")
+    VALUES (${cuid()}, ${id})
+  `;
+  await sql`
+    INSERT INTO "SupplierContact"
+      (id, "registrationId", email, "isAdministrative", "sortOrder")
+    VALUES (${cuid()}, ${id}, ${normalized}, true, 0)
+  `;
+  return loadRegistration(sql, id);
 }

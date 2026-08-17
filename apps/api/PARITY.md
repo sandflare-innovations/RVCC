@@ -13,7 +13,7 @@ Do **not** delete a Next `app/api` route until its row is green in production.
 | `requirements/*`   | `/admin/requirements/*`      | Kept (proxy)             |
 | `notifications`    | `/admin/notifications`       | Ported from Prisma → API |
 
-## Vendor
+## Vendor (`apps/vendor` — separate host)
 
 | Next route                      | Backend                        | Status                   |
 | ------------------------------- | ------------------------------ | ------------------------ |
@@ -21,12 +21,13 @@ Do **not** delete a Next `app/api` route until its row is green in production.
 | `requirements/*/quote`          | `/vendor/requirements/*/quote` | Kept (proxy)             |
 | `notifications`                 | `/vendor/notifications`        | Ported from Prisma → API |
 
-## Web enquire
+## Web enquire (`apps/web`)
 
-| Next route                 | Backend                     | Status                                        |
-| -------------------------- | --------------------------- | --------------------------------------------- |
-| `otp/*`, `draft`, `submit` | `/enquire/*` (Worker logic) | Kept; Prisma fallback only if `API_URL` unset |
-| `logout`                   | Cookie clear only           | Next-only (intentional)                       |
+| Next route                 | Backend                     | Status                          |
+| -------------------------- | --------------------------- | ------------------------------- |
+| `otp/*`, `draft`, `submit` | `/enquire/*`                | Cookie BFF → unified API        |
+| `logout`                   | Cookie clear only           | Next-only (intentional)         |
+| `documents/unlock`         | Next (DOC_PASSWORD)         | Server-side PIN check           |
 
 ## Worker-only (no Next twin) — live on `apps/api`
 

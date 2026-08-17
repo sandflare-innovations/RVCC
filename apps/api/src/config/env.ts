@@ -25,8 +25,12 @@ function required(name: string): string {
 export function loadEnv(): AppEnv {
   return {
     DATABASE_URL: required("DATABASE_URL"),
-    ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS?.trim() || "*",
-    VENDOR_PORTAL_URL: (process.env.VENDOR_PORTAL_URL || "").replace(/\/$/, ""),
+    ALLOWED_ORIGINS:
+      process.env.ALLOWED_ORIGINS?.trim() ||
+      "https://rvcc-prod.pages.dev,https://rvcc-vendor.pages.dev,https://rvcc-admin.pages.dev,http://localhost:3000,http://localhost:3001,http://localhost:3002",
+    VENDOR_PORTAL_URL: (
+      process.env.VENDOR_PORTAL_URL || "https://rvcc-vendor.pages.dev"
+    ).replace(/\/$/, ""),
     SMTP_HOST: process.env.SMTP_HOST,
     SMTP_PORT: process.env.SMTP_PORT,
     SMTP_SECURE: process.env.SMTP_SECURE,
