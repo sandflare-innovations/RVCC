@@ -9,7 +9,7 @@ import {
 import { type Env, json } from "./cors";
 import { type Sql, cuid } from "./db";
 import { hashPassword, verifyPassword } from "./password";
-import { getOneForVendor, listOpenForVendor } from "./requirements";
+import { getOneForVendor, listOpenForVendor, listOverviewForVendor } from "./requirements";
 
 export async function handleLogin(sql: Sql, env: Env, request: Request): Promise<Response> {
   let body: unknown;
@@ -148,32 +148,32 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
   const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
   if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
 
-  const [registration] = await sql`
-    SELECT
-      r.id,
-      r.status,
-      r."referenceNumber",
-      r."reviewNote",
-      r."productCategories",
-      r."submittedAt",
-      r."reviewedAt",
-      r.email,
-      r."businessRelationship",
-      c.id AS "companyId",
-      c."legalName" AS "companyLegalName",
-      c."dbaName" AS "companyDbaName",
-      c.country AS "companyCountry",
-      c."organizationType" AS "companyOrganizationType",
-      c.website AS "companyWebsite"
-    FROM "SupplierRegistration" r
-    LEFT JOIN "CompanyProfile" c ON c."registrationId" = r.id
-    WHERE r.id = ${vendor.registrationId}
-    LIMIT 1
-  `;
+  // Admin-created suppliers have no registration. Skipping the query rather
+  // than passing null into the WHERE is what stops this endpoint 404ing for
+  // every account RVCC created directly.
+  const registrationQuery = vendor.registrationId
+    ? sql`
+        SELECT
+          r.id, r.status, r."referenceNumber", r."submittedAt",
+          r.email, r."businessRelationship", r."productCategories",
+          c."legalName" AS "companyLegalName",
+          c."dbaName" AS "companyDbaName",
+          c.country AS "companyCountry",
+          c."organizationType" AS "companyOrganizationType",
+          c.website AS "companyWebsite"
+        FROM "SupplierRegistration" r
+        LEFT JOIN "CompanyProfile" c ON c."registrationId" = r.id
+        WHERE r.id = ${vendor.registrationId}
+        LIMIT 1
+      `
+    : Promise.resolve([] as unknown[]);
 
-  if (!registration) {
-    return json(env, request, { error: "Registration not found." }, 404);
-  }
+  const [registrationRows, requirementRows] = await Promise.all([
+    registrationQuery,
+    listOverviewForVendor(sql, vendor.id),
+  ]);
+
+  const registration = (registrationRows as Record<string, unknown>[])[0];
 
   return json(env, request, {
     vendor: {
@@ -183,26 +183,35 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
       mustChangePassword: vendor.mustChangePassword,
       registrationId: vendor.registrationId,
     },
-    registration: {
-      id: registration.id,
-      status: registration.status,
-      referenceNumber: registration.referenceNumber,
-      reviewNote: registration.reviewNote,
-      productCategories: registration.productCategories ?? [],
-      submittedAt: registration.submittedAt,
-      reviewedAt: registration.reviewedAt,
-      email: registration.email,
-      businessRelationship: registration.businessRelationship,
-      company: registration.companyId
-        ? {
-            legalName: String(registration.companyLegalName ?? ""),
-            dbaName: String(registration.companyDbaName ?? ""),
-            country: String(registration.companyCountry ?? ""),
-            organizationType: String(registration.companyOrganizationType ?? ""),
-            website: String(registration.companyWebsite ?? ""),
-          }
-        : null,
-    },
+    // Null rather than 404: a supplier with no registration still has a
+    // working portal, and the page says so in words.
+    registration: registration
+      ? {
+          id: String(registration.id),
+          status: String(registration.status),
+          referenceNumber: registration.referenceNumber as string | null,
+          submittedAt: registration.submittedAt as string | null,
+          email: String(registration.email ?? ""),
+          businessRelationship: String(registration.businessRelationship ?? ""),
+          productCategories: (registration.productCategories as string[]) ?? [],
+          company: registration.companyLegalName
+            ? {
+                legalName: String(registration.companyLegalName ?? ""),
+                dbaName: String(registration.companyDbaName ?? ""),
+                country: String(registration.companyCountry ?? ""),
+                organizationType: String(registration.companyOrganizationType ?? ""),
+                website: String(registration.companyWebsite ?? ""),
+              }
+            : null,
+        }
+      : null,
+    requirements: (requirementRows as Record<string, unknown>[]).map((r) => ({
+      id: String(r.id),
+      referenceNumber: r.referenceNumber as string | null,
+      project: String(r.project ?? ""),
+      closesAt: new Date(r.closesAt as string).toISOString(),
+      quoteStatus: (r.quoteStatus as "DRAFT" | "SUBMITTED" | null) ?? null,
+    })),
   });
 }
 

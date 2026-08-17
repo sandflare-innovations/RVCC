@@ -32,6 +32,28 @@ export function listOpenForVendor(sql: Sql, vendorUserId: string) {
 }
 
 /**
+ * The same visibility rule as listOpenForVendor, narrowed to the columns the
+ * overview paints. Scope of work and currency are omitted: the overview shows
+ * a project name and a deadline, and shipping the full scope text for every
+ * open requirement is the kind of over-fetch this redesign exists to remove.
+ */
+export function listOverviewForVendor(sql: Sql, vendorUserId: string) {
+  return sql`
+    SELECT r.id, r."referenceNumber", r.project, r."closesAt",
+           q.status AS "quoteStatus"
+    FROM "RequirementInvite" i
+    JOIN "Requirement" r ON r.id = i."requirementId"
+    LEFT JOIN "Quote" q
+      ON q."requirementId" = r.id AND q."vendorUserId" = ${vendorUserId}
+    WHERE i."vendorUserId" = ${vendorUserId}
+      AND r.status = 'OPEN'
+      AND r."closesAt" > NOW()
+    ORDER BY r."closesAt" ASC
+    LIMIT 100
+  `;
+}
+
+/**
  * A single requirement under the same visibility rule, but without the deadline
  * filter: a participant opening a link after closing should be told it closed,
  * not shown a 404 that reads as a broken system.
