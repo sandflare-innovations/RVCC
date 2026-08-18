@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import { summariseVendorPerformance } from "@/lib/rfq";
-import { KpiCard, PerformanceChart } from "@/components/ui";
+import { KpiCard, PointsChart } from "@/components/ui";
 
 import { adminSessionJson } from "@/lib/admin-data";
 
@@ -163,29 +163,28 @@ export default async function AdminDashboard() {
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <PerformanceChart
+        <PointsChart
           title="Registration Growth"
-          description="Supplier registrations over the last 6 months"
+          yAxisLabel="Suppliers"
           data={[
-            { name: "Mar", value: 12 },
-            { name: "Apr", value: 19 },
-            { name: "May", value: 15 },
-            { name: "Jun", value: 25 },
-            { name: "Jul", value: 32 },
-            { name: "Aug", value: activeVendors + (counts["SUBMITTED"] ?? 0) },
+            { date: "Mar", total: 12, change: 12 },
+            { date: "Apr", total: 19, change: 7 },
+            { date: "May", total: 15, change: -4 },
+            { date: "Jun", total: 25, change: 10 },
+            { date: "Jul", total: 32, change: 7 },
+            { date: "Aug", total: activeVendors + (counts["SUBMITTED"] ?? 0), change: (activeVendors + (counts["SUBMITTED"] ?? 0)) - 32 },
           ]}
         />
-        <PerformanceChart
+        <PointsChart
           title="Sourcing Activity"
-          description="Open vs Awarded requirements"
-          color="#10b981" // emerald-500
+          yAxisLabel="Requirements"
           data={[
-            { name: "Mar", value: 4 },
-            { name: "Apr", value: 7 },
-            { name: "May", value: 5 },
-            { name: "Jun", value: 12 },
-            { name: "Jul", value: 8 },
-            { name: "Aug", value: openCount + awaitingAward },
+            { date: "Mar", total: 4, change: 4 },
+            { date: "Apr", total: 7, change: 3 },
+            { date: "May", total: 5, change: -2 },
+            { date: "Jun", total: 12, change: 7 },
+            { date: "Jul", total: 8, change: -4 },
+            { date: "Aug", total: openCount + awaitingAward, change: (openCount + awaitingAward) - 8 },
           ]}
         />
       </section>
