@@ -4,7 +4,9 @@ import { useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { AlertCircle, Check, KeyRound, Mail, X } from "lucide-react";
+import { AlertCircle, Check, KeyRound, Mail, Scale, X } from "lucide-react";
+
+import { Modal, SubmitLoader } from "@/components/ui";
 
 import { readApiError } from "@/lib/read-error";
 
@@ -25,6 +27,7 @@ export function ReviewPanel({
   status: string;
 }) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState<"APPROVE" | "REJECT" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +66,6 @@ export function ReviewPanel({
   if (outcome) {
     const n = outcome.notified;
     const delivered = new Set(n?.sent ?? []);
-    // Only reveal a password that did NOT reach the vendor's inbox.
     const undelivered = outcome.credentials.filter((c) => !delivered.has(c.email));
     const mailProblem = Boolean(n?.error) || (n?.failed.length ?? 0) > 0 || !n?.attempted;
 
@@ -114,58 +116,91 @@ export function ReviewPanel({
   }
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-5">
-      <h2 className="text-sm font-semibold text-zinc-950">Review decision</h2>
-      <p className="mt-1 text-sm text-zinc-600">
-        Approving creates portal logins for contacts who requested one and marks the vendor
-        spend-authorized.
-      </p>
-
-      {error && (
-        <div
-          role="alert"
-          className="mt-3 flex items-start gap-2.5 border-l-4 border-zinc-900 bg-zinc-100 px-3.5 py-3 text-sm font-medium text-zinc-900"
-        >
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <span>{error}</span>
+    <>
+      <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <div>
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-950">
+            <Scale className="h-4 w-4 text-zinc-500" />
+            Review Required
+          </h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Evaluate this registration to approve or reject the vendor.
+          </p>
         </div>
-      )}
-
-      <label
-        htmlFor="review-note"
-        className="mt-4 block text-xs font-bold tracking-[0.14em] text-zinc-600 uppercase"
-      >
-        Note <span className="font-normal normal-case">(required to reject)</span>
-      </label>
-      <textarea
-        id="review-note"
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        rows={3}
-        placeholder="Reason for the decision…"
-        className="focus-visible:border-brand-blue focus-visible:ring-brand-blue/25 mt-1.5 w-full resize-y rounded-md border border-zinc-300 px-3.5 py-2.5 text-base outline-none focus-visible:ring-[3px]"
-      />
-
-      <div className="mt-4 flex flex-wrap gap-3">
         <button
           type="button"
-          onClick={() => void submit("APPROVE")}
-          disabled={busy !== null}
-          className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-11 items-center gap-2 rounded-md px-5 text-sm font-semibold text-white transition-colors disabled:pointer-events-none disabled:opacity-55"
+          onClick={() => setOpen(true)}
+          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800"
         >
-          <Check className="h-4 w-4" aria-hidden="true" />
-          {busy === "APPROVE" ? "Approving…" : "Approve"}
-        </button>
-        <button
-          type="button"
-          onClick={() => void submit("REJECT")}
-          disabled={busy !== null}
-          className="inline-flex h-11 items-center gap-2 rounded-md border-2 border-zinc-900 px-5 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-900 hover:text-white disabled:pointer-events-none disabled:opacity-55"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-          {busy === "REJECT" ? "Rejecting…" : "Reject"}
+          Review Decision
         </button>
       </div>
-    </div>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Review Vendor Registration"
+        maxWidth="lg"
+      >
+        <div className="p-6">
+          <p className="mb-6 text-sm text-zinc-600">
+            Approving creates portal logins for contacts who requested one and marks the vendor
+            spend-authorized.
+          </p>
+
+          {error && (
+            <div
+              role="alert"
+              className="mb-6 flex items-start gap-2.5 rounded-lg bg-red-50 p-4 text-sm font-medium text-red-900"
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-hidden="true" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <label
+            htmlFor="review-note"
+            className="mb-2 block text-xs font-bold tracking-[0.12em] text-zinc-700 uppercase"
+          >
+            Review Note{" "}
+            <span className="font-normal text-zinc-500 normal-case">(Required to reject)</span>
+          </label>
+          <textarea
+            id="review-note"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={4}
+            placeholder="Provide context for the approval or rejection..."
+            className="focus:border-brand-blue focus:ring-brand-blue w-full resize-none rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 transition-all outline-none focus:bg-white focus:ring-1"
+          />
+
+          <div className="mt-8 flex items-center justify-end gap-3 border-t border-zinc-100 pt-6">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="px-4 py-2 text-sm font-semibold text-zinc-600 hover:text-zinc-900"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void submit("REJECT")}
+              disabled={busy !== null}
+              className="inline-flex min-w-[100px] items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50"
+            >
+              {busy === "REJECT" ? <SubmitLoader text="Rejecting" /> : "Reject"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void submit("APPROVE")}
+              disabled={busy !== null}
+              className="bg-brand-blue hover:bg-brand-blue/90 inline-flex min-w-[120px] items-center justify-center gap-2 rounded-lg px-6 py-2 text-sm font-semibold text-white shadow-sm transition-all disabled:opacity-50"
+            >
+              {busy === "APPROVE" ? <SubmitLoader text="Approving" /> : "Approve Vendor"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }

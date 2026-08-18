@@ -2,7 +2,9 @@
 
 import React from "react";
 
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+
+import { SubmitLoader } from "./loader";
 
 import { cn } from "@/lib/utils";
 
@@ -63,7 +65,7 @@ const InteractiveHoverButton = React.forwardRef<HTMLButtonElement, InteractiveHo
         aria-busy={pending || undefined}
         className={cn(
           "group relative h-14 cursor-pointer overflow-hidden rounded-md border-2 px-8",
-          "text-[13px] font-bold tracking-[0.12em] uppercase",
+          "text-sm font-bold tracking-[0.1em] uppercase sm:text-base",
           // Snappy press feedback — the old 500ms transition read as lag.
           "transition-[transform,opacity,background-color] duration-200 ease-out",
           "active:scale-[0.98]",
@@ -81,9 +83,8 @@ const InteractiveHoverButton = React.forwardRef<HTMLButtonElement, InteractiveHo
         {...props}
       >
         {pending ? (
-          <span className="relative z-20 flex items-center justify-center gap-2.5">
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-            {label}
+          <span className="relative z-20 flex items-center justify-center">
+            <SubmitLoader text={label as string} />
           </span>
         ) : (
           <>

@@ -77,14 +77,14 @@ export function Modal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2, type: "spring", bounce: 0, opacity: { duration: 0.15 } }}
-            className={`relative z-10 w-full ${MAX_WIDTHS[maxWidth]} flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl`}
+            className={`relative z-10 w-full ${MAX_WIDTHS[maxWidth]} overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl`}
             role="dialog"
             aria-modal="true"
             aria-labelledby={title ? "modal-title" : undefined}
           >
             {title && (
               <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
-                <div className="flex flex-col">
+                <div>
                   <h2 id="modal-title" className="text-lg font-semibold text-zinc-950">
                     {title}
                   </h2>
@@ -95,7 +95,7 @@ export function Modal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:ring-2 focus-visible:outline-none"
+                  className="focus-visible:ring-brand-blue rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:ring-2 focus-visible:outline-none"
                   aria-label="Close modal"
                 >
                   <X className="h-5 w-5" />
@@ -103,12 +103,12 @@ export function Modal({
               </div>
             )}
 
-            <div className="max-h-[calc(100vh-8rem)] flex-1 overflow-y-auto px-6 py-6">
+            <div className="max-h-[calc(100vh-8rem)] overflow-y-auto p-6">
               {!title && (
                 <button
                   type="button"
                   onClick={onClose}
-                  className="absolute top-4 right-4 z-20 rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:ring-2 focus-visible:outline-none"
+                  className="focus-visible:ring-brand-blue absolute top-4 right-4 z-20 rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:ring-2 focus-visible:outline-none"
                   aria-label="Close modal"
                 >
                   <X className="h-5 w-5" />

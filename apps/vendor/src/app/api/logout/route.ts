@@ -12,13 +12,16 @@ export async function POST() {
     try {
       const { clearVendorSessionCache } = await import("@/lib/session");
       clearVendorSessionCache(token);
-      await vendorWorkerFetch("/auth/logout", { method: "POST", sessionToken: token });
+      // Fire and forget
+      vendorWorkerFetch("/auth/logout", { method: "POST", sessionToken: token }).catch((err) =>
+        console.error("[vendor/logout] bg fail", err)
+      );
     } catch (err) {
       console.error("[vendor/logout]", err);
     }
   }
 
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(VENDOR_COOKIE, "", { path: "/", maxAge: 0 });
+  res.cookies.set(VENDOR_COOKIE, "", { path: "/", maxAge: 0, expires: new Date(0) });
   return res;
 }

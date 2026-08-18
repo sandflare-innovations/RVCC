@@ -140,7 +140,7 @@ export const MobileSidebar = ({
   return (
     <div className="sticky top-0 z-40 flex h-14 w-full items-center justify-between border-b border-zinc-200 bg-white px-4 md:hidden">
       <span className="text-brand-blue text-[11px] font-bold tracking-[0.2em] uppercase">
-        RVCC Admin
+        RVCC Supplier
       </span>
       <button
         ref={triggerRef}
