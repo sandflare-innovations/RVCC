@@ -1,0 +1,5 @@
+﻿API_URL=https://rvcc-api.rvcc.workers.dev
+
+NEXT_PUBLIC_SITE_URL=https://rvcc-prod.pages.dev
+NEXT_PUBLIC_VENDOR_PORTAL_URL=https://rvcc-vendor.pages.dev
+NEXT_PUBLIC_ADMIN_PORTAL_URL=https://rvcc-admin.pages.dev

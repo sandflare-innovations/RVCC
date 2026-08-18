@@ -1,0 +1,477 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RegistrationStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum BusinessRelationship {
+  PROSPECTIVE
+  SPEND_AUTHORIZED
+}
+
+enum AdminRole {
+  SUPER_ADMIN // manage admins + everything below
+  ADMIN // approve/reject vendors, manage content
+  REVIEWER // read-only
+}
+
+/// Portal login gate — separate from registration completeness.
+/// HELD: account may exist but supplier cannot use vendor pages.
+/// RELEASED: admin granted portal access (optionally emailed).
+enum PortalAccess {
+  HELD
+  RELEASED
+}
+
+/// Staff accounts for the admin panel. Deliberately separate from VendorUser:
+/// a vendor must never be able to escalate into staff access.
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String    @default("")
+  passwordHash String
+  role         AdminRole @default(ADMIN)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+
+  // Throttling — see lib/admin/auth.ts
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions     AdminSession[]
+  auditLogs    AuditLog[]
+  reviewed     SupplierRegistration[]
+  jobPostings  JobPosting[]
+  requirements  Requirement[]  @relation("RequirementAuthor")
+  awarded       Requirement[]  @relation("RequirementAwarder")
+  notifications Notification[]
+
+  @@index([email])
+}
+
+/// Careers content, editable from the admin panel.
+/// department/employmentType are plain strings, not enums, so staff can add a
+/// new department without a schema migration and redeploy.
+model JobPosting {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  title          String
+  department     String   @default("")
+  location       String   @default("")
+  employmentType String   @default("Full-time")
+  description    String   @default("")
+  requirements   String[] @default([])
+  benefits       String[] @default([])
+  isRemote       Boolean  @default(false)
+
+  /// Drafts stay invisible on the public site until this is set.
+  isPublished Boolean  @default(false)
+  postedAt    DateTime @default(now())
+  sortOrder   Int      @default(0)
+
+  createdById String?
+  createdBy   AdminUser? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isPublished, sortOrder])
+}
+
+/// Only the SHA-256 of the session token is stored, so a database leak does not
+/// hand over live sessions. The raw token lives solely in the httpOnly cookie.
+model AdminSession {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  adminId   String
+  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  userAgent String    @default("")
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([adminId])
+}
+
+/// Vendor login. Public registration creates the row with portalAccess=HELD;
+/// admin Release grants portal pages (and optional email).
+model VendorUser {
+  id                 String  @id @default(cuid())
+  email              String  @unique
+  name               String  @default("")
+  passwordHash       String
+  mustChangePassword Boolean @default(true)
+  isActive           Boolean @default(true)
+  /// HELD until admin releases portal access from User Management.
+  portalAccess       PortalAccess @default(HELD)
+
+  /// Null for accounts an admin created directly — most RVCC suppliers already
+  /// exist as companies and never use the public registration wizard.
+  /// SetNull rather than Cascade: removing a registration record must never
+  /// destroy a working login.
+  registrationId String?
+  registration   SupplierRegistration? @relation(fields: [registrationId], references: [id], onDelete: SetNull)
+
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+  lastLoginAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions      VendorSession[]
+  industries    Industry[]
+  invites       RequirementInvite[]
+  quotes        Quote[]
+  notifications Notification[]
+
+  @@index([registrationId])
+  @@index([email])
+  @@index([portalAccess])
+}
+
+/// A category of work a supplier or agent can be invited for, e.g. "Civil Works".
+/// Plain rows rather than an enum so staff can add one without a migration and
+/// redeploy — the same reasoning as JobPosting.department.
+model Industry {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  slug     String  @unique
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vendors VendorUser[]
+
+  @@index([isActive])
+}
+
+model VendorSession {
+  id        String     @id @default(cuid())
+  tokenHash String     @unique
+  vendorId  String
+  vendor    VendorUser @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  userAgent String     @default("")
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime   @default(now())
+
+  @@index([vendorId])
+}
+
+/// Append-only trail of privileged actions. Approving a vendor is a commercial
+/// decision, so it needs to be attributable after the fact.
+model AuditLog {
+  id         String     @id @default(cuid())
+  adminId    String?
+  admin      AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  action     String // e.g. "registration.approved"
+  entityType String // e.g. "SupplierRegistration"
+  entityId   String
+  metadata   Json       @default("{}")
+  createdAt  DateTime   @default(now())
+
+  @@index([entityType, entityId])
+  @@index([adminId])
+  @@index([createdAt])
+}
+
+model SupplierRegistration {
+  id                 String               @id @default(cuid())
+  referenceNumber    String?              @unique
+  status             RegistrationStatus   @default(DRAFT)
+  businessRelationship BusinessRelationship @default(PROSPECTIVE)
+  email              String
+  currentStep        String               @default("verify")
+  sessionToken       String?              @unique
+  /// True after the supplier finishes and submits the full registration form.
+  registrationComplete Boolean            @default(false)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  submittedAt        DateTime?
+
+  // Review outcome, written by the admin panel.
+  reviewedAt         DateTime?
+  reviewedById       String?
+  reviewedBy         AdminUser?           @relation(fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewNote         String?
+  vendorUsers        VendorUser[]
+
+  company            CompanyProfile?
+  contacts           SupplierContact[]
+  addresses          SupplierAddress[]
+  classifications    BusinessClassification[]
+  bankAccounts       BankAccount[]
+  productCategories  String[]             @default([])
+  questionnaire      QuestionnaireAnswer[]
+  attachments        RegistrationAttachment[]
+
+  @@index([email])
+  @@index([status])
+  @@index([registrationComplete])
+}
+
+model RegistrationOtp {
+  id         String    @id @default(cuid())
+  email      String
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email])
+}
+
+model CompanyProfile {
+  id               String               @id @default(cuid())
+  registrationId   String               @unique
+  registration     SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  legalName        String               @default("")
+  dbaName          String               @default("")
+  country          String               @default("")
+  taxIdentifiers   Json                 @default("{}")
+  organizationType String               @default("")
+  supplierType     String               @default("")
+  website          String               @default("")
+  yearEstablished  String               @default("")
+  dunsNumber       String               @default("")
+  description      String               @default("")
+}
+
+model SupplierContact {
+  id               String               @id @default(cuid())
+  registrationId   String
+  registration     SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  firstName        String               @default("")
+  lastName         String               @default("")
+  email            String               @default("")
+  jobTitle         String               @default("")
+  phone            String               @default("")
+  mobile           String               @default("")
+  isAdministrative Boolean              @default(false)
+  requestUserAccount Boolean            @default(false)
+  sortOrder        Int                  @default(0)
+
+  @@index([registrationId])
+}
+
+model SupplierAddress {
+  id             String               @id @default(cuid())
+  registrationId String
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  label          String               @default("")
+  line1          String               @default("")
+  line2          String               @default("")
+  city           String               @default("")
+  region         String               @default("")
+  postalCode     String               @default("")
+  country        String               @default("")
+  phone          String               @default("")
+  email          String               @default("")
+  purposes       String[]             @default([])
+  sortOrder      Int                  @default(0)
+
+  @@index([registrationId])
+}
+
+model BusinessClassification {
+  id             String               @id @default(cuid())
+  registrationId String
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  classification String               @default("")
+  certificateNumber String            @default("")
+  certifyingAgency String             @default("")
+  effectiveDate  String               @default("")
+  expirationDate String               @default("")
+  sortOrder      Int                  @default(0)
+
+  @@index([registrationId])
+}
+
+model BankAccount {
+  id             String               @id @default(cuid())
+  registrationId String
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  country        String               @default("")
+  bankName       String               @default("")
+  branchName     String               @default("")
+  accountName    String               @default("")
+  accountNumber  String               @default("")
+  iban           String               @default("")
+  routingNumber  String               @default("")
+  currency       String               @default("SAR")
+  sortOrder      Int                  @default(0)
+
+  @@index([registrationId])
+}
+
+model QuestionnaireAnswer {
+  id             String               @id @default(cuid())
+  registrationId String
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  questionKey    String
+  answer         String               @default("")
+
+  @@unique([registrationId, questionKey])
+  @@index([registrationId])
+}
+
+model RegistrationAttachment {
+  id             String               @id @default(cuid())
+  registrationId String
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  section        String
+  fileName       String
+  fileUrl        String
+  mimeType       String               @default("")
+  createdAt      DateTime             @default(now())
+
+  @@index([registrationId])
+}
+
+enum RequirementStatus {
+  DRAFT
+  OPEN
+  CANCELLED
+  AWARDED
+}
+
+enum InviteEmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+/// Work put out to quote. Closed is not a status: it means closesAt < now(),
+/// and storing it as well would let the flag and the clock disagree.
+/// CANCELLED and AWARDED are stored because the clock cannot express them.
+model Requirement {
+  id              String  @id @default(cuid())
+  referenceNumber String? @unique
+
+  scopeOfWork String
+  project     String
+  /// Admin reference only — never selected by a participant query.
+  sellingPrice Decimal? @db.Decimal(14, 2)
+  currency     String   @default("SAR")
+
+  closesAt DateTime
+  status   RequirementStatus @default(DRAFT)
+
+  createdByAdminId String
+  createdByAdmin   AdminUser @relation("RequirementAuthor", fields: [createdByAdminId], references: [id])
+
+  /// The winning quote. @unique so one quote cannot win twice.
+  awardedQuoteId   String?    @unique
+  awardedQuote     Quote?     @relation("AwardedQuote", fields: [awardedQuoteId], references: [id], onDelete: SetNull)
+  awardedAt        DateTime?
+  awardedByAdminId String?
+  awardedByAdmin   AdminUser? @relation("RequirementAwarder", fields: [awardedByAdminId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invites RequirementInvite[]
+  quotes  Quote[]
+
+  @@index([status, closesAt])
+}
+
+/// Who was asked to quote. One row per vendor per requirement.
+model RequirementInvite {
+  id            String      @id @default(cuid())
+  requirementId String
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  vendorUserId String
+  vendorUser   VendorUser @relation(fields: [vendorUserId], references: [id], onDelete: Cascade)
+
+  emailStatus InviteEmailStatus @default(PENDING)
+  emailError  String?
+  emailedAt   DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([requirementId, vendorUserId])
+  @@index([vendorUserId])
+}
+
+enum QuoteStatus {
+  DRAFT
+  SUBMITTED
+  SHORTLISTED
+  REJECTED
+}
+
+/// One participant's price for one requirement. Rank is never stored: it is
+/// computed when the admin opens the comparison, because a stored rank goes
+/// stale the moment someone edits their price.
+model Quote {
+  id            String      @id @default(cuid())
+  requirementId String
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  vendorUserId String
+  vendorUser   VendorUser @relation(fields: [vendorUserId], references: [id], onDelete: Cascade)
+
+  newPrice Decimal? @db.Decimal(14, 2)
+  remarks  String   @default("")
+
+  fileName String?
+  fileUrl  String?
+
+  status      QuoteStatus @default(DRAFT)
+  submittedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  awardedFor Requirement? @relation("AwardedQuote")
+
+  @@unique([requirementId, vendorUserId])
+  @@index([requirementId, status])
+}
+
+enum NotificationType {
+  REQUIREMENT_POSTED
+  QUOTE_SUBMITTED
+  QUOTE_AWARDED
+}
+
+/// In-app bell. Recipient is a vendor or an admin — the two are separate
+/// nullable links rather than one polymorphic id, so both stay real foreign
+/// keys and a deleted account takes its notifications with it.
+model Notification {
+  id String @id @default(cuid())
+
+  vendorUserId String?
+  vendorUser   VendorUser? @relation(fields: [vendorUserId], references: [id], onDelete: Cascade)
+
+  adminId String?
+  admin   AdminUser? @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  type     NotificationType
+  title    String
+  body     String   @default("")
+  linkPath String
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([vendorUserId, readAt])
+  @@index([adminId, readAt])
+}

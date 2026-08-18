@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# Next.js
+.next/
+out/
+
+# Build output
+dist/
+.turbo/
+
+# Testing
+coverage/
+
+# Environment and secrets
+# .env
+# .env.*
+# !.env.example
+# .dev.vars
+*.pem
+
+# Local tool caches
+.wrangler/
+worker-configuration.d.ts
+
+# Optional local PDF/video copies (served from R2 — do not commit)
+Assets/
+
+# Vercel
+.vercel
+
+# Logs
+*.log
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# TypeScript
+*.tsbuildinfo
+
+# iCloud sync conflict copies
+*\ 2.*

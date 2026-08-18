@@ -1,0 +1,24 @@
+# Cloudflare Worker for the unified API.
+# Workers Builds: Root directory = `apps/api`, install command = `npm ci`.
+# Deploy from this folder: `npm run deploy`
+
+name = "rvcc-api"
+main = "src/worker.ts"
+compatibility_date = "2025-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGINS = "https://rvcc-prod.pages.dev,https://rvcc-vendor.pages.dev,https://rvcc-admin.pages.dev,https://rvcc-prod.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002"
+VENDOR_PORTAL_URL = "https://rvcc-vendor.pages.dev"
+SMTP_HOST = "smtp.gmail.com"
+SMTP_PORT = "587"
+SMTP_SECURE = "false"
+SMTP_USER = "flyincob2b@gmail.com"
+ENQUIRE_FROM_EMAIL = "RVCC Procurement <flyincob2b@gmail.com>"
+
+# Secrets (wrangler secret put …):
+#   DATABASE_URL
+#   SMTP_PASS
+#   EMAIL_GATE_SECRET   (optional; defaults to DATABASE_URL)
