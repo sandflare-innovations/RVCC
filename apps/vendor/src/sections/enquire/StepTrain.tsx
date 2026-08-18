@@ -7,7 +7,7 @@ import { Check } from "lucide-react";
 import { ENQUIRE_STEPS, type EnquireStep } from "@/lib/enquire-constants";
 import { enquireStepLabelClass } from "@/sections/enquire/enquire-typography";
 
-import { cn } from "@lib/utils";
+import { cn } from "@/lib/utils";
 
 const LABELS: Record<string, string> = {
   verify: "Verify",
