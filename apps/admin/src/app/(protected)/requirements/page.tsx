@@ -5,8 +5,11 @@ import { CreateRequirementForm, type ParticipantOption } from "@/sections/Create
 
 export const dynamic = "force-dynamic";
 
-function formatDateTime(d: string) {
-  return new Date(d).toLocaleString("en-GB", {
+function formatDateTime(d: string | null) {
+  if (!d) return "—";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -15,8 +18,13 @@ function formatDateTime(d: string) {
   });
 }
 
-function statusLabel(status: string, closesAt: string) {
-  if (status === "OPEN" && new Date(closesAt).getTime() <= Date.now()) return "Closed";
+function statusLabel(status: string, closesAt: string | null) {
+  if (status === "OPEN" && closesAt) {
+    const date = new Date(closesAt);
+    if (!isNaN(date.getTime()) && date.getTime() <= Date.now()) {
+      return "Closed";
+    }
+  }
   return status.charAt(0) + status.slice(1).toLowerCase();
 }
 
