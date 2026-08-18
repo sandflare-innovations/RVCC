@@ -152,11 +152,5 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
   } catch (err) {
     console.error("[admin]", err);
     return json(env, request, { error: "Internal error" }, 500);
-  } finally {
-    try {
-      await sql.end({ timeout: 2 });
-    } catch {
-      /* ignore */
-    }
   }
 }

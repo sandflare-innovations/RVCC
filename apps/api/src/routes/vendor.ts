@@ -79,11 +79,5 @@ export async function handleVendorRequest(request: Request, env: Env): Promise<R
   } catch (err) {
     console.error("[vendor]", err);
     return json(env, request, { error: "Internal error" }, 500);
-  } finally {
-    try {
-      await sql.end({ timeout: 2 });
-    } catch {
-      /* ignore */
-    }
   }
 }
