@@ -10,7 +10,7 @@ import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
 import { enquireMutedClass } from "@/sections/enquire/enquire-typography";
 
-import { cn } from "@lib/utils";
+import { cn } from "@/lib/utils";
 
 export function ProductsStep() {
   useRequireSession("products");

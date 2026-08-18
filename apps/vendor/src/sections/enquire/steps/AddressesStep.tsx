@@ -20,7 +20,7 @@ import {
   enquireSectionTitleClass,
 } from "@/sections/enquire/enquire-typography";
 
-import { cn } from "@lib/utils";
+import { cn } from "@/lib/utils";
 
 type AddressForm = {
   label: string;
