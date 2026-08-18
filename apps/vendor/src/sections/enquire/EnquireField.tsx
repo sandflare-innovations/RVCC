@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@lib/utils";
 
 type FieldProps = {
   label: string;
@@ -18,7 +18,7 @@ export function EnquireField({ label, required, className, hint, children }: Fie
         Was text-[10px] + zinc-400 (~2.6:1 on white) — under the 4.5:1 AA floor
         and hard to read at that size. zinc-600 clears 7:1 at 12px.
       */}
-      <label className="group-focus-within:text-brand-blue flex items-center gap-1 text-xs font-bold tracking-[0.14em] text-zinc-600 uppercase transition-colors">
+      <label className="group-focus-within:text-brand-blue flex items-center gap-1 text-sm font-bold tracking-[0.1em] text-zinc-600 uppercase transition-colors sm:text-base">
         {label}
         {required ? (
           <>
@@ -30,7 +30,7 @@ export function EnquireField({ label, required, className, hint, children }: Fie
         ) : null}
       </label>
       {children}
-      {hint ? <p className="text-xs leading-relaxed text-zinc-500">{hint}</p> : null}
+      {hint ? <p className="text-sm leading-relaxed text-zinc-500 sm:text-base">{hint}</p> : null}
     </div>
   );
 }
@@ -47,7 +47,7 @@ export function EnquireField({ label, required, className, hint, children }: Fie
  * tabular-nums keeps IBANs, CR/VAT numbers and postal codes aligned.
  */
 const controlBase =
-  "w-full rounded-md border border-zinc-300 bg-white px-3.5 py-2.5 text-base text-zinc-950 tabular-nums shadow-xs outline-none transition-[color,border-color,box-shadow] placeholder:text-zinc-500 hover:border-zinc-400 focus-visible:border-brand-blue focus-visible:ring-[3px] focus-visible:ring-brand-blue/25 disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:text-zinc-500 aria-invalid:border-red-500 aria-invalid:ring-[3px] aria-invalid:ring-red-500/20";
+  "w-full rounded-md border border-zinc-300 bg-white px-3.5 py-3 text-base text-zinc-950 tabular-nums shadow-xs outline-none transition-[color,border-color,box-shadow] placeholder:text-zinc-500 hover:border-zinc-400 focus-visible:border-brand-blue focus-visible:ring-[3px] focus-visible:ring-brand-blue/25 disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:text-zinc-500 aria-invalid:border-red-500 aria-invalid:ring-[3px] aria-invalid:ring-red-500/20 sm:text-[17px]";
 
 export const enquireInputClass = controlBase;
 
