@@ -17,7 +17,9 @@ const FILTERS = [
 
 function formatDateTime(d: string | null) {
   if (!d) return null;
-  return new Date(d).toLocaleString("en-GB", {
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return null;
+  return date.toLocaleString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -26,8 +28,11 @@ function formatDateTime(d: string | null) {
   });
 }
 
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("en-GB", {
+function formatDate(d: string | null) {
+  if (!d) return "—";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",

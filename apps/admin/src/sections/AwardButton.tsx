@@ -89,12 +89,14 @@ export function AwardButton({
               <p className="text-xs text-amber-800">
                 This requirement is still open until{" "}
                 <span className="font-semibold">
-                  {new Date(closesAt).toLocaleString("en-GB", {
-                    day: "numeric",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {closesAt && !isNaN(new Date(closesAt).getTime())
+                    ? new Date(closesAt).toLocaleString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "—"}
                 </span>
                 . Awarding now closes it early.
               </p>
