@@ -4,6 +4,8 @@ import React from "react";
 
 import { ArrowRight, Loader2 } from "lucide-react";
 
+import { SubmitLoader } from "./loader";
+
 import { cn } from "@/lib/utils";
 
 type Variant = "solid" | "outline";
@@ -81,9 +83,8 @@ const InteractiveHoverButton = React.forwardRef<HTMLButtonElement, InteractiveHo
         {...props}
       >
         {pending ? (
-          <span className="relative z-20 flex items-center justify-center gap-2.5">
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-            {label}
+          <span className="relative z-20 flex items-center justify-center">
+            <SubmitLoader text={label as string} />
           </span>
         ) : (
           <>

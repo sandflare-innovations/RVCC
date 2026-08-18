@@ -12,13 +12,16 @@ export async function POST() {
     try {
       const { clearAdminSessionCache } = await import("@/lib/session");
       clearAdminSessionCache(token);
-      await adminWorkerFetch("/auth/logout", { method: "POST", sessionToken: token });
+      // Fire and forget with catch to prevent hanging
+      adminWorkerFetch("/auth/logout", { method: "POST", sessionToken: token }).catch((err) =>
+        console.error("[admin/logout] bg fail", err)
+      );
     } catch (err) {
       console.error("[admin/logout]", err);
     }
   }
 
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(ADMIN_COOKIE, "", { path: "/", maxAge: 0 });
+  res.cookies.set(ADMIN_COOKIE, "", { path: "/", maxAge: 0, expires: new Date(0) });
   return res;
 }
