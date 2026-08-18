@@ -8,8 +8,11 @@ import { AwardButton } from "@/sections/AwardButton";
 
 export const dynamic = "force-dynamic";
 
-function formatDateTime(d: string) {
-  return new Date(d).toLocaleString("en-GB", {
+function formatDateTime(d: string | null) {
+  if (!d) return "—";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",

@@ -107,8 +107,11 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
             {r.status === "APPROVED" ? "Approved" : "Rejected"}
           </span>{" "}
           <span className="text-zinc-600">
-            on {new Date(r.reviewedAt).toLocaleDateString("en-GB")} by{" "}
-            {r.reviewedBy?.name || r.reviewedBy?.email || "a deleted account"}
+            on{" "}
+            {r.reviewedAt && !isNaN(new Date(r.reviewedAt).getTime())
+              ? new Date(r.reviewedAt).toLocaleDateString("en-GB")
+              : "—"}{" "}
+            by {r.reviewedBy?.name || r.reviewedBy?.email || "a deleted account"}
           </span>
           {r.reviewNote && <p className="mt-1.5 text-zinc-700">“{r.reviewNote}”</p>}
         </div>

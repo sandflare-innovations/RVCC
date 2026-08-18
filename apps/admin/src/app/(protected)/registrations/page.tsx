@@ -24,7 +24,9 @@ const VALID = new Set<string>(["SUBMITTED", "APPROVED", "REJECTED", "DRAFT", "AL
 
 function formatDate(d: string | null) {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-GB", {
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
