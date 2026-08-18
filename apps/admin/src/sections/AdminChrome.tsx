@@ -15,13 +15,9 @@ const ICON = "h-5 w-5 shrink-0";
 
 const NAV = [
   { href: "/", label: "Dashboard", icon: <LayoutDashboard className={ICON} />, exact: true },
-  {
-    href: "/registrations",
-    label: "Vendor Registrations",
-    icon: <FileText className={ICON} />,
-  },
-  { href: "/requirements", label: "Requirements", icon: <ClipboardList className={ICON} /> },
   { href: "/vendors", label: "Vendor Accounts", icon: <Users className={ICON} /> },
+  { href: "/requirements", label: "RFQs / Requirements", icon: <ClipboardList className={ICON} /> },
+  { href: "/registrations", label: "Vendor Registrations", icon: <FileText className={ICON} /> },
   { href: "/content", label: "Site Content", icon: <FolderOpen className={ICON} /> },
 ];
 
@@ -133,11 +129,8 @@ export function AdminChrome({
   const signOut = async () => {
     if (signingOut) return;
     setSigningOut(true);
-    fetch("/api/logout", { method: "POST", credentials: "include" })
-      .catch(() => {})
-      .finally(() => {
-        window.location.href = "/login";
-      });
+    fetch("/api/logout", { method: "POST", credentials: "include" }).catch(() => {});
+    window.location.replace("/login");
   };
 
   return (

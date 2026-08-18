@@ -27,14 +27,13 @@ export default function VendorLoginPage() {
           </div>
 
           <div className="max-w-md">
-            <h1 className="mb-6 text-4xl leading-tight font-bold text-white">Partner with RVCC</h1>
-            <p className="mb-10 text-lg leading-relaxed text-zinc-400">
-              Access the supplier portal to manage your profile, respond to requirements, and track
-              your business relationships with RVCC.
+            <h1 className="mb-4 text-4xl leading-tight font-bold text-white tracking-tight">Supplier Portal</h1>
+            <p className="mb-10 text-lg leading-relaxed text-zinc-400 font-light">
+              Manage your profile, respond to requirements, and track your business relationships with RVCC.
             </p>
 
-            <div className="flex items-center gap-4 text-sm font-medium text-zinc-500">
-              <ShoppingBag className="h-5 w-5" />
+            <div className="inline-flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-zinc-300 backdrop-blur-sm border border-white/5">
+              <ShoppingBag className="h-4 w-4 text-brand-blue" />
               <span>Approved Suppliers Only</span>
             </div>
           </div>
@@ -48,26 +47,18 @@ export default function VendorLoginPage() {
       {/* Right side - Login Form */}
       <div className="relative flex flex-1 flex-col justify-center px-6 py-12 sm:px-12 lg:px-24 xl:px-32">
         {/* Mobile Header (only visible on small screens) */}
-        <div className="mb-12 flex items-center gap-2 text-zinc-950 lg:hidden">
+        <div className="mb-12 flex items-center justify-center gap-2 text-zinc-950 lg:hidden">
           <Store className="text-brand-blue h-6 w-6" />
           <span className="text-xs font-bold tracking-[0.2em] uppercase">RVCC Supplier Portal</span>
         </div>
 
         <div className="mx-auto w-full max-w-sm">
           <div className="mb-10 text-center lg:text-left">
-            <h2 className="mb-3 text-3xl font-semibold tracking-tight text-zinc-950">
-              Welcome back
+            <h2 className="mb-2 text-3xl font-semibold tracking-tight text-zinc-950">
+              Sign In
             </h2>
-            <p className="text-sm leading-relaxed text-zinc-500">
-              Approved suppliers use email and password. New suppliers{" "}
-              <a
-                href="/register/verify"
-                className="text-brand-blue font-medium underline-offset-2 transition-all hover:underline"
-              >
-                register here
-              </a>{" "}
-              — after email verification we open the portal if you already have an account, or the
-              registration form if you do not.
+            <p className="text-sm text-zinc-500">
+              Enter your credentials to access your supplier account.
             </p>
           </div>
 

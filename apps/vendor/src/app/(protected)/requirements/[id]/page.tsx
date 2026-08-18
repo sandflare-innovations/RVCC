@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 
 import { describeDeadline } from "@/lib/rfq";
 import { QuoteForm, type QuoteFormRequirement } from "@/components/QuoteForm";
+import { BackButton } from "@/components/ui/back-button";
 
 import { VENDOR_COOKIE } from "@/lib/constants";
 import { vendorWorkerFetch } from "@/lib/vendor-api";
@@ -45,6 +46,7 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-6">
+      <BackButton label="Back to requirements" />
       <div>
         <p className="font-mono text-xs text-zinc-500 tabular-nums">{detail.referenceNumber}</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950">

@@ -26,12 +26,16 @@ export function CreateRequirementForm({ vendors }: { vendors: ParticipantOption[
     const form = new FormData(event.currentTarget);
     const vendorUserIds = form.getAll("vendorIds").map((id) => String(id));
 
+    const category = form.get("category");
+    const scopeOfWork = form.get("scopeOfWork");
+    const scopeWithCategory = category ? `${scopeOfWork}\n\nCategory: ${category}` : scopeOfWork;
+
     try {
       const res = await fetch("/api/requirements", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          scopeOfWork: form.get("scopeOfWork"),
+          scopeOfWork: scopeWithCategory,
           project: form.get("project"),
           sellingPrice: form.get("sellingPrice") || null,
           currency: form.get("currency") || "SAR",
@@ -95,7 +99,7 @@ export function CreateRequirementForm({ vendors }: { vendors: ParticipantOption[
             </EnquireField>
 
             <div className="grid gap-6 sm:grid-cols-2">
-              <EnquireField label="Project" required>
+              <EnquireField label="Project Title" required>
                 <input
                   name="project"
                   required
@@ -103,7 +107,17 @@ export function CreateRequirementForm({ vendors }: { vendors: ParticipantOption[
                   placeholder="e.g. Q3 Server Refresh"
                 />
               </EnquireField>
-              <EnquireField label="Closes at" required>
+              <EnquireField label="Category">
+                <select name="category" className={enquireInputClass}>
+                  <option value="">Select a category (optional)</option>
+                  <option value="IT & Hardware">IT & Hardware</option>
+                  <option value="Software Services">Software Services</option>
+                  <option value="Consulting">Consulting</option>
+                  <option value="Logistics">Logistics</option>
+                  <option value="Maintenance">Maintenance</option>
+                </select>
+              </EnquireField>
+              <EnquireField label="Closes at (Deadline)" required>
                 <input
                   name="closesAt"
                   type="datetime-local"

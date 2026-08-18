@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackButton } from "@/components/ui/back-button";
 
 import { ArrowLeft } from "lucide-react";
 
@@ -83,13 +84,7 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/registrations"
-        className="hover:text-brand-blue inline-flex items-center gap-1.5 text-sm text-zinc-600"
-      >
-        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Back to registrations
-      </Link>
+      <BackButton label="Back to registrations" />
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>

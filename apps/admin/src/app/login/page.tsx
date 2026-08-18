@@ -66,19 +66,11 @@ export default function AdminLoginPage() {
 
         <div className="mx-auto w-full max-w-sm">
           <div className="mb-10 text-center lg:text-left">
-            <h2 className="mb-3 text-3xl font-semibold tracking-tight text-zinc-950">
-              Welcome back
+            <h2 className="mb-2 text-3xl font-semibold tracking-tight text-zinc-950">
+              Sign In
             </h2>
             <p className="text-sm text-zinc-500">
-              Staff access only. Vendors should register at the{" "}
-              <a
-                href={enquireHref}
-                className="text-brand-blue font-medium underline-offset-2 transition-all hover:underline"
-                rel="noopener noreferrer"
-              >
-                E-Vendor Portal
-              </a>
-              .
+              Enter your credentials to access the administration portal.
             </p>
           </div>
 

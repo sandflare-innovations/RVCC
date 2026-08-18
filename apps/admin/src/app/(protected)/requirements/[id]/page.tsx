@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { rankQuotes } from "@/lib/rfq";
+import { BackButton } from "@/components/ui/back-button";
 
 import { adminSessionJson } from "@/lib/admin-data";
 import { AwardButton } from "@/sections/AwardButton";
@@ -78,6 +79,7 @@ export default async function RequirementComparisonPage({
 
   return (
     <div className="space-y-6">
+      <BackButton label="Back to requirements" />
       <div>
         <p className="font-mono text-xs text-zinc-500 tabular-nums">
           {requirement.referenceNumber ?? "— draft —"}

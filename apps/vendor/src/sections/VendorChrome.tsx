@@ -14,9 +14,9 @@ import { NotificationBell } from "@/sections/NotificationBell";
 const ICON = "h-5 w-5 shrink-0";
 
 const NAV = [
-  { href: "/", label: "Overview", icon: <LayoutDashboard className={ICON} />, exact: true },
-  { href: "/requirements", label: "Requirements", icon: <ClipboardList className={ICON} /> },
-  { href: "/password", label: "Password", icon: <KeyRound className={ICON} /> },
+  { href: "/", label: "Dashboard", icon: <LayoutDashboard className={ICON} />, exact: true },
+  { href: "/requirements", label: "My RFQs / Bids", icon: <ClipboardList className={ICON} /> },
+  { href: "/password", label: "Account Settings", icon: <KeyRound className={ICON} /> },
 ];
 
 function SidebarContents({
@@ -129,12 +129,8 @@ export function VendorChrome({
 
   const handleSignOut = async () => {
     setSigningOut(true);
-    try {
-      await fetch("/api/logout", { method: "POST" });
-      router.push("/login");
-    } catch {
-      setSigningOut(false);
-    }
+    fetch("/api/logout", { method: "POST" }).catch(() => {});
+    window.location.replace("/login");
   };
 
   return (
