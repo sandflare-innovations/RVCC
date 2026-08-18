@@ -50,11 +50,5 @@ export async function handleEnquireRequest(request: Request, env: Env): Promise<
   } catch (err) {
     console.error("[enquire]", err);
     return json(env, request, { error: "Internal error" }, 500);
-  } finally {
-    try {
-      await sql.end({ timeout: 2 });
-    } catch {
-      /* ignore */
-    }
   }
 }

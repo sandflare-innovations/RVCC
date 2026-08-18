@@ -4,18 +4,25 @@ import type { Env } from "../config/env";
 
 export type Sql = ReturnType<typeof postgres>;
 
-/** One pooled client per request (same pattern as the Workers). */
+let singletonSql: Sql | null = null;
+let currentDbUrl: string | null = null;
+
+/** Pooled singleton client for high-performance response times across requests. */
 export function createSql(env: Env): Sql {
   if (!env.DATABASE_URL) {
     throw new Error("Missing DATABASE_URL");
   }
-  return postgres(env.DATABASE_URL, {
-    // Workers / serverless: one connection per isolate; pooling breaks across requests.
-    max: 1,
-    idle_timeout: 20,
+  if (singletonSql && currentDbUrl === env.DATABASE_URL) {
+    return singletonSql;
+  }
+  currentDbUrl = env.DATABASE_URL;
+  singletonSql = postgres(env.DATABASE_URL, {
+    max: 25,
+    idle_timeout: 30,
     connect_timeout: 10,
     prepare: false,
   });
+  return singletonSql;
 }
 
 export function cuid(): string {

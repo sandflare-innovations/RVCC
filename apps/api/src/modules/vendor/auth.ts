@@ -148,15 +148,18 @@ export async function getVendorFromSession(
   if (new Date(row.expiresAt as string | Date) < new Date()) return null;
   if (!row.isActive) return null;
 
-  // Sliding expiry so active vendors are not kicked after a fixed wall-clock.
-  const tokenHashForTouch = tokenHash;
-  void sql`
-    UPDATE "VendorSession"
-    SET "expiresAt" = ${new Date(Date.now() + VENDOR_SESSION_TTL_MS)}
-    WHERE "tokenHash" = ${tokenHashForTouch} AND "revokedAt" IS NULL
-  `.catch(() => {
-    /* non-fatal */
-  });
+  // Sliding expiry — only write to DB when session is past half its TTL to avoid write bottlenecks
+  const expiresAtMs = new Date(row.expiresAt as string | Date).getTime();
+  if (expiresAtMs - Date.now() < VENDOR_SESSION_TTL_MS / 2) {
+    const tokenHashForTouch = tokenHash;
+    void sql`
+      UPDATE "VendorSession"
+      SET "expiresAt" = ${new Date(Date.now() + VENDOR_SESSION_TTL_MS)}
+      WHERE "tokenHash" = ${tokenHashForTouch} AND "revokedAt" IS NULL
+    `.catch(() => {
+      /* non-fatal */
+    });
+  }
 
   const portalAccess = (row.portalAccess as string) === "RELEASED" ? "RELEASED" : "HELD";
   // Admin-created vendors (no registration) count as complete.

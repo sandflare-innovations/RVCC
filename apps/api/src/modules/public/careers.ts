@@ -55,11 +55,5 @@ export async function handlePublicCareersRequest(request: Request, env: Env): Pr
   } catch (err) {
     console.error("[careers]", err);
     return json(env, request, { error: "Internal error" }, 500);
-  } finally {
-    try {
-      await sql.end({ timeout: 2 });
-    } catch {
-      /* ignore */
-    }
   }
 }
