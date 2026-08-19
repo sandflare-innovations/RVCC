@@ -4,7 +4,13 @@ import { LOCKOUT_MS, MAX_FAILED_ATTEMPTS, VENDOR_SESSION_TTL_MS } from "./consta
 import { type Sql, cuid, hashSha256 } from "./db";
 
 export type VendorLoginResult =
-  | { ok: true; vendorId: string; mustChangePassword: boolean; portalAccess: "HELD" | "RELEASED" }
+  | {
+      ok: true;
+      vendorId: string;
+      mustChangePassword: boolean;
+      portalAccess: "HELD" | "RELEASED";
+      vendor: { id: string; email: string; name: string };
+    }
   | {
       ok: false;
       reason: "invalid" | "locked" | "disabled" | "held" | "incomplete";
@@ -48,11 +54,6 @@ export async function attemptVendorLogin(
 
   if (!vendor.isActive) return { ok: false, reason: "disabled" };
 
-  const portalAccess = (vendor.portalAccess as string) === "RELEASED" ? "RELEASED" : "HELD";
-  if (portalAccess === "HELD") {
-    return { ok: false, reason: "held" };
-  }
-
   if (!(await verifyPassword(password, String(vendor.passwordHash)))) {
     const failedAttempts = Number(vendor.failedAttempts) + 1;
     const lock = failedAttempts >= MAX_FAILED_ATTEMPTS;
@@ -66,6 +67,11 @@ export async function attemptVendorLogin(
     return lock
       ? { ok: false, reason: "locked", retryAfterMs: LOCKOUT_MS }
       : { ok: false, reason: "invalid" };
+  }
+
+  const portalAccess = (vendor.portalAccess as string) === "RELEASED" ? "RELEASED" : "HELD";
+  if (portalAccess === "HELD") {
+    return { ok: false, reason: "held" };
   }
 
   await sql`
@@ -82,6 +88,11 @@ export async function attemptVendorLogin(
     vendorId: String(vendor.id),
     mustChangePassword: Boolean(vendor.mustChangePassword),
     portalAccess: "RELEASED",
+    vendor: {
+      id: String(vendor.id),
+      email: String(vendor.email),
+      name: String(vendor.name ?? ""),
+    },
   };
 }
 

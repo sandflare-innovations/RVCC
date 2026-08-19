@@ -87,7 +87,7 @@ export async function handleLogin(sql: Sql, env: Env, request: Request): Promise
     entityId: result.adminId,
   });
 
-  return json(env, request, { ok: true, token });
+  return json(env, request, { ok: true, token, admin: result.admin });
 }
 
 export async function handleLogout(sql: Sql, env: Env, request: Request): Promise<Response> {

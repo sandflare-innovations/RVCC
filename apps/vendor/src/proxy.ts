@@ -18,18 +18,11 @@ export default function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   if (pathname === VENDOR_LOGIN_PATH) {
-    // A server-side guard rejected the session and sent us here. Drop the dead
-    // cookie and serve the login form; without this the branch below sees a
-    // cookie, bounces to the home path, the guard rejects it again, and the two
-    // redirect until the browser gives up with ERR_TOO_MANY_REDIRECTS.
     if (request.nextUrl.searchParams.has(VENDOR_SESSION_EXPIRED_PARAM)) {
       const res = NextResponse.next();
       res.cookies.set(VENDOR_COOKIE, "", expiredCookieOptions());
       res.cookies.set(VENDOR_PROFILE_COOKIE, "", expiredCookieOptions());
       return res;
-    }
-    if (request.cookies.get(VENDOR_COOKIE)?.value) {
-      return NextResponse.redirect(new URL(VENDOR_HOME_PATH, request.url));
     }
     return NextResponse.next();
   }

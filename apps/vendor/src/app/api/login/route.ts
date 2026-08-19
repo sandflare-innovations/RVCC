@@ -39,6 +39,7 @@ export async function POST(request: Request) {
       ok?: boolean;
       token?: string;
       mustChangePassword?: boolean;
+      vendor?: any;
       error?: string;
     };
 
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
     });
     out.cookies.set(VENDOR_COOKIE, data.token, vendorCookieOptions());
 
-    const vendor = await resolveVendorIdentity(data.token);
+    const vendor = data.vendor || (await resolveVendorIdentity(data.token));
     if (vendor) {
       out.cookies.set(
         VENDOR_PROFILE_COOKIE,

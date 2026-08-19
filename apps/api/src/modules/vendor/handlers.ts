@@ -76,6 +76,7 @@ export async function handleLogin(sql: Sql, env: Env, request: Request): Promise
     ok: true,
     token,
     mustChangePassword: result.mustChangePassword,
+    vendor: result.vendor,
   });
 }
 
