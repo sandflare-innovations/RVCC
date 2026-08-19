@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { usePathname, useRouter } from "next/navigation";
 
@@ -120,8 +120,24 @@ export function AdminChrome({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+
+  // Warm all primary routes once after sign-in so sidebar clicks feel instant.
+  useEffect(() => {
+    for (const item of NAV) {
+      router.prefetch(item.href);
+    }
+  }, [router]);
+
+  // Keep the current section warm when nested routes are open.
+  useEffect(() => {
+    const match = NAV.find((item) =>
+      item.exact ? pathname === item.href : pathname.startsWith(item.href)
+    );
+    if (match) router.prefetch(match.href);
+  }, [pathname, router]);
 
   const prefetch = (href: string) => {
     router.prefetch(href);

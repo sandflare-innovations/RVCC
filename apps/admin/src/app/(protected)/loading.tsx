@@ -1,9 +1,9 @@
 import { PageLoader } from "@/components/ui";
 
-export default function AdminDashboardLoading() {
+export default function AdminSectionLoading() {
   return (
-    <div className="flex h-full min-h-[60vh] w-full items-center justify-center">
-      <PageLoader text="Loading Dashboard..." />
+    <div className="flex h-full min-h-[50vh] w-full items-center justify-center">
+      <PageLoader text="Loading…" />
     </div>
   );
 }

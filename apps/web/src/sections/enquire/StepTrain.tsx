@@ -41,82 +41,60 @@ export function StepTrain({ current, unlockedThrough, emailVerified = false }: P
 
   return (
     <nav aria-label="Registration steps" className="w-full overflow-x-auto pb-2">
-      {/* Continuous progress bar */}
-      <div className="relative mx-auto mb-5 h-1.5 w-full max-w-3xl rounded-full bg-zinc-100">
+      <div className="relative mx-auto min-w-[720px] max-w-5xl px-2">
         <div
-          className="bg-brand-blue absolute inset-y-0 left-0 rounded-full transition-all duration-500"
-          style={{ width: `${progressPercent}%` }}
+          aria-hidden="true"
+          className="absolute top-4 left-6 right-6 h-0.5 rounded-full bg-zinc-200"
         />
-        {/* Step dots on the bar */}
+        <div
+          aria-hidden="true"
+          className="bg-brand-blue absolute top-4 left-6 h-0.5 rounded-full transition-[width] duration-500"
+          style={{ width: `calc((100% - 3rem) * ${progressPercent / 100})` }}
+        />
+        <ol className="relative grid grid-cols-9 gap-2">
         {VISIBLE.map((step, index) => {
           const stepIdx = ENQUIRE_STEPS.indexOf(step);
           const unlocked = stepIdx <= Math.max(unlockedIdx, 1);
           const active = step === current;
           const done = stepIdx < currentIdx;
-          const dotLeft = totalSteps > 1 ? (index / (totalSteps - 1)) * 100 : 0;
+          const bubble = (
+            <span
+              className={cn(
+                "relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 bg-white text-[11px] font-bold tabular-nums transition-all",
+                active
+                  ? "border-brand-blue bg-brand-blue text-white shadow-md"
+                  : done
+                    ? "border-brand-blue bg-brand-blue text-white"
+                    : unlocked
+                      ? "border-zinc-300 text-zinc-700"
+                      : "border-zinc-200 bg-zinc-50 text-zinc-400"
+              )}
+            >
+              {done ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : index + 1}
+            </span>
+          );
 
           return (
-            <div
-              key={step}
-              className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
-              style={{ left: `${dotLeft}%` }}
-            >
+            <li key={step} className="flex min-w-0 flex-col items-center text-center">
               {unlocked ? (
                 <Link
                   href={`/enquire/${step}`}
                   aria-current={active ? "step" : undefined}
                   className={cn(
-                    "flex items-center justify-center rounded-full transition-all",
-                    "focus-visible:ring-brand-blue focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
-                    active
-                      ? "bg-brand-blue h-7 w-7 text-white shadow-md sm:h-8 sm:w-8"
-                      : done
-                        ? "bg-brand-blue h-5 w-5 text-white sm:h-6 sm:w-6"
-                        : "h-5 w-5 border-2 border-zinc-300 bg-white sm:h-6 sm:w-6"
+                    "rounded-full focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+                    "focus-visible:ring-brand-blue"
                   )}
                 >
-                  {done ? (
-                    <Check className="h-3 w-3" aria-hidden="true" />
-                  ) : (
-                    <span className="text-[9px] font-bold tabular-nums sm:text-[10px]">
-                      {index + 1}
-                    </span>
-                  )}
+                  {bubble}
                 </Link>
               ) : (
-                <div
-                  className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-zinc-200 bg-zinc-50 sm:h-6 sm:w-6"
-                >
-                  <span className="text-[9px] font-bold tabular-nums text-zinc-400 sm:text-[10px]">
-                    {index + 1}
-                  </span>
-                </div>
+                bubble
               )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Step labels row */}
-      <ol className="relative mx-auto flex w-full max-w-3xl">
-        {VISIBLE.map((step, index) => {
-          const stepIdx = ENQUIRE_STEPS.indexOf(step);
-          const unlocked = stepIdx <= Math.max(unlockedIdx, 1);
-          const active = step === current;
-          const done = stepIdx < currentIdx;
-          const labelLeft = totalSteps > 1 ? (index / (totalSteps - 1)) * 100 : 0;
-
-          return (
-            <li
-              key={step}
-              className="absolute -translate-x-1/2"
-              style={{ left: `${labelLeft}%` }}
-            >
               <span
                 className={cn(
-                  "block text-center text-[9px] font-semibold tracking-[0.06em] whitespace-nowrap uppercase sm:text-[10px]",
+                  "mt-3 block px-1 text-[10px] leading-tight font-semibold tracking-[0.06em] uppercase",
                   active
-                    ? "text-brand-blue font-bold"
+                    ? "text-brand-blue"
                     : done
                       ? "text-brand-blue"
                       : unlocked
@@ -129,7 +107,8 @@ export function StepTrain({ current, unlockedThrough, emailVerified = false }: P
             </li>
           );
         })}
-      </ol>
+        </ol>
+      </div>
     </nav>
   );
 }

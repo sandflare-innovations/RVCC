@@ -12,7 +12,13 @@ export type IndustryOption = { id: string; name: string };
 
 type Created = { email: string; tempPassword: string };
 
-export function CreateVendorForm({ industries }: { industries: IndustryOption[] }) {
+export function CreateVendorForm({
+  industries,
+  onCreated,
+}: {
+  industries: IndustryOption[];
+  onCreated?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +56,7 @@ export function CreateVendorForm({ industries }: { industries: IndustryOption[] 
         return;
       }
       setCreated({ email: body.vendor.email, tempPassword: body.tempPassword });
+      onCreated?.();
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
     } finally {

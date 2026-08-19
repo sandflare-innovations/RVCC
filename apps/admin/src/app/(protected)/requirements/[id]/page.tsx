@@ -39,6 +39,7 @@ type Payload = {
     id: string;
     newPrice: string | number;
     remarks: string | null;
+    status: string;
     submittedAt: string | null;
     vendorUser: { email: string; name: string | null };
   }>;
@@ -68,15 +69,18 @@ export default async function RequirementComparisonPage({
   const { requirement, quotes, invites } = result.data;
 
   const ranked = rankQuotes(
-    quotes.map((q) => ({
+    quotes
+      .filter((q) => q.status === "SUBMITTED")
+      .map((q) => ({
       id: q.id,
       newPrice: String(q.newPrice),
       remarks: q.remarks,
       submittedAt: q.submittedAt ? new Date(q.submittedAt) : null,
       who: q.vendorUser.name || q.vendorUser.email,
       vendorEmail: q.vendorUser.email,
-    }))
+      }))
   );
+  const drafts = quotes.filter((q) => q.status !== "SUBMITTED");
 
   const closed = new Date(requirement.closesAt).getTime() <= Date.now();
 
@@ -125,11 +129,26 @@ export default async function RequirementComparisonPage({
       <section>
         <h2 className="mb-3 text-lg font-semibold text-zinc-950">Quotes</h2>
         {ranked.length === 0 ? (
-          <p className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
-            No quotes submitted yet.
-          </p>
+          <div className="space-y-3">
+            <p className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
+              No submitted quotes yet.
+            </p>
+            {drafts.length > 0 ? (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                {drafts.length} draft {drafts.length === 1 ? "response is" : "responses are"} saved
+                but not submitted yet.
+              </p>
+            ) : null}
+          </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+          <div className="space-y-3">
+            {drafts.length > 0 ? (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                {drafts.length} draft {drafts.length === 1 ? "response remains" : "responses remain"}
+                unsubmitted and is excluded from ranking.
+              </p>
+            ) : null}
+            <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-zinc-200 bg-zinc-50 text-xs tracking-wide text-zinc-600 uppercase">
                 <tr>
@@ -180,6 +199,7 @@ export default async function RequirementComparisonPage({
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </section>

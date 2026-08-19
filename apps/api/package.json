@@ -5,12 +5,14 @@
   "description": "RVCC unified API for admin, vendor, and supplier registration",
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
+    "prebuild": "npm run db:upgrade-sourcing && npm run db:upgrade-uploads",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "deploy": "wrangler deploy",
+    "release": "npm run build && npm run deploy",
     "cf:secret": "wrangler secret put",
     "db:upgrade-sourcing": "node --env-file-if-exists=.env scripts/apply-sourcing-upgrade.mjs",
     "db:upgrade-uploads": "node --env-file-if-exists=.env scripts/apply-uploads-upgrade.mjs"

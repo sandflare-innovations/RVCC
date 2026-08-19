@@ -196,6 +196,7 @@ export const SidebarLink = ({
   return (
     <Link
       href={link.href}
+      prefetch={true}
       onClick={onClick}
       onMouseEnter={onPrefetch}
       onFocus={onPrefetch}
