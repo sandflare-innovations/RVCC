@@ -37,7 +37,7 @@ type DecisionRecipient = { to: string; loginEmail?: string; tempPassword?: strin
  * only with the shared API secret, which never leaves the server side.
  */
 /**
- * Sends requirement mail on behalf of workers/admin-api.
+ * Sends requirement mail on behalf of the unified API.
  *
  * SMTP credentials live only on this Worker, so every other Worker that needs
  * mail asks this one — the same arrangement as handleNotifyDecision below.

@@ -22,13 +22,9 @@ See [`../../PERFORMANCE.md`](../../PERFORMANCE.md) for caching, ISR, and deploy 
 
 ## Quality Standards
 
-This application adheres to the global monorepo standards defined in the root [README](../../README.md):
+This app uses Next.js ESLint defaults (`eslint-config-next`).
 
-- **ESLint**: Extends `@repo/eslint-config/next-js`.
-- **Prettier**: Automatic Tailwind class sorting and import organization.
-- **Git Hooks**: Pre-commit validation via Husky.
-
-## 🛠 Getting Started
+## Getting Started
 
 1. **Install dependencies**:
 

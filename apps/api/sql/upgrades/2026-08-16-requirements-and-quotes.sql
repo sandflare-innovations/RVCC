@@ -4,7 +4,7 @@
 -- Generated 2026-08-16 by:
 --   npx prisma migrate diff \
 --     --from-schema-datamodel <schema at origin/main 1890240> \
---     --to-schema-datamodel   packages/db/prisma/schema.prisma \
+--     --to-schema-datamodel   apps/api/prisma/schema.prisma \
 --     --script
 --
 -- SAFETY: additive only. Audited line by line — there is no DROP TABLE,
@@ -21,8 +21,7 @@
 -- Run inside a transaction so a failure leaves nothing half-applied:
 --   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 --single-transaction -f this-file
 --
--- Then apply the CHECK constraints Prisma cannot express:
---   DATABASE_URL="..." npm run -w @repo/db constraints
+-- Then apply CHECK constraints from apps/api/sql/constraints.sql if needed.
 -- ============================================================================
 
 -- CreateEnum

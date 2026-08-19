@@ -10,7 +10,7 @@ export type CreateRequirementInput = {
 
 /**
  * Kept free of database and Worker imports so it is testable from the repo root
- * — workers/ are not npm workspaces and cannot resolve `postgres` there.
+ * Lives in apps/api so postgres resolves from the api package.
  */
 export function normaliseRequirementInput(input: CreateRequirementInput) {
   const scopeOfWork = String(input?.scopeOfWork ?? "").trim();
@@ -40,7 +40,7 @@ export function normaliseRequirementInput(input: CreateRequirementInput) {
   };
 }
 
-/** REQ-YYYYMMDD-NNNN, matching makeReferenceNumber in workers/enquire-api. */
+/** REQ-YYYYMMDD-NNNN reference format for requirements. */
 export function makeReferenceNumber(now: Date, sequence: number): string {
   const y = now.getUTCFullYear();
   const m = String(now.getUTCMonth() + 1).padStart(2, "0");

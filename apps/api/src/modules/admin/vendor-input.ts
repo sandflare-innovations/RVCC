@@ -20,7 +20,7 @@ export type NormalisedVendorInput = {
  *
  * Deliberately free of database and Worker imports: kept in its own module so
  * these rules can be tested without `postgres` or a request context, neither of
- * which resolves from the repo root (workers/ are not npm workspaces).
+ * Vendor input validation — runs in apps/api where postgres is available.
  */
 export function normaliseVendorInput(input: CreateVendorInput): NormalisedVendorInput {
   const email = String(input?.email ?? "")
