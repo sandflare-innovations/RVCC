@@ -33,12 +33,10 @@ export function AdminLoginForm() {
         setError(await readApiError(res, "Sign in failed."));
         return;
       }
-      const data = await res.json().catch(() => ({}));
       // `next` is validated as a same-site path to avoid an open redirect.
       const next = params.get("next");
       const dest = next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
-      router.replace(dest);
-      router.refresh();
+      window.location.replace(dest);
     } catch {
       setError("Network error — please try again.");
     } finally {

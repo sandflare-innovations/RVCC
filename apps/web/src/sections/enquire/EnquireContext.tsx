@@ -128,6 +128,7 @@ export function EnquireProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
       const next = (data.registration as DraftRegistration | null) ?? null;
       setRegistration(next);
+      if (next) setError(null);
       return next;
     } catch (e) {
       console.error(e);
@@ -148,19 +149,34 @@ export function EnquireProvider({ children }: { children: React.ReactNode }) {
   }, [refresh]);
 
   const patchDraft = useCallback(async (payload: Record<string, unknown>) => {
-    const res = await fetch("/api/enquire/draft", {
-      method: "PATCH",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json().catch(() => ({}));
+    const send = async () => {
+      const res = await fetch("/api/enquire/draft", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      return { res, data };
+    };
+
+    let { res, data } = await send();
+    if (res.status === 401) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      ({ res, data } = await send());
+    }
+
     if (!res.ok) {
-      return { ok: false as const, error: (data as { error?: string }).error || "Save failed" };
+      return {
+        ok: false as const,
+        error: (data as { error?: string }).error || "Save failed",
+        status: res.status,
+      };
     }
     return {
       ok: true as const,
       registration: (data as { registration?: DraftRegistration }).registration,
+      status: res.status,
     };
   }, []);
 
@@ -200,6 +216,10 @@ export function EnquireProvider({ children }: { children: React.ReactNode }) {
           const result = await patchDraft({ ...payload, step: nextStep });
           if (gen !== saveGen.current) return;
           if (!result.ok) {
+            if (result.status === 401 && registrationRef.current) {
+              void refresh();
+              return;
+            }
             setError(result.error);
             return;
           }

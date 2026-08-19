@@ -384,6 +384,15 @@ export async function handleRegistrationDelete(
   return json(env, request, { ok: true });
 }
 
+const VALID_VENDOR_FILTER = new Set([
+  "ALL",
+  "ACTIVE",
+  "DISABLED",
+  "HELD",
+  "RELEASED",
+  "PENDING",
+]);
+
 // ── Vendors ─────────────────────────────────────────────────────────────────
 
 export async function handleVendorsList(sql: Sql, env: Env, request: Request): Promise<Response> {
@@ -391,8 +400,12 @@ export async function handleVendorsList(sql: Sql, env: Env, request: Request): P
   if (deny) return deny;
 
   const url = new URL(request.url);
-  const filter = (url.searchParams.get("filter") || "ACTIVE").trim();
-  const q = (url.searchParams.get("q") || "").trim();
+  const filterRaw = (url.searchParams.get("filter") || "RELEASED").trim().toUpperCase();
+  const filter = VALID_VENDOR_FILTER.has(filterRaw) ? filterRaw : "RELEASED";
+  const q = (url.searchParams.get("q") || "")
+    .replace(/[\0-\x1f\x7f]/g, "")
+    .trim()
+    .slice(0, 120);
   const like = `%${q}%`;
 
   const rows = await sql`
@@ -760,15 +773,18 @@ export async function handleRequirementGet(
   `;
   if (!requirement) return json(env, request, { error: "Requirement not found." }, 404);
 
-  // Only SUBMITTED quotes appear: an unsubmitted draft is not a quote.
   const quotes = await sql`
     SELECT
-      q.id, q."newPrice", q.remarks, q."submittedAt",
+      q.id, q."newPrice", q.remarks, q.status, q."submittedAt", q."updatedAt",
       v.email AS "participantEmail",
       v.name AS "participantName"
     FROM "Quote" q
     JOIN "VendorUser" v ON v.id = q."vendorUserId"
-    WHERE q."requirementId" = ${id} AND q.status = 'SUBMITTED'
+    WHERE q."requirementId" = ${id}
+    ORDER BY
+      CASE WHEN q.status = 'SUBMITTED' THEN 0 ELSE 1 END,
+      q."submittedAt" DESC NULLS LAST,
+      q."updatedAt" DESC
   `;
 
   const invites = await sql`
@@ -803,6 +819,7 @@ export async function handleRequirementGet(
       id: q.id,
       newPrice: q.newPrice,
       remarks: q.remarks,
+      status: q.status,
       submittedAt: q.submittedAt,
       vendorUser: {
         email: String(q.participantEmail),

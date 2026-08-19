@@ -37,7 +37,14 @@ function Row({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
-export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
+export function VendorRowActions({
+  vendor,
+  onUpdated,
+}: {
+  vendor: VendorSummary;
+  /** Refresh list without a full page navigation. */
+  onUpdated?: () => void;
+}) {
   const router = useRouter();
   const [showDetails, setShowDetails] = useState(false);
   const [showAccess, setShowAccess] = useState(false);
@@ -66,7 +73,8 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
       const data = await res.json().catch(() => ({}));
       if (data.tempPassword) setIssued(data.tempPassword);
       setShowAccess(false);
-      router.refresh();
+      if (onUpdated) onUpdated();
+      else router.refresh();
     } catch {
       setError("Network error — please try again.");
     } finally {
@@ -88,7 +96,8 @@ export function VendorRowActions({ vendor }: { vendor: VendorSummary }) {
       }
       const data = await res.json().catch(() => ({}));
       setIssued(data.tempPassword);
-      router.refresh();
+      if (onUpdated) onUpdated();
+      else router.refresh();
     } catch {
       setError("Network error — please try again.");
     } finally {
