@@ -34,6 +34,7 @@ export async function POST(request: Request) {
     const data = (await res.json().catch(() => ({}))) as {
       ok?: boolean;
       token?: string;
+      admin?: { id: string; email: string; name: string; role: any };
       error?: string;
     };
 
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
     const out = NextResponse.json({ ok: true });
     out.cookies.set(ADMIN_COOKIE, data.token, adminCookieOptions());
 
-    const admin = await resolveAdminIdentity(data.token);
+    const admin = data.admin || (await resolveAdminIdentity(data.token));
     if (admin) {
       out.cookies.set(
         ADMIN_PROFILE_COOKIE,

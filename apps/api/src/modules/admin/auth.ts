@@ -21,7 +21,7 @@ export type AdminIdentity = {
 };
 
 export type LoginResult =
-  | { ok: true; adminId: string }
+  | { ok: true; adminId: string; admin: AdminIdentity }
   | { ok: false; reason: "invalid" | "locked" | "disabled"; retryAfterMs?: number };
 
 function generateSessionToken(): string {
@@ -81,7 +81,16 @@ export async function attemptAdminLogin(
     WHERE id = ${admin.id as string}
   `;
 
-  return { ok: true, adminId: admin.id as string };
+  return {
+    ok: true,
+    adminId: admin.id as string,
+    admin: {
+      id: admin.id as string,
+      email: admin.email as string,
+      name: admin.name as string,
+      role: admin.role as AdminRoleName,
+    },
+  };
 }
 
 export async function createAdminSession(
