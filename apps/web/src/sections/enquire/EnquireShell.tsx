@@ -48,7 +48,7 @@ export function EnquireShell({ step, title, subtitle, children }: Props) {
           <p className={enquirePageSubtitleClass}>{subtitle}</p>
         </div>
 
-        {step !== "done" && (
+        {step !== "done" && step !== "verify" && Boolean(registration?.email) && (
           <div className="mb-10 border-b border-zinc-100 pb-6">
             <StepTrain
               current={step}
