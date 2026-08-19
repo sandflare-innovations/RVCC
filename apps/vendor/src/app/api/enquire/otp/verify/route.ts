@@ -36,13 +36,21 @@ export async function POST(request: Request) {
 
     if (!res.ok) return NextResponse.json(data, { status: res.status });
 
-    const out = NextResponse.json({
+    const payload: Record<string, unknown> = {
       ok: true,
       outcome: data.outcome,
       message: data.message,
       mustChangePassword: data.mustChangePassword,
       referenceNumber: data.referenceNumber,
-    });
+    };
+
+    if (data.outcome === "held") {
+      const raw = data as Record<string, unknown>;
+      payload.status = raw.status ?? "SUBMITTED";
+      payload.registration = raw.registration ?? null;
+    }
+
+    const out = NextResponse.json(payload);
 
     if (data.outcome === "vendor" && data.vendorToken) {
       out.cookies.set(VENDOR_COOKIE, data.vendorToken, vendorCookieOptions());

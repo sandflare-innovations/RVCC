@@ -46,7 +46,20 @@ export async function POST(request: Request) {
       });
     }
 
-    if (data.outcome === "held" || data.outcome === "rejected") {
+    if (data.outcome === "held") {
+      const out = NextResponse.json({
+        ok: true,
+        outcome: "held",
+        message: data.message,
+        referenceNumber: data.referenceNumber ?? null,
+        status: (data as Record<string, unknown>).status ?? "SUBMITTED",
+        registration: (data as Record<string, unknown>).registration ?? null,
+      });
+      if (data.sessionToken) setSessionCookie(out, data.sessionToken);
+      return out;
+    }
+
+    if (data.outcome === "rejected") {
       return NextResponse.json({
         ok: true,
         outcome: data.outcome,

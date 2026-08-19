@@ -286,6 +286,10 @@ export async function handleOtpVerify(sql: Sql, env: Env, request: Request): Pro
 
   if (complete || (vendor && (vendor.portalAccess as string) === "HELD")) {
     const sessionToken = issueEmailGate(env, email);
+    let registration = null;
+    if (latest?.id) {
+      registration = await loadRegistration(sql, String(latest.id));
+    }
     return json(env, request, {
       ok: true,
       outcome: "held",
@@ -293,6 +297,8 @@ export async function handleOtpVerify(sql: Sql, env: Env, request: Request): Pro
       message:
         "Account registered successfully. Vendor portal access is on hold until RVCC releases it.",
       referenceNumber: latest?.referenceNumber ?? null,
+      status: latest?.status ?? "SUBMITTED",
+      registration,
     });
   }
 
