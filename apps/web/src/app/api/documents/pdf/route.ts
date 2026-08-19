@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     const headers = new Headers();
     headers.set("Content-Type", res.headers.get("Content-Type") || "application/pdf");
     headers.set("Accept-Ranges", "bytes");
-    headers.set("Cache-Control", "public, max-age=86400");
+    headers.set("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400");
     const contentLength = res.headers.get("Content-Length");
     const contentRange = res.headers.get("Content-Range");
     if (contentLength) headers.set("Content-Length", contentLength);
