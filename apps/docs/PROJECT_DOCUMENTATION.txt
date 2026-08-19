@@ -39,7 +39,7 @@ Management: We engineered a custom Flipbook Reader from scratch. We solved the p
 - Animations: Framer Motion - Driving the cinematic editorial rhythm.
 - 3D Rendering: Three.js & React Three Fiber - For industry-leading interactive models.
 - Document Management: React-PDF & React-Pageflip.
-- Icons: React Icons (Fi & Fa sets via @repo/ui).
+- Icons: Lucide React (admin/vendor) and react-icons (web marketing).
 - Deployment: Turborepo Monorepo structure.
 
 

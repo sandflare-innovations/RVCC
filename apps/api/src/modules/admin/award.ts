@@ -4,7 +4,7 @@ export type AwardableQuote = { id: string; newPrice: string; vendorEmail: string
  * Validates the chosen quote and captures the moment of decision.
  *
  * Kept free of database and Worker imports so it is testable from the repo root
- * — workers/ are not npm workspaces and cannot resolve `postgres` there.
+ * Award logic lives in apps/api (shared postgres client).
  *
  * The losing prices are recorded deliberately: quotes stay editable until the
  * deadline, so without a snapshot the audit trail could not explain why this
