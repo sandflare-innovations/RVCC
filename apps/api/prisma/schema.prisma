@@ -85,10 +85,31 @@ model JobPosting {
   createdById String?
   createdBy   AdminUser? @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
+  applications JobApplication[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([isPublished, sortOrder])
+}
+
+/// CV submissions from the public careers page.
+model JobApplication {
+  id           String     @id @default(cuid())
+  jobPostingId String
+  jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+
+  fullName   String
+  email      String
+  phone      String @default("")
+  cvFileName String
+  cvFileUrl  String
+  cvMimeType String @default("application/pdf")
+
+  createdAt DateTime @default(now())
+
+  @@index([jobPostingId])
+  @@index([createdAt(sort: Desc)])
 }
 
 /// Only the SHA-256 of the session token is stored, so a database leak does not

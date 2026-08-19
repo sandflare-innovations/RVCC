@@ -1,6 +1,7 @@
 import type { Env } from "../../config/env";
 import { corsHeaders, json } from "../../lib/http";
 import { type Sql, createSql } from "../../lib/sql";
+import { handleCareerApply } from "./career-apply";
 
 /** Public published careers — no auth. */
 export async function handlePublicCareersList(
@@ -50,6 +51,12 @@ export async function handlePublicCareersRequest(request: Request, env: Env): Pr
   }
 
   try {
+    const url = new URL(request.url);
+    const path = url.pathname.replace(/\/+$/, "") || "/";
+
+    if (request.method === "POST" && path.endsWith("/apply")) {
+      return await handleCareerApply(sql, env, request);
+    }
     if (request.method === "GET") {
       return await handlePublicCareersList(sql, env, request);
     }

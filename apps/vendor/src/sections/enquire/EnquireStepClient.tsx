@@ -12,6 +12,7 @@ import { ContactsStep } from "@/sections/enquire/steps/ContactsStep";
 import { DoneStep } from "@/sections/enquire/steps/DoneStep";
 import { ProductsStep } from "@/sections/enquire/steps/ProductsStep";
 import { QuestionnaireStep } from "@/sections/enquire/steps/QuestionnaireStep";
+import { AttachmentsStep } from "@/sections/enquire/steps/AttachmentsStep";
 import { ReviewStep } from "@/sections/enquire/steps/ReviewStep";
 import { VerifyStep } from "@/sections/enquire/steps/VerifyStep";
 
@@ -48,6 +49,10 @@ const META: Record<EnquireStep, { title: string; subtitle: string }> = {
     title: "Questionnaire",
     subtitle: "Additional onboarding questions for RVCC procurement review.",
   },
+  attachments: {
+    title: "Documents",
+    subtitle: "Upload certificates and supporting files for procurement review.",
+  },
   review: {
     title: "Review & Submit",
     subtitle: "Confirm your information and submit your registration request.",
@@ -76,6 +81,8 @@ function StepBody({ step }: { step: EnquireStep }) {
       return <ProductsStep />;
     case "questionnaire":
       return <QuestionnaireStep />;
+    case "attachments":
+      return <AttachmentsStep />;
     case "review":
       return <ReviewStep />;
     case "done":

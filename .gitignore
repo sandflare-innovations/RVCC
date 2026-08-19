@@ -14,10 +14,10 @@ dist/
 coverage/
 
 # Environment and secrets
-# .env
-# .env.*
-# !.env.example
-# .dev.vars
+.env.server
+.env.vercel
+apps/api/.env
+apps/*/.env.local
 *.pem
 
 # Local tool caches

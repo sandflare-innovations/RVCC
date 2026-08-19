@@ -163,7 +163,7 @@ function sessionFrom(request: Request): string | null {
 }
 
 /** Email-gate token (post-OTP) or legacy DB sessionToken. */
-async function resolveEnquireRegistration(sql: Sql, env: Env, request: Request) {
+export async function resolveEnquireRegistration(sql: Sql, env: Env, request: Request) {
   const token = sessionFrom(request);
   if (!token) return null;
 

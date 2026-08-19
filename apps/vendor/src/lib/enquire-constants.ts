@@ -23,6 +23,7 @@ export const ENQUIRE_STEPS = [
   "bank",
   "products",
   "questionnaire",
+  "attachments",
   "review",
   "done",
 ] as const;

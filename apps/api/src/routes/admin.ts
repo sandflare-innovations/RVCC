@@ -4,6 +4,7 @@ import { createSql } from "../modules/admin/db";
 import {
   handleCareerCreate,
   handleCareerDelete,
+  handleCareerApplicationsList,
   handleCareerGet,
   handleCareerPatch,
   handleCareersList,
@@ -134,6 +135,16 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
     }
     if (path === "/careers" && request.method === "POST") {
       return await handleCareerCreate(sql, env, request);
+    }
+
+    const careerApplications = path.match(/^\/careers\/([^/]+)\/applications$/);
+    if (careerApplications && request.method === "GET") {
+      return await handleCareerApplicationsList(
+        sql,
+        env,
+        request,
+        decodeURIComponent(careerApplications[1]!)
+      );
     }
 
     const careerOne = path.match(/^\/careers\/([^/]+)$/);

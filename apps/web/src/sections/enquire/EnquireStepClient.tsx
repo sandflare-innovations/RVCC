@@ -40,6 +40,10 @@ const QuestionnaireStep = dynamic(
     import("@/sections/enquire/steps/QuestionnaireStep").then((m) => m.QuestionnaireStep),
   { loading: () => null }
 );
+const AttachmentsStep = dynamic(
+  () => import("@/sections/enquire/steps/AttachmentsStep").then((m) => m.AttachmentsStep),
+  { loading: () => null }
+);
 const ReviewStep = dynamic(
   () => import("@/sections/enquire/steps/ReviewStep").then((m) => m.ReviewStep),
   { loading: () => null }
@@ -82,6 +86,10 @@ const META: Record<EnquireStep, { title: string; subtitle: string }> = {
     title: "Questionnaire",
     subtitle: "Additional onboarding questions for RVCC procurement review.",
   },
+  attachments: {
+    title: "Documents",
+    subtitle: "Upload certificates and supporting files for procurement review.",
+  },
   review: {
     title: "Review & Submit",
     subtitle: "Confirm your information and submit your registration request.",
@@ -110,6 +118,8 @@ function StepBody({ step }: { step: EnquireStep }) {
       return <ProductsStep />;
     case "questionnaire":
       return <QuestionnaireStep />;
+    case "attachments":
+      return <AttachmentsStep />;
     case "review":
       return <ReviewStep />;
     case "done":

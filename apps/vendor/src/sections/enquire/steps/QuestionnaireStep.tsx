@@ -43,7 +43,7 @@ export function QuestionnaireStep() {
   };
 
   const goNext = () => {
-    advanceTo("review", { questionnaire: buildQuestionnaire() });
+    advanceTo("attachments", { questionnaire: buildQuestionnaire() });
   };
 
   if (loading && !registration) return null;
@@ -110,7 +110,7 @@ export function QuestionnaireStep() {
           fullWidth
           onClick={goNext}
         >
-          Next: Review
+          Next: Documents
         </InteractiveHoverButton>
       </EnquireActions>
     </div>

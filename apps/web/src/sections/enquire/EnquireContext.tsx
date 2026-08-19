@@ -77,6 +77,13 @@ export type DraftRegistration = {
     currency: string;
   }>;
   questionnaire: Array<{ questionKey: string; answer: string }>;
+  attachments: Array<{
+    id: string;
+    section: string;
+    fileName: string;
+    fileUrl: string;
+    mimeType?: string;
+  }>;
 };
 
 type EnquireContextValue = {

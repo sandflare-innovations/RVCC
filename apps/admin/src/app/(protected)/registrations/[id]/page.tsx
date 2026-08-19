@@ -8,6 +8,7 @@ import { StatusBadge } from "@/lib/ui";
 
 import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
 import { ENQUIRE_QUESTIONNAIRE } from "@/data/enquire-questionnaire";
+import { registrationAttachmentLabel } from "@/data/registration-attachments";
 import { adminSessionJson } from "@/lib/admin-data";
 import { hasRole } from "@/lib/constants";
 import { getAdminFromSession } from "@/lib/session";
@@ -47,6 +48,13 @@ type RegistrationDetail = {
   classifications: Array<Record<string, unknown>>;
   bankAccounts: Array<Record<string, unknown>>;
   questionnaire: Array<{ questionKey: string; answer: string }>;
+  attachments: Array<{
+    id: string;
+    section: string;
+    fileName: string;
+    fileUrl: string;
+    mimeType?: string;
+  }>;
   vendorUsers: Array<{
     email: string;
     isActive: boolean;
@@ -243,6 +251,31 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
             />
           ))}
         </dl>
+      </Section>
+
+      <Section title={`Attachments (${(r.attachments ?? []).length})`}>
+        {(r.attachments ?? []).length === 0 ? (
+          <p className="text-sm text-zinc-600">None uploaded.</p>
+        ) : (
+          <ul className="space-y-2">
+            {(r.attachments ?? []).map((a) => (
+              <li
+                key={a.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-zinc-100 px-3 py-2 text-sm"
+              >
+                <span className="text-zinc-600">{registrationAttachmentLabel(a.section)}</span>
+                <a
+                  href={a.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-brand-blue font-medium hover:underline"
+                >
+                  {a.fileName}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
       </Section>
 
       {r.vendorUsers.length > 0 && (
