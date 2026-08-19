@@ -9,6 +9,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
 import { Icons } from "@/lib/icons";
+import { getCachedPdfUrl, cachePdf } from "@/lib/pdf-cache";
 
 import { DocumentItem } from "@/data/documents";
 
@@ -201,7 +202,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
     return Math.min(window.devicePixelRatio || 1, MAX_DEVICE_PIXEL_RATIO);
   }, []);
 
-  // Reset pipeline when switching documents
+  // Reset pipeline when switching documents; revoke old blob URLs
   useEffect(() => {
     setCurrentPage(0);
     setNumPages(0);
@@ -214,7 +215,10 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
     setMountedPages(new Set([0, 1, 2, 3]));
     setLoadProgress(0);
     setLoadError(null);
-    setPdfFile(null);
+    setPdfFile((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return null;
+    });
     pdfFallbackTried.current = false;
     setIsZoomed(false);
     setZoomLevel(1);
@@ -222,14 +226,31 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
     setIsAutoPlaying(false);
   }, [doc?.filePath]);
 
-  // Resolve PDF URL: CDN first (real bytes), same-origin second (Range when healthy)
+  // Resolve PDF URL: try cache first, then network
   useEffect(() => {
     if (!doc || !isOpen) return;
+    let cancelled = false;
     const candidates = pdfSourceCandidates(doc);
-    const url = candidates[0] || doc.filePath;
-    setPdfFile(url);
-    setPdfOptions(pdfOptionsForUrl(url));
-    pdfFallbackTried.current = false;
+
+    (async () => {
+      for (const url of [doc.fileUrl, doc.filePath, ...candidates]) {
+        if (!url) continue;
+        const cached = await getCachedPdfUrl(url);
+        if (cached && !cancelled) {
+          setPdfFile(cached);
+          setPdfOptions(SAME_ORIGIN_PDF_OPTIONS);
+          pdfFallbackTried.current = false;
+          return;
+        }
+      }
+      if (cancelled) return;
+      const url = candidates[0] || doc.filePath;
+      setPdfFile(url);
+      setPdfOptions(pdfOptionsForUrl(url));
+      pdfFallbackTried.current = false;
+    })();
+
+    return () => { cancelled = true; };
   }, [doc, isOpen, loadNonce]);
 
   // Fit the book into the real container — useLayoutEffect so size exists before paint
@@ -377,7 +398,7 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
   );
 
   const onDocumentLoadSuccess = useCallback(
-    (pdf: { numPages: number; getPage: (n: number) => Promise<unknown> }) => {
+    (pdf: { numPages: number; getPage: (n: number) => Promise<unknown>; getData: () => Promise<Uint8Array> }) => {
       setLoadError(null);
       setNumPages(pdf.numPages);
       setPdfReady(true);
@@ -394,8 +415,18 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
           console.error("Could not calculate PDF dimensions");
           setPageDim({ w: 600, h: 848 });
         });
+
+      // Cache the fully-loaded PDF for instant back-navigation
+      if (doc) {
+        pdf.getData().then((data: Uint8Array) => {
+          const buf = data.buffer as ArrayBuffer;
+          for (const url of [doc.fileUrl, doc.filePath]) {
+            if (url) cachePdf(url, buf).catch(() => {});
+          }
+        }).catch(() => {});
+      }
     },
-    []
+    [doc]
   );
 
   const onDocumentLoadProgress = useCallback(

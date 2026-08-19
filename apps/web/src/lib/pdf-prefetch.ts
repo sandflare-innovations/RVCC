@@ -1,16 +1,21 @@
 import { pdfjs } from "react-pdf";
 
+import { cachePdf, hasCachedPdf } from "./pdf-cache";
+
 /**
- * Warm PDF bytes + pdf.js worker on READ click so the reader isn't blank on first paint.
+ * Warm PDF bytes + pdf.js worker on READ click so the reader opens instantly.
+ * Now stores fetched bytes in the two-tier cache so back-navigation is free.
  */
 export function prefetchDocumentReader(fileUrl: string, filePath?: string) {
   if (typeof window === "undefined") return;
 
-  // Prefer CDN when available (origin may serve LFS stubs); then same-origin.
   const urls = [fileUrl, filePath].filter(
     (u, i, a) => Boolean(u) && a.indexOf(u) === i
   ) as string[];
+
   for (const url of urls) {
+    if (hasCachedPdf(url)) continue;
+
     const cross = (() => {
       try {
         return new URL(url, window.location.href).origin !== window.location.origin;
@@ -18,15 +23,21 @@ export function prefetchDocumentReader(fileUrl: string, filePath?: string) {
         return false;
       }
     })();
-    void fetch(url, {
+
+    fetch(url, {
       mode: cross ? "cors" : "same-origin",
       credentials: "omit",
-      // Only Range-probe same-origin; CDN Range is unreliable.
       ...(cross ? {} : { headers: { Range: "bytes=0-65535" } }),
-    }).catch(() => {});
+    })
+      .then(async (res) => {
+        if (res.ok && res.status === 200) {
+          const buf = await res.arrayBuffer();
+          await cachePdf(url, buf);
+        }
+      })
+      .catch(() => {});
   }
 
-  // Same version-pinned worker the reader uses (local /pdfjs was 404 on Vercel).
   const workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
   void fetch(workerSrc, { mode: "cors", credentials: "omit" }).catch(() => {});
 
