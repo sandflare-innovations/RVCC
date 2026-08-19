@@ -144,7 +144,7 @@ export const Hero = () => {
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 33vw"
-            priority
+            loading="lazy"
           />
         </motion.div>
 
@@ -178,8 +178,8 @@ export const Hero = () => {
                 alt={content.title1}
                 fill
                 className="object-cover"
-                priority
-                loading="eager"
+                priority={currentIndex === 0}
+                loading={currentIndex === 0 ? "eager" : "lazy"}
                 sizes="100vw"
               />
               <motion.div
@@ -215,7 +215,7 @@ export const Hero = () => {
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 33vw"
-            priority
+            loading="lazy"
           />
         </motion.div>
       </div>

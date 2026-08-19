@@ -7,15 +7,32 @@ export function corsHeaders(request: Request, env: Env): HeadersInit {
   const allowed = (env.ALLOWED_ORIGINS || "").trim();
   const origin = request.headers.get("Origin");
   let allowOrigin = "";
-  if (allowed === "*") {
-    allowOrigin = origin || "*";
-  } else if (allowed) {
+
+  const originAllowed = (candidate: string | null): boolean => {
+    if (!candidate) return false;
+    if (allowed === "*") return true;
+    if (!allowed) return false;
     const list = allowed
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
-    if (origin && list.includes(origin)) allowOrigin = origin;
-    else if (!origin && list[0]) allowOrigin = list[0];
+    if (list.includes(candidate)) return true;
+    try {
+      const host = new URL(candidate).hostname;
+      if (host.endsWith(".vercel.app")) return true;
+      if (host.endsWith(".pages.dev")) return true;
+    } catch {
+      /* ignore */
+    }
+    return false;
+  };
+
+  if (allowed === "*") {
+    allowOrigin = origin || "*";
+  } else if (origin && originAllowed(origin)) {
+    allowOrigin = origin;
+  } else if (!origin && allowed) {
+    allowOrigin = allowed.split(",")[0]?.trim() || "";
   }
   const headers: Record<string, string> = {
     "Access-Control-Allow-Origin": allowOrigin || "null",
@@ -30,12 +47,19 @@ export function corsHeaders(request: Request, env: Env): HeadersInit {
   return headers;
 }
 
-export function json(env: Env, request: Request, data: unknown, status = 200): Response {
+export function json(
+  env: Env,
+  request: Request,
+  data: unknown,
+  status = 200,
+  extraHeaders: Record<string, string> = {}
+): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       "Content-Type": "application/json",
       ...corsHeaders(request, env),
+      ...extraHeaders,
     },
   });
 }

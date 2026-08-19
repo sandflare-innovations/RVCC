@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { usePathname, useRouter } from "next/navigation";
 
@@ -8,6 +8,8 @@ import { motion } from "framer-motion";
 import { ClipboardList, KeyRound, LayoutDashboard, LogOut } from "lucide-react";
 
 import { Sidebar, SidebarBody, SidebarLink, useSidebar } from "@/components/ui/sidebar";
+import { VENDOR_LOGIN_EXPIRED_PATH } from "@/lib/constants";
+import { signOutInstant } from "@/lib/sign-out-client";
 import type { VendorIdentity } from "@/lib/session";
 import { NotificationBell } from "@/sections/NotificationBell";
 
@@ -23,11 +25,13 @@ function SidebarContents({
   vendor,
   onNavigate,
   onSignOut,
+  onPrefetch,
   signingOut,
 }: {
   vendor: VendorIdentity;
   onNavigate: () => void;
   onSignOut: () => void;
+  onPrefetch: (href: string) => void;
   signingOut: boolean;
 }) {
   const pathname = usePathname();
@@ -60,6 +64,7 @@ function SidebarContents({
               key={item.href}
               link={item}
               onClick={onNavigate}
+              onPrefetch={() => onPrefetch(item.href)}
               active={item.exact ? pathname === item.href : pathname.startsWith(item.href)}
             />
           ))}
@@ -121,16 +126,14 @@ export function VendorChrome({
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
-  useEffect(() => {
-    if (!vendor.mustChangePassword) {
-      for (const item of NAV) router.prefetch(item.href);
-    }
-  }, [router, vendor.mustChangePassword]);
+  const prefetch = (href: string) => {
+    router.prefetch(href);
+  };
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
+    if (signingOut) return;
     setSigningOut(true);
-    fetch("/api/logout", { method: "POST" }).catch(() => {});
-    window.location.replace("/login");
+    signOutInstant(VENDOR_LOGIN_EXPIRED_PATH);
   };
 
   return (
@@ -140,8 +143,9 @@ export function VendorChrome({
           <SidebarContents
             vendor={vendor}
             signingOut={signingOut}
-            onSignOut={() => void handleSignOut()}
+            onSignOut={handleSignOut}
             onNavigate={() => setOpen(false)}
+            onPrefetch={prefetch}
           />
         </SidebarBody>
       </Sidebar>

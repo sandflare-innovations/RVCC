@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 
 import { cookies } from "next/headers";
 
@@ -6,6 +7,7 @@ import { createHash } from "node:crypto";
 import "server-only";
 
 import { VENDOR_COOKIE } from "@/lib/constants";
+import { cacheDel, cacheGet, cacheSet } from "@/lib/redis-cache";
 import { vendorWorkerFetch } from "@/lib/vendor-api";
 
 export type VendorIdentity = {
@@ -13,34 +15,33 @@ export type VendorIdentity = {
   email: string;
   name: string;
   mustChangePassword: boolean;
-  /** Null for accounts an admin created directly, with no public registration. */
   registrationId: string | null;
 };
 
+const SESSION_REVALIDATE_SECONDS = 45;
+const TTL_MS = SESSION_REVALIDATE_SECONDS * 1000;
+
 type CacheEntry = { at: number; identity: VendorIdentity };
 const identityCache = new Map<string, CacheEntry>();
-const TTL_MS = 45_000;
 
 function tokenKey(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export function clearVendorSessionCache(token?: string) {
-  if (!token) {
-    identityCache.clear();
-    return;
-  }
-  identityCache.delete(tokenKey(token));
+function sessionCacheKey(token: string) {
+  return `rvcc:vendor:session:${tokenKey(token)}`;
 }
 
-export const getVendorFromSession = cache(async (): Promise<VendorIdentity | null> => {
-  const jar = await cookies();
-  const token = jar.get(VENDOR_COOKIE)?.value;
-  if (!token) return null;
-
+async function fetchVendorIdentity(token: string): Promise<VendorIdentity | null> {
   const key = tokenKey(token);
-  const hit = identityCache.get(key);
-  if (hit && Date.now() - hit.at < TTL_MS) return hit.identity;
+  const memHit = identityCache.get(key);
+  if (memHit && Date.now() - memHit.at < TTL_MS) return memHit.identity;
+
+  const redisHit = await cacheGet<VendorIdentity>(sessionCacheKey(token));
+  if (redisHit) {
+    identityCache.set(key, { at: Date.now(), identity: redisHit });
+    return redisHit;
+  }
 
   try {
     const res = await vendorWorkerFetch("/auth/me", { method: "GET", sessionToken: token });
@@ -49,15 +50,47 @@ export const getVendorFromSession = cache(async (): Promise<VendorIdentity | nul
         identityCache.delete(key);
         return null;
       }
-      return hit?.identity ?? null;
+      return memHit?.identity ?? null;
     }
     const data = (await res.json()) as VendorIdentity;
-    // registrationId is intentionally not checked: admin-created vendors have none.
     if (!data?.id) return null;
     identityCache.set(key, { at: Date.now(), identity: data });
+    await cacheSet(sessionCacheKey(token), data, SESSION_REVALIDATE_SECONDS);
     return data;
   } catch (err) {
     console.error("[vendor] /auth/me failed", err);
-    return hit?.identity ?? null;
+    return memHit?.identity ?? null;
+  }
+}
+
+function getCachedVendorIdentity(token: string) {
+  const key = tokenKey(token);
+  return unstable_cache(() => fetchVendorIdentity(token), ["vendor-identity", key], {
+    revalidate: SESSION_REVALIDATE_SECONDS,
+  })();
+}
+
+export async function clearVendorSessionCache(token?: string) {
+  if (!token) {
+    identityCache.clear();
+    return;
+  }
+  identityCache.delete(tokenKey(token));
+  await cacheDel(sessionCacheKey(token));
+}
+
+export async function resolveVendorIdentity(token: string): Promise<VendorIdentity | null> {
+  return fetchVendorIdentity(token);
+}
+
+export const getVendorFromSession = cache(async (): Promise<VendorIdentity | null> => {
+  const jar = await cookies();
+  const token = jar.get(VENDOR_COOKIE)?.value;
+  if (!token) return null;
+  try {
+    return await getCachedVendorIdentity(token);
+  } catch (err) {
+    console.error("[vendor] session cache miss failed", err);
+    return null;
   }
 });

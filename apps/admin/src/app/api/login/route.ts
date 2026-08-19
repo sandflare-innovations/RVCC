@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { adminWorkerFetch } from "@/lib/admin-api";
-import { ADMIN_COOKIE, adminCookieOptions } from "@/lib/constants";
+import { ADMIN_COOKIE, ADMIN_PROFILE_COOKIE, adminCookieOptions } from "@/lib/constants";
+import { adminProfileCookieOptions, encodeAdminProfile } from "@/lib/profile-cookie";
+import { resolveAdminIdentity } from "@/lib/session";
 
 const schema = z.object({
   email: z.string().email(),
@@ -44,6 +46,16 @@ export async function POST(request: Request) {
 
     const out = NextResponse.json({ ok: true });
     out.cookies.set(ADMIN_COOKIE, data.token, adminCookieOptions());
+
+    const admin = await resolveAdminIdentity(data.token);
+    if (admin) {
+      out.cookies.set(
+        ADMIN_PROFILE_COOKIE,
+        encodeAdminProfile(admin),
+        adminProfileCookieOptions()
+      );
+    }
+
     return out;
   } catch (err) {
     console.error("[admin/login]", err);

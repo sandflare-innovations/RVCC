@@ -10,8 +10,12 @@ compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
 [vars]
-ALLOWED_ORIGINS = "https://rvcc-prod.pages.dev,https://rvcc-vendor.pages.dev,https://rvcc-admin.pages.dev,https://rvcc-prod.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002"
-VENDOR_PORTAL_URL = "https://rvcc-vendor.pages.dev"
+ALLOWED_ORIGINS = "https://rvcc-enquiry.vercel.app,https://rvcc-vendor.vercel.app,https://rvcc-admin.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002"
+VENDOR_PORTAL_URL = "https://rvcc-vendor.vercel.app"
+# Optional Hyperdrive (production): create in Cloudflare dashboard, then add:
+# [[hyperdrive]]
+# binding = "HYPERDRIVE"
+# id = "<your-hyperdrive-config-id>"
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = "587"
 SMTP_SECURE = "false"

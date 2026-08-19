@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import {
   ADMIN_COOKIE,
   ADMIN_LOGIN_PATH,
+  ADMIN_PROFILE_COOKIE,
   ADMIN_SESSION_EXPIRED_PARAM,
   adminCookieOptions,
   expiredCookieOptions,
@@ -23,6 +24,7 @@ export default function proxy(request: NextRequest) {
     if (request.nextUrl.searchParams.has(ADMIN_SESSION_EXPIRED_PARAM)) {
       const res = NextResponse.next();
       res.cookies.set(ADMIN_COOKIE, "", expiredCookieOptions());
+      res.cookies.set(ADMIN_PROFILE_COOKIE, "", expiredCookieOptions());
       return res;
     }
     if (request.cookies.get(ADMIN_COOKIE)?.value) {

@@ -16,10 +16,9 @@ export const metadata: Metadata = {
 };
 
 /**
- * Postings are edited in the admin panel, so this page must not be cached at
- * build time — publishing a job should appear immediately.
+ * Job postings refresh at most every 60s (ISR). Admin publishes appear shortly after.
  */
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 async function Positions() {
   const positions = await getPublishedJobs();

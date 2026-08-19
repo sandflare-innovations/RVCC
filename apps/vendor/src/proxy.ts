@@ -4,6 +4,7 @@ import {
   VENDOR_COOKIE,
   VENDOR_HOME_PATH,
   VENDOR_LOGIN_PATH,
+  VENDOR_PROFILE_COOKIE,
   VENDOR_SESSION_EXPIRED_PARAM,
   expiredCookieOptions,
   vendorCookieOptions,
@@ -24,6 +25,7 @@ export default function proxy(request: NextRequest) {
     if (request.nextUrl.searchParams.has(VENDOR_SESSION_EXPIRED_PARAM)) {
       const res = NextResponse.next();
       res.cookies.set(VENDOR_COOKIE, "", expiredCookieOptions());
+      res.cookies.set(VENDOR_PROFILE_COOKIE, "", expiredCookieOptions());
       return res;
     }
     if (request.cookies.get(VENDOR_COOKIE)?.value) {

@@ -1,19 +1,53 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
 import type { EnquireStep } from "@/lib/enquire-constants";
 import { EnquireShell } from "@/sections/enquire/EnquireShell";
-import { AddressesStep } from "@/sections/enquire/steps/AddressesStep";
-import { BankStep } from "@/sections/enquire/steps/BankStep";
-import { ClassificationsStep } from "@/sections/enquire/steps/ClassificationsStep";
-import { CompanyStep } from "@/sections/enquire/steps/CompanyStep";
-import { ContactsStep } from "@/sections/enquire/steps/ContactsStep";
-import { DoneStep } from "@/sections/enquire/steps/DoneStep";
-import { ProductsStep } from "@/sections/enquire/steps/ProductsStep";
-import { QuestionnaireStep } from "@/sections/enquire/steps/QuestionnaireStep";
-import { ReviewStep } from "@/sections/enquire/steps/ReviewStep";
-import { VerifyStep } from "@/sections/enquire/steps/VerifyStep";
+
+const VerifyStep = dynamic(
+  () => import("@/sections/enquire/steps/VerifyStep").then((m) => m.VerifyStep),
+  { loading: () => null }
+);
+const CompanyStep = dynamic(
+  () => import("@/sections/enquire/steps/CompanyStep").then((m) => m.CompanyStep),
+  { loading: () => null }
+);
+const ContactsStep = dynamic(
+  () => import("@/sections/enquire/steps/ContactsStep").then((m) => m.ContactsStep),
+  { loading: () => null }
+);
+const AddressesStep = dynamic(
+  () => import("@/sections/enquire/steps/AddressesStep").then((m) => m.AddressesStep),
+  { loading: () => null }
+);
+const ClassificationsStep = dynamic(
+  () =>
+    import("@/sections/enquire/steps/ClassificationsStep").then((m) => m.ClassificationsStep),
+  { loading: () => null }
+);
+const BankStep = dynamic(
+  () => import("@/sections/enquire/steps/BankStep").then((m) => m.BankStep),
+  { loading: () => null }
+);
+const ProductsStep = dynamic(
+  () => import("@/sections/enquire/steps/ProductsStep").then((m) => m.ProductsStep),
+  { loading: () => null }
+);
+const QuestionnaireStep = dynamic(
+  () =>
+    import("@/sections/enquire/steps/QuestionnaireStep").then((m) => m.QuestionnaireStep),
+  { loading: () => null }
+);
+const ReviewStep = dynamic(
+  () => import("@/sections/enquire/steps/ReviewStep").then((m) => m.ReviewStep),
+  { loading: () => null }
+);
+const DoneStep = dynamic(
+  () => import("@/sections/enquire/steps/DoneStep").then((m) => m.DoneStep),
+  { loading: () => null }
+);
 
 const META: Record<EnquireStep, { title: string; subtitle: string }> = {
   verify: {

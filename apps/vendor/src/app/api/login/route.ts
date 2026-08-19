@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 
 import { z } from "zod";
 
-import { VENDOR_COOKIE, vendorCookieOptions } from "@/lib/constants";
+import {
+  VENDOR_COOKIE,
+  VENDOR_PROFILE_COOKIE,
+  vendorCookieOptions,
+} from "@/lib/constants";
+import { encodeVendorProfile, vendorProfileCookieOptions } from "@/lib/profile-cookie";
+import { resolveVendorIdentity } from "@/lib/session";
 import { vendorWorkerFetch } from "@/lib/vendor-api";
 
 const schema = z.object({
@@ -48,6 +54,16 @@ export async function POST(request: Request) {
       mustChangePassword: Boolean(data.mustChangePassword),
     });
     out.cookies.set(VENDOR_COOKIE, data.token, vendorCookieOptions());
+
+    const vendor = await resolveVendorIdentity(data.token);
+    if (vendor) {
+      out.cookies.set(
+        VENDOR_PROFILE_COOKIE,
+        encodeVendorProfile(vendor),
+        vendorProfileCookieOptions()
+      );
+    }
+
     return out;
   } catch (err) {
     console.error("[vendor/login]", err);

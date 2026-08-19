@@ -1,7 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { VENDOR_COOKIE } from "@/lib/constants";
+import { VENDOR_COOKIE, VENDOR_PROFILE_COOKIE } from "@/lib/constants";
+import {
+  encodeVendorProfile,
+  vendorProfileCookieOptions,
+} from "@/lib/profile-cookie";
+import { resolveVendorIdentity } from "@/lib/session";
 import { vendorWorkerFetch } from "@/lib/vendor-api";
 
 export async function POST(request: Request) {
@@ -31,7 +36,17 @@ export async function POST(request: Request) {
         { status: res.status }
       );
     }
-    return NextResponse.json({ ok: true });
+
+    const out = NextResponse.json({ ok: true });
+    const vendor = await resolveVendorIdentity(token);
+    if (vendor) {
+      out.cookies.set(
+        VENDOR_PROFILE_COOKIE,
+        encodeVendorProfile({ ...vendor, mustChangePassword: false }),
+        vendorProfileCookieOptions()
+      );
+    }
+    return out;
   } catch (err) {
     console.error("[vendor/password]", err);
     return NextResponse.json({ error: "Could not change your password." }, { status: 503 });

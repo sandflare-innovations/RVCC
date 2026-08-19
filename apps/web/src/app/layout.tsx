@@ -1,13 +1,9 @@
 import Script from "next/script";
 
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
-import { LenisProvider } from "@/components/providers/LenisProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { LanguageProvider } from "@/context/LanguageContext";
-
-import { Footer } from "@layout/Footer";
-import { Navbar } from "@layout/Navbar";
 
 import "./globals.css";
 
@@ -32,14 +28,10 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <LenisProvider>
-            <LanguageProvider>
-              <Navbar />
-              <main className="relative flex-grow">{children}</main>
-            </LanguageProvider>
-          </LenisProvider>
+          {children}
         </ThemeProvider>
-        <Script id="microsoft-clarity" strategy="afterInteractive">
+        <SpeedInsights />
+        <Script id="microsoft-clarity" strategy="lazyOnload">
           {`(function(c,l,a,r,i,t,y){
               c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
               t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
