@@ -31,6 +31,7 @@ export function createApp(env: Env) {
   });
 
   app.all("/careers", (c) => handlePublicCareersRequest(c.req.raw, env));
+  app.all("/careers/apply", (c) => handlePublicCareersRequest(c.req.raw, env));
 
   app.all("/admin", (c) => handleAdminRequest(rewritePath(c.req.raw, "/admin"), env));
   app.all("/admin/*", (c) => handleAdminRequest(rewritePath(c.req.raw, "/admin"), env));

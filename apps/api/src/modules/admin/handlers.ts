@@ -1107,6 +1107,41 @@ export async function handleCareerGet(
   return json(env, request, job);
 }
 
+export async function handleCareerApplicationsList(
+  sql: Sql,
+  env: Env,
+  request: Request,
+  jobPostingId: string
+): Promise<Response> {
+  const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
+  if (deny) return deny;
+
+  const [job] = await sql`SELECT id FROM "JobPosting" WHERE id = ${jobPostingId} LIMIT 1`;
+  if (!job) return json(env, request, { error: "Posting not found." }, 404);
+
+  const rows = await sql`
+    SELECT
+      id, "fullName", email, phone,
+      "cvFileName", "cvFileUrl", "cvMimeType", "createdAt"
+    FROM "JobApplication"
+    WHERE "jobPostingId" = ${jobPostingId}
+    ORDER BY "createdAt" DESC
+  `;
+
+  const applications = rows.map((r) => ({
+    id: String(r.id),
+    fullName: String(r.fullName),
+    email: String(r.email),
+    phone: String(r.phone ?? ""),
+    cvFileName: String(r.cvFileName),
+    cvFileUrl: String(r.cvFileUrl),
+    cvMimeType: String(r.cvMimeType ?? "application/pdf"),
+    createdAt: r.createdAt ? new Date(String(r.createdAt)).toISOString() : "",
+  }));
+
+  return json(env, request, { applications });
+}
+
 export async function handleCareerCreate(sql: Sql, env: Env, request: Request): Promise<Response> {
   const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
   if (deny) return deny;

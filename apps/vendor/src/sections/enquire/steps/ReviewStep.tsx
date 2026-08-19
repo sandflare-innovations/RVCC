@@ -9,6 +9,7 @@ import { Pencil } from "lucide-react";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
+import { attachmentSectionLabel } from "@/data/enquire-attachments";
 import { ENQUIRE_QUESTIONNAIRE } from "@/data/enquire-questionnaire";
 import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import {
@@ -229,6 +230,35 @@ function ReviewDocument({ registration }: { registration: DraftRegistration }) {
             return <DocField key={q.key} label={q.label} value={ans} />;
           })}
         </dl>
+      </DocSection>
+
+      <DocSection number="08" title="Supporting documents" editHref="/enquire/attachments">
+        {(registration.attachments ?? []).length === 0 ? (
+          <p className="py-3 text-sm text-zinc-500">No documents uploaded.</p>
+        ) : (
+          <dl>
+            {(registration.attachments ?? []).map((a) => (
+              <div
+                key={a.id}
+                className="grid gap-0.5 border-b border-zinc-100 py-1.5 sm:grid-cols-[minmax(140px,200px)_1fr] sm:gap-3 sm:py-2"
+              >
+                <dt className="text-[11px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">
+                  {attachmentSectionLabel(a.section)}
+                </dt>
+                <dd className="text-sm text-zinc-950">
+                  <a
+                    href={a.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand-blue font-medium hover:underline"
+                  >
+                    {a.fileName}
+                  </a>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
       </DocSection>
 
       <footer className="border-t border-zinc-200 bg-zinc-50 px-5 py-4 text-sm leading-relaxed text-zinc-500 sm:px-7 sm:text-base">

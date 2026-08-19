@@ -13,23 +13,18 @@ Marketing (`apps/web`) and the supplier portal (`apps/vendor`) are **separate de
 
 ## Setup
 
+Shared env files live at the repo root (not committed):
+
+| File | Use |
+| ---- | --- |
+| `.env.vercel` | Paste into **all three** Vercel projects (web / vendor / admin) |
+| `.env.server` | Copy to `apps/api/.env` locally; secrets go to Cloudflare `wrangler secret put` |
+
 ```bash
-cp apps/api/.env.example apps/api/.env
-cp apps/web/.env.example apps/web/.env.local
-cp apps/vendor/.env.example apps/vendor/.env.local
-cp apps/admin/.env.example apps/admin/.env.local
-```
-
-Production env (each app):
-
-```env
-API_URL=https://rvcc-api.rvcc.workers.dev
-NEXT_PUBLIC_SITE_URL=https://rvcc-enquiry.vercel.app
-NEXT_PUBLIC_VENDOR_PORTAL_URL=https://rvcc-vendor.vercel.app
-NEXT_PUBLIC_ADMIN_PORTAL_URL=https://rvcc-admin.vercel.app
-NEXT_PUBLIC_ASSET_CDN_URL=https://pub-7f8ca337d3ac4e7f9f6ed54470da92a0.r2.dev
-NEXT_PUBLIC_PDF_CDN_URL=https://pub-7f8ca337d3ac4e7f9f6ed54470da92a0.r2.dev
-DOC_PASSWORD=     # 4-digit document download PIN (server-only, apps/web)
+cp .env.server apps/api/.env
+cp .env.vercel apps/web/.env.local
+cp .env.vercel apps/vendor/.env.local
+cp .env.vercel apps/admin/.env.local
 ```
 
 ```bash
@@ -39,18 +34,7 @@ cd apps/admin && npm ci && npm run dev        # :3001
 cd apps/vendor && npm ci && npm run dev       # :3002
 ```
 
-**Vercel:** one project per frontend — set **Root Directory** to `apps/web`, `apps/vendor`, or `apps/admin`.
-
-Web project env:
-
-```env
-API_URL=https://rvcc-api.rvcc.workers.dev
-DOC_PASSWORD=your-4-digit-pin
-NEXT_PUBLIC_SITE_URL=https://rvcc-enquiry.vercel.app
-NEXT_PUBLIC_VENDOR_PORTAL_URL=https://rvcc-vendor.vercel.app
-NEXT_PUBLIC_ADMIN_PORTAL_URL=https://rvcc-admin.vercel.app
-NEXT_PUBLIC_PDF_CDN_URL=https://pub-7f8ca337d3ac4e7f9f6ed54470da92a0.r2.dev
-```
+**Vercel:** one project per frontend — set **Root Directory** to `apps/web`, `apps/vendor`, or `apps/admin`. Paste `.env.vercel` into each project's environment variables.
 
 After deploy, open `/api/enquire/health` — it should report `apiReachable: true`. Enquire UI lives at `/enquire/verify` (legacy `/register` redirects there).
 

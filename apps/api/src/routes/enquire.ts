@@ -7,7 +7,11 @@ import {
   handleOtpRequest,
   handleOtpVerify,
   handleSubmit,
+  resolveEnquireRegistration,
 } from "../modules/enquire/handlers";
+import { createAttachmentHandlers } from "../modules/enquire/attachments";
+
+const attachmentHandlers = createAttachmentHandlers(resolveEnquireRegistration);
 
 /**
  * Enquire (supplier registration) domain. Paths relative to `/enquire`.
@@ -44,6 +48,19 @@ export async function handleEnquireRequest(request: Request, env: Env): Promise<
     }
     if (path === "/submit" && request.method === "POST") {
       return await handleSubmit(sql, env, request);
+    }
+    if (path === "/attachments" && request.method === "POST") {
+      return await attachmentHandlers.handleAttachmentUpload(sql, env, request);
+    }
+
+    const attachmentOne = path.match(/^\/attachments\/([^/]+)$/);
+    if (attachmentOne && request.method === "DELETE") {
+      return await attachmentHandlers.handleAttachmentDelete(
+        sql,
+        env,
+        request,
+        decodeURIComponent(attachmentOne[1]!)
+      );
     }
 
     return json(env, request, { error: "Not Found" }, 404);

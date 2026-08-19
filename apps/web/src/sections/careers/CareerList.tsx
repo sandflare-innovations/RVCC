@@ -24,6 +24,12 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [captchaError, setCaptchaError] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleVerificationTrigger = async () => {
     setIsVerifying(true);
@@ -56,21 +62,58 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
     return matchesDept && matchesSearch;
   });
 
-  const handleApply = (e: React.FormEvent) => {
+  const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!selectedJob) return;
 
     if (!isVerified) {
       setCaptchaError(true);
       return;
     }
 
-    setApplicationSuccess(true);
-    setTimeout(() => {
-      setIsApplying(false);
-      setSelectedJob(null);
-      setApplicationSuccess(false);
-      setIsVerified(false);
-    }, 2000);
+    if (!cvFile) {
+      setSubmitError("Please upload your CV (PDF).");
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const form = new FormData();
+      form.set("jobPostingId", selectedJob.id);
+      form.set("fullName", fullName.trim());
+      form.set("email", email.trim());
+      form.set("phone", phone.trim());
+      form.set("cv", cvFile);
+
+      const res = await fetch("/api/careers/apply", {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSubmitError((data as { error?: string }).error || "Application failed. Please try again.");
+        return;
+      }
+
+      setApplicationSuccess(true);
+      setFullName("");
+      setEmail("");
+      setPhone("");
+      setCvFile(null);
+      setTimeout(() => {
+        setIsApplying(false);
+        setSelectedJob(null);
+        setApplicationSuccess(false);
+        setIsVerified(false);
+      }, 2000);
+    } catch {
+      setSubmitError("Network error — please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -302,6 +345,14 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                             </div>
 
                             <div className="grid w-full grid-cols-1 gap-12 text-left md:grid-cols-2">
+                              {submitError ? (
+                                <p
+                                  role="alert"
+                                  className="md:col-span-2 text-sm font-medium text-red-600"
+                                >
+                                  {submitError}
+                                </p>
+                              ) : null}
                               {/* Left Column: Personal Data */}
                               <div className="space-y-10">
                                 <div className="group space-y-2">
@@ -311,6 +362,8 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                                   <input
                                     required
                                     type="text"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
                                     placeholder="e.g. Abdullah Ahmed"
                                     className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-300 dark:border-white/10 dark:text-white dark:placeholder:text-zinc-800"
                                   />
@@ -322,6 +375,8 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                                   <input
                                     required
                                     type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     placeholder="abdullah@example.com"
                                     className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-300 dark:border-white/10 dark:text-white dark:placeholder:text-zinc-800"
                                   />
@@ -333,6 +388,8 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                                   <input
                                     required
                                     type="tel"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
                                     placeholder="+966 5X XXX XXXX"
                                     className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-300 dark:border-white/10 dark:text-white dark:placeholder:text-zinc-800"
                                   />
@@ -349,12 +406,13 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                                     <input
                                       required
                                       type="file"
-                                      accept=".pdf"
+                                      accept=".pdf,application/pdf"
                                       className="absolute inset-0 z-10 cursor-pointer opacity-0"
+                                      onChange={(e) => setCvFile(e.target.files?.[0] ?? null)}
                                     />
                                     <Icons.File className="group-hover:text-brand-blue mb-2 h-8 w-8 text-zinc-200 transition-all" />
                                     <p className="group-hover:text-brand-blue text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
-                                      Upload The CV
+                                      {cvFile ? cvFile.name : "Upload The CV"}
                                     </p>
                                     <div className="bg-brand-blue/5 absolute inset-0 origin-left scale-x-0 transition-transform group-hover:scale-x-100" />
                                   </div>
@@ -442,9 +500,10 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                               </button>
                               <button
                                 type="submit"
-                                className="hover:bg-brand-blue font-brand-blue flex-[2] bg-white py-4 text-[16px] font-bold tracking-[0.2em] text-black uppercase shadow-2xl transition-all active:scale-[0.98] dark:hover:text-zinc-900"
+                                disabled={submitting}
+                                className="hover:bg-brand-blue font-brand-blue flex-[2] bg-white py-4 text-[16px] font-bold tracking-[0.2em] text-black uppercase shadow-2xl transition-all active:scale-[0.98] disabled:opacity-60 dark:hover:text-zinc-900"
                               >
-                                Send Application
+                                {submitting ? "Sending…" : "Send Application"}
                               </button>
                             </div>
                           </form>

@@ -1,6 +1,17 @@
 /**
  * Process env for the unified API. Loaded once at boot; never expose to browsers.
  */
+
+/** Minimal R2 binding surface (Cloudflare Worker). */
+export type R2Bucket = {
+  put(
+    key: string,
+    value: ArrayBuffer | ReadableStream | Uint8Array,
+    options?: { httpMetadata?: { contentType?: string } }
+  ): Promise<unknown>;
+  delete(key: string): Promise<void>;
+};
+
 export type AppEnv = {
   DATABASE_URL: string;
   /** Optional read replica for heavy SELECTs (dashboard aggregates). */
@@ -14,6 +25,15 @@ export type AppEnv = {
   SMTP_PASS?: string;
   SMTP_FROM?: string;
   ENQUIRE_FROM_EMAIL?: string;
+  /** Public base URL for uploaded files (R2 dev domain or custom CDN). */
+  R2_PUBLIC_URL?: string;
+  /** S3-compatible R2 credentials (Node local dev / fallback when no binding). */
+  R2_ACCOUNT_ID?: string;
+  R2_ACCESS_KEY_ID?: string;
+  R2_SECRET_ACCESS_KEY?: string;
+  R2_BUCKET_NAME?: string;
+  /** Cloudflare Worker R2 binding — set in worker.ts, not process.env. */
+  uploadsBucket?: R2Bucket;
   PORT: number;
   NODE_ENV: string;
 };
@@ -41,6 +61,11 @@ export function loadEnv(): AppEnv {
     SMTP_PASS: process.env.SMTP_PASS,
     SMTP_FROM: process.env.SMTP_FROM,
     ENQUIRE_FROM_EMAIL: process.env.ENQUIRE_FROM_EMAIL,
+    R2_PUBLIC_URL: process.env.R2_PUBLIC_URL?.trim() || undefined,
+    R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID?.trim() || undefined,
+    R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID?.trim() || undefined,
+    R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY?.trim() || undefined,
+    R2_BUCKET_NAME: process.env.R2_BUCKET_NAME?.trim() || undefined,
     PORT: Number(process.env.PORT || 4000),
     NODE_ENV: process.env.NODE_ENV || "development",
   };

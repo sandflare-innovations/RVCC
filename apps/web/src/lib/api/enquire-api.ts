@@ -16,7 +16,11 @@ export async function enquireApiFetch(
 ): Promise<Response> {
   const { sessionToken, headers: initHeaders, ...rest } = init;
   const headers = new Headers(initHeaders);
-  headers.set("Content-Type", headers.get("Content-Type") || "application/json");
+  const isFormData =
+    typeof FormData !== "undefined" && rest.body instanceof FormData;
+  if (!isFormData && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
 
   let session = sessionToken;
   if (session === undefined) {

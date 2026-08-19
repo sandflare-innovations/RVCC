@@ -18,6 +18,7 @@ const LABELS: Record<string, string> = {
   bank: "Bank",
   products: "Products",
   questionnaire: "Questionnaire",
+  attachments: "Documents",
   review: "Review",
   done: "Done",
 };
