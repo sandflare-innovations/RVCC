@@ -85,7 +85,7 @@ function EntryCard({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-function ReviewDocument({ registration }: { registration: DraftRegistration }) {
+export function ReviewDocument({ registration }: { registration: DraftRegistration }) {
   const tax = (registration.company?.taxIdentifiers || {}) as Record<string, string>;
   const categories = registration.productCategories
     .map((id) => ENQUIRE_CATEGORIES.find((c) => c.id === id)?.label || id)
