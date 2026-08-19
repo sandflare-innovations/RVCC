@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import { revokeSession } from "@/lib/sign-out-client";
 import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire } from "@/sections/enquire/EnquireContext";
 import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
@@ -38,22 +39,15 @@ export function VerifyStep() {
 
   const hasSession = Boolean(registration?.email) && !changingEmail;
 
-  const changeEmail = async () => {
-    setBusy(true);
+  const changeEmail = () => {
     setError(null);
-    try {
-      await fetch("/api/enquire/logout", { method: "POST", credentials: "include" });
-      setRegistration(null);
-      setChangingEmail(true);
-      setEmail("");
-      setCode("");
-      setPhase("email");
-      setHint(null);
-    } catch {
-      setError("Could not reset verification — try again.");
-    } finally {
-      setBusy(false);
-    }
+    setRegistration(null);
+    setChangingEmail(true);
+    setEmail("");
+    setCode("");
+    setPhase("email");
+    setHint(null);
+    revokeSession("/api/enquire/logout");
   };
 
   const continueRegistration = () => {

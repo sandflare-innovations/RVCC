@@ -10,6 +10,8 @@ import {
   writeAudit,
 } from "./auth";
 import { describeAward } from "./award";
+import { getIsolateCache } from "../../lib/isolate-cache";
+import { createReadSql } from "../../lib/sql";
 import { type Sql, cuid, loadRegistration } from "./db";
 import { notifyDecision, sendRequirementMail } from "./notify";
 import {
@@ -1269,7 +1271,9 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
   const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
 
-  const statusRows = await sql`
+  const payload = await getIsolateCache("admin:dashboard", 15_000, async () => {
+    const readSql = createReadSql(env);
+    const statusRows = await readSql`
     SELECT status, COUNT(*)::int AS count
     FROM "SupplierRegistration"
     GROUP BY status
@@ -1279,13 +1283,13 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
     byStatus[row.status as string] = Number(row.count);
   }
 
-  const [{ vendors }] = await sql`
+    const [{ vendors }] = await readSql`
     SELECT COUNT(*)::int AS vendors FROM "VendorUser" WHERE "isActive" = true
   `;
-  const [{ publishedJobs }] = await sql`
+    const [{ publishedJobs }] = await readSql`
     SELECT COUNT(*)::int AS "publishedJobs" FROM "JobPosting" WHERE "isPublished" = true
   `;
-  const [{ totalJobs }] = await sql`
+    const [{ totalJobs }] = await readSql`
     SELECT COUNT(*)::int AS "totalJobs" FROM "JobPosting"
   `;
 
@@ -1295,19 +1299,19 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
   let performance: { email: string; invited: number; submitted: number; won: number }[] = [];
 
   try {
-    const [openRow] = await sql`
+    const [openRow] = await readSql`
       SELECT COUNT(*)::int AS "openCount"
       FROM "Requirement"
       WHERE status = 'OPEN' AND "closesAt" > NOW()
     `;
-    const [soonRow] = await sql`
+    const [soonRow] = await readSql`
       SELECT COUNT(*)::int AS "closingSoon"
       FROM "Requirement"
       WHERE status = 'OPEN'
         AND "closesAt" > NOW()
         AND "closesAt" <= NOW() + INTERVAL '48 hours'
     `;
-    const [awardRow] = await sql`
+    const [awardRow] = await readSql`
       SELECT COUNT(*)::int AS "awaitingAward"
       FROM "Requirement"
       WHERE status = 'OPEN' AND "closesAt" <= NOW()
@@ -1317,7 +1321,7 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
     awaitingAward = Number(awardRow?.awaitingAward ?? 0);
 
     // Ninety-day supplier performance window (same as former Prisma dashboard).
-    const performanceRows = await sql`
+    const performanceRows = await readSql`
       SELECT
         v.email,
         (
@@ -1357,17 +1361,22 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
     console.error("[admin] dashboard sourcing schema missing", err);
   }
 
-  return json(env, request, {
-    pendingRegistrations: byStatus.SUBMITTED ?? 0,
-    activeVendors: Number(vendors),
-    vendors: Number(vendors),
-    publishedJobs: Number(publishedJobs),
-    totalJobs: Number(totalJobs),
-    openCount,
-    closingSoon,
-    awaitingAward,
-    byStatus,
-    performance,
+    return {
+      pendingRegistrations: byStatus.SUBMITTED ?? 0,
+      activeVendors: Number(vendors),
+      vendors: Number(vendors),
+      publishedJobs: Number(publishedJobs),
+      totalJobs: Number(totalJobs),
+      openCount,
+      closingSoon,
+      awaitingAward,
+      byStatus,
+      performance,
+    };
+  });
+
+  return json(env, request, payload, 200, {
+    "Cache-Control": "private, max-age=15",
   });
 }
 

@@ -1,6 +1,7 @@
 import { Inter } from "next/font/google";
 
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import "./globals.css";
 
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${adminSans.variable} font-enquire min-h-screen bg-zinc-50 antialiased`}
       >
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );

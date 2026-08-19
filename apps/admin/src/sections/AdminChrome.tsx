@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { usePathname, useRouter } from "next/navigation";
 
@@ -8,6 +8,8 @@ import { motion } from "framer-motion";
 import { ClipboardList, FileText, FolderOpen, LayoutDashboard, LogOut, Users } from "lucide-react";
 
 import { Sidebar, SidebarBody, SidebarLink, useSidebar } from "@/components/ui/sidebar";
+import { ADMIN_LOGIN_EXPIRED_PATH } from "@/lib/constants";
+import { signOutInstant } from "@/lib/sign-out-client";
 import type { AdminIdentity } from "@/lib/session";
 import { NotificationBell } from "@/sections/NotificationBell";
 
@@ -26,11 +28,13 @@ function SidebarContents({
   admin,
   onNavigate,
   onSignOut,
+  onPrefetch,
   signingOut,
 }: {
   admin: AdminIdentity;
   onNavigate: () => void;
   onSignOut: () => void;
+  onPrefetch: (href: string) => void;
   signingOut: boolean;
 }) {
   const pathname = usePathname();
@@ -62,6 +66,7 @@ function SidebarContents({
             key={item.href}
             link={item}
             onClick={onNavigate}
+            onPrefetch={() => onPrefetch(item.href)}
             active={item.exact ? pathname === item.href : pathname.startsWith(item.href)}
           />
         ))}
@@ -118,19 +123,14 @@ export function AdminChrome({
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
-  useEffect(() => {
-    for (const item of NAV) {
-      router.prefetch(item.href);
-    }
-    router.prefetch("/registrations?status=SUBMITTED");
-    router.prefetch("/content/careers");
-  }, [router]);
+  const prefetch = (href: string) => {
+    router.prefetch(href);
+  };
 
-  const signOut = async () => {
+  const signOut = () => {
     if (signingOut) return;
     setSigningOut(true);
-    fetch("/api/logout", { method: "POST", credentials: "include" }).catch(() => {});
-    window.location.replace("/login");
+    signOutInstant(ADMIN_LOGIN_EXPIRED_PATH);
   };
 
   return (
@@ -140,8 +140,9 @@ export function AdminChrome({
           <SidebarContents
             admin={admin}
             signingOut={signingOut}
-            onSignOut={() => void signOut()}
+            onSignOut={signOut}
             onNavigate={() => setOpen(false)}
+            onPrefetch={prefetch}
           />
         </SidebarBody>
       </Sidebar>

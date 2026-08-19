@@ -2,9 +2,16 @@
 
 import React from "react";
 
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 
-import { ThreeDCanvas } from "@ui/ThreeDCanvas";
+const ThreeDCanvas = dynamic(
+  () => import("@ui/ThreeDCanvas").then((m) => m.ThreeDCanvas),
+  {
+    ssr: false,
+    loading: () => <div className="h-full w-full animate-pulse rounded-lg bg-zinc-100" />,
+  }
+);
 
 export const QualityHero = () => {
   return (

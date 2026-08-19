@@ -183,17 +183,22 @@ export const SidebarLink = ({
   active = false,
   className,
   onClick,
+  onPrefetch,
 }: {
   link: SidebarLinkItem;
   active?: boolean;
   className?: string;
   onClick?: () => void;
+  /** Prefetch on hover/focus — avoids mount-time prefetch storms. */
+  onPrefetch?: () => void;
 }) => {
   const { open, animate } = useSidebar();
   return (
     <Link
       href={link.href}
       onClick={onClick}
+      onMouseEnter={onPrefetch}
+      onFocus={onPrefetch}
       aria-current={active ? "page" : undefined}
       title={link.label}
       className={cn(

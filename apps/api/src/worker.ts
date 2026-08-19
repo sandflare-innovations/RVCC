@@ -7,6 +7,7 @@ import type { Env } from "./config/env";
 
 export type WorkerEnv = {
   DATABASE_URL: string;
+  DATABASE_READ_URL?: string;
   ALLOWED_ORIGINS?: string;
   VENDOR_PORTAL_URL?: string;
   SMTP_HOST?: string;
@@ -21,10 +22,11 @@ export type WorkerEnv = {
 function toAppEnv(env: WorkerEnv): Env {
   return {
     DATABASE_URL: env.DATABASE_URL,
+    DATABASE_READ_URL: env.DATABASE_READ_URL?.trim() || undefined,
     ALLOWED_ORIGINS:
       env.ALLOWED_ORIGINS?.trim() ||
-      "https://rvcc-prod.pages.dev,https://rvcc-vendor.pages.dev,https://rvcc-admin.pages.dev,https://rvcc-prod.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002",
-    VENDOR_PORTAL_URL: (env.VENDOR_PORTAL_URL || "https://rvcc-vendor.pages.dev").replace(
+      "https://rvcc-enquiry.vercel.app,https://rvcc-vendor.vercel.app,https://rvcc-admin.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002",
+    VENDOR_PORTAL_URL: (env.VENDOR_PORTAL_URL || "https://rvcc-vendor.vercel.app").replace(
       /\/$/,
       ""
     ),

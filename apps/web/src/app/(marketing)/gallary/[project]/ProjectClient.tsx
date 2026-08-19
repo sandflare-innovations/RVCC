@@ -11,7 +11,7 @@ import { Icons } from "@/lib/icons";
 
 import { GallaryProject } from "@/data/gallary";
 
-import { cn } from "../../../lib/utils";
+import { cn } from "@/lib/utils";
 
 interface ProjectClientProps {
   project: GallaryProject;

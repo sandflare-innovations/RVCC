@@ -78,9 +78,27 @@ function pdfOptionsForUrl(url: string): PdfDocOptions {
   return isCrossOriginUrl(url) ? CROSS_ORIGIN_PDF_OPTIONS : SAME_ORIGIN_PDF_OPTIONS;
 }
 
-/** Prefer CDN when configured, then same-origin path (covers LFS-pointer deploys). */
+/** Prefer same-origin proxy with Range support, then CDN, then local path. */
 function pdfSourceCandidates(doc: DocumentItem): string[] {
-  return [doc.fileUrl, doc.filePath].filter((u, i, arr) => Boolean(u) && arr.indexOf(u) === i);
+  const raw = [doc.fileUrl, doc.filePath].filter((u, i, arr) => Boolean(u) && arr.indexOf(u) === i);
+  const out: string[] = [];
+
+  for (const u of raw) {
+    if (typeof window !== "undefined" && isCrossOriginUrl(u)) {
+      try {
+        const path = new URL(u, window.location.href).pathname;
+        if (path.startsWith("/pdf/")) {
+          out.push(`/api/documents/pdf?path=${encodeURIComponent(path)}`);
+          continue;
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+    out.push(u);
+  }
+
+  return out.filter((u, i, arr) => arr.indexOf(u) === i);
 }
 
 interface FlipbookReaderProps {

@@ -16,7 +16,9 @@ const enquireSans = Inter({
 export default function EnquireLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={enquireSans.variable}>
-      <EnquireProvider>{children}</EnquireProvider>
+      <EnquireProvider>
+        <main className="relative flex-grow">{children}</main>
+      </EnquireProvider>
     </div>
   );
 }

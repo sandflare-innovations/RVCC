@@ -3,6 +3,8 @@
  */
 export type AppEnv = {
   DATABASE_URL: string;
+  /** Optional read replica for heavy SELECTs (dashboard aggregates). */
+  DATABASE_READ_URL?: string;
   ALLOWED_ORIGINS: string;
   VENDOR_PORTAL_URL: string;
   SMTP_HOST?: string;
@@ -25,11 +27,12 @@ function required(name: string): string {
 export function loadEnv(): AppEnv {
   return {
     DATABASE_URL: required("DATABASE_URL"),
+    DATABASE_READ_URL: process.env.DATABASE_READ_URL?.trim() || undefined,
     ALLOWED_ORIGINS:
       process.env.ALLOWED_ORIGINS?.trim() ||
-      "https://rvcc-prod.pages.dev,https://rvcc-vendor.pages.dev,https://rvcc-admin.pages.dev,https://rvcc-prod.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002",
+      "https://rvcc-enquiry.vercel.app,https://rvcc-vendor.vercel.app,https://rvcc-admin.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002",
     VENDOR_PORTAL_URL: (
-      process.env.VENDOR_PORTAL_URL || "https://rvcc-vendor.pages.dev"
+      process.env.VENDOR_PORTAL_URL || "https://rvcc-vendor.vercel.app"
     ).replace(/\/$/, ""),
     SMTP_HOST: process.env.SMTP_HOST,
     SMTP_PORT: process.env.SMTP_PORT,

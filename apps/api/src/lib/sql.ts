@@ -4,25 +4,50 @@ import type { Env } from "../config/env";
 
 export type Sql = ReturnType<typeof postgres>;
 
-let singletonSql: Sql | null = null;
-let currentDbUrl: string | null = null;
+let primarySql: Sql | null = null;
+let primaryUrl: string | null = null;
+let replicaSql: Sql | null = null;
+let replicaUrl: string | null = null;
 
-/** Pooled singleton client for high-performance response times across requests. */
-export function createSql(env: Env): Sql {
-  if (!env.DATABASE_URL) {
-    throw new Error("Missing DATABASE_URL");
+function resolveDatabaseUrl(env: Env, readOnly = false): string {
+  if (readOnly && env.DATABASE_READ_URL?.trim()) {
+    return env.DATABASE_READ_URL.trim();
   }
-  if (singletonSql && currentDbUrl === env.DATABASE_URL) {
-    return singletonSql;
-  }
-  currentDbUrl = env.DATABASE_URL;
-  singletonSql = postgres(env.DATABASE_URL, {
-    max: 25,
+  return env.DATABASE_URL;
+}
+
+/** Hyperdrive / Workers: reuse one client per isolate, max 1 connection. */
+function clientFor(url: string): Sql {
+  return postgres(url, {
+    max: 1,
     idle_timeout: 30,
     connect_timeout: 10,
     prepare: false,
   });
-  return singletonSql;
+}
+
+export function createSql(env: Env, options: { readOnly?: boolean } = {}): Sql {
+  const databaseUrl = resolveDatabaseUrl(env, options.readOnly);
+  if (!databaseUrl) {
+    throw new Error("Missing DATABASE_URL");
+  }
+
+  if (options.readOnly && env.DATABASE_READ_URL?.trim()) {
+    if (replicaSql && replicaUrl === databaseUrl) return replicaSql;
+    replicaUrl = databaseUrl;
+    replicaSql = clientFor(databaseUrl);
+    return replicaSql;
+  }
+
+  if (primarySql && primaryUrl === databaseUrl) return primarySql;
+  primaryUrl = databaseUrl;
+  primarySql = clientFor(databaseUrl);
+  return primarySql;
+}
+
+/** Read replica when `DATABASE_READ_URL` is set — falls back to primary. */
+export function createReadSql(env: Env): Sql {
+  return createSql(env, { readOnly: true });
 }
 
 export function cuid(): string {

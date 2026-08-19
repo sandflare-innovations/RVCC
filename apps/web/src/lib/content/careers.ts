@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { JobPosition } from "@/data/careers";
+import { CAREERS_CACHE_TAG, CAREERS_REVALIDATE_SECONDS } from "@/lib/cache";
 
 export const DEPARTMENTS = ["Architecture", "Engineering", "Management", "Operations"] as const;
 export const EMPLOYMENT_TYPES = ["Full-time", "Contract", "Internship"] as const;
@@ -17,7 +18,9 @@ function apiBase(): string {
  */
 export async function getPublishedJobs(): Promise<JobPosition[]> {
   try {
-    const res = await fetch(`${apiBase()}/careers`, { cache: "no-store" });
+    const res = await fetch(`${apiBase()}/careers`, {
+      next: { revalidate: CAREERS_REVALIDATE_SECONDS, tags: [CAREERS_CACHE_TAG] },
+    });
     if (!res.ok) {
       console.error("[careers] API returned", res.status);
       return [];

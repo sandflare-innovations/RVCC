@@ -2,10 +2,18 @@
 
 import React, { useRef } from "react";
 
+import dynamic from "next/dynamic";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 
 import { Button } from "@ui/Button";
-import { SkyscraperCanvas } from "@ui/SkyscraperCanvas";
+
+const SkyscraperCanvas = dynamic(
+  () => import("@ui/SkyscraperCanvas").then((m) => m.SkyscraperCanvas),
+  {
+    ssr: false,
+    loading: () => <div className="h-full w-full animate-pulse bg-zinc-100" />,
+  }
+);
 
 export const AboutHero = () => {
   const containerRef = useRef(null);
