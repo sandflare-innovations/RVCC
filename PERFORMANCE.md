@@ -48,7 +48,7 @@ Browser → Next.js (Vercel, region: bom1) → CF Worker API → Postgres (+ opt
 | Dashboard isolate cache (15s) | Done | `getIsolateCache` + `Cache-Control: private, max-age=15` |
 | Preview CORS (`*.vercel.app`, `*.pages.dev`) | Done | `apps/api/src/lib/http.ts` |
 | Vercel Speed Insights | Done | web + admin layouts |
-| Bundle analyzer | Done | `npm run analyze` in `apps/web` |
+| Bundle analyzer | Done | `pnpm run analyze` in `apps/web` |
 | Observability baseline | Done | Speed Insights; use CF Worker analytics for API |
 
 ---
@@ -113,7 +113,7 @@ id = "<your-hyperdrive-config-id>"
 ```bash
 curl -w "\n%{time_total}s\n" https://rvcc-api.rvcc.workers.dev/health
 curl -I https://rvcc-api.rvcc.workers.dev/careers
-ANALYZE=true npm run build   # in apps/web
+ANALYZE=true pnpm run build   # in apps/web
 ```
 
 ---

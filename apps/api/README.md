@@ -6,16 +6,16 @@ Local: Node. Production: Cloudflare Worker (`wrangler.toml`).
 
 ```bash
 cp .env.example .env   # DATABASE_URL, SMTP_*, ALLOWED_ORIGINS
-npm ci
-npm run dev            # http://localhost:4000
-npm run build          # compile; in CI also migrates + wrangler deploy
-npm run release        # local: migrate + compile + deploy
-npm run deploy         # wrangler deploy only
+pnpm install
+pnpm run dev            # http://localhost:4000
+pnpm run build          # compile; in CI also migrates + wrangler deploy
+pnpm run release        # local: migrate + compile + deploy
+pnpm run deploy         # wrangler deploy only
 ```
 
-Cloudflare Workers Builds: root directory = this folder, install = `npm ci`.
+Cloudflare Workers Builds: root directory = this folder, install = `pnpm install`.
 
-Schema: `prisma/schema.prisma`. SQL upgrades: `sql/upgrades/` (`npm run db:upgrade-sourcing`).
+Schema: `prisma/schema.prisma`. SQL upgrades: `sql/upgrades/` (`pnpm run db:upgrade-sourcing`).
 
 ## Routes
 

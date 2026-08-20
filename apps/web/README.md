@@ -29,7 +29,7 @@ This app uses Next.js ESLint defaults (`eslint-config-next`).
 1. **Install dependencies**:
 
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. **Setup Environment**:
@@ -42,12 +42,12 @@ This app uses Next.js ESLint defaults (`eslint-config-next`).
 3. **Run Development Server**:
 
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 4. **Build for Production**:
    ```bash
-   npm run build
+   pnpm run build
    ```
 
 ## 📄 License
