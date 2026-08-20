@@ -119,10 +119,15 @@ export async function handleRegistrationsList(
   const url = new URL(request.url);
   const statusRaw = (url.searchParams.get("status") || "SUBMITTED").trim();
   const status = VALID_REG_STATUS.has(statusRaw) ? statusRaw : "SUBMITTED";
-  const q = (url.searchParams.get("q") || "").trim();
+  const q = (url.searchParams.get("q") || "")
+    .replace(/[\0-\x1f\x7f]/g, "")
+    .trim()
+    .slice(0, 120);
   const like = `%${q}%`;
 
-  const rows = await sql`
+  let rows;
+  try {
+    rows = await sql`
     SELECT
       r.id,
       r.email,
@@ -148,8 +153,12 @@ export async function handleRegistrationsList(
         OR COALESCE(c."legalName", '') ILIKE ${like}
       )
     ORDER BY r."submittedAt" DESC NULLS LAST, r."updatedAt" DESC
-    LIMIT 100
+    LIMIT 500
   `;
+  } catch (err) {
+    console.error("[admin registrations] list failed", err);
+    return json(env, request, [], 503);
+  }
 
   return json(
     env,
@@ -408,7 +417,9 @@ export async function handleVendorsList(sql: Sql, env: Env, request: Request): P
     .slice(0, 120);
   const like = `%${q}%`;
 
-  const rows = await sql`
+  let rows;
+  try {
+    rows = await sql`
     SELECT
       v.id,
       v.email,
@@ -431,8 +442,6 @@ export async function handleVendorsList(sql: Sql, env: Env, request: Request): P
           AND s."expiresAt" > NOW()
       ) AS "activeSessions"
     FROM "VendorUser" v
-    -- LEFT JOIN, not JOIN: admin-created vendors have no registration, and an
-    -- inner join would silently hide them from this list entirely.
     LEFT JOIN "SupplierRegistration" r ON r.id = v."registrationId"
     LEFT JOIN "CompanyProfile" c ON c."registrationId" = r.id
     WHERE
@@ -449,8 +458,12 @@ export async function handleVendorsList(sql: Sql, env: Env, request: Request): P
         OR COALESCE(c."legalName", '') ILIKE ${like}
       )
     ORDER BY v."createdAt" DESC
-    LIMIT 100
+    LIMIT 500
   `;
+  } catch (err) {
+    console.error("[admin vendors] list failed", err);
+    return json(env, request, [], 503);
+  }
 
   return json(
     env,
@@ -622,7 +635,9 @@ export async function handleRequirementsList(
   const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
 
-  const rows = await sql`
+  let rows;
+  try {
+    rows = await sql`
     SELECT
       r.id, r."referenceNumber", r."scopeOfWork", r.project, r."sellingPrice",
       r.currency, r."closesAt", r.status, r."createdAt",
@@ -633,8 +648,12 @@ export async function handleRequirementsList(
     ORDER BY
       CASE WHEN r.status = 'OPEN' AND r."closesAt" > NOW() THEN 0 ELSE 1 END,
       r."closesAt" ASC
-    LIMIT 100
+    LIMIT 500
   `;
+  } catch (err) {
+    console.error("[admin requirements] list failed", err);
+    return json(env, request, [], 503);
+  }
 
   return json(env, request, rows);
 }

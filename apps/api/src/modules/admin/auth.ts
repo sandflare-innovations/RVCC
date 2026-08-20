@@ -120,46 +120,50 @@ export async function getAdminFromSession(
   token: string | null | undefined
 ): Promise<AdminIdentity | null> {
   if (!token) return null;
-  const tokenHash = await hashSha256(token);
-  const [row] = await sql`
-    SELECT
-      s.id AS "sessionId",
-      s."revokedAt",
-      s."expiresAt",
-      a.id,
-      a.email,
-      a.name,
-      a.role,
-      a."isActive"
-    FROM "AdminSession" s
-    JOIN "AdminUser" a ON a.id = s."adminId"
-    WHERE s."tokenHash" = ${tokenHash}
-    LIMIT 1
-  `;
-  if (!row) return null;
-  if (row.revokedAt) return null;
-  if (new Date(row.expiresAt as string | Date) < new Date()) return null;
-  if (!row.isActive) return null;
+  try {
+    const tokenHash = await hashSha256(token);
+    const [row] = await sql`
+      SELECT
+        s.id AS "sessionId",
+        s."revokedAt",
+        s."expiresAt",
+        a.id,
+        a.email,
+        a.name,
+        a.role,
+        a."isActive"
+      FROM "AdminSession" s
+      JOIN "AdminUser" a ON a.id = s."adminId"
+      WHERE s."tokenHash" = ${tokenHash}
+      LIMIT 1
+    `;
+    if (!row) return null;
+    if (row.revokedAt) return null;
+    if (new Date(row.expiresAt as string | Date) < new Date()) return null;
+    if (!row.isActive) return null;
 
-  // Sliding expiry — only write to DB when session is past half its TTL to avoid write bottlenecks
-  const expiresAtMs = new Date(row.expiresAt as string | Date).getTime();
-  if (expiresAtMs - Date.now() < ADMIN_SESSION_TTL_MS / 2) {
-    const sessionId = row.sessionId as string;
-    void sql`
-      UPDATE "AdminSession"
-      SET "expiresAt" = ${new Date(Date.now() + ADMIN_SESSION_TTL_MS)}
-      WHERE id = ${sessionId}
-    `.catch(() => {
-      /* non-fatal */
-    });
+    const expiresAtMs = new Date(row.expiresAt as string | Date).getTime();
+    if (expiresAtMs - Date.now() < ADMIN_SESSION_TTL_MS / 2) {
+      const sessionId = row.sessionId as string;
+      void sql`
+        UPDATE "AdminSession"
+        SET "expiresAt" = ${new Date(Date.now() + ADMIN_SESSION_TTL_MS)}
+        WHERE id = ${sessionId}
+      `.catch(() => {
+        /* non-fatal */
+      });
+    }
+
+    return {
+      id: row.id as string,
+      email: row.email as string,
+      name: row.name as string,
+      role: row.role as AdminRoleName,
+    };
+  } catch (err) {
+    console.error("[admin session] lookup failed", err);
+    return null;
   }
-
-  return {
-    id: row.id as string,
-    email: row.email as string,
-    name: row.name as string,
-    role: row.role as AdminRoleName,
-  };
 }
 
 export async function revokeAdminSession(

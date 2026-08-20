@@ -4,6 +4,30 @@ import { NextResponse } from "next/server";
 import { adminWorkerFetch } from "@/lib/admin-api";
 import { ADMIN_COOKIE } from "@/lib/constants";
 
+export async function GET() {
+  const jar = await cookies();
+  const token = jar.get(ADMIN_COOKIE)?.value;
+  if (!token) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+
+  try {
+    const res = await adminWorkerFetch("/requirements", {
+      method: "GET",
+      sessionToken: token,
+    });
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok || !Array.isArray(data)) {
+      console.error("[admin BFF list requirements] upstream", res.status, data);
+      return NextResponse.json([], { status: res.ok ? 200 : 503 });
+    }
+
+    return NextResponse.json(data);
+  } catch (err) {
+    console.error("[admin BFF list requirements]", err);
+    return NextResponse.json([], { status: 503 });
+  }
+}
+
 export async function POST(request: Request) {
   const jar = await cookies();
   const token = jar.get(ADMIN_COOKIE)?.value;

@@ -22,9 +22,13 @@ export type RegistrationSummary = {
 export function RegistrationRowActions({
   registration,
   canDelete,
+  onDeleted,
+  onUpdated,
 }: {
   registration: RegistrationSummary;
   canDelete: boolean;
+  onDeleted?: () => void;
+  onUpdated?: () => void;
 }) {
   const router = useRouter();
   const [showDelete, setShowDelete] = useState(false);
@@ -49,7 +53,9 @@ export function RegistrationRowActions({
         return;
       }
       setShowDelete(false);
-      router.refresh();
+      onDeleted?.();
+      if (!onDeleted) router.refresh();
+      else onUpdated?.();
     } catch {
       setError("Network error — please try again.");
     } finally {
