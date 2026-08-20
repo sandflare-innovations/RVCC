@@ -9,7 +9,14 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { useLenis } from "lenis/react";
 import { useTheme } from "next-themes";
-import { FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa6";
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaLinkedinIn,
+  FaWhatsapp,
+  FaXTwitter,
+  FaYoutube,
+} from "react-icons/fa6";
 
 import { Icons } from "@/lib/icons";
 
@@ -29,7 +36,12 @@ export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [isWorksSection, setIsWorksSection] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isGallaryPage = pathname?.startsWith("/gallary");
   const isContactPage = pathname?.startsWith("/contact");
@@ -148,23 +160,24 @@ export const Navbar = () => {
           isVisible ? "translate-y-0" : "-translate-y-full"
         )}
       >
-        <div className="md:px-container relative container grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-6 xl:gap-6">
+        <div className="relative grid w-full grid-cols-[1fr_auto_1fr] items-center px-6 md:px-8 lg:px-10 xl:px-12">
           {/* Left: menu stays edge-left; nav hugs logo */}
           <div className="relative z-50 flex min-w-0 items-center gap-6 xl:gap-8">
             <button
               onClick={() => setIsOpen(true)}
+              aria-label="Open navigation menu"
               className={cn(
-                "group relative z-50 flex shrink-0 items-center space-x-3 transition-all",
+                "group relative z-50 flex shrink-0 items-center justify-center transition-all focus:outline-none",
                 isLightAndScrolled ? "text-brand-blue" : "text-white"
               )}
             >
-              <div className="flex flex-col space-y-2">
-                <span className="h-[2px] w-12 bg-current transition-all group-hover:w-12" />
-                <span className="h-[2px] w-12 bg-current transition-all group-hover:w-6" />
+              <div className="flex flex-col justify-center space-y-1.5 py-1">
+                <span className="block h-[2px] w-8 bg-current transition-opacity duration-300 group-hover:opacity-80" />
+                <span className="block h-[2px] w-8 bg-current transition-opacity duration-300 group-hover:opacity-80" />
               </div>
             </button>
 
-            <nav className="ml-auto hidden items-center gap-5 pr-2 lg:flex xl:gap-7 xl:pr-4">
+            <nav className="ml-auto hidden items-center gap-7 pr-6 lg:flex xl:gap-9 xl:pr-8 2xl:gap-11 2xl:pr-10">
               {menuLinks.slice(0, 3).map((link) => (
                 <Link
                   key={link}
@@ -208,7 +221,7 @@ export const Navbar = () => {
           {/* Logo — true center column between PROJECTS and CLIENTS */}
           <Link
             href="/"
-            className="relative z-50 shrink-0 justify-self-center transition-transform hover:scale-105"
+            className="relative z-50 shrink-0 justify-self-center px-4 transition-transform hover:scale-105 md:px-6 xl:px-8"
           >
             <Image
               src="/images/logo/logo.webp"
@@ -218,7 +231,7 @@ export const Navbar = () => {
               priority
               className={cn(
                 "w-28 transition-all duration-500 md:w-32",
-                forceWhiteTheme || (!isScrolled && !isLightPage) || resolvedTheme === "dark"
+                forceWhiteTheme || (!isScrolled && !isLightPage) || (mounted && resolvedTheme === "dark")
                   ? "brightness-0 invert"
                   : "brightness-100 invert-0"
               )}
@@ -227,7 +240,7 @@ export const Navbar = () => {
 
           {/* Right: nav hugs logo; CTAs stay edge-right */}
           <div className="relative z-50 flex min-w-0 items-center gap-5 xl:gap-7">
-            <nav className="hidden items-center gap-5 pl-2 lg:flex xl:gap-7 xl:pl-4">
+            <nav className="hidden items-center gap-7 pl-6 lg:flex xl:gap-9 xl:pl-8 2xl:gap-11 2xl:pl-10">
               {menuLinks.slice(3, 6).map((link) => (
                 <Link
                   key={link}
@@ -267,17 +280,11 @@ export const Navbar = () => {
               ))}
             </nav>
 
-            <div
-              className={cn(
-                "ml-auto hidden items-stretch lg:flex",
-                "border-l pl-5 xl:pl-7",
-                isLightAndScrolled ? "border-brand-blue/25" : "border-white/25"
-              )}
-            >
-              <div className="flex h-9 items-stretch">
+            <div className="ml-auto hidden items-center lg:flex">
+              <div className="flex h-9 items-center">
                 <Button
                   variant="none"
-                  href="/contact"
+                  href={enquireHref}
                   borderColor={isLightAndScrolled ? "border-brand-blue" : "border-white"}
                   textColor={isLightAndScrolled ? "text-brand-blue" : "text-white"}
                   hoverFillColor={isLightAndScrolled ? "bg-brand-blue" : "bg-white"}
@@ -286,14 +293,7 @@ export const Navbar = () => {
                       ? "group-hover:text-background"
                       : "group-hover:text-brand-blue"
                   }
-                  className="h-full min-w-0 rounded-none border-r-0 px-4 py-0 text-[9px] font-bold tracking-[0.2em] uppercase xl:px-5"
-                >
-                  Contact
-                </Button>
-                <Button
-                  variant="primary"
-                  href={enquireHref}
-                  className="h-full min-w-0 rounded-none border-l-0 px-4 py-0 text-[9px] font-bold tracking-[0.14em] whitespace-nowrap uppercase xl:px-5"
+                  className="h-full min-w-0 rounded-none border px-4 py-0 text-[9px] font-bold tracking-[0.14em] whitespace-nowrap uppercase xl:px-5"
                 >
                   E-Vendor Registration
                 </Button>
@@ -315,26 +315,41 @@ export const Navbar = () => {
       <div
         data-lenis-prevent
         className={cn(
-          "bg-background custom-scrollbar fixed top-0 left-0 z-[200] h-full w-full max-w-[400px] overflow-y-auto transition-transform duration-500 ease-out",
+          "bg-background fixed top-0 left-0 z-[200] flex h-full w-full max-w-[420px] flex-col overflow-hidden shadow-2xl transition-transform duration-500 ease-out",
           isOpen ? "pointer-events-auto translate-x-0" : "pointer-events-none -translate-x-full"
         )}
       >
-        <div className="flex min-h-full flex-col p-12">
-          {/* Close Button */}
-          <div className="flex shrink-0 justify-start">
+        {/* Fixed Top Header (Close Button on Left, Theme & Language on Right) */}
+        <div className="flex shrink-0 items-center justify-between px-8 pt-8 pb-4 md:px-10 md:pt-10">
+          <button
+            onClick={() => setIsOpen(false)}
+            aria-label="Close menu"
+            className="text-brand-blue group flex items-center space-x-3 transition-all duration-300"
+          >
+            <Icons.Close className="h-7 w-7 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-90" />
+            <span className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+              Close
+            </span>
+          </button>
+
+          {/* Right Side: Theme & Language (Minimal / Box-less) */}
+          <div className="flex items-center gap-4 text-brand-blue">
+            <AnimatedThemeToggler className="h-8 w-8 border-none bg-transparent p-0 hover:border-transparent hover:bg-transparent hover:opacity-75 transition-opacity" />
             <button
-              onClick={() => setIsOpen(false)}
-              className="text-brand-blue group flex items-center space-x-4 transition-all duration-500"
+              type="button"
+              className="text-brand-blue text-[11px] font-black tracking-[0.15em] uppercase hover:opacity-75 transition-opacity p-0 bg-transparent border-none"
             >
-              <Icons.Close className="h-8 w-8 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-180" />
-              <span className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                Close
-              </span>
+              AR
             </button>
           </div>
+        </div>
 
-          {/* Menu Links */}
-          <nav className="mt-6 flex flex-1 flex-col space-y-6 py-4">
+        {/* Scrollable Menu Links Box */}
+        <nav
+          data-lenis-prevent
+          className="custom-scrollbar flex-1 overflow-y-auto px-8 py-2 md:px-10"
+        >
+          <div className="flex flex-col space-y-4 py-2">
             {menuLinks.map((link, idx) => (
               <Link
                 key={link}
@@ -351,14 +366,13 @@ export const Navbar = () => {
                 }
                 onClick={() => setIsOpen(false)}
                 className={cn(
-                  "group border-border text-brand-blue relative border-b pb-4 text-2xl font-bold transition-all",
-                  "flex items-center justify-between"
+                  "group border-border text-brand-blue relative flex items-center justify-between border-b pb-3 text-xl font-bold transition-all md:text-2xl"
                 )}
               >
                 <motion.span
                   initial={{ letterSpacing: "0.2em" }}
-                  whileHover={{ letterSpacing: "0.4em" }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  whileHover={{ letterSpacing: "0.35em" }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
                   className="uppercase transition-all"
                 >
                   {link}
@@ -368,50 +382,44 @@ export const Navbar = () => {
                 </span>
 
                 {/* SpaceX-style underline for menu links */}
-                <span className="bg-brand-blue absolute bottom-0 left-0 h-[2px] w-full origin-right scale-x-0 transition-transform duration-500 group-hover:origin-left group-hover:scale-x-100" />
+                <span className="bg-brand-blue absolute bottom-0 left-0 h-[2px] w-full origin-right scale-x-0 transition-transform duration-300 group-hover:origin-left group-hover:scale-x-100" />
               </Link>
             ))}
-          </nav>
-
-          <div className="mt-8 shrink-0">
-            <Button
-              variant="primary"
-              href={enquireHref}
-              className="h-14 w-full rounded-none text-[10px] font-black tracking-[0.2em] uppercase"
-              onClick={() => setIsOpen(false)}
-            >
-              E-Vendor Registration
-            </Button>
           </div>
+        </nav>
 
-          {/* Menu Footer - Compact */}
-          <div className="mt-auto shrink-0 pt-10">
-            <div className="flex w-full items-center justify-between gap-4">
-              {/* Social Icons */}
-              <div className="flex items-center gap-4">
-                {[
-                  { icon: <FaLinkedinIn />, href: "#" },
-                  { icon: <FaInstagram />, href: "#" },
-                  { icon: <FaFacebookF />, href: "#" },
-                ].map((social, i) => (
-                  <a
-                    key={i}
-                    href={social.href}
-                    className="border-brand-blue/10 bg-brand-blue/5 text-brand-blue hover:bg-brand-blue flex h-12 w-12 items-center justify-center border transition-all duration-500 hover:text-white"
-                  >
-                    <div className="text-xl">{social.icon}</div>
-                  </a>
-                ))}
-              </div>
+        {/* Fixed Sticky Bottom Footer (E-Vendor button & Centered Social Icons) */}
+        <div className="shrink-0 border-t border-border/10 bg-background px-8 pt-5 pb-8 md:px-10 md:pb-10">
+          <Button
+            variant="primary"
+            href={enquireHref}
+            className="h-12 w-full rounded-none text-[10px] font-black tracking-[0.2em] uppercase"
+            onClick={() => setIsOpen(false)}
+          >
+            E-Vendor Registration
+          </Button>
 
-              {/* Actions: Theme & Language */}
-              <div className="flex items-center gap-4">
-                <AnimatedThemeToggler />
-                <button className="border-brand-blue/10 bg-brand-blue/5 text-brand-blue hover:bg-brand-blue flex h-12 w-12 items-center justify-center border text-[10px] font-black tracking-[0.1em] uppercase transition-all duration-500 hover:text-white">
-                  AR
-                </button>
-              </div>
-            </div>
+          {/* Centered Social Icons Row */}
+          <div className="mt-5 flex w-full items-center justify-center gap-2.5">
+            {[
+              { icon: <FaLinkedinIn />, href: "https://linkedin.com", label: "LinkedIn" },
+              { icon: <FaInstagram />, href: "https://instagram.com", label: "Instagram" },
+              { icon: <FaFacebookF />, href: "https://facebook.com", label: "Facebook" },
+              { icon: <FaXTwitter />, href: "https://x.com", label: "X (Twitter)" },
+              { icon: <FaYoutube />, href: "https://youtube.com", label: "YouTube" },
+              { icon: <FaWhatsapp />, href: "https://wa.me/1234567890", label: "WhatsApp" },
+            ].map((social, i) => (
+              <a
+                key={i}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.label}
+                className="border-brand-blue/10 bg-brand-blue/5 text-brand-blue hover:bg-brand-blue flex h-9 w-9 items-center justify-center border transition-all duration-300 hover:text-white"
+              >
+                <div className="text-sm">{social.icon}</div>
+              </a>
+            ))}
           </div>
         </div>
       </div>

@@ -106,27 +106,50 @@ const InlineImage = ({ src }: { src: string }) => {
 
 export const AboutUs = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
+  const isVideoInView = useInView(videoContainerRef, { amount: 0.2 });
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start 80%", "end 50%"],
   });
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isVideoInView) {
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch(() => {
+            setIsPlaying(false);
+          });
+      }
+    } else {
+      video.pause();
+      setIsPlaying(false);
+    }
+  }, [isVideoInView]);
+
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
+        setIsPlaying(false);
       } else {
-        if (!hasStarted) {
-          videoRef.current.currentTime = 0;
-          setHasStarted(true);
-        }
-        videoRef.current.play();
+        videoRef.current
+          .play()
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch(() => {});
       }
-      setIsPlaying(!isPlaying);
     }
   };
 
@@ -185,6 +208,7 @@ export const AboutUs = () => {
 
           <div className="gap-content-gap grid w-full grid-cols-1 items-stretch lg:grid-cols-12">
             <motion.div
+              ref={videoContainerRef}
               initial={{ opacity: 0, y: 100 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.1 }}
@@ -196,9 +220,11 @@ export const AboutUs = () => {
                 src="/videos/about.mp4#t=25"
                 className="h-full w-full object-cover"
                 loop
+                muted
                 playsInline
                 preload="metadata"
                 onClick={togglePlay}
+                suppressHydrationWarning
               />
               <div
                 className={cn(
