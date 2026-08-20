@@ -1,7 +1,7 @@
 /**
  * Creates or updates an admin account (direct SQL — no Prisma in apps/admin).
  *
- *   DATABASE_URL=... npm run create-admin -- <email> <password> [name] [role]
+ *   DATABASE_URL=... pnpm run create-admin -- <email> <password> [name] [role]
  *
  * role: SUPER_ADMIN | ADMIN | REVIEWER   (default SUPER_ADMIN)
  */
@@ -18,7 +18,7 @@ function cuid(): string {
 const [email, password, name = "", roleArg] = process.argv.slice(2);
 
 if (!email || !password) {
-  console.error("Usage: DATABASE_URL=... npm run create-admin -- <email> <password> [name] [role]");
+  console.error("Usage: DATABASE_URL=... pnpm run create-admin -- <email> <password> [name] [role]");
   process.exit(1);
 }
 if (password.length < 12) {
