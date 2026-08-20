@@ -2,6 +2,7 @@ import { Hono } from "hono";
 
 import type { Env } from "./config/env";
 import { corsHeaders, json } from "./lib/http";
+import { withDbRetry } from "./lib/sql";
 import { handlePublicCareersRequest } from "./modules/public/careers";
 import { handleAdminRequest } from "./routes/admin";
 import { handleEnquireRequest } from "./routes/enquire";
@@ -21,11 +22,18 @@ export function createApp(env: Env) {
     return new Response(null, { status: 204, headers: corsHeaders(c.req.raw, env) });
   });
 
-  app.get("/", (c) => new Response(null, { status: 204, headers: corsHeaders(c.req.raw, env) }));
-  app.get(
-    "/health",
-    (c) => new Response(null, { status: 204, headers: corsHeaders(c.req.raw, env) })
-  );
+  const checkHealth = async (c: any) => {
+    let dbStatus = "connected";
+    try {
+      await withDbRetry(env, async (sql) => sql`SELECT 1`);
+    } catch (e) {
+      dbStatus = "error";
+    }
+    return json(env, c.req.raw, { api: "working", database: dbStatus }, 200);
+  };
+
+  app.get("/", checkHealth);
+  app.get("/health", checkHealth);
   app.on("HEAD", ["/health", "/"], (c) => {
     return new Response(null, { status: 204, headers: corsHeaders(c.req.raw, env) });
   });
