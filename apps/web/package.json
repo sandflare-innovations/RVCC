@@ -7,7 +7,7 @@
     "dev": "next dev --turbo --port 3000",
     "prebuild": "node ./scripts/copy-pdf-worker.mjs",
     "build": "next build",
-    "analyze": "cross-env ANALYZE=true npm run build",
+    "analyze": "cross-env ANALYZE=true pnpm run build",
     "start": "next start --port 3000",
     "lint": "eslint",
     "copy-pdf-worker": "node ./scripts/copy-pdf-worker.mjs"
