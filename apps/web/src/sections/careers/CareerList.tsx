@@ -123,7 +123,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
         <div className="mb-20 space-y-12">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             {/* Search Input */}
-            <div className="group focus-within:border-brand-blue relative max-w-2xl flex-1 border-b border-zinc-200 transition-all dark:border-white/10">
+            <div className="group focus-within:border-brand-blue relative max-w-2xl flex-1 border-b border-zinc-200 transition-all">
               <Icons.Search className="group-focus-within:text-brand-blue absolute top-1/2 left-0 h-5 w-5 -translate-y-1/2 text-zinc-400 transition-colors" />
               <input
                 type="text"
@@ -146,7 +146,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                   className={`border px-6 py-2.5 text-[10px] font-bold tracking-[0.2em] uppercase transition-all duration-300 ${
                     activeDepartment === dept
                       ? "bg-brand-blue border-brand-blue text-white shadow-lg"
-                      : "hover:border-brand-blue hover:text-brand-blue border-zinc-200 text-zinc-500 dark:border-white/5"
+                      : "hover:border-brand-blue hover:text-brand-blue border-zinc-200 text-zinc-500"
                   }`}
                 >
                   {dept}
@@ -171,7 +171,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                   setSelectedJob(job);
                   setIsApplying(false);
                 }}
-                className="group hover:border-brand-blue/40 relative cursor-pointer border border-zinc-200 bg-white p-8 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.06)] transition-all duration-700 hover:shadow-[0_30px_70px_-15px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-white/5"
+                className="group hover:border-brand-blue/40 relative cursor-pointer border border-zinc-200 bg-white p-8 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.06)] transition-all duration-700 hover:shadow-[0_30px_70px_-15px_rgba(0,0,0,0.12)]"
               >
                 {/* Hover Accent Line */}
                 <div className="bg-brand-blue absolute top-0 left-0 h-full w-0 transition-all duration-700 group-hover:w-1" />
@@ -195,12 +195,12 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between border-t border-zinc-100 pt-6 dark:border-white/10">
+                  <div className="flex items-center justify-between border-t border-zinc-100 pt-6">
                     <div className="flex items-center gap-2 text-[9px] tracking-[0.2em] text-zinc-400 uppercase">
                       <Icons.MapPin className="text-brand-blue h-3.5 w-3.5" />
                       {job.isRemote ? <span>Remote Job</span> : job.location}
                     </div>
-                    <div className="group-hover:bg-brand-blue flex h-8 w-8 items-center justify-center bg-zinc-50 text-zinc-400 transition-all duration-500 group-hover:text-white dark:bg-white/5">
+                    <div className="group-hover:bg-brand-blue flex h-8 w-8 items-center justify-center bg-zinc-50 text-zinc-400 transition-all duration-500 group-hover:text-white">
                       <Icons.ArrowRight className="h-4 w-4" />
                     </div>
                   </div>
@@ -234,7 +234,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                 initial={{ opacity: 0, y: 100 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 100 }}
-                className="relative h-full w-full overflow-hidden bg-white dark:bg-zinc-950"
+                className="relative h-full w-full overflow-hidden bg-white"
               >
                 <div
                   className="flex h-full flex-col overflow-hidden lg:flex-row"
@@ -256,7 +256,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                           <span className="text-brand-blue text-[11px] font-black tracking-[0.5em] uppercase">
                             {selectedJob.department}
                           </span>
-                          <h2 className="font-heading text-5xl leading-[1.1] tracking-tighter text-zinc-900 uppercase md:text-7xl lg:text-8xl dark:text-white">
+                          <h2 className="font-heading text-5xl leading-[1.1] tracking-tighter text-zinc-900 uppercase md:text-7xl lg:text-8xl">
                             {selectedJob.title}
                           </h2>
                           {selectedJob.isRemote && (
@@ -267,24 +267,24 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                         </div>
 
                         <section className="space-y-8">
-                          <h4 className="text-[11px] font-black tracking-[0.4em] text-zinc-400 uppercase dark:text-zinc-500">
+                          <h4 className="text-[11px] font-black tracking-[0.4em] text-zinc-400 uppercase">
                             The Mission
                           </h4>
-                          <p className="text-xl leading-[1.6] font-light text-zinc-600 italic md:text-2xl lg:max-w-2xl dark:text-zinc-300">
+                          <p className="text-xl leading-[1.6] font-light text-zinc-600 italic md:text-2xl lg:max-w-2xl">
                             "{selectedJob.description}"
                           </p>
                         </section>
 
                         <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
                           <section className="space-y-8">
-                            <h4 className="text-[11px] font-black tracking-[0.4em] text-zinc-400 uppercase dark:text-zinc-500">
+                            <h4 className="text-[11px] font-black tracking-[0.4em] text-zinc-400 uppercase">
                               Technical Requirements
                             </h4>
                             <ul className="space-y-5">
                               {selectedJob.requirements.map((req, i) => (
                                 <li
                                   key={i}
-                                  className="flex items-start gap-4 text-sm leading-relaxed font-light text-zinc-500 dark:text-zinc-400"
+                                  className="flex items-start gap-4 text-sm leading-relaxed font-light text-zinc-500"
                                 >
                                   <div className="bg-brand-blue mt-2.5 h-[1px] w-4 shrink-0" />
                                   {req}
@@ -293,7 +293,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                             </ul>
                           </section>
                           <section className="space-y-8">
-                            <h4 className="text-[11px] font-black tracking-[0.4em] text-zinc-400 uppercase dark:text-zinc-500">
+                            <h4 className="text-[11px] font-black tracking-[0.4em] text-zinc-400 uppercase">
                               Environment & Perks
                             </h4>
                             <ul className="space-y-5">
@@ -316,13 +316,13 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                           <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="flex flex-col items-center justify-center space-y-8 bg-zinc-50 py-24 text-center dark:bg-white/5"
+                            className="flex flex-col items-center justify-center space-y-8 bg-zinc-50 py-24 text-center"
                           >
                             <div className="bg-brand-blue/10 text-brand-blue flex h-24 w-24 items-center justify-center rounded-full">
                               <Icons.ChevronDown className="h-12 w-12 rotate-[-90deg]" />
                             </div>
                             <div className="space-y-2">
-                              <h3 className="font-heading text-4xl font-black tracking-tighter text-zinc-900 uppercase dark:text-white">
+                              <h3 className="font-heading text-4xl font-black tracking-tighter text-zinc-900 uppercase">
                                 Application Received
                               </h3>
                               <p className="font-light text-zinc-400">
@@ -336,7 +336,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                             className="flex w-full max-w-4xl flex-col items-center space-y-16 text-center"
                           >
                             <div className="space-y-4">
-                              <h3 className="font-heading text-4xl tracking-tighter text-zinc-900 uppercase md:text-5xl dark:text-white">
+                              <h3 className="font-heading text-4xl tracking-tighter text-zinc-900 uppercase md:text-5xl">
                                 Submit Application
                               </h3>
                               <p className="text-brand-blue text-[12px] leading-[0.5em] font-light tracking-[0.2em] uppercase">
@@ -365,7 +365,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
                                     placeholder="e.g. Abdullah Ahmed"
-                                    className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-300 dark:border-white/10 dark:text-white dark:placeholder:text-zinc-800"
+                                    className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-300"
                                   />
                                 </div>
                                 <div className="group space-y-2">
@@ -378,7 +378,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="abdullah@example.com"
-                                    className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-300 dark:border-white/10 dark:text-white dark:placeholder:text-zinc-800"
+                                    className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-300"
                                   />
                                 </div>
                                 <div className="group space-y-2">
@@ -391,7 +391,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
                                     placeholder="+966 5X XXX XXXX"
-                                    className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-300 dark:border-white/10 dark:text-white dark:placeholder:text-zinc-800"
+                                    className="focus:border-brand-blue w-full border-b border-zinc-200 bg-transparent py-3 text-lg text-zinc-900 transition-all outline-none placeholder:text-zinc-300"
                                   />
                                 </div>
                               </div>
@@ -402,7 +402,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                                   <label className="text-[9px] font-black tracking-[0.4em] text-zinc-400 uppercase">
                                     CV / CV Archive (PDF)
                                   </label>
-                                  <div className="group hover:border-brand-blue relative flex h-48 w-full cursor-pointer flex-col items-center justify-center overflow-hidden border border-dashed border-zinc-200 bg-zinc-50/30 transition-all dark:border-white/10 dark:bg-white/5">
+                                  <div className="group hover:border-brand-blue relative flex h-48 w-full cursor-pointer flex-col items-center justify-center overflow-hidden border border-dashed border-zinc-200 bg-zinc-50/30 transition-all">
                                     <input
                                       required
                                       type="file"
@@ -494,14 +494,14 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                               <button
                                 type="button"
                                 onClick={() => setIsApplying(false)}
-                                className="hover:border-brand-blue hover:text-brand-blue flex-1 border border-zinc-200 py-5 text-center text-[10px] font-black tracking-[0.4em] text-zinc-400 uppercase transition-all dark:border-white/10"
+                                className="hover:border-brand-blue hover:text-brand-blue flex-1 border border-zinc-200 py-5 text-center text-[10px] font-black tracking-[0.4em] text-zinc-400 uppercase transition-all"
                               >
                                 Back to details
                               </button>
                               <button
                                 type="submit"
                                 disabled={submitting}
-                                className="hover:bg-brand-blue font-brand-blue flex-[2] bg-white py-4 text-[16px] font-bold tracking-[0.2em] text-black uppercase shadow-2xl transition-all active:scale-[0.98] disabled:opacity-60 dark:hover:text-zinc-900"
+                                className="hover:bg-brand-blue font-brand-blue flex-[2] bg-white py-4 text-[16px] font-bold tracking-[0.2em] text-black uppercase shadow-2xl transition-all active:scale-[0.98] disabled:opacity-60"
                               >
                                 {submitting ? "Sending…" : "Send Application"}
                               </button>
@@ -514,13 +514,13 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
 
                   {/* Right Side: Quick Specs Sidebar */}
                   {!isApplying && (
-                    <div className="flex w-full flex-col justify-between border-l border-zinc-100 bg-zinc-50 p-8 md:p-16 lg:w-[400px] dark:border-white/10 dark:bg-zinc-900">
+                    <div className="flex w-full flex-col justify-between border-l border-zinc-100 bg-zinc-50 p-8 md:p-16 lg:w-[400px]">
                       <div className="space-y-16">
                         <div className="space-y-4">
                           <h4 className="text-[11px] font-black tracking-[0.4em] text-zinc-300 uppercase">
                             Location
                           </h4>
-                          <p className="font-heading text-2xl tracking-tighter text-zinc-900 uppercase italic dark:text-white">
+                          <p className="font-heading text-2xl tracking-tighter text-zinc-900 uppercase italic">
                             {selectedJob.isRemote ? "Global / Remote" : selectedJob.location}
                           </p>
                         </div>
@@ -528,7 +528,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                           <h4 className="text-[11px] font-black tracking-[0.4em] text-zinc-300 uppercase">
                             Contract
                           </h4>
-                          <p className="font-heading text-2xl tracking-tighter text-zinc-900 uppercase italic dark:text-white">
+                          <p className="font-heading text-2xl tracking-tighter text-zinc-900 uppercase italic">
                             {selectedJob.type}
                           </p>
                         </div>
@@ -536,7 +536,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                           <h4 className="text-[11px] font-black tracking-[0.4em] text-zinc-300 uppercase">
                             Posted
                           </h4>
-                          <p className="font-heading text-2xl tracking-tighter text-zinc-900 uppercase italic dark:text-white">
+                          <p className="font-heading text-2xl tracking-tighter text-zinc-900 uppercase italic">
                             {selectedJob.postedAt}
                           </p>
                         </div>
@@ -546,7 +546,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                         onClick={() => {
                           setIsApplying(true);
                         }}
-                        className="bg-brand-blue mt-24 py-8 text-[11px] font-bold tracking-[0.6em] text-white uppercase shadow-2xl transition-all hover:scale-[1.02] hover:bg-zinc-900 dark:hover:bg-white dark:hover:text-black"
+                        className="bg-brand-blue mt-24 py-8 text-[11px] font-bold tracking-[0.6em] text-white uppercase shadow-2xl transition-all hover:scale-[1.02] hover:bg-zinc-900"
                       >
                         Apply Now
                       </button>

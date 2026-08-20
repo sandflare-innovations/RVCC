@@ -38,7 +38,7 @@ export const Footer = () => {
   ];
 
   return (
-    <footer className="bg-brand-blue dark:text-theme-bg relative overflow-hidden text-white">
+    <footer className="bg-brand-blue relative overflow-hidden text-white">
       {/* Decorative Lines instead of Circles for Sharp Design */}
       <div className="pointer-events-none absolute top-0 right-0 h-px w-full bg-white/10" />
       <div className="pointer-events-none absolute bottom-0 left-0 h-px w-full bg-white/10" />
