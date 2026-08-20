@@ -29,7 +29,8 @@ export function createApp(env: Env) {
     } catch (e) {
       dbStatus = "error";
     }
-    return json(env, c.req.raw, { api: "working", database: dbStatus }, 200);
+    const text = `API is working. Database is ${dbStatus}.`;
+    return new Response(text, { status: 200, headers: corsHeaders(c.req.raw, env) });
   };
 
   app.get("/", checkHealth);
