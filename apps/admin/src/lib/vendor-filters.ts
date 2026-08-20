@@ -23,3 +23,47 @@ export function parseVendorSearch(raw: string | null | undefined, maxLen = 120):
     .trim()
     .slice(0, maxLen);
 }
+
+type VendorLike = {
+  email: string;
+  name: string | null;
+  companyName: string;
+  referenceNumber: string | null;
+  portalAccess: "HELD" | "RELEASED";
+  mustChangePassword: boolean;
+  registration: { company: { legalName: string } | null } | null;
+};
+
+/** Client-side filter — no network round-trip when switching tabs. */
+export function matchesVendorFilter(v: VendorLike, filter: VendorFilterValue): boolean {
+  if (filter === "ALL") return true;
+  if (filter === "RELEASED") return v.portalAccess === "RELEASED";
+  if (filter === "HELD") return v.portalAccess === "HELD";
+  if (filter === "PENDING") return v.mustChangePassword;
+  return true;
+}
+
+/** Client-side search across email, name, company, reference. */
+export function matchesVendorSearch(v: VendorLike, q: string): boolean {
+  if (!q) return true;
+  const needle = q.toLowerCase();
+  const hay = [
+    v.email,
+    v.name ?? "",
+    v.companyName,
+    v.referenceNumber ?? "",
+    v.registration?.company?.legalName ?? "",
+  ]
+    .join(" ")
+    .toLowerCase();
+  return hay.includes(needle);
+}
+
+export function filterVendorRows<T extends VendorLike>(
+  rows: T[],
+  filter: VendorFilterValue,
+  q: string
+): T[] {
+  const search = parseVendorSearch(q);
+  return rows.filter((v) => matchesVendorFilter(v, filter) && matchesVendorSearch(v, search));
+}

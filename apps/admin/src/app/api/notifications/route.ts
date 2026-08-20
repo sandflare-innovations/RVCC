@@ -16,10 +16,14 @@ export async function GET() {
       sessionToken: token,
     });
     const data = await res.json().catch(() => ({}));
-    return NextResponse.json(data, { status: res.status });
+    if (!res.ok) {
+      console.error("[admin/notifications] upstream", res.status, data);
+      return NextResponse.json({ items: [], unread: 0 });
+    }
+    return NextResponse.json(data);
   } catch (err) {
     console.error("[admin/notifications]", err);
-    return NextResponse.json({ error: "Could not load notifications." }, { status: 503 });
+    return NextResponse.json({ items: [], unread: 0 });
   }
 }
 
@@ -33,10 +37,14 @@ export async function POST() {
       method: "POST",
       sessionToken: token,
     });
-    const data = await res.json().catch(() => ({}));
-    return NextResponse.json(data, { status: res.status });
+    if (!res.ok) {
+      console.error("[admin/notifications] mark-read upstream", res.status);
+      return NextResponse.json({ ok: true });
+    }
+    const data = await res.json().catch(() => ({ ok: true }));
+    return NextResponse.json(data);
   } catch (err) {
     console.error("[admin/notifications]", err);
-    return NextResponse.json({ error: "Could not update notifications." }, { status: 503 });
+    return NextResponse.json({ ok: true });
   }
 }

@@ -1,13 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
+import { RefreshCw } from "lucide-react";
+
 import { StatusBadge } from "@/lib/ui";
+import { readVendorCache, writeVendorCache, type CachedVendorRow } from "@/lib/vendor-cache";
 import {
   VENDOR_FILTERS,
+  filterVendorRows,
   parseVendorFilter,
   parseVendorSearch,
   type VendorFilterValue,
@@ -15,29 +19,7 @@ import {
 import { CreateVendorForm, type IndustryOption } from "@/sections/CreateVendorForm";
 import { VendorRowActions, type VendorSummary } from "@/sections/VendorRowActions";
 
-type VendorRow = {
-  id: string;
-  email: string;
-  name: string | null;
-  isActive: boolean;
-  portalAccess: "HELD" | "RELEASED";
-  mustChangePassword: boolean;
-  lastLoginAt: string | null;
-  createdAt: string;
-  lockedUntil: string | null;
-  activeSessions: number;
-  registrationId: string | null;
-  companyName: string;
-  referenceNumber: string | null;
-  registrationStatus: string | null;
-  registrationComplete: boolean;
-  registration: {
-    id: string;
-    referenceNumber: string | null;
-    status: string;
-    company: { legalName: string } | null;
-  } | null;
-};
+type VendorRow = CachedVendorRow;
 
 function formatDateTime(d: string | null) {
   if (!d) return null;
@@ -98,47 +80,66 @@ export function VendorAccountsPanel({ industries }: { industries: IndustryOption
     parseVendorFilter(searchParams.get("filter"))
   );
   const [search, setSearch] = useState(() => parseVendorSearch(searchParams.get("q")));
-  const [draftSearch, setDraftSearch] = useState(search);
-  const [vendors, setVendors] = useState<VendorRow[]>([]);
+  const [allVendors, setAllVendors] = useState<VendorRow[]>(() => readVendorCache() ?? []);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [fetching, setFetching] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(() => !readVendorCache());
+  const [refreshing, setRefreshing] = useState(false);
   const [, startTransition] = useTransition();
   const requestId = useRef(0);
 
-  const loadVendors = useCallback(async (nextFilter: VendorFilterValue, nextSearch: string) => {
+  const displayed = useMemo(
+    () => filterVendorRows(allVendors, filter, search),
+    [allVendors, filter, search]
+  );
+
+  const fetchAll = useCallback(async (opts?: { background?: boolean }) => {
     const id = ++requestId.current;
-    setFetching(true);
+    const background = opts?.background ?? false;
+
+    if (!background) setRefreshing(true);
+    if (!background && allVendors.length === 0) setInitialLoad(true);
     setLoadError(null);
 
-    const qs = new URLSearchParams({ filter: nextFilter });
-    if (nextSearch) qs.set("q", nextSearch);
-
     try {
-      const res = await fetch(`/api/vendors?${qs}`, { credentials: "include" });
+      const res = await fetch("/api/vendors", { credentials: "include" });
       const data = (await res.json().catch(() => null)) as VendorRow[] | { error?: string } | null;
 
       if (id !== requestId.current) return;
 
       if (!res.ok || !Array.isArray(data)) {
-        setLoadError(
-          (data && typeof data === "object" && "error" in data && data.error) ||
-            `Could not load vendors (${res.status}).`
-        );
+        if (allVendors.length === 0) {
+          setLoadError(
+            (data && typeof data === "object" && "error" in data && data.error) ||
+              `Could not load vendors (${res.status}).`
+          );
+        }
         return;
       }
 
-      setVendors(data);
+      setAllVendors(data);
+      writeVendorCache(data);
     } catch {
       if (id !== requestId.current) return;
-      setLoadError("Network error — please try again.");
+      if (allVendors.length === 0) setLoadError("Network error — please try again.");
     } finally {
-      if (id === requestId.current) setFetching(false);
+      if (id === requestId.current) {
+        setRefreshing(false);
+        setInitialLoad(false);
+      }
     }
-  }, []);
+  }, [allVendors.length]);
 
   useEffect(() => {
-    void loadVendors(filter, search);
-  }, [filter, search, loadVendors]);
+    const cached = readVendorCache();
+    if (cached?.length) {
+      setAllVendors(cached);
+      setInitialLoad(false);
+      void fetchAll({ background: true });
+    } else {
+      void fetchAll();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only
+  }, []);
 
   const applyFilter = (next: VendorFilterValue) => {
     if (next === filter) return;
@@ -148,28 +149,44 @@ export function VendorAccountsPanel({ industries }: { industries: IndustryOption
     });
   };
 
-  const applySearch = (event: React.FormEvent) => {
-    event.preventDefault();
-    const next = parseVendorSearch(draftSearch);
+  const onSearchChange = (value: string) => {
+    const next = parseVendorSearch(value);
     setSearch(next);
     syncUrl(filter, next);
   };
 
-  const refreshList = useCallback(() => {
-    void loadVendors(filter, search);
-  }, [filter, search, loadVendors]);
+  const refreshTable = () => {
+    void fetchAll();
+  };
+
+  const updateRowInCache = useCallback(() => {
+    void fetchAll({ background: true });
+  }, [fetchAll]);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">Vendor Accounts</h1>
-        <p className="mt-1 text-sm text-zinc-600">
-          User Management — hold or release each supplier&apos;s portal access. Registration can be
-          complete while access stays held.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">Vendor Accounts</h1>
+          <p className="mt-1 text-sm text-zinc-600">
+            User Management — hold or release each supplier&apos;s portal access. Registration can
+            be complete while access stays held.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={refreshTable}
+          disabled={refreshing}
+          title="Refresh table data"
+          aria-label="Refresh vendor table"
+          className="inline-flex h-9 items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 text-xs font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} aria-hidden />
+          Refresh
+        </button>
       </div>
 
-      <CreateVendorForm industries={industries} onCreated={refreshList} />
+      <CreateVendorForm industries={industries} onCreated={updateRowInCache} />
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Vendor access filters">
@@ -191,28 +208,22 @@ export function VendorAccountsPanel({ industries }: { industries: IndustryOption
           ))}
         </div>
 
-        <form className="ml-auto flex items-center gap-2" onSubmit={applySearch}>
+        <div className="ml-auto">
           <input
             name="q"
-            value={draftSearch}
-            onChange={(e) => setDraftSearch(e.target.value)}
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search email, name, company…"
             aria-label="Search vendor accounts"
             maxLength={120}
             className="focus-visible:border-brand-blue focus-visible:ring-brand-blue/25 w-72 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm outline-none focus-visible:ring-[3px]"
           />
-          <button
-            type="submit"
-            className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:border-zinc-400"
-          >
-            Search
-          </button>
-        </form>
+        </div>
       </div>
 
       <div
-        className={`overflow-hidden rounded-lg border border-zinc-200 bg-white transition-opacity duration-150 ${fetching ? "opacity-60" : "opacity-100"}`}
-        aria-busy={fetching}
+        className={`overflow-hidden rounded-lg border border-zinc-200 bg-white transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
+        aria-busy={refreshing || initialLoad}
       >
         <table className="w-full text-left text-sm">
           <thead className="border-b border-zinc-200 bg-zinc-50">
@@ -225,21 +236,28 @@ export function VendorAccountsPanel({ industries }: { industries: IndustryOption
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
-            {loadError && vendors.length === 0 && (
+            {initialLoad && displayed.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-4 py-10 text-center text-zinc-600">
+                  Loading vendor accounts…
+                </td>
+              </tr>
+            )}
+            {loadError && displayed.length === 0 && !initialLoad && (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-zinc-600">
                   {loadError}
                 </td>
               </tr>
             )}
-            {!loadError && vendors.length === 0 && !fetching && (
+            {!loadError && !initialLoad && displayed.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-zinc-600">
                   {`No vendor accounts${search ? ` matching “${search}”` : ""} in this view.`}
                 </td>
               </tr>
             )}
-            {vendors.map((v) => (
+            {displayed.map((v) => (
               <tr key={v.id} className="transition-colors hover:bg-zinc-50">
                 <td className="px-4 py-3">
                   <p className="font-medium text-zinc-950">{v.email}</p>
@@ -286,7 +304,7 @@ export function VendorAccountsPanel({ industries }: { industries: IndustryOption
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <VendorRowActions vendor={toSummary(v)} onUpdated={refreshList} />
+                  <VendorRowActions vendor={toSummary(v)} onUpdated={updateRowInCache} />
                 </td>
               </tr>
             ))}

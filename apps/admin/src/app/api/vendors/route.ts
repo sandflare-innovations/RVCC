@@ -3,30 +3,29 @@ import { NextResponse } from "next/server";
 
 import { adminWorkerFetch } from "@/lib/admin-api";
 import { ADMIN_COOKIE } from "@/lib/constants";
-import { parseVendorFilter, parseVendorSearch } from "@/lib/vendor-filters";
 
-export async function GET(request: Request) {
+/** Always fetch the full vendor list — client filters locally for instant tab switching. */
+export async function GET() {
   const jar = await cookies();
   const token = jar.get(ADMIN_COOKIE)?.value;
   if (!token) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  const url = new URL(request.url);
-  const filter = parseVendorFilter(url.searchParams.get("filter"));
-  const q = parseVendorSearch(url.searchParams.get("q"));
-
-  const qs = new URLSearchParams({ filter });
-  if (q) qs.set("q", q);
-
   try {
-    const res = await adminWorkerFetch(`/vendors?${qs}`, {
+    const res = await adminWorkerFetch("/vendors?filter=ALL", {
       method: "GET",
       sessionToken: token,
     });
-    const data = await res.json().catch(() => ({}));
-    return NextResponse.json(data, { status: res.status });
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok || !Array.isArray(data)) {
+      console.error("[admin BFF list vendors] upstream", res.status, data);
+      return NextResponse.json([], { status: res.ok ? 200 : 503 });
+    }
+
+    return NextResponse.json(data);
   } catch (err) {
     console.error("[admin BFF list vendors]", err);
-    return NextResponse.json({ error: "Upstream unavailable." }, { status: 503 });
+    return NextResponse.json([], { status: 503 });
   }
 }
 

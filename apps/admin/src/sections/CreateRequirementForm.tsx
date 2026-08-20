@@ -12,7 +12,13 @@ import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField
 
 export type ParticipantOption = { id: string; label: string };
 
-export function CreateRequirementForm({ vendors }: { vendors: ParticipantOption[] }) {
+export function CreateRequirementForm({
+  vendors,
+  onCreated,
+}: {
+  vendors: ParticipantOption[];
+  onCreated?: () => void;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -52,7 +58,8 @@ export function CreateRequirementForm({ vendors }: { vendors: ParticipantOption[
       }
 
       setOpen(false);
-      router.refresh();
+      onCreated?.();
+      if (!onCreated) router.refresh();
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
     } finally {
