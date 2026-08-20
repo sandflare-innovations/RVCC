@@ -1,6 +1,6 @@
 # Cloudflare Worker for the unified API.
-# Workers Builds: Root directory = `apps/api`, install command = `npm ci`.
-# Deploy from this folder: `npm run deploy`
+# Workers Builds: Root directory = `apps/api`, install = `npm ci`, build = `npm run build`.
+# Build pipeline: prebuild (DB migrations) → tsc → postbuild (wrangler deploy in CI).
 
 name = "rvcc-api"
 main = "src/worker.ts"

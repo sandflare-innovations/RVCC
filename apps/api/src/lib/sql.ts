@@ -50,6 +50,40 @@ export function createReadSql(env: Env): Sql {
   return createSql(env, { readOnly: true });
 }
 
+/** Drop pooled clients so the next query opens a fresh connection (stale isolate sockets). */
+export function resetSqlPool(): void {
+  primarySql = null;
+  primaryUrl = null;
+  replicaSql = null;
+  replicaUrl = null;
+}
+
+export function isTransientDbError(err: unknown): boolean {
+  const msg = String(err instanceof Error ? err.message : err).toLowerCase();
+  return (
+    msg.includes("connect") ||
+    msg.includes("connection") ||
+    msg.includes("timeout") ||
+    msg.includes("econnreset") ||
+    msg.includes("closed") ||
+    msg.includes("terminated") ||
+    msg.includes("socket") ||
+    msg.includes("broken pipe")
+  );
+}
+
+/** Retry once after resetting the pool — covers Worker/Hyperdrive cold starts. */
+export async function withDbRetry<T>(env: Env, fn: (sql: Sql) => Promise<T>): Promise<T> {
+  try {
+    return await fn(createSql(env));
+  } catch (err) {
+    if (!isTransientDbError(err)) throw err;
+    console.warn("[db] transient error, retrying with fresh pool", err);
+    resetSqlPool();
+    return await fn(createSql(env));
+  }
+}
+
 export function cuid(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");

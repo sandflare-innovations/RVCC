@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { adminWorkerFetch } from "@/lib/admin-api";
+import { proxyAdminList } from "@/lib/admin-upstream";
 import { ADMIN_COOKIE } from "@/lib/constants";
 
 export async function GET() {
@@ -9,23 +9,11 @@ export async function GET() {
   const token = jar.get(ADMIN_COOKIE)?.value;
   if (!token) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  try {
-    const res = await adminWorkerFetch("/requirements", {
-      method: "GET",
-      sessionToken: token,
-    });
-    const data = await res.json().catch(() => null);
-
-    if (!res.ok || !Array.isArray(data)) {
-      console.error("[admin BFF list requirements] upstream", res.status, data);
-      return NextResponse.json([], { status: res.ok ? 200 : 503 });
-    }
-
-    return NextResponse.json(data);
-  } catch (err) {
-    console.error("[admin BFF list requirements]", err);
-    return NextResponse.json([], { status: 503 });
+  const result = await proxyAdminList("/requirements", token, "list requirements");
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status });
   }
+  return NextResponse.json(result.data);
 }
 
 export async function POST(request: Request) {
@@ -34,6 +22,7 @@ export async function POST(request: Request) {
   if (!token) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
   try {
+    const { adminWorkerFetch } = await import("@/lib/admin-api");
     const res = await adminWorkerFetch("/requirements", {
       method: "POST",
       sessionToken: token,

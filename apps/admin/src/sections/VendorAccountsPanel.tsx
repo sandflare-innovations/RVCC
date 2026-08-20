@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 
 import { StatusBadge } from "@/lib/ui";
+import { fetchTableJson } from "@/lib/table-fetch";
 import { readVendorCache, writeVendorCache, type CachedVendorRow } from "@/lib/vendor-cache";
 import {
   VENDOR_FILTERS,
@@ -101,23 +102,17 @@ export function VendorAccountsPanel({ industries }: { industries: IndustryOption
     setLoadError(null);
 
     try {
-      const res = await fetch("/api/vendors", { credentials: "include" });
-      const data = (await res.json().catch(() => null)) as VendorRow[] | { error?: string } | null;
+      const result = await fetchTableJson<VendorRow>("/api/vendors");
 
       if (id !== requestId.current) return;
 
-      if (!res.ok || !Array.isArray(data)) {
-        if (allVendors.length === 0) {
-          setLoadError(
-            (data && typeof data === "object" && "error" in data && data.error) ||
-              `Could not load vendors (${res.status}).`
-          );
-        }
+      if (!result.ok) {
+        if (allVendors.length === 0) setLoadError(result.error);
         return;
       }
 
-      setAllVendors(data);
-      writeVendorCache(data);
+      setAllVendors(result.data);
+      writeVendorCache(result.data);
     } catch {
       if (id !== requestId.current) return;
       if (allVendors.length === 0) setLoadError("Network error — please try again.");

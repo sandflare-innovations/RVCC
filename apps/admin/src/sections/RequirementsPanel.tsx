@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { RefreshCw } from "lucide-react";
 
+import { fetchTableJson } from "@/lib/table-fetch";
 import { readVendorCache, writeVendorCache, type CachedVendorRow } from "@/lib/vendor-cache";
 import {
   readRequirementsCache,
@@ -65,26 +66,17 @@ export function RequirementsPanel() {
     setLoadError(null);
 
     try {
-      const res = await fetch("/api/requirements", { credentials: "include" });
-      const data = (await res.json().catch(() => null)) as
-        | RequirementRow[]
-        | { error?: string }
-        | null;
+      const result = await fetchTableJson<RequirementRow>("/api/requirements");
 
       if (id !== requestId.current) return;
 
-      if (!res.ok || !Array.isArray(data)) {
-        if (allRows.length === 0) {
-          setLoadError(
-            (data && typeof data === "object" && "error" in data && data.error) ||
-              `Could not load requirements (${res.status}).`
-          );
-        }
+      if (!result.ok) {
+        if (allRows.length === 0) setLoadError(result.error);
         return;
       }
 
-      setAllRows(data);
-      writeRequirementsCache(data);
+      setAllRows(result.data);
+      writeRequirementsCache(result.data);
     } catch {
       if (id !== requestId.current) return;
       if (allRows.length === 0) setLoadError("Network error — please try again.");
@@ -97,15 +89,10 @@ export function RequirementsPanel() {
   }, [allRows.length]);
 
   const fetchVendors = useCallback(async () => {
-    try {
-      const res = await fetch("/api/vendors", { credentials: "include" });
-      const data = (await res.json().catch(() => null)) as CachedVendorRow[] | null;
-      if (res.ok && Array.isArray(data)) {
-        setVendors(data);
-        writeVendorCache(data);
-      }
-    } catch {
-      /* vendor list is optional for the create form */
+    const result = await fetchTableJson<CachedVendorRow>("/api/vendors");
+    if (result.ok) {
+      setVendors(result.data);
+      writeVendorCache(result.data);
     }
   }, []);
 
