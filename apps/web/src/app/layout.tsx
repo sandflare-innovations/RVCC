@@ -3,7 +3,7 @@ import Script from "next/script";
 import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
+
 
 import "./globals.css";
 
@@ -22,14 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <body className="font-primary relative flex min-h-full flex-col" suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
           {children}
-        </ThemeProvider>
         <SpeedInsights />
         <Script id="microsoft-clarity" strategy="lazyOnload">
           {`(function(c,l,a,r,i,t,y){
