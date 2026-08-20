@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 
 import { StatusBadge } from "@/lib/ui";
+import { fetchTableJson } from "@/lib/table-fetch";
 import {
   readRegistrationCache,
   writeRegistrationCache,
@@ -83,26 +84,17 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
     setLoadError(null);
 
     try {
-      const res = await fetch("/api/registrations", { credentials: "include" });
-      const data = (await res.json().catch(() => null)) as
-        | RegistrationRow[]
-        | { error?: string }
-        | null;
+      const result = await fetchTableJson<RegistrationRow>("/api/registrations");
 
       if (id !== requestId.current) return;
 
-      if (!res.ok || !Array.isArray(data)) {
-        if (allRows.length === 0) {
-          setLoadError(
-            (data && typeof data === "object" && "error" in data && data.error) ||
-              `Could not load registrations (${res.status}).`
-          );
-        }
+      if (!result.ok) {
+        if (allRows.length === 0) setLoadError(result.error);
         return;
       }
 
-      setAllRows(data);
-      writeRegistrationCache(data);
+      setAllRows(result.data);
+      writeRegistrationCache(result.data);
     } catch {
       if (id !== requestId.current) return;
       if (allRows.length === 0) setLoadError("Network error — please try again.");

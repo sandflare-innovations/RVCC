@@ -13,6 +13,7 @@ import { describeAward } from "./award";
 import { getIsolateCache } from "../../lib/isolate-cache";
 import { createReadSql } from "../../lib/sql";
 import { type Sql, cuid, loadRegistration } from "./db";
+import { withDbRetry } from "../../lib/sql";
 import { notifyDecision, sendRequirementMail } from "./notify";
 import {
   type CreateRequirementInput,
@@ -127,7 +128,7 @@ export async function handleRegistrationsList(
 
   let rows;
   try {
-    rows = await sql`
+    rows = await withDbRetry(env, (db) => db`
     SELECT
       r.id,
       r.email,
@@ -154,10 +155,10 @@ export async function handleRegistrationsList(
       )
     ORDER BY r."submittedAt" DESC NULLS LAST, r."updatedAt" DESC
     LIMIT 500
-  `;
+  `);
   } catch (err) {
     console.error("[admin registrations] list failed", err);
-    return json(env, request, [], 503);
+    return json(env, request, { error: "Database unavailable." }, 503);
   }
 
   return json(
@@ -419,7 +420,7 @@ export async function handleVendorsList(sql: Sql, env: Env, request: Request): P
 
   let rows;
   try {
-    rows = await sql`
+    rows = await withDbRetry(env, (db) => db`
     SELECT
       v.id,
       v.email,
@@ -459,10 +460,10 @@ export async function handleVendorsList(sql: Sql, env: Env, request: Request): P
       )
     ORDER BY v."createdAt" DESC
     LIMIT 500
-  `;
+  `);
   } catch (err) {
     console.error("[admin vendors] list failed", err);
-    return json(env, request, [], 503);
+    return json(env, request, { error: "Database unavailable." }, 503);
   }
 
   return json(
@@ -637,7 +638,7 @@ export async function handleRequirementsList(
 
   let rows;
   try {
-    rows = await sql`
+    rows = await withDbRetry(env, (db) => db`
     SELECT
       r.id, r."referenceNumber", r."scopeOfWork", r.project, r."sellingPrice",
       r.currency, r."closesAt", r.status, r."createdAt",
@@ -649,10 +650,10 @@ export async function handleRequirementsList(
       CASE WHEN r.status = 'OPEN' AND r."closesAt" > NOW() THEN 0 ELSE 1 END,
       r."closesAt" ASC
     LIMIT 500
-  `;
+  `);
   } catch (err) {
     console.error("[admin requirements] list failed", err);
-    return json(env, request, [], 503);
+    return json(env, request, { error: "Database unavailable." }, 503);
   }
 
   return json(env, request, rows);

@@ -8,7 +8,9 @@ Local: Node. Production: Cloudflare Worker (`wrangler.toml`).
 cp .env.example .env   # DATABASE_URL, SMTP_*, ALLOWED_ORIGINS
 npm ci
 npm run dev            # http://localhost:4000
-npm run deploy         # wrangler deploy
+npm run build          # compile; in CI also migrates + wrangler deploy
+npm run release        # local: migrate + compile + deploy
+npm run deploy         # wrangler deploy only
 ```
 
 Cloudflare Workers Builds: root directory = this folder, install = `npm ci`.

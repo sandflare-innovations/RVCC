@@ -12,6 +12,7 @@ import {
   ROLE_RANK,
 } from "./constants";
 import { type Sql, cuid, hashSha256 } from "./db";
+import { isTransientDbError } from "../../lib/sql";
 
 export type AdminIdentity = {
   id: string;
@@ -120,8 +121,9 @@ export async function getAdminFromSession(
   token: string | null | undefined
 ): Promise<AdminIdentity | null> {
   if (!token) return null;
-  try {
-    const tokenHash = await hashSha256(token);
+
+  async function lookup(): Promise<AdminIdentity | null> {
+    const tokenHash = await hashSha256(token!);
     const [row] = await sql`
       SELECT
         s.id AS "sessionId",
@@ -160,9 +162,22 @@ export async function getAdminFromSession(
       name: row.name as string,
       role: row.role as AdminRoleName,
     };
+  }
+
+  try {
+    return await lookup();
   } catch (err) {
-    console.error("[admin session] lookup failed", err);
-    return null;
+    if (!isTransientDbError(err)) {
+      console.error("[admin session] lookup failed", err);
+      return null;
+    }
+    console.warn("[admin session] transient error, retrying", err);
+    try {
+      return await lookup();
+    } catch (retryErr) {
+      console.error("[admin session] lookup retry failed", retryErr);
+      return null;
+    }
   }
 }
 

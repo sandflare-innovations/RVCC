@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { adminUpstreamGet } from "@/lib/admin-upstream";
 import { adminWorkerFetch } from "@/lib/admin-api";
 import { ADMIN_COOKIE } from "@/lib/constants";
 
@@ -11,10 +12,7 @@ export async function GET() {
   if (!token) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
   try {
-    const res = await adminWorkerFetch("/notifications", {
-      method: "GET",
-      sessionToken: token,
-    });
+    const res = await adminUpstreamGet("/notifications", token);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       console.error("[admin/notifications] upstream", res.status, data);
