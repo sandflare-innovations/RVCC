@@ -34,6 +34,17 @@ export function EnquireShell({ step, title, subtitle, children }: Props) {
     if (i > 0) router.prefetch(`/enquire/${ENQUIRE_STEPS[i - 1]}`);
   }, [router, step]);
 
+  if (step === "verify") {
+    return (
+      <div className="font-enquire relative min-h-screen bg-white text-base antialiased">
+        <span aria-live="polite" className="sr-only">
+          {saving ? "Saving your progress" : ""}
+        </span>
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div className="font-enquire relative min-h-screen bg-white text-base text-zinc-950 antialiased md:text-[17px]">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -48,7 +59,7 @@ export function EnquireShell({ step, title, subtitle, children }: Props) {
           <p className={enquirePageSubtitleClass}>{subtitle}</p>
         </div>
 
-        {step !== "done" && step !== "verify" && Boolean(registration?.email) && (
+        {step !== "done" && Boolean(registration?.email) && (
           <div className="mb-10 border-b border-zinc-100 pb-6">
             <StepTrain
               current={step}
