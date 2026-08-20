@@ -27,6 +27,12 @@ export default function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith("/api/")) {
+    const token = request.cookies.get(ADMIN_COOKIE)?.value;
+    if (token) {
+      const res = NextResponse.next();
+      res.cookies.set(ADMIN_COOKIE, token, adminCookieOptions());
+      return res;
+    }
     return NextResponse.next();
   }
 
