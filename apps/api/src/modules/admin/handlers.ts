@@ -128,7 +128,10 @@ export async function handleRegistrationsList(
 
   let rows;
   try {
-    rows = await withDbRetry(env, (db) => db`
+    rows = await withDbRetry(env, (db) => {
+      // Never bind 'ALL' against enum column — Postgres rejects non-enum values.
+      const statusClause = status === "ALL" ? db`TRUE` : db`r.status = ${status}`;
+      return db`
     SELECT
       r.id,
       r.email,
@@ -146,7 +149,7 @@ export async function handleRegistrationsList(
     FROM "SupplierRegistration" r
     LEFT JOIN "CompanyProfile" c ON c."registrationId" = r.id
     WHERE
-      (${status} = 'ALL' OR r.status = ${status})
+      ${statusClause}
       AND (
         ${q} = ''
         OR r.email ILIKE ${like}
@@ -155,7 +158,8 @@ export async function handleRegistrationsList(
       )
     ORDER BY r."submittedAt" DESC NULLS LAST, r."updatedAt" DESC
     LIMIT 500
-  `);
+  `;
+    });
   } catch (err) {
     console.error("[admin registrations] list failed", err);
     return json(env, request, { error: "Database unavailable." }, 503);

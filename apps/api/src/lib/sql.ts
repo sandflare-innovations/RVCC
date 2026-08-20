@@ -1,6 +1,7 @@
 import postgres from "postgres";
 
 import type { Env } from "../config/env";
+import { isCloudflareWorkerRuntime } from "./runtime";
 
 export type Sql = ReturnType<typeof postgres>;
 
@@ -16,7 +17,6 @@ function resolveDatabaseUrl(env: Env, readOnly = false): string {
   return env.DATABASE_URL;
 }
 
-/** Hyperdrive / Workers: reuse one client per isolate, max 1 connection. */
 function clientFor(url: string): Sql {
   return postgres(url, {
     max: 1,
@@ -26,10 +26,20 @@ function clientFor(url: string): Sql {
   });
 }
 
+/**
+ * Postgres client for this request.
+ * Workers: always a fresh client — reusing module-level sockets causes
+ * "Cannot perform I/O on behalf of a different request" across isolates.
+ * Node: one pooled client per process for local dev.
+ */
 export function createSql(env: Env, options: { readOnly?: boolean } = {}): Sql {
   const databaseUrl = resolveDatabaseUrl(env, options.readOnly);
   if (!databaseUrl) {
     throw new Error("Missing DATABASE_URL");
+  }
+
+  if (isCloudflareWorkerRuntime()) {
+    return clientFor(databaseUrl);
   }
 
   if (options.readOnly && env.DATABASE_READ_URL?.trim()) {
@@ -50,7 +60,17 @@ export function createReadSql(env: Env): Sql {
   return createSql(env, { readOnly: true });
 }
 
-/** Drop pooled clients so the next query opens a fresh connection (stale isolate sockets). */
+/** Close per-request clients on Workers after each fetch handler completes. */
+export async function releaseSql(sql: Sql | undefined): Promise<void> {
+  if (!sql || !isCloudflareWorkerRuntime()) return;
+  try {
+    await sql.end({ timeout: 0 });
+  } catch {
+    /* isolate may already be tearing down */
+  }
+}
+
+/** Drop pooled clients (Node local dev only). */
 export function resetSqlPool(): void {
   primarySql = null;
   primaryUrl = null;
@@ -68,19 +88,29 @@ export function isTransientDbError(err: unknown): boolean {
     msg.includes("closed") ||
     msg.includes("terminated") ||
     msg.includes("socket") ||
-    msg.includes("broken pipe")
+    msg.includes("broken pipe") ||
+    msg.includes("different request")
   );
 }
 
-/** Retry once after resetting the pool — covers Worker/Hyperdrive cold starts. */
+/** Retry once with a fresh client — each attempt releases its own connection on Workers. */
 export async function withDbRetry<T>(env: Env, fn: (sql: Sql) => Promise<T>): Promise<T> {
+  const run = async (): Promise<T> => {
+    const sql = createSql(env);
+    try {
+      return await fn(sql);
+    } finally {
+      await releaseSql(sql);
+    }
+  };
+
   try {
-    return await fn(createSql(env));
+    return await run();
   } catch (err) {
     if (!isTransientDbError(err)) throw err;
-    console.warn("[db] transient error, retrying with fresh pool", err);
-    resetSqlPool();
-    return await fn(createSql(env));
+    console.warn("[db] transient error, retrying with fresh client", err);
+    if (!isCloudflareWorkerRuntime()) resetSqlPool();
+    return await run();
   }
 }
 

@@ -1,6 +1,6 @@
 import type { Env } from "../../config/env";
 import { corsHeaders, json } from "../../lib/http";
-import { type Sql, createSql } from "../../lib/sql";
+import { type Sql, createSql, releaseSql } from "../../lib/sql";
 import { handleCareerApply } from "./career-apply";
 
 /** Public published careers — no auth. */
@@ -64,5 +64,7 @@ export async function handlePublicCareersRequest(request: Request, env: Env): Pr
   } catch (err) {
     console.error("[careers]", err);
     return json(env, request, { error: "Internal error" }, 500);
+  } finally {
+    await releaseSql(sql);
   }
 }

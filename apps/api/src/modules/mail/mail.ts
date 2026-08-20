@@ -1,4 +1,5 @@
 import type { Env } from "../../config/env";
+import { isCloudflareWorkerRuntime } from "../../lib/runtime";
 
 const BRAND = "#0073bc";
 
@@ -118,14 +119,6 @@ export function smtpConfigured(env: Env): boolean {
 
 function fromAddress(env: Env): string {
   return env.ENQUIRE_FROM_EMAIL || env.SMTP_FROM || "RVCC Procurement <noreply@rvcc.local>";
-}
-
-/** Cloudflare Workers expose this UA; Node (`tsx` / local API) does not. */
-function isCloudflareWorkerRuntime(): boolean {
-  if (typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers") {
-    return true;
-  }
-  return typeof (globalThis as { WebSocketPair?: unknown }).WebSocketPair === "function";
 }
 
 function parseMailbox(raw: string): string | { name: string; email: string } {
