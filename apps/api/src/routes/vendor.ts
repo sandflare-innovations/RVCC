@@ -1,6 +1,7 @@
 import type { Env } from "../config/env";
 import { corsHeaders, json } from "../lib/http";
 import { createSql } from "../modules/vendor/db";
+import { releaseSql } from "../lib/sql";
 import {
   handleDashboard,
   handleLogin,
@@ -79,5 +80,7 @@ export async function handleVendorRequest(request: Request, env: Env): Promise<R
   } catch (err) {
     console.error("[vendor]", err);
     return json(env, request, { error: "Internal error" }, 500);
+  } finally {
+    await releaseSql(sql);
   }
 }

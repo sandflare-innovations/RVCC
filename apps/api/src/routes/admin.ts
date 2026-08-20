@@ -1,6 +1,7 @@
 import type { Env } from "../config/env";
 import { corsHeaders, json } from "../lib/http";
 import { createSql } from "../modules/admin/db";
+import { releaseSql } from "../lib/sql";
 import {
   handleCareerCreate,
   handleCareerDelete,
@@ -163,5 +164,7 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
   } catch (err) {
     console.error("[admin]", err);
     return json(env, request, { error: "Internal error" }, 500);
+  } finally {
+    await releaseSql(sql);
   }
 }
