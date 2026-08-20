@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { FaWhatsapp } from "react-icons/fa";
-import { FiBook, FiMail, FiMessageCircle, FiPhone, FiX } from "react-icons/fi";
+import { FiBook, FiMail, FiPhoneCall, FiPhone, FiX } from "react-icons/fi";
 
 import { cn } from "@lib/utils";
 
@@ -35,7 +35,7 @@ export const FloatingContact = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-8 left-8 z-[100] flex flex-col items-center gap-4">
+    <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-center gap-4">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -110,7 +110,7 @@ export const FloatingContact = () => {
               exit={{ opacity: 0, rotate: -90 }}
               transition={{ duration: 0.2 }}
             >
-              <FiMessageCircle className="h-8 w-8" />
+              <FiPhoneCall className="h-8 w-8" />
             </motion.div>
           )}
         </AnimatePresence>
