@@ -19,6 +19,11 @@ export type AdminIdentity = {
 
 const SESSION_REVALIDATE_SECONDS = 45;
 const TTL_MS = SESSION_REVALIDATE_SECONDS * 1000;
+const ME_RETRY_DELAYS_MS = [0, 200, 500, 1200];
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 type CacheEntry = { at: number; identity: AdminIdentity };
 const identityCache = new Map<string, CacheEntry>();
@@ -43,19 +48,28 @@ async function fetchAdminIdentity(token: string): Promise<AdminIdentity | null> 
   }
 
   try {
-    const res = await adminWorkerFetch("/auth/me", { method: "GET", sessionToken: token });
-    if (!res.ok) {
+    for (let attempt = 0; attempt < ME_RETRY_DELAYS_MS.length; attempt++) {
+      if (ME_RETRY_DELAYS_MS[attempt]) await sleep(ME_RETRY_DELAYS_MS[attempt]!);
+
+      const res = await adminWorkerFetch("/auth/me", { method: "GET", sessionToken: token });
+      if (res.ok) {
+        const data = (await res.json()) as AdminIdentity;
+        if (!data?.id || !data?.role) return null;
+        identityCache.set(key, { at: Date.now(), identity: data });
+        await cacheSet(sessionCacheKey(token), data, SESSION_REVALIDATE_SECONDS);
+        return data;
+      }
+
       if (res.status === 401 || res.status === 403) {
         identityCache.delete(key);
+        await cacheDel(sessionCacheKey(token));
         return null;
       }
+
+      if (attempt < ME_RETRY_DELAYS_MS.length - 1) continue;
       return memHit?.identity ?? null;
     }
-    const data = (await res.json()) as AdminIdentity;
-    if (!data?.id || !data?.role) return null;
-    identityCache.set(key, { at: Date.now(), identity: data });
-    await cacheSet(sessionCacheKey(token), data, SESSION_REVALIDATE_SECONDS);
-    return data;
+    return memHit?.identity ?? null;
   } catch (err) {
     console.error("[admin] /auth/me failed", err);
     return memHit?.identity ?? null;

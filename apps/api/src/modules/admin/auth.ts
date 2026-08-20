@@ -14,6 +14,14 @@ import {
 import { type Sql, cuid, hashSha256 } from "./db";
 import { isTransientDbError } from "../../lib/sql";
 
+export class AuthServiceError extends Error {
+  constructor(cause?: unknown) {
+    super("Session lookup temporarily unavailable");
+    this.name = "AuthServiceError";
+    this.cause = cause;
+  }
+}
+
 export type AdminIdentity = {
   id: string;
   email: string;
@@ -167,17 +175,17 @@ export async function getAdminFromSession(
   try {
     return await lookup();
   } catch (err) {
-    if (!isTransientDbError(err)) {
-      console.error("[admin session] lookup failed", err);
-      return null;
+    if (isTransientDbError(err)) {
+      console.warn("[admin session] transient error, retrying", err);
+      try {
+        return await lookup();
+      } catch (retryErr) {
+        console.error("[admin session] lookup retry failed", retryErr);
+        throw new AuthServiceError(retryErr);
+      }
     }
-    console.warn("[admin session] transient error, retrying", err);
-    try {
-      return await lookup();
-    } catch (retryErr) {
-      console.error("[admin session] lookup retry failed", retryErr);
-      return null;
-    }
+    console.error("[admin session] lookup failed", err);
+    throw new AuthServiceError(err);
   }
 }
 
@@ -240,7 +248,25 @@ export async function requireAdmin(
   minimum: AdminRoleName = "ADMIN"
 ): Promise<{ admin: AdminIdentity; deny: null } | { admin: null; deny: Response }> {
   const token = request.headers.get("X-Admin-Session");
-  const admin = await getAdminFromSession(sql, token);
+  if (!token) {
+    return {
+      admin: null,
+      deny: json(env, request, { error: "Not signed in." }, 401),
+    };
+  }
+
+  let admin: AdminIdentity | null;
+  try {
+    admin = await getAdminFromSession(sql, token);
+  } catch (err) {
+    if (err instanceof AuthServiceError) {
+      return {
+        admin: null,
+        deny: json(env, request, { error: "Service temporarily unavailable." }, 503),
+      };
+    }
+    throw err;
+  }
 
   if (!admin) {
     return {

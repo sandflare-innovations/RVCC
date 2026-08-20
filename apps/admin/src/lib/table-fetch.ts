@@ -1,12 +1,21 @@
-/** Resilient table fetch — dedupes parallel mounts and retries cold-start 503s. */
+/** Resilient table fetch — dedupes parallel mounts, retries cold-start auth/service errors. */
 
-const RETRYABLE = new Set([0, 429, 502, 503, 504]);
-const RETRY_DELAYS_MS = [0, 250, 700, 1500];
+import { ADMIN_LOGIN_EXPIRED_PATH } from "@/lib/constants";
+
+const RETRY_DELAYS_MS = [0, 300, 800, 1500];
+const RETRYABLE = new Set([429, 502, 503, 504]);
 
 const inflight = new Map<string, Promise<TableFetchResult<unknown>>>();
+let authRedirectScheduled = false;
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function scheduleAuthRedirect() {
+  if (authRedirectScheduled || typeof window === "undefined") return;
+  authRedirectScheduled = true;
+  window.location.replace(ADMIN_LOGIN_EXPIRED_PATH);
 }
 
 export type TableFetchResult<T> =
@@ -14,16 +23,14 @@ export type TableFetchResult<T> =
   | { ok: false; status: number; error: string };
 
 async function fetchTableJsonOnce<T>(url: string): Promise<TableFetchResult<T>> {
+  const lastAttempt = RETRY_DELAYS_MS.length - 1;
+
   for (let attempt = 0; attempt < RETRY_DELAYS_MS.length; attempt++) {
     if (RETRY_DELAYS_MS[attempt]) await sleep(RETRY_DELAYS_MS[attempt]!);
 
     try {
-      const res = await fetch(url, { credentials: "include" });
+      const res = await fetch(url, { credentials: "include", cache: "no-store" });
       const data = (await res.json().catch(() => null)) as T | { error?: string } | null;
-
-      if (res.status === 401) {
-        return { ok: false, status: 401, error: "Not signed in." };
-      }
 
       if (res.ok && Array.isArray(data)) {
         return { ok: true, data: data as T };
@@ -33,11 +40,18 @@ async function fetchTableJsonOnce<T>(url: string): Promise<TableFetchResult<T>> 
         (data && typeof data === "object" && "error" in data && data.error) ||
         `Could not load data (${res.status || "network"}).`;
 
-      if (!RETRYABLE.has(res.status) || attempt === RETRY_DELAYS_MS.length - 1) {
-        return { ok: false, status: res.status || 503, error: String(error) };
+      // Transient 401 while Worker DB pool warms — retry before treating as signed-out.
+      if (res.status === 401 && attempt < lastAttempt) continue;
+      if (res.status === 401) {
+        scheduleAuthRedirect();
+        return { ok: false, status: 401, error: "Session expired — redirecting to sign in…" };
       }
+
+      if (RETRYABLE.has(res.status) && attempt < lastAttempt) continue;
+
+      return { ok: false, status: res.status || 503, error: String(error) };
     } catch {
-      if (attempt === RETRY_DELAYS_MS.length - 1) {
+      if (attempt === lastAttempt) {
         return { ok: false, status: 0, error: "Network error — please try again." };
       }
     }
