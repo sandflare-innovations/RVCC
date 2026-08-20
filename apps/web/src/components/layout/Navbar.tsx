@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 
 import { motion } from "framer-motion";
 import { useLenis } from "lenis/react";
-import { useTheme } from "next-themes";
+
 import {
   FaFacebookF,
   FaInstagram,
@@ -22,7 +22,7 @@ import { Icons } from "@/lib/icons";
 
 import { enquireVerifyUrl } from "@/lib/public-urls";
 
-import { AnimatedThemeToggler } from "@ui/AnimatedThemeToggler";
+
 import { Button } from "@ui/Button";
 
 import { cn } from "@lib/utils";
@@ -30,7 +30,7 @@ import { cn } from "@lib/utils";
 export const Navbar = () => {
   const pathname = usePathname();
   const enquireHref = enquireVerifyUrl();
-  const { resolvedTheme } = useTheme();
+
   const lenis = useLenis();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -231,7 +231,7 @@ export const Navbar = () => {
               priority
               className={cn(
                 "w-28 transition-all duration-500 md:w-32",
-                forceWhiteTheme || (!isScrolled && !isLightPage) || (mounted && resolvedTheme === "dark")
+                forceWhiteTheme || (!isScrolled && !isLightPage)
                   ? "brightness-0 invert"
                   : "brightness-100 invert-0"
               )}
@@ -331,10 +331,7 @@ export const Navbar = () => {
               Close
             </span>
           </button>
-
-          {/* Right Side: Theme & Language (Minimal / Box-less) */}
           <div className="flex items-center gap-4 text-brand-blue">
-            <AnimatedThemeToggler className="h-8 w-8 border-none bg-transparent p-0 hover:border-transparent hover:bg-transparent hover:opacity-75 transition-opacity" />
             <button
               type="button"
               className="text-brand-blue text-[11px] font-black tracking-[0.15em] uppercase hover:opacity-75 transition-opacity p-0 bg-transparent border-none"
