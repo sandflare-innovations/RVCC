@@ -355,44 +355,45 @@ export function VerifyStep() {
           : "Company Details";
 
       return (
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
-          <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl shadow-zinc-200/20">
-            <div className="border-b border-zinc-100 bg-zinc-50/50 px-8 py-6">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                  <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
-                </div>
-                <div>
-                  <h3 className="font-heading text-xl tracking-tight text-zinc-950 uppercase">User Verified</h3>
-                  <p className="text-sm font-medium text-zinc-500">{registration!.email}</p>
-                </div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mx-auto w-full max-w-sm">
+          <div className="flex flex-col items-center space-y-6 text-center">
+            {/* Success Icon */}
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-emerald-50">
+              <div className="absolute inset-0 animate-ping rounded-full bg-emerald-100/50" />
+              <CheckCircle2 className="relative z-10 h-10 w-10 text-emerald-500" aria-hidden="true" />
+            </div>
+            
+            <div className="space-y-3">
+              <h2 className="font-heading text-brand-blue text-4xl tracking-tight uppercase">User Verified</h2>
+              <div className="mx-auto flex w-fit items-center gap-2 rounded-full border border-zinc-100 bg-zinc-50 px-4 py-2 shadow-sm">
+                <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                <span className="text-xs font-bold tracking-widest text-zinc-600 uppercase">{registration!.email}</span>
               </div>
             </div>
-            <div className="px-8 py-6">
-              <p className="text-sm leading-relaxed text-zinc-600">
-                Your email is confirmed for this registration. Continue where you left off, or change
-                email to start over with a different address.
-              </p>
+
+            <p className="text-sm leading-relaxed text-zinc-500">
+              Your email is confirmed. You can continue where you left off, or change your email to start over.
+            </p>
+
+            <div className="flex w-full flex-col gap-4 pt-4">
+              <InteractiveHoverButton
+                type="button"
+                variant="solid"
+                fullWidth
+                onClick={continueRegistration}
+              >
+                Continue to {nextLabel}
+              </InteractiveHoverButton>
+              
+              <button
+                type="button"
+                onClick={() => void changeEmail()}
+                disabled={busy}
+                className="w-full text-center text-xs font-bold tracking-[0.1em] text-zinc-400 uppercase transition-colors hover:text-zinc-800 disabled:opacity-50"
+              >
+                Change Email Address
+              </button>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <InteractiveHoverButton
-              type="button"
-              variant="solid"
-              onClick={continueRegistration}
-            >
-              Continue to {nextLabel}
-            </InteractiveHoverButton>
-
-            <button
-              type="button"
-              onClick={() => void changeEmail()}
-              disabled={busy}
-              className="text-sm font-semibold tracking-wide text-zinc-400 uppercase transition-all hover:text-zinc-800 disabled:opacity-50"
-            >
-              Change Email
-            </button>
           </div>
         </motion.div>
       );
@@ -467,7 +468,7 @@ export function VerifyStep() {
                         type="text"
                         inputMode="numeric"
                         maxLength={1}
-                        className="focus:border-brand-blue focus:ring-brand-blue/10 h-14 w-12 rounded-xl border border-zinc-200 bg-zinc-50 text-center text-2xl font-bold transition-all outline-none focus:bg-white focus:ring-4 sm:h-16 sm:w-14 sm:text-3xl"
+                        className="focus:border-brand-blue focus:ring-brand-blue/10 h-14 w-12 rounded-xl border border-zinc-200 bg-zinc-50 text-center text-2xl font-bold text-brand-blue transition-all outline-none focus:bg-white focus:ring-4 sm:h-16 sm:w-14 sm:text-3xl"
                         value={code[index] || ""}
                         onChange={(e) => handleOtpChange(index, e.target.value.replace(/\D/g, ""))}
                         onKeyDown={(e) => handleOtpKeyDown(index, e)}
