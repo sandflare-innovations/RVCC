@@ -28,10 +28,10 @@ cp .env.vercel apps/admin/.env.local
 ```
 
 ```bash
-cd apps/api && npm ci && npm run dev          # :4000
-cd apps/web && npm ci && npm run dev          # :3000
-cd apps/admin && npm ci && npm run dev        # :3001
-cd apps/vendor && npm ci && npm run dev       # :3002
+cd apps/api && pnpm install && pnpm run dev          # :4000
+cd apps/web && pnpm install && pnpm run dev          # :3000
+cd apps/admin && pnpm install && pnpm run dev        # :3001
+cd apps/vendor && pnpm install && pnpm run dev       # :3002
 ```
 
 **Vercel:** one project per frontend — set **Root Directory** to `apps/web`, `apps/vendor`, or `apps/admin`. Paste `.env.vercel` into each project's environment variables.
@@ -40,6 +40,6 @@ After deploy, open `/api/enquire/health` — it should report `apiReachable: tru
 
 For performance tuning see [`PERFORMANCE.md`](PERFORMANCE.md).
 
-Cloudflare Workers Builds: **Root directory** `apps/api`, install `npm ci`. Deploy with `npm run deploy` from `apps/api`. Set `ALLOWED_ORIGINS` and `VENDOR_PORTAL_URL` in Wrangler to match the Vercel hosts above.
+Cloudflare Workers Builds: **Root directory** `apps/api`, install `pnpm install`. Deploy with `pnpm run deploy` from `apps/api`. Set `ALLOWED_ORIGINS` and `VENDOR_PORTAL_URL` in Wrangler to match the Vercel hosts above.
 
 PDFs and video are on Cloudflare R2 (not in this repo).

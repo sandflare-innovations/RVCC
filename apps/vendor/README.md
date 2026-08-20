@@ -11,8 +11,8 @@ Production vendor portal on port **3002**:
 Backend: unified API at `apps/api` via `API_URL`.
 
 ```bash
-cd apps/api && npm run dev          # :4000
-cd apps/vendor && npm run dev       # :3002
+cd apps/api && pnpm run dev          # :4000
+cd apps/vendor && pnpm run dev       # :3002
 ```
 
 Marketing site lives in `apps/web` — not this app.
