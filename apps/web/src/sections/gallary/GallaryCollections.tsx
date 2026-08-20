@@ -65,7 +65,7 @@ export const GallaryCollections = () => {
       <div className="container mx-auto px-6">
         {/* Enhanced Control Bar */}
         <div className="mb-20">
-          <div className="flex flex-col items-center justify-between gap-8 border-b border-zinc-100 lg:flex-row dark:border-white/5">
+          <div className="flex flex-col items-center justify-between gap-8 border-b border-zinc-100 lg:flex-row">
             {/* Left: Custom View Toggle Dropdown */}
             <div className="border-brand-blue relative flex w-full items-center justify-center rounded-sm border lg:w-auto lg:justify-start">
               <span className="bg-brand-blue shrink-0 rounded-r-sm p-3 text-[10px] font-bold tracking-[0.4em] text-white uppercase">
@@ -144,10 +144,10 @@ export const GallaryCollections = () => {
                 transition={{ duration: 0.5, delay: index * 0.05 }}
               >
                 <Link href={item.href} className="group block cursor-pointer">
-                  <div className="hover:border-brand-blue/20 border border-transparent bg-white p-6 shadow-sm transition-all duration-500 group-hover:shadow-2xl dark:bg-white/5">
+                  <div className="hover:border-brand-blue/20 border border-transparent bg-white p-6 shadow-sm transition-all duration-500 group-hover:shadow-2xl">
                     {/* Multi-Image Stack Design */}
                     <div className="mb-8 space-y-3">
-                      <div className="relative aspect-[16/10] overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                      <div className="relative aspect-[16/10] overflow-hidden bg-zinc-100">
                         <Image
                           src={item.thumbnail}
                           alt={item.title}
@@ -162,7 +162,7 @@ export const GallaryCollections = () => {
                         {item.images.slice(1, 4).map((img, i) => (
                           <div
                             key={i}
-                            className="relative aspect-square overflow-hidden bg-zinc-100 dark:bg-zinc-800"
+                            className="relative aspect-square overflow-hidden bg-zinc-100"
                           >
                             <Image
                               src={img}
@@ -182,7 +182,7 @@ export const GallaryCollections = () => {
                           {item.title}
                         </h3>
                       </div>
-                      <div className="group-hover:bg-brand-blue shrink-0 bg-zinc-100 p-3 transition-colors group-hover:text-white dark:bg-white/5">
+                      <div className="group-hover:bg-brand-blue shrink-0 bg-zinc-100 p-3 transition-colors group-hover:text-white">
                         <Icons.ArrowRight className="h-5 w-5" />
                       </div>
                     </div>

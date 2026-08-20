@@ -55,7 +55,7 @@ const METRICS = [
 
 export const ProjectMetrics = () => {
   return (
-    <section className="border-b border-zinc-100 bg-white pt-24 dark:border-white/5 dark:bg-white">
+    <section className="border-b border-zinc-100 bg-white pt-24">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 gap-x-12 gap-y-16 md:grid-cols-2 lg:grid-cols-4 lg:gap-x-16">
           {METRICS.map((metric, index) => (

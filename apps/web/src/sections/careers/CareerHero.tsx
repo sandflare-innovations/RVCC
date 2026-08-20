@@ -67,7 +67,7 @@ export const CareerHero = () => {
       </div>
 
       {/* Bottom Gradient Overlay (Blending into the white section below) */}
-      <div className="absolute inset-x-0 bottom-0 z-20 h-40 bg-linear-to-t from-white to-transparent dark:from-zinc-950" />
+      <div className="absolute inset-x-0 bottom-0 z-20 h-40 bg-linear-to-t from-white to-transparent" />
 
       {/* Bottom Visual Element - Centered */}
       <div className="absolute bottom-12 left-1/2 z-30 hidden -translate-x-1/2 md:block">
