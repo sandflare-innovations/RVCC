@@ -118,20 +118,6 @@ export default async function AdminDashboard() {
             Sourcing activity and vendor registrations. Rates cover the last {WINDOW_DAYS} days.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/requirements"
-            className="bg-brand-blue focus-visible:ring-brand-blue inline-flex min-h-11 items-center rounded-lg px-5 text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90 hover:shadow focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-          >
-            Create requirement
-          </Link>
-          <Link
-            href="/vendors"
-            className="focus-visible:ring-brand-blue inline-flex min-h-11 items-center rounded-lg border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 shadow-sm transition-all hover:bg-zinc-50 hover:text-zinc-900 focus-visible:ring-2 focus-visible:outline-none"
-          >
-            Add vendor
-          </Link>
-        </div>
       </div>
 
       <section>

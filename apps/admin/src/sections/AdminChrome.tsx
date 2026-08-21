@@ -8,10 +8,11 @@ import { motion } from "framer-motion";
 import { ClipboardList, FileText, FolderOpen, LayoutDashboard, LogOut, Users } from "lucide-react";
 
 import { Sidebar, SidebarBody, SidebarLink, useSidebar } from "@/components/ui/sidebar";
+import Link from "next/link";
+import Image from "next/image";
 import { ADMIN_LOGIN_EXPIRED_PATH } from "@/lib/constants";
 import { signOutInstant } from "@/lib/sign-out-client";
 import type { AdminIdentity } from "@/lib/session";
-import { NotificationBell } from "@/sections/NotificationBell";
 
 const ICON = "h-5 w-5 shrink-0";
 
@@ -44,9 +45,13 @@ function SidebarContents({
   return (
     <div className="flex h-full flex-col">
       <div className="mb-6 flex items-center gap-3 px-2.5 py-1">
-        <span className="bg-brand-blue flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[11px] font-bold text-white">
-          R
-        </span>
+        <div className="bg-white flex h-10 w-10 shrink-0 items-center justify-center rounded-md p-1 shadow-sm">
+          <img
+            src="/images/logo/logo.webp"
+            alt="RVCC Logo"
+            className="h-full w-full object-contain"
+          />
+        </div>
         <motion.span
           animate={{
             opacity: expanded ? 1 : 0,
@@ -55,8 +60,8 @@ function SidebarContents({
           initial={false}
           className="whitespace-nowrap"
         >
-          <span className="block text-sm font-semibold text-zinc-950">Administration</span>
-          <span className="block text-[11px] text-zinc-500">RVCC</span>
+          <span className="block text-sm font-semibold text-white">Administration</span>
+          <span className="block text-[11px] text-blue-200">RVCC</span>
         </motion.span>
       </div>
 
@@ -72,9 +77,13 @@ function SidebarContents({
         ))}
       </nav>
 
-      <div className="border-t border-zinc-200 pt-3">
-        <div className="flex items-center gap-3 px-2.5 py-2">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">
+      <div className="border-t border-white/20 pt-3">
+        <Link 
+          href="/profile" 
+          onClick={onNavigate}
+          className="flex items-center gap-3 px-2.5 py-2 hover:bg-white/10 rounded-md transition-colors group focus-visible:ring-white focus-visible:ring-2 focus-visible:outline-none"
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-brand-blue shadow-sm">
             {(admin.name || admin.email).charAt(0).toUpperCase()}
           </span>
           <motion.span
@@ -82,31 +91,14 @@ function SidebarContents({
             initial={false}
             className="min-w-0 whitespace-nowrap"
           >
-            <span className="block truncate text-sm font-medium text-zinc-950">
+            <span className="block truncate text-sm font-medium text-white group-hover:text-blue-50 transition-colors">
               {admin.name || admin.email}
             </span>
-            <span className="block text-[11px] text-zinc-500">
+            <span className="block text-[11px] text-blue-200 group-hover:text-blue-100 transition-colors">
               {admin.role.replace("_", " ").toLowerCase()}
             </span>
           </motion.span>
-        </div>
-
-        <button
-          type="button"
-          onClick={onSignOut}
-          disabled={signingOut}
-          title="Sign out"
-          className="focus-visible:ring-brand-blue flex min-h-11 w-full items-center gap-3 rounded-md px-2.5 py-2 text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-950 focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
-        >
-          <LogOut className={ICON} aria-hidden="true" />
-          <motion.span
-            animate={{ opacity: expanded ? 1 : 0, display: expanded ? "inline-block" : "none" }}
-            initial={false}
-            className="text-sm font-medium whitespace-nowrap"
-          >
-            Sign out
-          </motion.span>
-        </button>
+        </Link>
       </div>
     </div>
   );
@@ -150,8 +142,8 @@ export function AdminChrome({
   };
 
   return (
-    <div className="flex h-screen bg-zinc-50/50">
-      <Sidebar open={open} setOpen={setOpen}>
+    <div className="flex h-screen overflow-hidden bg-zinc-50/50">
+      <Sidebar open={open} setOpen={setOpen} animate={false}>
         <SidebarBody>
           <SidebarContents
             admin={admin}
@@ -163,13 +155,9 @@ export function AdminChrome({
         </SidebarBody>
       </Sidebar>
 
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-end border-b border-zinc-200 bg-white/80 px-4 backdrop-blur-md md:px-8">
-          <NotificationBell />
-        </header>
-
-        <main className="flex-1 overflow-y-auto p-5 md:p-8">
-          <div className="mx-auto max-w-7xl">{children}</div>
+      <div className="flex flex-1 flex-col overflow-hidden bg-white rounded-3xl my-3 mr-3 ml-3 border border-zinc-200/60 min-h-0 min-w-0">
+        <main className="flex-1 flex flex-col min-h-0 overflow-hidden p-5 md:p-8 rounded-3xl">
+          <div className="mx-auto w-full max-w-7xl flex-1 flex flex-col min-h-0 overflow-hidden">{children}</div>
         </main>
       </div>
     </div>
