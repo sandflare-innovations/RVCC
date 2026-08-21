@@ -13,24 +13,17 @@ type FieldProps = {
 
 export function EnquireField({ label, required, className, hint, children }: FieldProps) {
   return (
-    <div className={cn("group space-y-2", className)}>
-      {/*
-        Was text-[10px] + zinc-400 (~2.6:1 on white) — under the 4.5:1 AA floor
-        and hard to read at that size. zinc-600 clears 7:1 at 12px.
-      */}
-      <label className="group-focus-within:text-brand-blue flex items-center gap-1 text-sm font-bold tracking-[0.1em] text-zinc-600 uppercase transition-colors sm:text-base">
+    <div className={cn("relative group pt-2", className)}>
+      {children}
+      <label className="absolute left-3 top-5 z-10 origin-[0] -translate-y-6 scale-75 transform text-sm text-zinc-500 duration-200 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-data-[empty=true]:translate-y-0 peer-data-[empty=true]:scale-100 peer-focus:left-3 peer-focus:-translate-y-6 peer-focus:scale-75 peer-focus:text-brand-blue bg-white px-1 pointer-events-none rounded-sm font-medium transition-all">
         {label}
         {required ? (
-          <>
-            <span aria-hidden="true" className="text-brand-blue">
-              *
-            </span>
-            <span className="sr-only">(required)</span>
-          </>
+          <span aria-hidden="true" className="text-brand-blue ml-1">
+            *
+          </span>
         ) : null}
       </label>
-      {children}
-      {hint ? <p className="text-sm leading-relaxed text-zinc-500 sm:text-base">{hint}</p> : null}
+      {hint ? <p className="mt-1.5 text-sm leading-relaxed text-zinc-500 sm:text-base">{hint}</p> : null}
     </div>
   );
 }
@@ -47,7 +40,7 @@ export function EnquireField({ label, required, className, hint, children }: Fie
  * tabular-nums keeps IBANs, CR/VAT numbers and postal codes aligned.
  */
 const controlBase =
-  "w-full rounded-md border border-zinc-300 bg-white px-3.5 py-3 text-base text-zinc-950 tabular-nums shadow-xs outline-none transition-[color,border-color,box-shadow] placeholder:text-zinc-500 hover:border-zinc-400 focus-visible:border-brand-blue focus-visible:ring-[3px] focus-visible:ring-brand-blue/25 disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:text-zinc-500 aria-invalid:border-red-500 aria-invalid:ring-[3px] aria-invalid:ring-red-500/20 sm:text-[17px]";
+  "peer w-full rounded-xl border border-zinc-200 bg-transparent px-4 py-3 min-h-[52px] text-base text-zinc-900 tabular-nums outline-none transition-[color,border-color,box-shadow,background-color] placeholder-transparent focus-visible:placeholder-transparent hover:bg-zinc-50 focus-visible:border-brand-blue focus-visible:ring-1 focus-visible:ring-brand-blue focus-visible:bg-transparent disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:text-zinc-400 aria-invalid:border-red-500 aria-invalid:ring-1 aria-invalid:ring-red-500 sm:text-[15px]";
 
 export const enquireInputClass = controlBase;
 

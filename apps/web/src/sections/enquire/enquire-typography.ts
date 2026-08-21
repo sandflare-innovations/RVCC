@@ -4,7 +4,7 @@ export const enquireEyebrowClass = "text-sm font-bold tracking-[0.2em] text-bran
 
 /** Page titles — brand display font with readable letter-spacing (not tracking-tighter). */
 export const enquirePageTitleClass =
-  "font-heading text-4xl leading-[0.95] tracking-[0.04em] uppercase md:text-6xl";
+  "font-heading text-4xl text-brand-blue leading-[0.95] tracking-normal uppercase md:text-6xl";
 
 export const enquirePageSubtitleClass = "max-w-2xl text-lg leading-relaxed text-zinc-600";
 
