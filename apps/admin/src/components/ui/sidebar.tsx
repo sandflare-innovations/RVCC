@@ -97,7 +97,7 @@ export const DesktopSidebar = ({
   return (
     <motion.aside
       className={cn(
-        "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-zinc-200 bg-white px-3 py-4 md:flex",
+        "sticky top-3 hidden h-[calc(100vh-24px)] shrink-0 flex-col bg-brand-blue rounded-3xl px-3 py-4 md:flex ml-3 shadow-lg shadow-brand-blue/20",
         className
       )}
       animate={{ width: animate ? (open ? 248 : 68) : 248 }}
@@ -203,8 +203,8 @@ export const SidebarLink = ({
       aria-current={active ? "page" : undefined}
       title={link.label}
       className={cn(
-        "group/sidebar focus-visible:ring-brand-blue flex min-h-11 items-center gap-3 rounded-md px-2.5 py-2 transition-colors focus-visible:ring-2 focus-visible:outline-none",
-        active ? "bg-brand-blue text-white" : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950",
+        "group/sidebar focus-visible:ring-white flex min-h-12 items-center gap-4 rounded-full px-4 py-3 transition-colors focus-visible:ring-2 focus-visible:outline-none",
+        active ? "bg-white text-brand-blue font-semibold shadow-sm" : "text-blue-100 hover:bg-white/10 hover:text-white",
         className
       )}
     >
