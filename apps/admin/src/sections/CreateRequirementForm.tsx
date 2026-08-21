@@ -72,7 +72,7 @@ export function CreateRequirementForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-11 items-center gap-2 rounded-lg px-5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+        className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold text-white transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none shrink-0"
       >
         <FileText className="h-4 w-4" />
         Post a requirement
