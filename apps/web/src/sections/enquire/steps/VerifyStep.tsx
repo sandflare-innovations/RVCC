@@ -141,6 +141,14 @@ function HeldView({
   );
 }
 
+const HERO_IMAGES = [
+  "/images/hero-bg.webp",
+  "/images/home-hero.webp",
+  "/images/projects/13.webp",
+  "/images/projects/4.webp",
+  "/images/projects/2.webp",
+];
+
 export function VerifyStep() {
   const router = useRouter();
   const { registration, loading, hydrateAfterAuth, setRegistration, setError, error } = useEnquire();
@@ -153,6 +161,14 @@ export function VerifyStep() {
   const [changingEmail, setChangingEmail] = useState(false);
   const [outcome, setOutcome] = useState<VerifyOutcome>(null);
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleOtpChange = (index: number, value: string) => {
     const newCode = code.split("");
@@ -534,13 +550,25 @@ export function VerifyStep() {
       <div className="relative hidden w-full flex-col justify-between overflow-hidden rounded-[2rem] bg-zinc-950 p-12 md:flex md:w-5/12 lg:w-3/7 xl:p-16">
         {/* Background elements */}
         <div className="absolute inset-0 z-0">
-          <Image
-            src="/images/projects/13.webp"
-            alt="RVCC Building"
-            fill
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <AnimatePresence mode="popLayout">
+            <motion.div
+              key={currentImageIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.5, ease: "easeInOut" }}
+              className="absolute inset-0"
+            >
+              <Image
+                src={HERO_IMAGES[currentImageIndex]}
+                alt="RVCC Building"
+                fill
+                className="object-cover"
+                priority={currentImageIndex === 0}
+              />
+            </motion.div>
+          </AnimatePresence>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
         </div>
 
         {/* Logo */}
