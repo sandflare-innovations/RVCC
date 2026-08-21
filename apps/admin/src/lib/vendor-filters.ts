@@ -13,7 +13,7 @@ const VALID = new Set<string>(VENDOR_FILTERS.map((f) => f.value));
 
 export function parseVendorFilter(raw: string | null | undefined): VendorFilterValue {
   const value = (raw ?? "").trim().toUpperCase();
-  return VALID.has(value) ? (value as VendorFilterValue) : "RELEASED";
+  return VALID.has(value) ? (value as VendorFilterValue) : "ALL";
 }
 
 /** Trim, cap length, and strip control characters from free-text search. */
