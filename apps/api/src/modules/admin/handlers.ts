@@ -502,6 +502,109 @@ export async function handleVendorsList(sql: Sql, env: Env, request: Request): P
   );
 }
 
+export async function handleVendorGet(
+  sql: Sql,
+  env: Env,
+  request: Request,
+  id: string
+): Promise<Response> {
+  const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
+  if (deny) return deny;
+
+  let vendor;
+  let quotes;
+  let invites;
+  try {
+    const rows = await withDbRetry(env, (db) => db`
+      SELECT
+        v.id,
+        v.email,
+        v.name,
+        v."isActive",
+        v."portalAccess",
+        v."mustChangePassword",
+        v."lastLoginAt",
+        v."createdAt",
+        v."lockedUntil",
+        v."registrationId",
+        r."referenceNumber",
+        r.status AS "registrationStatus",
+        r."registrationComplete",
+        c."legalName" AS "companyLegalName",
+        (
+          SELECT COUNT(*)::int FROM "VendorSession" s
+          WHERE s."vendorId" = v.id
+            AND s."revokedAt" IS NULL
+            AND s."expiresAt" > NOW()
+        ) AS "activeSessions"
+      FROM "VendorUser" v
+      LEFT JOIN "SupplierRegistration" r ON r.id = v."registrationId"
+      LEFT JOIN "CompanyProfile" c ON c."registrationId" = r.id
+      WHERE v.id = ${id}
+    `);
+    
+    vendor = rows[0];
+
+    if (!vendor) return json(env, request, { error: "Not Found" }, 404);
+
+    quotes = await withDbRetry(env, (db) => db`
+      SELECT q.id, q."newPrice", q.status, q."submittedAt",
+             r.project AS "requirementProject",
+             r."referenceNumber" AS "requirementRef",
+             r.id AS "requirementId"
+      FROM "Quote" q
+      JOIN "Requirement" r ON r.id = q."requirementId"
+      WHERE q."vendorUserId" = ${id}
+      ORDER BY q."createdAt" DESC
+    `);
+
+    invites = await withDbRetry(env, (db) => db`
+      SELECT i.id, i."emailStatus", i."emailedAt",
+             r.project AS "requirementProject",
+             r."referenceNumber" AS "requirementRef",
+             r.id AS "requirementId"
+      FROM "RequirementInvite" i
+      JOIN "Requirement" r ON r.id = i."requirementId"
+      WHERE i."vendorUserId" = ${id}
+      ORDER BY i."createdAt" DESC
+    `);
+
+  } catch (err) {
+    console.error("[admin vendor get failed]", err);
+    return json(env, request, { error: "Database unavailable." }, 503);
+  }
+
+  return json(env, request, {
+    vendor: {
+      id: vendor.id,
+      email: vendor.email,
+      name: vendor.name,
+      isActive: vendor.isActive,
+      portalAccess: vendor.portalAccess === "RELEASED" ? "RELEASED" : "HELD",
+      mustChangePassword: vendor.mustChangePassword,
+      lastLoginAt: vendor.lastLoginAt,
+      createdAt: vendor.createdAt,
+      lockedUntil: vendor.lockedUntil,
+      activeSessions: vendor.activeSessions,
+      registrationId: vendor.registrationId,
+      companyName: vendor.companyLegalName || "—",
+      referenceNumber: vendor.referenceNumber,
+      registrationStatus: vendor.registrationStatus,
+      registrationComplete: Boolean(vendor.registrationComplete) || vendor.registrationId == null,
+      registration: vendor.registrationId
+        ? {
+            id: vendor.registrationId,
+            referenceNumber: vendor.referenceNumber,
+            status: vendor.registrationStatus,
+            company: vendor.companyLegalName ? { legalName: vendor.companyLegalName } : null,
+          }
+        : null,
+    },
+    quotes,
+    invites,
+  });
+}
+
 export async function handleVendorPatch(
   sql: Sql,
   env: Env,
