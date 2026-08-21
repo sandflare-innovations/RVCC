@@ -1,119 +1,19 @@
 "use client";
 
 import { useState } from "react";
-
 import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X, LayoutDashboard, Bell, ClipboardList } from "lucide-react";
 
-import { motion } from "framer-motion";
-import { ClipboardList, KeyRound, LayoutDashboard, LogOut } from "lucide-react";
-
-import { Sidebar, SidebarBody, SidebarLink, useSidebar } from "@/components/ui/sidebar";
-import { VENDOR_LOGIN_EXPIRED_PATH } from "@/lib/constants";
-import { signOutInstant } from "@/lib/sign-out-client";
 import type { VendorIdentity } from "@/lib/session";
 import { NotificationBell } from "@/sections/NotificationBell";
-
-const ICON = "h-5 w-5 shrink-0";
+import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/", label: "Dashboard", icon: <LayoutDashboard className={ICON} />, exact: true },
-  { href: "/requirements", label: "My RFQs / Bids", icon: <ClipboardList className={ICON} /> },
-  { href: "/password", label: "Account Settings", icon: <KeyRound className={ICON} /> },
+  { href: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/requirements", label: "My RFQs / Bids", icon: ClipboardList },
 ];
-
-function SidebarContents({
-  vendor,
-  onNavigate,
-  onSignOut,
-  onPrefetch,
-  signingOut,
-}: {
-  vendor: VendorIdentity;
-  onNavigate: () => void;
-  onSignOut: () => void;
-  onPrefetch: (href: string) => void;
-  signingOut: boolean;
-}) {
-  const pathname = usePathname();
-  const { open, animate } = useSidebar();
-  const expanded = animate ? open : true;
-
-  return (
-    <div className="flex h-full flex-col">
-      <div className="mb-6 flex items-center gap-3 px-2.5 py-1">
-        <span className="bg-brand-blue flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[11px] font-bold text-white">
-          R
-        </span>
-        <motion.span
-          animate={{
-            opacity: expanded ? 1 : 0,
-            display: expanded ? "block" : "none",
-          }}
-          initial={false}
-          className="whitespace-nowrap"
-        >
-          <span className="block text-sm font-semibold text-zinc-950">Supplier Portal</span>
-          <span className="block text-[11px] text-zinc-500">RVCC</span>
-        </motion.span>
-      </div>
-
-      {!vendor.mustChangePassword && (
-        <nav className="flex flex-1 flex-col gap-1">
-          {NAV.map((item) => (
-            <SidebarLink
-              key={item.href}
-              link={item}
-              onClick={onNavigate}
-              onPrefetch={() => onPrefetch(item.href)}
-              active={item.exact ? pathname === item.href : pathname.startsWith(item.href)}
-            />
-          ))}
-        </nav>
-      )}
-
-      {vendor.mustChangePassword && (
-        <div className="flex-1 px-3 text-sm font-medium text-amber-600">
-          Please change your password to continue.
-        </div>
-      )}
-
-      <div className="border-t border-zinc-200 pt-3">
-        <div className="flex items-center gap-3 px-2.5 py-2">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700">
-            {(vendor.name || vendor.email).charAt(0).toUpperCase()}
-          </span>
-          <motion.span
-            animate={{ opacity: expanded ? 1 : 0, display: expanded ? "block" : "none" }}
-            initial={false}
-            className="min-w-0 whitespace-nowrap"
-          >
-            <span className="block truncate text-sm font-medium text-zinc-950">
-              {vendor.name || vendor.email}
-            </span>
-            <span className="block text-[11px] text-zinc-500">Supplier</span>
-          </motion.span>
-        </div>
-
-        <button
-          type="button"
-          onClick={onSignOut}
-          disabled={signingOut}
-          title="Sign out"
-          className="focus-visible:ring-brand-blue flex min-h-11 w-full items-center gap-3 rounded-md px-2.5 py-2 text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-950 focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
-        >
-          <LogOut className={ICON} aria-hidden="true" />
-          <motion.span
-            animate={{ opacity: expanded ? 1 : 0, display: expanded ? "inline-block" : "none" }}
-            initial={false}
-            className="text-sm font-medium whitespace-nowrap"
-          >
-            Sign out
-          </motion.span>
-        </button>
-      </div>
-    </div>
-  );
-}
 
 export function VendorChrome({
   vendor,
@@ -123,42 +23,117 @@ export function VendorChrome({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const prefetch = (href: string) => {
-    router.prefetch(href);
-  };
-
-  const handleSignOut = () => {
-    if (signingOut) return;
-    setSigningOut(true);
-    signOutInstant(VENDOR_LOGIN_EXPIRED_PATH);
-  };
+  const initial = (vendor.name || vendor.email).charAt(0).toUpperCase();
 
   return (
-    <div className="flex h-screen bg-zinc-50/50">
-      <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody>
-          <SidebarContents
-            vendor={vendor}
-            signingOut={signingOut}
-            onSignOut={handleSignOut}
-            onNavigate={() => setOpen(false)}
-            onPrefetch={prefetch}
-          />
-        </SidebarBody>
-      </Sidebar>
+    <div className="flex min-h-screen flex-col bg-zinc-50 font-enquire selection:bg-white selection:text-brand-blue [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      {/* Top Navigation Bar Container */}
+      <div className="w-full px-4 md:px-6 pt-4 md:pt-6">
+        <header 
+          className={cn(
+            "bg-brand-blue mx-auto w-full z-50 relative transition-all duration-300 px-6 py-4 md:px-10",
+            pathname === "/" ? "rounded-t-[2.5rem]" : "rounded-[2.5rem]"
+          )}
+        >
+          <div className="flex items-center justify-between">
+            
+            {/* Logo Section */}
+            <div className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <img src="/images/logo/logo.webp" alt="RVCC Logo" className="h-6 md:h-8 w-auto brightness-0 invert" />
+              </Link>
+            </div>
 
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-end border-b border-zinc-200 bg-white/80 px-4 backdrop-blur-md md:px-8">
-          <NotificationBell />
+            {/* Desktop Navigation Links */}
+            <nav className="hidden items-center gap-8 md:flex">
+              {!vendor.mustChangePassword &&
+                NAV.map((item) => {
+                  const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-2 text-sm font-semibold transition-colors hover:text-white",
+                        isActive ? "text-white" : "text-white/70"
+                      )}
+                      onMouseEnter={() => router.prefetch(item.href)}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+            </nav>
+
+            {/* Right Actions (Notification + Profile) */}
+            <div className="flex items-center gap-2 md:gap-4">
+              <NotificationBell />
+
+              <Link
+                href="/profile"
+                className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white text-brand-blue shadow-sm transition-transform hover:scale-105 active:scale-95"
+                title="My Profile"
+              >
+                <span className="text-sm font-bold">{initial}</span>
+              </Link>
+
+              {/* Mobile Menu Toggle */}
+              <button
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white shadow-sm md:hidden"
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
         </header>
-
-        <main className="flex-1 overflow-y-auto p-5 md:p-8">
-          <div className="mx-auto max-w-7xl">{children}</div>
-        </main>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-[100] bg-white p-6"
+          >
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+              <span className="text-sm font-bold tracking-[0.2em] text-zinc-950 uppercase">Menu</span>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-950"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <nav className="mt-8 flex flex-col gap-6">
+              {NAV.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-2xl font-bold tracking-tight text-zinc-950"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content Area */}
+      <main className={cn("flex-1 w-full pb-12 px-4 md:px-6", pathname === "/" ? "pt-0" : "pt-6")}>
+        <div className="mx-auto w-full">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

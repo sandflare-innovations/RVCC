@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import Link from "next/link";
+import { Bell } from "lucide-react";
 
 type Item = {
   id: string;
@@ -63,11 +63,11 @@ export function NotificationBell() {
         type="button"
         onClick={toggle}
         aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
-        className="relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-300 text-zinc-700 transition-colors hover:bg-zinc-50"
+        className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
       >
-        <span aria-hidden="true">&#9679;</span>
+        <Bell className="h-5 w-5" />
         {unread > 0 ? (
-          <span className="absolute -top-1.5 -right-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-semibold text-white tabular-nums">
+          <span className="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white tabular-nums border-2 border-brand-blue">
             {unread}
           </span>
         ) : null}
