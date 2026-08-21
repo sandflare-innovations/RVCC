@@ -6,6 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 
 
 import "./globals.css";
+import "flag-icons/css/flag-icons.min.css";
 
 export const metadata: Metadata = {
   title: "RVCC | WHERE IDEAS ARE SHAPED TO REALITY",
