@@ -16,7 +16,7 @@ import {
 import { cn } from "@lib/utils";
 
 type Props = {
-  step: EnquireStep;
+  step: EnquireStep | "done" | "verify";
   title: string;
   subtitle?: string;
   details?: React.ReactNode;
@@ -36,13 +36,20 @@ export function EnquireShell({ step, title, subtitle, details, children }: Props
     if (i > 0) router.prefetch(`/enquire/${ENQUIRE_STEPS[i - 1]}`);
   }, [router, step]);
 
-  if (step === "verify") {
+  if (step === "verify" || step === "done") {
     return (
-      <div className="font-enquire relative min-h-screen bg-white text-base antialiased">
+      <div className="font-enquire relative h-screen overflow-hidden bg-white text-base antialiased flex flex-col">
+        {step === "done" && (
+          <header className="absolute top-0 left-0 w-full p-6 md:p-12 flex items-center justify-center md:justify-start z-50">
+            <img src="/images/logo/logo.webp" alt="RVCC Logo" className="h-8 md:h-10 w-auto" />
+          </header>
+        )}
         <span aria-live="polite" className="sr-only">
           {saving ? "Saving your progress" : ""}
         </span>
-        {children}
+        <main className={cn("relative z-10 flex-1 flex", step === "done" && "items-center justify-center p-6")}>
+          {children}
+        </main>
       </div>
     );
   }
@@ -61,7 +68,7 @@ export function EnquireShell({ step, title, subtitle, details, children }: Props
           <span className={cn(enquireEyebrowClass, "hidden sm:block mb-0 leading-none text-white/90")}>Prospective Supplier Registration</span>
         </div>
         
-        {step !== "done" && Boolean(registration?.email) && (
+        {Boolean(registration?.email) && (
           <div className="p-6 md:p-10 flex-1 overflow-y-auto">
             <StepTrain
               current={step}
@@ -102,7 +109,7 @@ export function EnquireShell({ step, title, subtitle, details, children }: Props
       </main>
 
       {/* Floating Info Button & Popover */}
-      {step !== "done" && (subtitle || details) && (
+      {(subtitle || details) && (
         <div 
           className="fixed bottom-6 right-6 z-50 flex flex-col items-end"
           onMouseEnter={() => setShowInfo(true)}
