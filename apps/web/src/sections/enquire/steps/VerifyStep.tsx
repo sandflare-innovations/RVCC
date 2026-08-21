@@ -358,15 +358,15 @@ export function VerifyStep() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mx-auto w-full max-w-sm">
           <div className="flex flex-col items-center space-y-6 text-center">
             {/* Success Icon */}
-            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-emerald-50">
-              <div className="absolute inset-0 animate-ping rounded-full bg-emerald-100/50" />
-              <CheckCircle2 className="relative z-10 h-10 w-10 text-emerald-500" aria-hidden="true" />
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-brand-blue/10">
+              <div className="absolute inset-0 animate-ping rounded-full bg-brand-blue/20" />
+              <CheckCircle2 className="relative z-10 h-10 w-10 text-brand-blue" aria-hidden="true" />
             </div>
             
             <div className="space-y-3">
               <h2 className="font-heading text-brand-blue text-4xl tracking-tight uppercase">User Verified</h2>
               <div className="mx-auto flex w-fit items-center gap-2 rounded-full border border-zinc-100 bg-zinc-50 px-4 py-2 shadow-sm">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                <div className="h-2 w-2 animate-pulse rounded-full bg-brand-blue" />
                 <span className="text-xs font-bold tracking-widest text-zinc-600 uppercase">{registration!.email}</span>
               </div>
             </div>
