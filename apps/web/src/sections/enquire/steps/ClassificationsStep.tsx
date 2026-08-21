@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
+import { createPortal } from "react-dom";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { DatePicker } from "@/components/ui/date-picker";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { CLASSIFICATION_OPTIONS } from "@/data/enquire-questionnaire";
@@ -31,13 +35,23 @@ const empty = (): Row => ({
   expirationDate: "",
 });
 
+const CLASSIFICATION_OPTIONS_LIST = CLASSIFICATION_OPTIONS.map((c) => ({
+  value: c,
+  label: c,
+}));
+
 export function ClassificationsStep() {
   useRequireSession("classifications");
   const router = useRouter();
   const { registration, saveDraft, advanceTo, loading, saving } = useEnquire();
-  // Which action is in flight, so only that button shows a spinner.
   const [pendingAction, setPendingAction] = useState<string | null>(null);
-  const [rows, setRows] = useState<Row[]>([]);
+  const [rows, setRows] = useState<Row[]>([empty()]);
+  const [errors, setErrors] = useState<Record<string, boolean>[]>([]);
+  const [headerNode, setHeaderNode] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setHeaderNode(document.getElementById("enquire-header-actions"));
+  }, []);
 
   useEffect(() => {
     if (!registration) return;
@@ -68,119 +82,130 @@ export function ClassificationsStep() {
   };
 
   const goNext = () => {
+    const newErrors = rows.map((r) => {
+      const err: Record<string, boolean> = {};
+      if (!r.classification.trim()) err.classification = true;
+      return err;
+    });
+
+    if (newErrors.some((err) => Object.keys(err).length > 0)) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors([]);
     advanceTo("bank", {
       classifications: rows.filter((r) => r.classification.trim()),
     });
   };
 
+  const actions = (
+    <>
+      <InteractiveHoverButton
+        type="button"
+        variant="outline"
+        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        disabled={saving}
+        pending={pendingAction === "save"}
+        onClick={() => void saveLater()}
+      >
+        Draft
+      </InteractiveHoverButton>
+      <InteractiveHoverButton
+        type="button"
+        variant="solid"
+        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        onClick={goNext}
+      >
+        Next
+      </InteractiveHoverButton>
+    </>
+  );
+
   if (loading && !registration) return null;
 
   return (
     <div className="space-y-8">
-      <p className={enquireMutedClass}>
-        Optional. Add any diversity, SME, or certification classifications that apply to your
-        business.
-      </p>
+      {headerNode && createPortal(actions, headerNode)}
 
-      {rows.map((r, i) => (
-        <div key={i} className="grid gap-6 border-b border-zinc-100 pb-8 md:grid-cols-2">
-          <EnquireField label="Classification" required className="md:col-span-2">
-            <select
-              className={enquireSelectClass}
-              value={r.classification}
-              onChange={(e) => update(i, "classification", e.target.value)}
-            >
-              <option value="">Select…</option>
-              {CLASSIFICATION_OPTIONS.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </EnquireField>
-          <EnquireField label="Certificate number">
-            <input
-              className={enquireInputClass}
-              value={r.certificateNumber}
-              onChange={(e) => update(i, "certificateNumber", e.target.value)}
-            />
-          </EnquireField>
-          <EnquireField label="Certifying agency">
-            <input
-              className={enquireInputClass}
-              value={r.certifyingAgency}
-              onChange={(e) => update(i, "certifyingAgency", e.target.value)}
-            />
-          </EnquireField>
-          <EnquireField label="Effective date">
-            <input
-              type="date"
-              className={enquireInputClass}
-              value={r.effectiveDate}
-              onChange={(e) => update(i, "effectiveDate", e.target.value)}
-            />
-          </EnquireField>
-          <EnquireField label="Expiration date">
-            <input
-              type="date"
-              className={enquireInputClass}
-              value={r.expirationDate}
-              onChange={(e) => update(i, "expirationDate", e.target.value)}
-            />
-          </EnquireField>
-          <button
-            type="button"
-            className={enquireActionLinkClass + " text-left md:col-span-2"}
-            onClick={() => setRows((prev) => prev.filter((_, idx) => idx !== i))}
-          >
-            Remove
-          </button>
-        </div>
-      ))}
 
-      <InteractiveHoverButton
-        type="button"
-        variant="outline"
-        className="sm:w-auto"
-        fullWidth
-        disabled={saving}
-        onClick={() => setRows((prev) => [...prev, empty()])}
-      >
-        Add Classification
-      </InteractiveHoverButton>
+      {rows.map((r, i) => {
+        const err = errors[i] || {};
+        return (
+          <div key={i} className="grid gap-4 border-b border-zinc-100 pb-8 md:grid-cols-2 md:gap-5 animate-fade-in">
+            <div className="md:col-span-2 flex items-center justify-between pb-2">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-900">
+                Classification {String(i + 1).padStart(2, "0")}
+              </h3>
+              {rows.length > 1 && (
+                <button
+                  type="button"
+                  className={enquireActionLinkClass}
+                  onClick={() => setRows((prev) => prev.filter((_, idx) => idx !== i))}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            
+            <EnquireField label="Classification" required className="md:col-span-2">
+              <SearchableSelect
+                options={CLASSIFICATION_OPTIONS_LIST}
+                value={r.classification}
+                onChange={(val) => {
+                  update(i, "classification", val);
+                  if (err.classification) {
+                    setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, classification: false } : e)));
+                  }
+                }}
+                placeholder="Select classification..."
+                className={err.classification ? "[&>button]:border-red-500 [&>button]:ring-1 [&>button]:ring-red-500" : ""}
+              />
+            </EnquireField>
+            
+            <EnquireField label="Certificate number">
+              <input
+                className={enquireInputClass}
+                value={r.certificateNumber}
+                onChange={(e) => update(i, "certificateNumber", e.target.value)}
+                placeholder=" "
+              />
+            </EnquireField>
+            <EnquireField label="Certifying agency">
+              <input
+                className={enquireInputClass}
+                value={r.certifyingAgency}
+                onChange={(e) => update(i, "certifyingAgency", e.target.value)}
+                placeholder=" "
+              />
+            </EnquireField>
+            <EnquireField label="Effective date">
+              <DatePicker
+                value={r.effectiveDate}
+                onChange={(val) => update(i, "effectiveDate", val)}
+              />
+            </EnquireField>
+            <EnquireField label="Expiration date">
+              <DatePicker
+                value={r.expirationDate}
+                onChange={(val) => update(i, "expirationDate", val)}
+              />
+            </EnquireField>
+          </div>
+        );
+      })}
 
-      <EnquireActions>
-        <InteractiveHoverButton
+      <div className="flex justify-center pb-8 pt-4">
+        <button
           type="button"
-          variant="outline"
-          className="sm:w-auto"
-          fullWidth
+          onClick={() => setRows((prev) => [...prev, empty()])}
           disabled={saving}
-          onClick={() => router.push("/enquire/addresses")}
+          className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-6 py-2.5 text-sm font-bold tracking-wide text-zinc-700 transition-all hover:bg-zinc-50 hover:text-brand-blue hover:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 disabled:opacity-50"
         >
-          Back
-        </InteractiveHoverButton>
-        <InteractiveHoverButton
-          type="button"
-          variant="outline"
-          className="sm:w-auto"
-          fullWidth
-          disabled={saving}
-          pending={pendingAction === "save"}
-          onClick={() => void saveLater()}
-        >
-          Save for Later
-        </InteractiveHoverButton>
-        <InteractiveHoverButton
-          type="button"
-          variant="solid"
-          className="sm:w-auto"
-          fullWidth
-          onClick={goNext}
-        >
-          Next: Bank Accounts
-        </InteractiveHoverButton>
-      </EnquireActions>
+          <Plus className="h-4 w-4 stroke-[3]" />
+          ADD CLASSIFICATION
+        </button>
+      </div>
     </div>
   );
 }

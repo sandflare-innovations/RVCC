@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
+import { CheckCircle2, Circle } from "lucide-react";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
@@ -19,35 +21,95 @@ export function ProductsStep() {
   // Which action is in flight, so only that button shows a spinner.
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
+  const [customFields, setCustomFields] = useState<{ id: string; value: string; active: boolean }[]>([]);
+  const [error, setError] = useState(false);
+  const [headerNode, setHeaderNode] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (registration?.productCategories) setSelected(registration.productCategories);
+    setHeaderNode(document.getElementById("enquire-header-actions"));
+  }, []);
+
+  useEffect(() => {
+    if (registration?.productCategories) {
+      const standardIds = ENQUIRE_CATEGORIES.map((c) => c.id).filter(id => id !== "other") as string[];
+      const standardSelected = registration.productCategories.filter((c) => standardIds.includes(c));
+      const customStrings = registration.productCategories.filter((c) => !standardIds.includes(c) && c !== "other" && c !== "Other Goods & Services");
+      
+      setSelected(standardSelected);
+      
+      const initialCustoms = customStrings.map((val, i) => ({
+        id: `custom-init-${i}`,
+        value: val,
+        active: true
+      }));
+      setCustomFields([...initialCustoms, { id: `custom-new-${Date.now()}`, value: "", active: false }]);
+    } else {
+      setCustomFields([{ id: `custom-new-${Date.now()}`, value: "", active: false }]);
+    }
   }, [registration]);
 
   const toggle = (id: string) => {
-    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    setSelected((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      if (next.length > 0 || customFields.some(f => f.active && f.value.trim() !== "")) setError(false);
+      return next;
+    });
+  };
+
+  const getFinalCategories = () => {
+    const final = selected.filter((x) => x !== "other");
+    const validCustoms = customFields.filter(f => f.active && f.value.trim() !== "").map(f => f.value.trim());
+    return [...final, ...validCustoms];
   };
 
   const saveLater = async () => {
     setPendingAction("save");
-    await saveDraft({ step: "products", productCategories: selected });
+    await saveDraft({ step: "products", productCategories: getFinalCategories() });
     setPendingAction(null);
   };
 
   const goNext = () => {
-    advanceTo("questionnaire", { productCategories: selected });
+    const final = getFinalCategories();
+    if (final.length === 0) {
+      setError(true);
+      return;
+    }
+    setError(false);
+    advanceTo("questionnaire", { productCategories: final });
   };
+
+  const actions = (
+    <>
+      <InteractiveHoverButton
+        type="button"
+        variant="outline"
+        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        disabled={saving}
+        pending={pendingAction === "save"}
+        onClick={() => void saveLater()}
+      >
+        Draft
+      </InteractiveHoverButton>
+      <InteractiveHoverButton
+        type="button"
+        variant="solid"
+        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        onClick={goNext}
+      >
+        Next
+      </InteractiveHoverButton>
+    </>
+  );
 
   if (loading && !registration) return null;
 
   return (
     <div className="space-y-8">
-      <p className={enquireMutedClass}>
-        Select all categories of goods and services you can supply to RVCC.
-      </p>
+      {headerNode && createPortal(actions, headerNode)}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {ENQUIRE_CATEGORIES.map((cat) => {
+
+      <div className="grid gap-3 sm:grid-cols-2 animate-fade-in">
+        {ENQUIRE_CATEGORIES.filter(c => c.id !== "other").map((cat) => {
           const on = selected.includes(cat.id);
           return (
             <button
@@ -55,53 +117,131 @@ export function ProductsStep() {
               type="button"
               onClick={() => toggle(cat.id)}
               className={cn(
-                "border px-4 py-4 text-left text-base transition-colors",
+                "group relative flex items-center justify-between border rounded-2xl px-5 py-4 text-left transition-all duration-200",
                 on
-                  ? "border-brand-blue bg-brand-blue text-white"
-                  : "hover:border-brand-blue/40 border-zinc-200 text-zinc-700"
+                  ? "border-brand-blue bg-brand-blue text-white shadow-md ring-1 ring-brand-blue"
+                  : "border-zinc-200 bg-white text-zinc-700 hover:border-brand-blue/40 hover:bg-zinc-50 hover:shadow-sm",
+                error && !on && selected.length === 0 && !customFields.some(f => f.active && f.value.trim() !== "") && "border-red-500 ring-1 ring-red-500 hover:border-red-500"
               )}
             >
-              <span className="text-sm font-bold tracking-[0.12em] uppercase opacity-60">
-                {on ? "Selected" : "Select"}
-              </span>
-              <div className="mt-1 font-medium">{cat.label}</div>
+              <div className="font-medium text-[15px] pr-4">{cat.label}</div>
+              <div className={cn(
+                "flex-shrink-0 transition-all duration-200",
+                on ? "text-white scale-110" : "text-zinc-300 group-hover:text-brand-blue/40"
+              )}>
+                {on ? (
+                  <CheckCircle2 className="h-6 w-6 text-white" strokeWidth={2} />
+                ) : (
+                  <Circle className="h-6 w-6" strokeWidth={1.5} />
+                )}
+              </div>
+            </button>
+          );
+        })}
+
+        {customFields.map((field, index) => {
+          const isLast = index === customFields.length - 1;
+          const on = field.active;
+
+          return (
+            <button
+              key={field.id}
+              type="button"
+              onClick={() => {
+                if (!on) {
+                  const newFields = [...customFields];
+                  newFields[index].active = true;
+                  setCustomFields(newFields);
+                  setError(false);
+                }
+              }}
+              className={cn(
+                "group relative flex items-center justify-between border rounded-2xl px-5 py-4 text-left transition-all duration-200",
+                on
+                  ? "border-brand-blue bg-brand-blue text-white shadow-md ring-1 ring-brand-blue"
+                  : "border-zinc-200 bg-white text-zinc-700 hover:border-brand-blue/40 hover:bg-zinc-50 hover:shadow-sm",
+                error && !on && selected.length === 0 && !customFields.some(f => f.active && f.value.trim() !== "") && "border-red-500 ring-1 ring-red-500 hover:border-red-500"
+              )}
+            >
+              <div className="font-medium text-[15px] pr-4 w-full flex-1">
+                {on ? (
+                  <div className="flex items-center gap-2 pr-4 relative z-10 w-full">
+                    <input 
+                      type="text" 
+                      value={field.value}
+                      onChange={(e) => {
+                        const newFields = [...customFields];
+                        newFields[index].value = e.target.value;
+                        setCustomFields(newFields);
+                      }}
+                      onBlur={() => {
+                        if (field.value.trim() === "") {
+                          const newFields = [...customFields];
+                          if (isLast) {
+                            newFields[index].active = false;
+                          } else {
+                            newFields.splice(index, 1);
+                          }
+                          setCustomFields(newFields);
+                        } else {
+                          if (isLast) {
+                            const newFields = [...customFields];
+                            newFields.push({ id: `custom-new-${Date.now()}`, value: "", active: false });
+                            setCustomFields(newFields);
+                          }
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          e.currentTarget.blur();
+                        }
+                      }}
+                      placeholder="Type your service..."
+                      autoFocus
+                      className="w-full bg-transparent border-b border-white/40 text-white placeholder:text-white/60 focus:outline-none focus:border-white py-1"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                ) : (
+                  "Other Goods & Services"
+                )}
+              </div>
+              <div
+                onClick={(e) => {
+                  if (on) {
+                    e.stopPropagation();
+                    const newFields = [...customFields];
+                    if (isLast) {
+                      newFields[index].active = false;
+                      newFields[index].value = "";
+                    } else {
+                      newFields.splice(index, 1);
+                    }
+                    setCustomFields(newFields);
+                  }
+                }}
+                className={cn(
+                  "flex-shrink-0 transition-all duration-200 cursor-pointer",
+                  on ? "text-white scale-110" : "text-zinc-300 group-hover:text-brand-blue/40"
+                )}
+              >
+                {on ? (
+                  <CheckCircle2 className="h-6 w-6 text-white" strokeWidth={2} />
+                ) : (
+                  <Circle className="h-6 w-6" strokeWidth={1.5} />
+                )}
+              </div>
             </button>
           );
         })}
       </div>
 
-      <EnquireActions>
-        <InteractiveHoverButton
-          type="button"
-          variant="outline"
-          className="sm:w-auto"
-          fullWidth
-          disabled={saving}
-          onClick={() => router.push("/enquire/bank")}
-        >
-          Back
-        </InteractiveHoverButton>
-        <InteractiveHoverButton
-          type="button"
-          variant="outline"
-          className="sm:w-auto"
-          fullWidth
-          disabled={saving}
-          pending={pendingAction === "save"}
-          onClick={() => void saveLater()}
-        >
-          Save for Later
-        </InteractiveHoverButton>
-        <InteractiveHoverButton
-          type="button"
-          variant="solid"
-          className="sm:w-auto"
-          fullWidth
-          onClick={goNext}
-        >
-          Next: Questionnaire
-        </InteractiveHoverButton>
-      </EnquireActions>
+      {error && selected.length === 0 && !customFields.some(f => f.active && f.value.trim() !== "") && (
+        <p className="text-red-500 text-sm font-medium mt-4">
+          Please select at least one category to continue.
+        </p>
+      )}
     </div>
   );
 }
