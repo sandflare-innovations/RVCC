@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Search, ChevronDown, Users, CheckCircle, Lock, ShieldAlert, Clock } from "lucide-react";
 
 import { StatusBadge } from "@/lib/ui";
 import { fetchTableJson } from "@/lib/table-fetch";
@@ -75,7 +75,12 @@ function syncUrl(filter: VendorFilterValue, search: string) {
   window.history.replaceState(null, "", url);
 }
 
-export function VendorAccountsPanel({ industries }: { industries: IndustryOption[] }) {
+export function VendorAccountsPanel({
+  industries,
+}: {
+  industries: IndustryOption[];
+}) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [filter, setFilter] = useState<VendorFilterValue>(() =>
     parseVendorFilter(searchParams.get("filter"))
@@ -85,6 +90,7 @@ export function VendorAccountsPanel({ industries }: { industries: IndustryOption
   const [loadError, setLoadError] = useState<string | null>(null);
   const [initialLoad, setInitialLoad] = useState(() => !readVendorCache());
   const [refreshing, setRefreshing] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [, startTransition] = useTransition();
   const requestId = useRef(0);
 
@@ -92,6 +98,18 @@ export function VendorAccountsPanel({ industries }: { industries: IndustryOption
     () => filterVendorRows(allVendors, filter, search),
     [allVendors, filter, search]
   );
+
+  const metrics = useMemo(() => {
+    let released = 0;
+    let pending = 0;
+    let held = 0;
+    for (const v of allVendors) {
+      if (v.portalAccess === "RELEASED") released++;
+      if (v.portalAccess === "HELD") held++;
+      if (v.mustChangePassword) pending++;
+    }
+    return { total: allVendors.length, released, pending, held };
+  }, [allVendors]);
 
   const fetchAll = useCallback(async (opts?: { background?: boolean }) => {
     const id = ++requestId.current;
@@ -159,146 +177,193 @@ export function VendorAccountsPanel({ industries }: { industries: IndustryOption
   }, [fetchAll]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">Vendor Accounts</h1>
-          <p className="mt-1 text-sm text-zinc-600">
-            User Management — hold or release each supplier&apos;s portal access. Registration can
-            be complete while access stays held.
-          </p>
+    <div className="flex flex-1 flex-col min-h-0 space-y-6 w-full">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+        <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
+          <div>
+            <p className="text-sm font-medium text-zinc-500">Total Vendors</p>
+            <p className="text-2xl font-semibold text-zinc-950 mt-1">{metrics.total}</p>
+          </div>
+          <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-brand-blue transition-transform group-hover:scale-110">
+            <Users className="h-6 w-6" />
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={refreshTable}
-          disabled={refreshing}
-          title="Refresh table data"
-          aria-label="Refresh vendor table"
-          className="inline-flex h-9 items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 text-xs font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-50"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} aria-hidden />
-          Refresh
-        </button>
+        <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
+          <div>
+            <p className="text-sm font-medium text-zinc-500">Access Released</p>
+            <p className="text-2xl font-semibold text-zinc-950 mt-1">{metrics.released}</p>
+          </div>
+          <div className="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <CheckCircle className="h-6 w-6 transition-all group-hover:animate-pulse" />
+          </div>
+        </div>
+        <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
+          <div>
+            <p className="text-sm font-medium text-zinc-500">Pending Setup</p>
+            <p className="text-2xl font-semibold text-zinc-950 mt-1">{metrics.pending}</p>
+          </div>
+          <div className="h-12 w-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
+            <Clock className="h-6 w-6 transition-all group-hover:animate-[spin_3s_linear_infinite]" />
+          </div>
+        </div>
+        <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
+          <div>
+            <p className="text-sm font-medium text-zinc-500">Access Held</p>
+            <p className="text-2xl font-semibold text-zinc-950 mt-1">{metrics.held}</p>
+          </div>
+          <div className="h-12 w-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-600">
+            <ShieldAlert className="h-6 w-6 transition-all group-hover:animate-bounce" />
+          </div>
+        </div>
       </div>
 
-      <CreateVendorForm industries={industries} onCreated={updateRowInCache} />
-
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Vendor access filters">
-          {VENDOR_FILTERS.map((f) => (
-            <button
-              key={f.value}
-              type="button"
-              role="tab"
-              aria-selected={f.value === filter}
-              onClick={() => applyFilter(f.value)}
-              className={
-                f.value === filter
-                  ? "bg-brand-blue rounded-md px-3 py-1.5 text-xs font-semibold text-white"
-                  : "rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:border-zinc-400"
-              }
-            >
-              {f.label}
-            </button>
-          ))}
+      <div className="flex flex-wrap items-center justify-between gap-4 shrink-0">
+        <div className="flex items-center gap-3 w-full max-w-sm">
+          <button
+            type="button"
+            onClick={refreshTable}
+            disabled={refreshing}
+            title="Refresh table data"
+            aria-label="Refresh vendor table"
+            className="inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full border border-brand-blue bg-white text-brand-blue transition-colors hover:bg-brand-blue/5 disabled:opacity-50 focus-visible:ring-[3px] focus-visible:ring-brand-blue/25 focus-visible:outline-none"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-brand-blue" : ""}`} aria-hidden />
+          </button>
+          
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-blue" />
+            <input
+              name="q"
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Search email, name, company…"
+              aria-label="Search vendor accounts"
+              maxLength={120}
+              className="focus-visible:ring-brand-blue/25 w-full rounded-full border border-brand-blue bg-white py-2.5 pl-11 pr-4 text-sm outline-none focus-visible:ring-[3px] transition-shadow placeholder:text-brand-blue/70 text-brand-blue"
+            />
+          </div>
         </div>
 
-        <div className="ml-auto">
-          <input
-            name="q"
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search email, name, company…"
-            aria-label="Search vendor accounts"
-            maxLength={120}
-            className="focus-visible:border-brand-blue focus-visible:ring-brand-blue/25 w-72 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm outline-none focus-visible:ring-[3px]"
-          />
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => setFilterOpen((prev) => !prev)}
+              onBlur={() => setTimeout(() => setFilterOpen(false), 200)}
+              className="focus-visible:ring-brand-blue/25 flex items-center justify-between gap-3 rounded-full border border-brand-blue bg-white py-2.5 pl-5 pr-4 text-sm font-semibold text-brand-blue outline-none focus-visible:ring-[3px] transition-shadow min-w-[160px]"
+            >
+              <span>{VENDOR_FILTERS.find((f) => f.value === filter)?.label || "All"}</span>
+              <ChevronDown className="h-4 w-4 text-brand-blue" />
+            </button>
+            
+            {filterOpen && (
+              <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-zinc-200 bg-white py-2 shadow-lg z-50">
+                {VENDOR_FILTERS.map((f) => (
+                  <button
+                    key={f.value}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      applyFilter(f.value);
+                      setFilterOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                      f.value === filter ? "bg-zinc-50 font-semibold text-brand-blue" : "text-zinc-700 hover:bg-zinc-50"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <CreateVendorForm industries={industries} onCreated={updateRowInCache} />
         </div>
       </div>
 
       <div
-        className={`overflow-hidden rounded-lg border border-zinc-200 bg-white transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
+        className={`flex-1 px-2 -mx-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] min-h-0 transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
         aria-busy={refreshing || initialLoad}
       >
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50">
-            <tr className="text-xs font-semibold tracking-[0.08em] text-zinc-600 uppercase">
-              <th className="px-4 py-3">Account</th>
+        <table className="w-full text-left text-sm border-separate border-spacing-y-3 -mt-3">
+          <thead className="sticky top-0 z-10">
+            <tr className="text-xs font-bold tracking-[0.08em] text-white bg-brand-blue uppercase">
+              <th className="px-4 py-3 rounded-l-xl w-12 text-center"></th>
+              <th className="px-4 py-3">Name</th>
+              <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">Company</th>
+              <th className="px-4 py-3">Reg ID</th>
               <th className="px-4 py-3">Last sign-in</th>
-              <th className="px-4 py-3">State</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="px-4 py-3 text-right rounded-r-xl">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100">
+          <tbody>
             {initialLoad && displayed.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-zinc-600">
+              <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
+                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
                   Loading vendor accounts…
                 </td>
               </tr>
             )}
             {loadError && displayed.length === 0 && !initialLoad && (
-              <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-zinc-600">
+              <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
+                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
                   {loadError}
                 </td>
               </tr>
             )}
             {!loadError && !initialLoad && displayed.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-zinc-600">
+              <tr className="bg-white ring-1 ring-inset ring-zinc-200/50 rounded-xl">
+                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
                   {`No vendor accounts${search ? ` matching “${search}”` : ""} in this view.`}
                 </td>
               </tr>
             )}
             {displayed.map((v) => (
-              <tr key={v.id} className="transition-colors hover:bg-zinc-50">
-                <td className="px-4 py-3">
-                  <p className="font-medium text-zinc-950">{v.email}</p>
-                  {v.name && <p className="text-xs text-zinc-500">{v.name}</p>}
+              <tr
+                key={v.id}
+                className="bg-white ring-1 ring-inset ring-zinc-200/50 rounded-xl transition-shadow hover:ring-brand-blue group cursor-pointer"
+                onClick={(e) => {
+                  // Prevent navigation if the user is clicking on the actions dropdown or other interactive elements
+                  if ((e.target as HTMLElement).closest('button, a')) return;
+                  router.push(`/vendors/${v.id}`);
+                }}
+              >
+                <td className="px-4 py-4 rounded-l-xl text-center">
+                  {v.portalAccess === "RELEASED" ? (
+                    <CheckCircle className="w-5 h-5 text-emerald-500 mx-auto" />
+                  ) : (
+                    <Lock className="w-5 h-5 text-amber-500 mx-auto" />
+                  )}
                 </td>
-                <td className="px-4 py-3 text-zinc-700">
+                <td className="px-4 py-4">
+                  <p className="font-medium text-zinc-950">{v.name || "—"}</p>
+                </td>
+                <td className="px-4 py-4">
+                  <p className="text-zinc-700">{v.email}</p>
+                </td>
+                <td className="px-4 py-4 text-zinc-700">
                   {v.registration ? (
-                    <>
-                      <Link
-                        href={`/registrations/${v.registration.id}`}
-                        className="hover:text-brand-blue underline-offset-2 hover:underline"
-                      >
-                        {v.registration.company?.legalName || "—"}
-                      </Link>
-                      {v.registration.referenceNumber && (
-                        <p className="font-mono text-xs text-zinc-500 tabular-nums">
-                          {v.registration.referenceNumber}
-                        </p>
-                      )}
-                    </>
+                    <span className="font-medium">
+                      {v.registration.company?.legalName || "—"}
+                    </span>
                   ) : (
                     <span className="text-zinc-500">Added by RVCC</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-zinc-600 tabular-nums">
+                <td className="px-4 py-4">
+                  {v.registration?.referenceNumber ? (
+                    <p className="font-mono text-sm text-zinc-600 tabular-nums">
+                      {v.registration.referenceNumber}
+                    </p>
+                  ) : (
+                    <span className="text-zinc-400">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-4 text-zinc-600 tabular-nums">
                   {formatDateTime(v.lastLoginAt) ?? "Never"}
                 </td>
-                <td className="px-4 py-3">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <StatusBadge status={v.portalAccess === "RELEASED" ? "ACTIVE" : "DISABLED"} />
-                    <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-zinc-700">
-                      {v.portalAccess === "RELEASED" ? "Released" : "Held"}
-                    </span>
-                    {v.registrationComplete && (
-                      <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-emerald-800">
-                        Reg. complete
-                      </span>
-                    )}
-                    {v.mustChangePassword && (
-                      <span className="border-brand-blue text-brand-blue bg-brand-blue/5 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap">
-                        Temp password
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-4 rounded-r-xl">
                   <VendorRowActions vendor={toSummary(v)} onUpdated={updateRowInCache} />
                 </td>
               </tr>
