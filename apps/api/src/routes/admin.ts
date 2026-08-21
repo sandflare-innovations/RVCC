@@ -23,6 +23,7 @@ import {
   handleRequirementGet,
   handleRequirementsList,
   handleVendorCreate,
+  handleVendorGet,
   handleVendorPatch,
   handleVendorResetPassword,
   handleVendorsList,
@@ -127,8 +128,13 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
     }
 
     const vendorOne = path.match(/^\/vendors\/([^/]+)$/);
-    if (vendorOne && request.method === "PATCH") {
-      return await handleVendorPatch(sql, env, request, decodeURIComponent(vendorOne[1]!));
+    if (vendorOne) {
+      if (request.method === "GET") {
+        return await handleVendorGet(sql, env, request, decodeURIComponent(vendorOne[1]!));
+      }
+      if (request.method === "PATCH") {
+        return await handleVendorPatch(sql, env, request, decodeURIComponent(vendorOne[1]!));
+      }
     }
 
     if (path === "/careers" && request.method === "GET") {
