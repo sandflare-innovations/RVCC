@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { AlertCircle, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Pencil, Trash2, MoreVertical } from "lucide-react";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
@@ -21,6 +21,18 @@ export function CareerRowActions({
   const [confirmText, setConfirmText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const togglePublished = async () => {
     setBusy(true);
@@ -60,40 +72,56 @@ export function CareerRowActions({
 
   return (
     <>
-      <div className="flex items-center justify-end gap-1">
+      <div className="relative flex items-center justify-end" ref={dropdownRef}>
         <button
           type="button"
-          onClick={() => void togglePublished()}
-          disabled={busy}
-          aria-label={job.isPublished ? `Unpublish ${job.title}` : `Publish ${job.title}`}
-          title={job.isPublished ? "Unpublish" : "Publish"}
-          className="hover:text-brand-blue rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100 disabled:opacity-50"
-        >
-          {job.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push(`/content/careers/${job.id}`)}
-          aria-label={`Edit ${job.title}`}
-          title="Edit"
+          onClick={() => setShowDropdown((s) => !s)}
           className="hover:text-brand-blue rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
         >
-          <Pencil className="h-4 w-4" />
+          <MoreVertical className="h-4 w-4" />
         </button>
-        {canDelete && (
-          <button
-            type="button"
-            onClick={() => {
-              setConfirmText("");
-              setError(null);
-              setShowDelete(true);
-            }}
-            aria-label={`Delete ${job.title}`}
-            title="Delete"
-            className="rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-900 hover:text-white"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+
+        {showDropdown && (
+          <div className="absolute right-0 top-full z-10 mt-1 w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-lg">
+            <button
+              type="button"
+              onClick={() => {
+                setShowDropdown(false);
+                void togglePublished();
+              }}
+              disabled={busy}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100 disabled:opacity-50"
+            >
+              {job.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {job.isPublished ? "Unpublish" : "Publish"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowDropdown(false);
+                router.push(`/content/careers/${job.id}`);
+              }}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+            >
+              <Pencil className="h-4 w-4" />
+              Edit
+            </button>
+            {canDelete && (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDropdown(false);
+                  setConfirmText("");
+                  setError(null);
+                  setShowDelete(true);
+                }}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </button>
+            )}
+          </div>
         )}
       </div>
 

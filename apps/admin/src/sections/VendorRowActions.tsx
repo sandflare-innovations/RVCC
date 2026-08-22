@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { AlertCircle, ExternalLink, Eye, KeyRound, Lock, Unlock } from "lucide-react";
+import { AlertCircle, ExternalLink, Eye, KeyRound, Lock, Unlock, MoreVertical } from "lucide-react";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
@@ -52,6 +52,18 @@ export function VendorRowActions({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [issued, setIssued] = useState<string | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const v = vendor;
   const held = v.portalAccess !== "RELEASED";
@@ -107,44 +119,56 @@ export function VendorRowActions({
 
   return (
     <>
-      <div className="flex items-center justify-end gap-1">
+      <div className="relative flex items-center justify-end" ref={dropdownRef}>
         <button
           type="button"
-          onClick={() => setShowDetails(true)}
-          aria-label={`View details for ${v.email}`}
-          title="View details"
+          onClick={() => setShowDropdown((s) => !s)}
           className="hover:text-brand-blue rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
         >
-          <Eye className="h-4 w-4" />
+          <MoreVertical className="h-4 w-4" />
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            setIssued(null);
-            setError(null);
-            setShowReset(true);
-          }}
-          aria-label={`Reset password for ${v.email}`}
-          title="Reset password"
-          className="hover:text-brand-blue rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
-        >
-          <KeyRound className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setError(null);
-            setIssued(null);
-            setShowAccess(true);
-          }}
-          aria-label={
-            held ? `Release portal access for ${v.email}` : `Hold portal access for ${v.email}`
-          }
-          title={held ? "Release portal access" : "Hold portal access"}
-          className="rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-900 hover:text-white"
-        >
-          {held ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-        </button>
+
+        {showDropdown && (
+          <div className="absolute right-0 top-full z-10 mt-1 w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-lg">
+            <button
+              type="button"
+              onClick={() => {
+                setShowDropdown(false);
+                setShowDetails(true);
+              }}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+            >
+              <Eye className="h-4 w-4" />
+              View details
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowDropdown(false);
+                setIssued(null);
+                setError(null);
+                setShowReset(true);
+              }}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+            >
+              <KeyRound className="h-4 w-4" />
+              Reset password
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowDropdown(false);
+                setError(null);
+                setIssued(null);
+                setShowAccess(true);
+              }}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+            >
+              {held ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+              {held ? "Release access" : "Hold access"}
+            </button>
+          </div>
+        )}
       </div>
 
       <Modal

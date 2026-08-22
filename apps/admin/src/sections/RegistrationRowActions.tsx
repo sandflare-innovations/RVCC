@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { AlertCircle, ExternalLink, Eye, Trash2 } from "lucide-react";
+import { AlertCircle, ExternalLink, Eye, Trash2, MoreVertical } from "lucide-react";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
@@ -35,6 +35,18 @@ export function RegistrationRowActions({
   const [confirmText, setConfirmText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const r = registration;
   const label = r.companyName?.trim() || r.email;
@@ -65,29 +77,41 @@ export function RegistrationRowActions({
 
   return (
     <>
-      <div className="flex items-center justify-end gap-1">
-        <Link
-          href={`/registrations/${r.id}`}
-          aria-label={`View details for ${label}`}
+      <div className="relative flex items-center justify-end" ref={dropdownRef}>
+        <button
+          type="button"
+          onClick={() => setShowDropdown((s) => !s)}
           className="hover:text-brand-blue rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
-          title="View details"
         >
-          <Eye className="h-4 w-4" />
-        </Link>
-        {canDelete && (
-          <button
-            type="button"
-            onClick={() => {
-              setConfirmText("");
-              setError(null);
-              setShowDelete(true);
-            }}
-            aria-label={`Delete ${label}`}
-            className="rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-900 hover:text-white"
-            title="Delete"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          <MoreVertical className="h-4 w-4" />
+        </button>
+
+        {showDropdown && (
+          <div className="absolute right-0 top-full z-10 mt-1 w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-lg">
+            <Link
+              href={`/registrations/${r.id}`}
+              onClick={() => setShowDropdown(false)}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+            >
+              <Eye className="h-4 w-4" />
+              View details
+            </Link>
+            {canDelete && (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDropdown(false);
+                  setConfirmText("");
+                  setError(null);
+                  setShowDelete(true);
+                }}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </button>
+            )}
+          </div>
         )}
       </div>
 
