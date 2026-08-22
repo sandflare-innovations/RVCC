@@ -19,6 +19,7 @@ import {
 } from "@/lib/vendor-filters";
 import { CreateVendorForm, type IndustryOption } from "@/sections/CreateVendorForm";
 import { VendorRowActions, type VendorSummary } from "@/sections/VendorRowActions";
+import { SmoothScroll } from "@/components/ui";
 
 type VendorRow = CachedVendorRow;
 
@@ -280,8 +281,8 @@ export function VendorAccountsPanel({
         </div>
       </div>
 
-      <div
-        className={`flex-1 px-2 -mx-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] min-h-0 transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
+      <SmoothScroll
+        className={`flex-1 px-2 -mx-2 min-h-0 transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
         aria-busy={refreshing || initialLoad}
       >
         <table className="w-full text-left text-sm border-separate border-spacing-y-3 -mt-3">
@@ -369,7 +370,7 @@ export function VendorAccountsPanel({
             ))}
           </tbody>
         </table>
-      </div>
+      </SmoothScroll>
     </div>
   );
 }

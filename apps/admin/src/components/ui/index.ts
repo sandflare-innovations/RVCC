@@ -8,3 +8,4 @@ export * from "./interactive-hover-button";
 export * from "./sidebar";
 export * from "./back-button";
 export * from "./analytics-charts";
+export * from "./SmoothScroll";
