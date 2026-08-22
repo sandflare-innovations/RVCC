@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Briefcase, FileText, ImageIcon, Users } from "lucide-react";
+import { Briefcase, Image as ImageIcon, Wrench, Info, UserCheck, FolderOpen, FileArchive, ShieldCheck, ArrowRight, Globe } from "lucide-react";
 
 import { adminSessionJson } from "@/lib/admin-data";
 
@@ -8,75 +8,164 @@ export const dynamic = "force-dynamic";
 
 type DashboardJobs = { publishedJobs: number; totalJobs: number };
 
-export default async function ContentHubPage() {
+const SECTIONS = [
+  {
+    href: "/content/projects",
+    label: "Projects",
+    description: "Manage company project portfolio, details, images, and metrics.",
+    icon: Briefcase,
+    color: "bg-blue-50 text-blue-600",
+    borderColor: "hover:border-blue-400",
+  },
+  {
+    href: "/content/gallery",
+    label: "Gallery",
+    description: "Upload and organize project gallery images and collections.",
+    icon: ImageIcon,
+    color: "bg-purple-50 text-purple-600",
+    borderColor: "hover:border-purple-400",
+  },
+  {
+    href: "/content/services",
+    label: "Services",
+    description: "Edit service categories, descriptions, and detail pages.",
+    icon: Wrench,
+    color: "bg-emerald-50 text-emerald-600",
+    borderColor: "hover:border-emerald-400",
+  },
+  {
+    href: "/content/about",
+    label: "About Page",
+    description: "Update company overview, mission, journey, stats, and divisions.",
+    icon: Info,
+    color: "bg-amber-50 text-amber-600",
+    borderColor: "hover:border-amber-400",
+  },
+  {
+    href: "/content/clients",
+    label: "Clients",
+    description: "Manage client logos, names, and partner information.",
+    icon: UserCheck,
+    color: "bg-cyan-50 text-cyan-600",
+    borderColor: "hover:border-cyan-400",
+  },
+  {
+    href: "/content/careers",
+    label: "Careers",
+    description: "Post, edit, and manage job listings shown on the careers page.",
+    icon: FolderOpen,
+    color: "bg-rose-50 text-rose-600",
+    borderColor: "hover:border-rose-400",
+  },
+  {
+    href: "/content/documents",
+    label: "Documents",
+    description: "Upload and manage company PDFs, brochures, and certificates.",
+    icon: FileArchive,
+    color: "bg-indigo-50 text-indigo-600",
+    borderColor: "hover:border-indigo-400",
+  },
+  {
+    href: "/content/quality-policy",
+    label: "Quality Policy",
+    description: "Edit the company quality policy and compliance information.",
+    icon: ShieldCheck,
+    color: "bg-teal-50 text-teal-600",
+    borderColor: "hover:border-teal-400",
+  },
+];
+
+export default async function ContentDashboardPage() {
   const result = await adminSessionJson<DashboardJobs>("/dashboard");
   const published = result.ok ? (result.data.publishedJobs ?? 0) : 0;
   const total = result.ok ? (result.data.totalJobs ?? published) : 0;
 
-  const pending = [
-    { label: "Project Gallery", icon: ImageIcon, detail: "16 projects · needs image uploads" },
-    { label: "Clients", icon: Users, detail: "18 logos · needs image uploads" },
-    { label: "Documents", icon: FileText, detail: "PDFs · served from R2" },
-  ];
-
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">Site Content</h1>
-        <p className="mt-1 text-sm text-zinc-600">
-          Content that can be edited without a developer or a redeploy.
-        </p>
-      </div>
-
-      <Link
-        href="/content/careers"
-        className="hover:border-brand-blue block rounded-lg border border-zinc-200 bg-white p-5 transition-colors"
-      >
-        <div className="flex items-start gap-4">
-          <span className="bg-brand-blue flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-white">
-            <Briefcase className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-zinc-950">Careers</p>
-            <p className="mt-0.5 text-sm text-zinc-600">
-              Job postings shown on the public careers page.
-            </p>
+    <div className="flex flex-col min-h-0 w-full h-full relative">
+      {/* Header */}
+      <div className="flex-none flex items-center justify-between bg-white pb-6">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-brand-blue flex items-center justify-center">
+            <Globe className="h-5 w-5 text-white" />
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-semibold text-zinc-950 tabular-nums">{published}</p>
-            <p className="text-xs text-zinc-500">
-              published{total !== published ? ` · ${total - published} draft` : ""}
-            </p>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-zinc-950">Website Content</h1>
+            <p className="text-sm text-zinc-500">Manage your company website content</p>
           </div>
         </div>
-      </Link>
+      </div>
 
-      <section>
-        <h2 className="mb-3 text-xs font-bold tracking-[0.12em] text-zinc-600 uppercase">
-          Not editable yet
-        </h2>
-        <ul className="space-y-2">
-          {pending.map(({ label, icon: Icon, detail }) => (
-            <li
-              key={label}
-              className="flex items-center gap-4 rounded-lg border border-dashed border-zinc-300 bg-white px-5 py-4"
-            >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-zinc-100 text-zinc-500">
-                <Icon className="h-5 w-5" aria-hidden="true" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-zinc-700">{label}</p>
-                <p className="mt-0.5 text-sm text-zinc-500">{detail}</p>
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="space-y-8 pb-12">
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors shadow-sm">
+              <div>
+                <p className="text-sm font-medium text-zinc-500">Sections</p>
+                <p className="text-2xl font-semibold text-zinc-950 mt-1">8</p>
               </div>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-3 text-sm text-zinc-600">
-          These need object storage before they can be edited here — a deployed app cannot write
-          into its own <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs">public/</code>{" "}
-          folder. Cloudflare R2 is the natural fit alongside the existing API.
-        </p>
-      </section>
+              <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-brand-blue transition-transform group-hover:scale-110">
+                <Globe className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors shadow-sm">
+              <div>
+                <p className="text-sm font-medium text-zinc-500">Published Jobs</p>
+                <p className="text-2xl font-semibold text-zinc-950 mt-1">{published}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-transform group-hover:scale-110">
+                <FolderOpen className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors shadow-sm">
+              <div>
+                <p className="text-sm font-medium text-zinc-500">Total Jobs</p>
+                <p className="text-2xl font-semibold text-zinc-950 mt-1">{total}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 transition-transform group-hover:scale-110">
+                <Briefcase className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors shadow-sm">
+              <div>
+                <p className="text-sm font-medium text-zinc-500">Draft Jobs</p>
+                <p className="text-2xl font-semibold text-zinc-950 mt-1">{total - published}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 transition-transform group-hover:scale-110">
+                <FileArchive className="h-6 w-6" />
+              </div>
+            </div>
+          </div>
+
+          {/* Content Sections Grid */}
+          <div>
+            <h2 className="text-lg font-bold tracking-tight text-zinc-900 mb-4">Content Sections</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {SECTIONS.map((section) => {
+                const Icon = section.icon;
+                return (
+                  <Link
+                    key={section.href}
+                    href={section.href}
+                    className={`group flex flex-col p-5 rounded-2xl border border-zinc-200 bg-white transition-all hover:shadow-md ${section.borderColor}`}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`h-11 w-11 rounded-xl ${section.color} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-zinc-300 transition-all group-hover:text-zinc-600 group-hover:translate-x-1" />
+                    </div>
+                    <h3 className="font-bold text-zinc-900 text-base mb-1">{section.label}</h3>
+                    <p className="text-sm text-zinc-500 leading-relaxed">{section.description}</p>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
