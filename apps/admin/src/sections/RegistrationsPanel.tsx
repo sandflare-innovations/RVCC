@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import countries from "world-countries";
 
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Search, ChevronDown, FileText, CheckCircle, Clock, XCircle, FileCheck, Loader, ChevronUp } from "lucide-react";
 
 import { StatusBadge } from "@/lib/ui";
 import { fetchTableJson } from "@/lib/table-fetch";
@@ -47,6 +48,35 @@ function syncUrl(status: RegistrationFilterValue, search: string) {
   window.history.replaceState(null, "", url);
 }
 
+function getCountryData(countryString: string | null) {
+  if (!countryString) return null;
+  
+  // Try to find by name first (what the web app saves)
+  const byName = countries.find(c => c.name.common.toLowerCase() === countryString.toLowerCase());
+  if (byName) return byName;
+  
+  // Try by cca2
+  if (countryString.length === 2) {
+    const byCode = countries.find(c => c.cca2.toLowerCase() === countryString.toLowerCase());
+    if (byCode) return byCode;
+  }
+  
+  return null;
+}
+
+function getCountryFlag(country: string | null) {
+  const data = getCountryData(country);
+  if (data) {
+    return <span className={`fi fi-${data.cca2.toLowerCase()} rounded-[2px] shadow-sm text-base`}></span>;
+  }
+  return <span className="text-base text-zinc-400 leading-none">🌍</span>;
+}
+
+function getCountryName(country: string | null) {
+  const data = getCountryData(country);
+  return data ? data.name.common : country;
+}
+
 function toSummary(r: RegistrationRow): RegistrationSummary {
   return {
     id: r.id,
@@ -58,6 +88,7 @@ function toSummary(r: RegistrationRow): RegistrationSummary {
 }
 
 export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [filter, setFilter] = useState<RegistrationFilterValue>(() =>
     parseRegistrationFilter(searchParams.get("status"))
@@ -67,13 +98,31 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [initialLoad, setInitialLoad] = useState(() => !readRegistrationCache());
   const [refreshing, setRefreshing] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
   const [, startTransition] = useTransition();
   const requestId = useRef(0);
 
-  const displayed = useMemo(
-    () => filterRegistrationRows(allRows, filter, search),
-    [allRows, filter, search]
-  );
+  const displayed = useMemo(() => {
+    const filtered = filterRegistrationRows(allRows, filter, search);
+    return filtered.sort((a, b) => {
+      const aDate = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+      const bDate = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+      return sortDir === "desc" ? bDate - aDate : aDate - bDate;
+    });
+  }, [allRows, filter, search, sortDir]);
+
+  const metrics = useMemo(() => {
+    let approved = 0;
+    let underReview = 0;
+    let rejected = 0;
+    for (const r of allRows) {
+      if (r.status === "APPROVED") approved++;
+      if (r.status === "SUBMITTED") underReview++;
+      if (r.status === "REJECTED") rejected++;
+    }
+    return { total: allRows.length, approved, underReview, rejected };
+  }, [allRows]);
 
   const fetchAll = useCallback(async (opts?: { background?: boolean }) => {
     const id = ++requestId.current;
@@ -145,123 +194,213 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">
-            Vendor Registrations
-          </h1>
-          <p className="mt-1 text-sm text-zinc-600">
-            Review and approve prospective supplier applications.
-          </p>
+    <div className="flex flex-1 flex-col min-h-0 space-y-6 w-full">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+        <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
+          <div>
+            <p className="text-sm font-medium text-zinc-500">Total Registrations</p>
+            <p className="text-2xl font-semibold text-zinc-950 mt-1">{metrics.total}</p>
+          </div>
+          <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-brand-blue transition-transform group-hover:scale-110">
+            <FileText className="h-6 w-6" />
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={() => void fetchAll()}
-          disabled={refreshing}
-          title="Refresh table data"
-          aria-label="Refresh registrations table"
-          className="inline-flex h-9 items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 text-xs font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-50"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} aria-hidden />
-          Refresh
-        </button>
+        <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
+          <div>
+            <p className="text-sm font-medium text-zinc-500">Approved</p>
+            <p className="text-2xl font-semibold text-zinc-950 mt-1">{metrics.approved}</p>
+          </div>
+          <div className="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <CheckCircle className="h-6 w-6 transition-all group-hover:animate-pulse" />
+          </div>
+        </div>
+        <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
+          <div>
+            <p className="text-sm font-medium text-zinc-500">Under Review</p>
+            <p className="text-2xl font-semibold text-zinc-950 mt-1">{metrics.underReview}</p>
+          </div>
+          <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-brand-blue">
+            <FileCheck className="h-6 w-6 transition-all group-hover:animate-[spin_3s_linear_infinite]" />
+          </div>
+        </div>
+        <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
+          <div>
+            <p className="text-sm font-medium text-zinc-500">Rejected Applications</p>
+            <p className="text-2xl font-semibold text-zinc-950 mt-1">{metrics.rejected}</p>
+          </div>
+          <div className="h-12 w-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-600">
+            <XCircle className="h-6 w-6 transition-all group-hover:animate-bounce" />
+          </div>
+        </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Registration filters">
-          {REGISTRATION_FILTERS.map((f) => (
-            <button
-              key={f.value}
-              type="button"
-              role="tab"
-              aria-selected={f.value === filter}
-              onClick={() => applyFilter(f.value)}
-              className={
-                f.value === filter
-                  ? "bg-brand-blue rounded-md px-3 py-1.5 text-xs font-semibold text-white"
-                  : "rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:border-zinc-400"
-              }
-            >
-              {f.label}
-            </button>
-          ))}
+      <div className="flex flex-wrap items-center justify-between gap-4 shrink-0">
+        <div className="flex items-center gap-3 w-full max-w-sm">
+          <button
+            type="button"
+            onClick={() => void fetchAll()}
+            disabled={refreshing}
+            title="Refresh table data"
+            aria-label="Refresh registrations table"
+            className="inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full border border-brand-blue bg-white text-brand-blue transition-colors hover:bg-brand-blue/5 disabled:opacity-50 focus-visible:ring-[3px] focus-visible:ring-brand-blue/25 focus-visible:outline-none"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-brand-blue" : ""}`} aria-hidden />
+          </button>
+          
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-blue" />
+            <input
+              name="q"
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Search company, email, reference…"
+              aria-label="Search registrations"
+              maxLength={120}
+              className="focus-visible:ring-brand-blue/25 w-full rounded-full border border-brand-blue bg-white py-2.5 pl-11 pr-4 text-sm outline-none focus-visible:ring-[3px] transition-shadow placeholder:text-brand-blue/70 text-brand-blue"
+            />
+          </div>
         </div>
 
-        <div className="ml-auto">
-          <input
-            name="q"
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search company, email, reference…"
-            aria-label="Search registrations"
-            maxLength={120}
-            className="focus-visible:border-brand-blue focus-visible:ring-brand-blue/25 w-72 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm outline-none focus-visible:ring-[3px]"
-          />
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => setFilterOpen((prev) => !prev)}
+              onBlur={() => setTimeout(() => setFilterOpen(false), 200)}
+              className="focus-visible:ring-brand-blue/25 flex items-center justify-between gap-3 rounded-full border border-brand-blue bg-white py-2.5 pl-5 pr-4 text-sm font-semibold text-brand-blue outline-none focus-visible:ring-[3px] transition-shadow min-w-[160px]"
+            >
+              <span>{REGISTRATION_FILTERS.find((f) => f.value === filter)?.label || "All"}</span>
+              <ChevronDown className="h-4 w-4 text-brand-blue" />
+            </button>
+            
+            {filterOpen && (
+              <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-zinc-200 bg-white py-2 shadow-lg z-50">
+                {REGISTRATION_FILTERS.map((f) => (
+                  <button
+                    key={f.value}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      applyFilter(f.value);
+                      setFilterOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-2.5 ${
+                      f.value === filter ? "bg-zinc-50 font-semibold text-brand-blue" : "text-zinc-700 hover:bg-zinc-50"
+                    }`}
+                  >
+                    {f.value === "APPROVED" ? (
+                      <CheckCircle className={`w-4 h-4 ${f.value === filter ? "text-emerald-500" : "text-emerald-500/70"}`} />
+                    ) : f.value === "SUBMITTED" ? (
+                      <FileCheck className={`w-4 h-4 ${f.value === filter ? "text-brand-blue" : "text-brand-blue/70"}`} />
+                    ) : f.value === "REJECTED" ? (
+                      <XCircle className={`w-4 h-4 ${f.value === filter ? "text-rose-500" : "text-rose-500/70"}`} />
+                    ) : f.value === "DRAFT" ? (
+                      <Loader className={`w-4 h-4 ${f.value === filter ? "text-amber-500" : "text-amber-500/70"}`} />
+                    ) : (
+                      <span className="w-4 h-4" />
+                    )}
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       <div
-        className={`overflow-hidden rounded-lg border border-zinc-200 bg-white transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
+        className={`flex-1 px-2 -mx-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] min-h-0 transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
         aria-busy={refreshing || initialLoad}
       >
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50">
-            <tr className="text-xs font-semibold tracking-[0.08em] text-zinc-600 uppercase">
+        <table className="w-full text-left text-sm border-separate border-spacing-y-3 -mt-3">
+          <thead className="sticky top-0 z-10">
+            <tr className="text-xs font-bold tracking-[0.08em] text-white bg-brand-blue uppercase">
+              <th className="px-4 py-3 rounded-l-xl w-12 text-center"></th>
               <th className="px-4 py-3">Company</th>
+              <th 
+                className="px-4 py-3 cursor-pointer select-none hover:bg-white/10 transition-colors"
+                onClick={() => setSortDir(d => d === "desc" ? "asc" : "desc")}
+                title="Toggle sort by date"
+              >
+                <div className="flex items-center gap-1.5">
+                  Submitted
+                  {sortDir === "desc" ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+                </div>
+              </th>
+              <th className="px-4 py-3">Country</th>
               <th className="px-4 py-3">Contact email</th>
               <th className="px-4 py-3">Reference</th>
-              <th className="px-4 py-3">Submitted</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="px-4 py-3 text-right rounded-r-xl">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100">
+          <tbody>
             {initialLoad && displayed.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-zinc-600">
+              <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
+                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
                   Loading registrations…
                 </td>
               </tr>
             )}
             {loadError && displayed.length === 0 && !initialLoad && (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-zinc-600">
+              <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
+                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
                   {loadError}
                 </td>
               </tr>
             )}
             {!loadError && !initialLoad && displayed.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-zinc-600">
+              <tr className="bg-white ring-1 ring-inset ring-zinc-200/50 rounded-xl">
+                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
                   {`No registrations${search ? ` matching “${search}”` : ""} in this view.`}
                 </td>
               </tr>
             )}
             {displayed.map((r) => (
-              <tr key={r.id} className="transition-colors hover:bg-zinc-50">
-                <td className="px-4 py-3">
+              <tr 
+                key={r.id} 
+                className="bg-white ring-1 ring-inset ring-zinc-200/50 rounded-xl transition-shadow hover:ring-brand-blue group cursor-pointer"
+                onClick={(e) => {
+                  if ((e.target as HTMLElement).closest('button, a')) return;
+                  router.push(`/registrations/${r.id}`);
+                }}
+              >
+                <td className="px-4 py-4 rounded-l-xl text-center">
+                  {r.status === "APPROVED" ? (
+                    <span title="Approved"><CheckCircle className="w-5 h-5 text-emerald-500 mx-auto" /></span>
+                  ) : r.status === "SUBMITTED" ? (
+                    <span title="Awaiting Review"><FileCheck className="w-5 h-5 text-brand-blue mx-auto" /></span>
+                  ) : r.status === "REJECTED" ? (
+                    <span title="Rejected"><XCircle className="w-5 h-5 text-rose-500 mx-auto" /></span>
+                  ) : (
+                    <span title="In Progress"><Loader className="w-5 h-5 text-amber-500 mx-auto" /></span>
+                  )}
+                </td>
+                <td className="px-4 py-4">
                   <Link
                     href={`/registrations/${r.id}`}
                     className="hover:text-brand-blue font-medium text-zinc-950 underline-offset-2 hover:underline"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     {r.company?.legalName || <span className="text-zinc-500">Unnamed</span>}
                   </Link>
-                  {r.company?.country ? (
-                    <p className="text-xs text-zinc-500">{r.company.country}</p>
-                  ) : null}
                 </td>
-                <td className="px-4 py-3 text-zinc-700">{r.email}</td>
-                <td className="px-4 py-3 font-mono text-xs text-zinc-600 tabular-nums">
-                  {r.referenceNumber || "—"}
-                </td>
-                <td className="px-4 py-3 text-zinc-600 tabular-nums">
+                <td className="px-4 py-4 text-zinc-600 tabular-nums">
                   {formatDate(r.submittedAt)}
                 </td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={r.status} />
+                <td className="px-4 py-4 text-zinc-700">
+                  {r.company?.country ? (
+                    <div className="flex items-center gap-2">
+                      {getCountryFlag(r.company.country)}
+                      <span>{getCountryName(r.company.country)}</span>
+                    </div>
+                  ) : (
+                    <span className="text-zinc-400">—</span>
+                  )}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-4 text-zinc-700">{r.email}</td>
+                <td className="px-4 py-4 font-mono text-sm text-zinc-600 tabular-nums">
+                  {r.referenceNumber || "—"}
+                </td>
+                <td className="px-4 py-4 rounded-r-xl">
                   <RegistrationRowActions
                     registration={toSummary(r)}
                     canDelete={canDelete}
@@ -276,7 +415,7 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
       </div>
 
       {displayed.length === 500 && (
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-zinc-500 shrink-0">
           Showing the first 500 results — narrow the search to see more.
         </p>
       )}
