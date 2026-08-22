@@ -902,7 +902,7 @@ export async function handleRequirementGet(
 
   const quotes = await sql`
     SELECT
-      q.id, q."newPrice", q.remarks, q.status, q."submittedAt", q."updatedAt",
+      q.id, q."newPrice", q.remarks, q."quoteFileUrl", q.status, q."submittedAt", q."updatedAt",
       v.email AS "participantEmail",
       v.name AS "participantName"
     FROM "Quote" q
@@ -946,6 +946,7 @@ export async function handleRequirementGet(
       id: q.id,
       newPrice: q.newPrice,
       remarks: q.remarks,
+      quoteFileUrl: q.quoteFileUrl,
       status: q.status,
       submittedAt: q.submittedAt,
       vendorUser: {
