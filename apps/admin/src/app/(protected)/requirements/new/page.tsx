@@ -1,6 +1,7 @@
 import { adminSessionJson } from "@/lib/admin-data";
 import { PostRequirementForm } from "@/sections/PostRequirementForm";
 import type { CachedVendorRow } from "@/lib/vendor-cache";
+import { SmoothScroll } from "@/components/ui";
 
 
 export const dynamic = "force-dynamic";
@@ -19,8 +20,8 @@ export default async function NewRequirementPage() {
   }));
 
   return (
-    <div className="w-full flex-1 flex flex-col min-h-0 bg-zinc-50/30">
+    <SmoothScroll className="w-full flex-1 flex flex-col min-h-0 bg-zinc-50/30">
       <PostRequirementForm vendors={vendorOptions} />
-    </div>
+    </SmoothScroll>
   );
 }
