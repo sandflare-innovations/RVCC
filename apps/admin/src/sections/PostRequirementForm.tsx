@@ -234,7 +234,7 @@ export function PostRequirementForm({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="flex-1">
         <div className="p-6 md:p-8 space-y-8 max-w-6xl mx-auto w-full pb-12">
           {error && (
             <div role="alert" className="flex items-start gap-3 rounded-2xl bg-rose-50 p-5 text-sm font-medium text-rose-900 border border-rose-200/50">
