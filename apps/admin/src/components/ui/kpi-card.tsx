@@ -43,16 +43,20 @@ export function KpiCard({ label, value, href, icon, trend, trendValue }: KpiCard
   );
 
   const shell =
-    "group flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition-all";
+    "group flex flex-col justify-between rounded-2xl border border-zinc-200/60 bg-white p-5 shadow-sm transition-all relative overflow-hidden";
 
-  if (!href) return <div className={shell}>{body}</div>;
+  if (!href) return <div className={shell}>
+    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+    <div className="relative z-10">{body}</div>
+  </div>;
 
   return (
     <Link
       href={href}
-      className={`${shell} hover:border-brand-blue focus-visible:ring-brand-blue hover:shadow-md focus-visible:ring-2 focus-visible:outline-none`}
+      className={`${shell} hover:border-brand-blue/50 focus-visible:ring-brand-blue hover:shadow-md focus-visible:ring-2 focus-visible:outline-none`}
     >
-      {body}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transition-opacity group-hover:bg-blue-100/50"></div>
+      <div className="relative z-10">{body}</div>
     </Link>
   );
 }
