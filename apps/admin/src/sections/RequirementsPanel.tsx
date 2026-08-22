@@ -5,9 +5,10 @@ import { useSearchParams } from "next/navigation";
 
 import Link from "next/link";
 
-import { RefreshCw, Search, ChevronDown, FileText, Radio, Edit2, Award } from "lucide-react";
+import { RefreshCw, Search, ChevronDown, FileText, Radio, Edit2, Award, ChevronUp, CircleDashed, ShieldAlert, CheckCircle, Clock, XCircle, Lock, Trophy } from "lucide-react";
 
 import { fetchTableJson } from "@/lib/table-fetch";
+import { AnimatedSearchInput } from "@/lib/ui";
 import { readVendorCache, writeVendorCache, type CachedVendorRow } from "@/lib/vendor-cache";
 import {
   readRequirementsCache,
@@ -21,7 +22,6 @@ import {
   REQUIREMENT_FILTERS,
   type RequirementFilterValue,
 } from "@/lib/requirement-filters";
-import { CreateRequirementForm, type ParticipantOption } from "@/sections/CreateRequirementForm";
 
 type RequirementRow = CachedRequirementRow;
 
@@ -46,15 +46,85 @@ function formatDateTime(d: string | null) {
   });
 }
 
+function statusIcon(status: string, closesAt: string | null) {
+  if (status === "OPEN" && closesAt) {
+    const date = new Date(closesAt);
+    if (!isNaN(date.getTime()) && date.getTime() <= Date.now()) {
+      return <Lock className="h-4 w-4 text-purple-500 mr-2" />;
+    }
+    return (
+      <div className="relative mr-2 flex items-center justify-center h-4 w-4">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+      </div>
+    );
+  }
+  
+  if (status === "DRAFT") return <CircleDashed className="h-4 w-4 text-amber-500 mr-2" />;
+  if (status === "AWARDED") return <Trophy className="h-4 w-4 text-brand-blue mr-2" />;
+  if (status === "CANCELLED") return <XCircle className="h-4 w-4 text-rose-500 mr-2" />;
+  
+  return <Clock className="h-4 w-4 text-zinc-400 mr-2" />;
+}
+
 function statusLabel(status: string, closesAt: string | null) {
   if (status === "OPEN" && closesAt) {
     const date = new Date(closesAt);
     if (!isNaN(date.getTime()) && date.getTime() <= Date.now()) {
-      return "Closed";
+      return (
+        <span className="inline-flex items-center text-purple-700 font-medium">
+          {statusIcon(status, closesAt)}
+          Closed
+        </span>
+      );
     }
+    return (
+      <span className="inline-flex items-center text-emerald-700 font-medium">
+        {statusIcon(status, closesAt)}
+        Open
+      </span>
+    );
   }
-  return status.charAt(0) + status.slice(1).toLowerCase();
+  
+  if (status === "DRAFT") {
+    return (
+      <span className="inline-flex items-center text-amber-700 font-medium">
+        {statusIcon(status, closesAt)}
+        Draft
+      </span>
+    );
+  }
+  
+  if (status === "AWARDED") {
+    return (
+      <span className="inline-flex items-center text-brand-blue font-medium">
+        {statusIcon(status, closesAt)}
+        Awarded
+      </span>
+    );
+  }
+  
+  if (status === "CANCELLED") {
+    return (
+      <span className="inline-flex items-center text-rose-700 font-medium">
+        {statusIcon(status, closesAt)}
+        Cancelled
+      </span>
+    );
+  }
+  
+  return (
+    <span className="inline-flex items-center text-zinc-700 font-medium">
+      {statusIcon(status, closesAt)}
+      {status.charAt(0) + status.slice(1).toLowerCase()}
+    </span>
+  );
 }
+
+const SEARCH_PLACEHOLDERS = [
+  "reference ID",
+  "project name"
+];
 
 export function RequirementsPanel() {
   const searchParams = useSearchParams();
@@ -63,18 +133,23 @@ export function RequirementsPanel() {
   );
   const [search, setSearch] = useState(() => parseRequirementSearch(searchParams.get("q")));
   const [allRows, setAllRows] = useState<RequirementRow[]>(() => readRequirementsCache() ?? []);
-  const [vendors, setVendors] = useState<CachedVendorRow[]>(() => readVendorCache() ?? []);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [initialLoad, setInitialLoad] = useState(() => !readRequirementsCache());
   const [refreshing, setRefreshing] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [sortCol, setSortCol] = useState<"createdAt" | "closesAt">("createdAt");
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
   const [, startTransition] = useTransition();
   const requestId = useRef(0);
 
-  const displayed = useMemo(
-    () => filterRequirementRows(allRows, filter, search),
-    [allRows, filter, search]
-  );
+  const displayed = useMemo(() => {
+    const filtered = filterRequirementRows(allRows, filter, search);
+    return filtered.sort((a, b) => {
+      const aVal = a[sortCol] ? new Date(a[sortCol]).getTime() : 0;
+      const bVal = b[sortCol] ? new Date(b[sortCol]).getTime() : 0;
+      return sortDir === "desc" ? bVal - aVal : aVal - bVal;
+    });
+  }, [allRows, filter, search, sortCol, sortDir]);
 
   const metrics = useMemo(() => {
     let open = 0;
@@ -103,14 +178,6 @@ export function RequirementsPanel() {
     syncUrl(filter, next);
   };
 
-  const vendorOptions = useMemo((): ParticipantOption[] => {
-    return vendors
-      .filter((v) => v.isActive && v.portalAccess === "RELEASED")
-      .map((v) => ({
-        id: v.id,
-        label: v.name ? `${v.name} (${v.email})` : v.email,
-      }));
-  }, [vendors]);
 
   const fetchRequirements = useCallback(async (opts?: { background?: boolean }) => {
     const id = ++requestId.current;
@@ -143,13 +210,6 @@ export function RequirementsPanel() {
     }
   }, [allRows.length]);
 
-  const fetchVendors = useCallback(async () => {
-    const result = await fetchTableJson<CachedVendorRow>("/api/vendors");
-    if (result.ok) {
-      setVendors(result.data);
-      writeVendorCache(result.data);
-    }
-  }, []);
 
   useEffect(() => {
     const cached = readRequirementsCache();
@@ -160,8 +220,6 @@ export function RequirementsPanel() {
     } else {
       void fetchRequirements();
     }
-
-    if (!readVendorCache()?.length) void fetchVendors();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only
   }, []);
 
@@ -219,18 +277,12 @@ export function RequirementsPanel() {
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-brand-blue" : ""}`} aria-hidden />
           </button>
           
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-blue" />
-            <input
-              name="q"
-              value={search}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search reference, project…"
-              aria-label="Search requirements"
-              maxLength={120}
-              className="focus-visible:ring-brand-blue/25 w-full rounded-full border border-brand-blue bg-white py-2.5 pl-11 pr-4 text-sm outline-none focus-visible:ring-[3px] transition-shadow placeholder:text-brand-blue/70 text-brand-blue"
-            />
-          </div>
+          <AnimatedSearchInput
+            value={search}
+            onChange={onSearchChange}
+            placeholders={SEARCH_PLACEHOLDERS}
+            ariaLabel="Search requirements"
+          />
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
@@ -265,10 +317,13 @@ export function RequirementsPanel() {
               </div>
             )}
           </div>
-          <CreateRequirementForm
-            vendors={vendorOptions}
-            onCreated={() => void fetchRequirements({ background: true })}
-          />
+          <Link
+            href="/requirements/new"
+            className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold text-white transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none shrink-0"
+          >
+            <FileText className="h-4 w-4" />
+            Post a requirement
+          </Link>
         </div>
       </div>
 
@@ -279,53 +334,72 @@ export function RequirementsPanel() {
         <table className="w-full text-left text-sm border-separate border-spacing-y-3 -mt-3">
           <thead className="sticky top-0 z-10">
             <tr className="text-xs font-bold tracking-[0.08em] text-white bg-brand-blue uppercase">
-              <th className="px-4 py-3 rounded-l-xl">Reference</th>
+              <th className="px-4 py-3 rounded-l-xl">Status</th>
+              <th className="px-4 py-3">Reference</th>
               <th className="px-4 py-3">Project</th>
-              <th className="px-4 py-3">Closes</th>
+              <th className="px-4 py-3 cursor-pointer select-none hover:bg-white/10 transition-colors" onClick={() => {
+                if (sortCol === "createdAt") setSortDir(d => d === "asc" ? "desc" : "asc");
+                else { setSortCol("createdAt"); setSortDir("desc"); }
+              }}>
+                <div className="flex items-center gap-1">
+                  Posted Date
+                  {sortCol === "createdAt" && (sortDir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />)}
+                </div>
+              </th>
+              <th className="px-4 py-3 cursor-pointer select-none hover:bg-white/10 transition-colors" onClick={() => {
+                if (sortCol === "closesAt") setSortDir(d => d === "asc" ? "desc" : "asc");
+                else { setSortCol("closesAt"); setSortDir("desc"); }
+              }}>
+                <div className="flex items-center gap-1">
+                  Closes Date
+                  {sortCol === "closesAt" && (sortDir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />)}
+                </div>
+              </th>
               <th className="px-4 py-3">Invited</th>
-              <th className="px-4 py-3">Quotes</th>
-              <th className="px-4 py-3 rounded-r-xl">Status</th>
+              <th className="px-4 py-3 rounded-r-xl">Quotes</th>
             </tr>
           </thead>
           <tbody>
             {initialLoad && displayed.length === 0 && (
               <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
-                <td colSpan={6} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
+                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
                   Loading requirements…
                 </td>
               </tr>
             )}
             {loadError && displayed.length === 0 && !initialLoad && (
               <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
-                <td colSpan={6} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
+                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
                   {loadError}
                 </td>
               </tr>
             )}
             {!loadError && !initialLoad && displayed.length === 0 && (
               <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
-                <td colSpan={6} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
+                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
                   Nothing posted yet.
                 </td>
               </tr>
             )}
             {displayed.map((r) => (
-              <tr key={r.id} className="bg-white ring-1 ring-inset ring-zinc-200/50 rounded-xl transition-shadow hover:ring-brand-blue group">
+              <tr key={r.id} className="bg-white ring-1 ring-inset ring-zinc-200/50 rounded-xl transition-shadow hover:ring-brand-blue group cursor-pointer" onClick={() => window.location.href = `/requirements/${r.id}`}>
                 <td className="px-4 py-3 rounded-l-xl">
-                  <Link
-                    href={`/requirements/${r.id}`}
-                    className="text-brand-blue font-mono text-xs tabular-nums font-medium hover:underline"
-                  >
+                  {statusLabel(r.status, r.closesAt)}
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-brand-blue font-mono text-xs tabular-nums font-medium group-hover:underline">
                     {r.referenceNumber ?? "— draft —"}
-                  </Link>
+                  </span>
                 </td>
                 <td className="px-4 py-3 font-medium text-zinc-900">{r.project}</td>
+                <td className="px-4 py-3 text-zinc-600 tabular-nums">
+                  {formatDateTime(r.createdAt)}
+                </td>
                 <td className="px-4 py-3 text-zinc-600 tabular-nums">
                   {formatDateTime(r.closesAt)}
                 </td>
                 <td className="px-4 py-3 text-zinc-600 tabular-nums">{r.invited}</td>
-                <td className="px-4 py-3 text-zinc-600 tabular-nums">{r.submitted}</td>
-                <td className="px-4 py-3 rounded-r-xl">{statusLabel(r.status, r.closesAt)}</td>
+                <td className="px-4 py-3 text-zinc-600 tabular-nums rounded-r-xl">{r.submitted}</td>
               </tr>
             ))}
           </tbody>

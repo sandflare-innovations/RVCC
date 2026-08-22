@@ -14,7 +14,7 @@ const VALID = new Set<string>(REGISTRATION_FILTERS.map((f) => f.value));
 
 export function parseRegistrationFilter(raw: string | null | undefined): RegistrationFilterValue {
   const value = (raw ?? "").trim().toUpperCase();
-  return VALID.has(value) ? (value as RegistrationFilterValue) : "SUBMITTED";
+  return VALID.has(value) ? (value as RegistrationFilterValue) : "ALL";
 }
 
 export function parseRegistrationSearch(raw: string | null | undefined, maxLen = 120): string {

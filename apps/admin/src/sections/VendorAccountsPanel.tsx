@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { RefreshCw, Search, ChevronDown, Users, CheckCircle, Lock, ShieldAlert, Clock } from "lucide-react";
 
-import { StatusBadge } from "@/lib/ui";
+import { StatusBadge, AnimatedSearchInput } from "@/lib/ui";
 import { fetchTableJson } from "@/lib/table-fetch";
 import { readVendorCache, writeVendorCache, type CachedVendorRow } from "@/lib/vendor-cache";
 import {
@@ -75,6 +75,11 @@ function syncUrl(filter: VendorFilterValue, search: string) {
   window.history.replaceState(null, "", url);
 }
 
+const SEARCH_PLACEHOLDERS = [
+  "email ID",
+  "vendor name",
+  "company name"
+];
 export function VendorAccountsPanel({
   industries,
 }: {
@@ -230,18 +235,12 @@ export function VendorAccountsPanel({
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-brand-blue" : ""}`} aria-hidden />
           </button>
           
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-blue" />
-            <input
-              name="q"
-              value={search}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search email, name, company…"
-              aria-label="Search vendor accounts"
-              maxLength={120}
-              className="focus-visible:ring-brand-blue/25 w-full rounded-full border border-brand-blue bg-white py-2.5 pl-11 pr-4 text-sm outline-none focus-visible:ring-[3px] transition-shadow placeholder:text-brand-blue/70 text-brand-blue"
-            />
-          </div>
+          <AnimatedSearchInput
+            value={search}
+            onChange={onSearchChange}
+            placeholders={SEARCH_PLACEHOLDERS}
+            ariaLabel="Search vendor accounts"
+          />
         </div>
 
         <div className="flex items-center gap-3 shrink-0">

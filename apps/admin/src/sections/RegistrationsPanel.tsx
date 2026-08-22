@@ -8,7 +8,7 @@ import countries from "world-countries";
 
 import { RefreshCw, Search, ChevronDown, FileText, CheckCircle, Clock, XCircle, FileCheck, Loader, ChevronUp } from "lucide-react";
 
-import { StatusBadge } from "@/lib/ui";
+import { StatusBadge, AnimatedSearchInput } from "@/lib/ui";
 import { fetchTableJson } from "@/lib/table-fetch";
 import {
   readRegistrationCache,
@@ -86,6 +86,13 @@ function toSummary(r: RegistrationRow): RegistrationSummary {
     companyName: r.company?.legalName ?? null,
   };
 }
+
+const SEARCH_PLACEHOLDERS = [
+  "company name",
+  "email ID",
+  "country name",
+  "reference ID"
+];
 
 export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
   const router = useRouter();
@@ -247,18 +254,12 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-brand-blue" : ""}`} aria-hidden />
           </button>
           
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-blue" />
-            <input
-              name="q"
-              value={search}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search company, email, reference…"
-              aria-label="Search registrations"
-              maxLength={120}
-              className="focus-visible:ring-brand-blue/25 w-full rounded-full border border-brand-blue bg-white py-2.5 pl-11 pr-4 text-sm outline-none focus-visible:ring-[3px] transition-shadow placeholder:text-brand-blue/70 text-brand-blue"
-            />
-          </div>
+          <AnimatedSearchInput
+            value={search}
+            onChange={onSearchChange}
+            placeholders={SEARCH_PLACEHOLDERS}
+            ariaLabel="Search registrations"
+          />
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
