@@ -11,6 +11,7 @@ import { VENDOR_COOKIE } from "@/lib/constants";
 import { getVendorFromSession } from "@/lib/session";
 import { vendorApiFetch } from "@/lib/vendor-api";
 import { OverviewNextActions } from "@/sections/OverviewNextActions";
+import { VendorHeroSearch } from "@/sections/VendorHeroSearch";
 
 export const dynamic = "force-dynamic";
 
@@ -120,18 +121,9 @@ export default async function VendorDashboard() {
           Welcome to Vendor Portal!
         </h1>
         
-        {/* Search Bar matching screenshot */}
-        <div className="w-full max-w-2xl relative z-10 px-4 pb-4">
-          <div className="absolute inset-y-0 left-8 flex items-center pointer-events-none">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-          <input 
-            type="text" 
-            placeholder="Search" 
-            className="w-full h-14 pl-12 pr-4 rounded-full border-none bg-white text-zinc-900 shadow-lg focus:ring-2 focus:ring-white outline-none text-lg transition-all placeholder:text-zinc-400"
-          />
+        {/* Search Bar */}
+        <div className="relative z-10 w-full max-w-2xl px-4 pb-4">
+          <VendorHeroSearch />
         </div>
       </div>
 
