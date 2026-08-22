@@ -11,6 +11,17 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 
 export type ParticipantOption = { id: string; label: string };
 
+export type RequirementInitialData = {
+  id: string;
+  project: string;
+  scopeOfWork: string;
+  category: string;
+  currency: string;
+  sellingPrice: string;
+  closesAt: string;
+  invitedVendorIds: string[];
+};
+
 function FieldWrapper({ label, hint, required, icon: Icon, children, className = "" }: { label: string; hint?: string; required?: boolean; icon?: any; children: React.ReactNode; className?: string }) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
@@ -26,9 +37,9 @@ function FieldWrapper({ label, hint, required, icon: Icon, children, className =
 
 const inputClass = "w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 transition-colors focus:border-brand-blue focus:bg-white focus:outline-none focus:ring-[3px] focus:ring-brand-blue/20 placeholder:text-zinc-400";
 
-function CustomSelect({ name, options, placeholder }: { name: string; options: string[]; placeholder: string }) {
+function CustomSelect({ name, options, placeholder, defaultValue }: { name: string; options: string[]; placeholder: string; defaultValue?: string }) {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState("");
+  const [selected, setSelected] = useState(defaultValue || "");
 
   return (
     <div className="relative">
@@ -70,8 +81,8 @@ function CustomSelect({ name, options, placeholder }: { name: string; options: s
   );
 }
 
-function CustomDatePickerInput({ name, required }: { name: string; required?: boolean }) {
-  const [date, setDate] = useState("");
+function CustomDatePickerInput({ name, required, defaultValue }: { name: string; required?: boolean; defaultValue?: string }) {
+  const [date, setDate] = useState(defaultValue ? new Date(defaultValue).toISOString() : "");
 
   return (
     <div className="relative">
@@ -86,14 +97,22 @@ function CustomDatePickerInput({ name, required }: { name: string; required?: bo
   );
 }
 
-export function PostRequirementForm({ vendors }: { vendors: ParticipantOption[] }) {
+export function PostRequirementForm({ 
+  vendors,
+  initialData,
+}: { 
+  vendors: ParticipantOption[];
+  initialData?: RequirementInitialData;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pdfPreview, setPdfPreview] = useState<string | null>(null);
 
   // Track selected vendors to style the cards beautifully
-  const [selectedVendors, setSelectedVendors] = useState<Set<string>>(new Set());
+  const [selectedVendors, setSelectedVendors] = useState<Set<string>>(
+    new Set(initialData?.invitedVendorIds || [])
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -126,8 +145,12 @@ export function PostRequirementForm({ vendors }: { vendors: ParticipantOption[] 
     const scopeWithCategory = category ? `${scopeOfWork}\n\nCategory: ${category}` : scopeOfWork;
 
     try {
-      const res = await fetch("/api/requirements", {
-        method: "POST",
+      const isEdit = !!initialData?.id;
+      const url = isEdit ? `/api/requirements/${initialData.id}` : "/api/requirements";
+      const method = isEdit ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           scopeOfWork: scopeWithCategory,
@@ -168,7 +191,9 @@ export function PostRequirementForm({ vendors }: { vendors: ParticipantOption[] 
           >
             <ChevronLeft className="h-6 w-6" />
           </button>
-          <h1 className="text-xl font-bold tracking-tight text-zinc-950">Post a Requirement</h1>
+          <h1 className="text-xl font-bold tracking-tight text-zinc-950">
+            {initialData ? "Edit Requirement" : "Post a Requirement"}
+          </h1>
         </div>
 
         <div className="flex items-center gap-3">
@@ -190,10 +215,10 @@ export function PostRequirementForm({ vendors }: { vendors: ParticipantOption[] 
             disabled={busy}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-brand-blue px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-blue/90 hover:shadow-md focus:ring-[3px] focus:ring-brand-blue/30 disabled:opacity-50"
           >
-            {busy ? <SubmitLoader text="Publishing..." /> : (
+            {busy ? <SubmitLoader text={initialData ? "Updating..." : "Publishing..."} /> : (
               <>
                 <UploadCloud className="h-4 w-4" />
-                Post Requirement
+                {initialData ? "Update Requirement" : "Post Requirement"}
               </>
             )}
           </button>
@@ -264,6 +289,7 @@ export function PostRequirementForm({ vendors }: { vendors: ParticipantOption[] 
                       <input
                         name="project"
                         required
+                        defaultValue={initialData?.project}
                         className={inputClass}
                         placeholder="e.g. Q3 Server Refresh or Office Renovation"
                       />
@@ -274,6 +300,7 @@ export function PostRequirementForm({ vendors }: { vendors: ParticipantOption[] 
                         <textarea
                           name="scopeOfWork"
                           required
+                          defaultValue={initialData?.scopeOfWork}
                           className={`${inputClass} resize-none h-full flex-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-200 hover:[&::-webkit-scrollbar-thumb]:bg-zinc-300`}
                           placeholder="Describe the full requirements, deliverables, and expectations in detail..."
                         />
@@ -293,7 +320,7 @@ export function PostRequirementForm({ vendors }: { vendors: ParticipantOption[] 
                 </h2>
 
                 <FieldWrapper label="Closes at (Deadline)" required>
-                  <CustomDatePickerInput name="closesAt" required />
+                  <CustomDatePickerInput name="closesAt" required defaultValue={initialData?.closesAt} />
                 </FieldWrapper>
 
                 <FieldWrapper label="Category" icon={Tag}>
@@ -301,18 +328,20 @@ export function PostRequirementForm({ vendors }: { vendors: ParticipantOption[] 
                     name="category"
                     placeholder="Select a category (optional)"
                     options={["IT & Hardware", "Software Services", "Consulting", "Logistics", "Maintenance"]}
+                    defaultValue={initialData?.category}
                   />
                 </FieldWrapper>
 
                 <div className="space-y-6 flex-1">
                   <FieldWrapper label="Currency">
-                    <input name="currency" defaultValue="SAR" className={inputClass} />
+                    <input name="currency" defaultValue={initialData?.currency || "SAR"} className={inputClass} />
                   </FieldWrapper>
 
                   <FieldWrapper label="Selling Price" icon={DollarSign} hint="Internal use only.">
                     <input
                       name="sellingPrice"
                       inputMode="decimal"
+                      defaultValue={initialData?.sellingPrice || ""}
                       className={inputClass}
                       placeholder="0.00"
                     />
