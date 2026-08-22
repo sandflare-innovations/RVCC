@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, FileText, UploadCloud, Users, Calendar, DollarSign, Tag, Check, Briefcase, ChevronLeft, ChevronDown } from "lucide-react";
 import { SubmitLoader } from "@/components/ui";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Document, Page, pdfjs } from "react-pdf";
+import dynamic from "next/dynamic";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+const Document = dynamic(() => import("react-pdf").then(mod => mod.Document), { ssr: false });
+const Page = dynamic(() => import("react-pdf").then(mod => mod.Page), { ssr: false });
+
 
 export type ParticipantOption = { id: string; label: string };
 
@@ -108,6 +110,13 @@ export function PostRequirementForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pdfPreview, setPdfPreview] = useState<string | null>(null);
+
+  // Set up pdfjs worker on client only (avoids DOMMatrix SSR crash)
+  useEffect(() => {
+    import("react-pdf").then(({ pdfjs }) => {
+      pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+    });
+  }, []);
 
   // Track selected vendors to style the cards beautifully
   const [selectedVendors, setSelectedVendors] = useState<Set<string>>(
