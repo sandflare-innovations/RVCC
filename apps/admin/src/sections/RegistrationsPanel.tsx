@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { SmoothScroll } from "@/components/ui";
 import countries from "world-countries";
 
 import { RefreshCw, Search, ChevronDown, FileText, CheckCircle, Clock, XCircle, FileCheck, Loader, ChevronUp } from "lucide-react";
@@ -308,8 +309,8 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
         </div>
       </div>
 
-      <div
-        className={`flex-1 px-2 -mx-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] min-h-0 transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
+      <SmoothScroll
+        className={`flex-1 px-2 -mx-2 min-h-0 transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
         aria-busy={refreshing || initialLoad}
       >
         <table className="w-full text-left text-sm border-separate border-spacing-y-3 -mt-3">
@@ -413,7 +414,7 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
             ))}
           </tbody>
         </table>
-      </div>
+      </SmoothScroll>
 
       {displayed.length === 500 && (
         <p className="text-xs text-zinc-500 shrink-0">

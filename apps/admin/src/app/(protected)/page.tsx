@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { summariseVendorPerformance } from "@/lib/rfq";
-import { KpiCard, PointsChart, DonutChart, BarChart } from "@/components/ui";
+import { KpiCard, PointsChart, DonutChart, BarChart, SmoothScroll } from "@/components/ui";
 
 import { adminSessionJson } from "@/lib/admin-data";
 
@@ -160,7 +160,7 @@ export default async function AdminDashboard() {
 
   return (
     <div className="flex flex-col min-h-0 w-full h-full relative">
-      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <SmoothScroll className="flex-1">
         <div className="animate-in fade-in space-y-12 duration-500 relative z-10 -mt-6 pt-0">
           <style dangerouslySetInnerHTML={{
             __html: `
@@ -473,7 +473,7 @@ export default async function AdminDashboard() {
             </section>
           </div>
         </div>
-      </div>
+      </SmoothScroll>
     </div>
   );
 }

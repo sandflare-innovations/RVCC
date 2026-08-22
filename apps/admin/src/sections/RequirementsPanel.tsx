@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useSearchParams } from "next/navigation";
 
 import Link from "next/link";
+import { SmoothScroll } from "@/components/ui";
 
 import { RefreshCw, Search, ChevronDown, FileText, Radio, Edit2, Award, ChevronUp, CircleDashed, ShieldAlert, CheckCircle, Clock, XCircle, Lock, Trophy } from "lucide-react";
 
@@ -327,8 +328,8 @@ export function RequirementsPanel() {
         </div>
       </div>
 
-      <div
-        className={`flex-1 px-2 -mx-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] min-h-0 transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
+      <SmoothScroll
+        className={`flex-1 px-2 -mx-2 min-h-0 transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
         aria-busy={refreshing || initialLoad}
       >
         <table className="w-full text-left text-sm border-separate border-spacing-y-3 -mt-3">
@@ -404,7 +405,7 @@ export function RequirementsPanel() {
             ))}
           </tbody>
         </table>
-      </div>
+      </SmoothScroll>
     </div>
   );
 }
