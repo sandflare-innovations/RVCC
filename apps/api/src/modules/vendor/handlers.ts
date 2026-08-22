@@ -274,11 +274,13 @@ export async function handleQuoteSave(
   const body = (await request.json().catch(() => ({}))) as {
     newPrice?: string | null;
     remarks?: string;
+    quoteFileUrl?: string;
     submit?: boolean;
   };
 
   const submit = body.submit === true;
   const price = body.newPrice == null ? "" : String(body.newPrice).trim();
+  const fileUrl = body.quoteFileUrl || null;
 
   if (price && !/^\d+(\.\d{1,2})?$/.test(price)) {
     return json(
@@ -313,17 +315,18 @@ export async function handleQuoteSave(
   // cannot create two quotes.
   const [saved] = await sql`
     INSERT INTO "Quote"
-      (id, "requirementId", "vendorUserId", "newPrice", remarks, status, "submittedAt", "createdAt", "updatedAt")
+      (id, "requirementId", "vendorUserId", "newPrice", remarks, "quoteFileUrl", status, "submittedAt", "createdAt", "updatedAt")
     VALUES
-      (${cuid()}, ${requirementId}, ${vendor.id}, ${price || null}, ${String(body.remarks ?? "")},
+      (${cuid()}, ${requirementId}, ${vendor.id}, ${price || null}, ${String(body.remarks ?? "")}, ${fileUrl},
        ${submit ? "SUBMITTED" : "DRAFT"}, ${submit ? new Date() : null}, NOW(), NOW())
     ON CONFLICT ("requirementId", "vendorUserId") DO UPDATE SET
       "newPrice"    = EXCLUDED."newPrice",
       remarks       = EXCLUDED.remarks,
+      "quoteFileUrl" = EXCLUDED."quoteFileUrl",
       status        = EXCLUDED.status,
       "submittedAt" = COALESCE(EXCLUDED."submittedAt", "Quote"."submittedAt"),
       "updatedAt"   = NOW()
-    RETURNING id, status, "newPrice", remarks, "submittedAt"
+    RETURNING id, status, "newPrice", remarks, "quoteFileUrl", "submittedAt"
   `;
 
   return json(env, request, { ok: true, quote: saved });
