@@ -16,11 +16,14 @@ export function SmoothScroll({ children, className }: { children: React.ReactNod
     const lenis = new Lenis({
       wrapper: wrapperRef.current,
       content: contentRef.current,
-      duration: 1.2,
+      duration: 1.8,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
-      wheelMultiplier: 1,
+      wheelMultiplier: 0.85,
+      smoothWheel: true,
+      syncTouch: true,
+      touchMultiplier: 2,
     });
     lenisRef.current = lenis;
 
