@@ -78,7 +78,7 @@ export function NotificationBell() {
           {items.length === 0 ? (
             <p className="px-3 py-4 text-sm text-zinc-600">Nothing yet.</p>
           ) : (
-            <ul className="max-h-80 space-y-1 overflow-y-auto">
+            <ul data-lenis-prevent className="max-h-80 space-y-1 overflow-y-auto">
               {items.map((n) => (
                 <li key={n.id}>
                   <Link
