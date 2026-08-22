@@ -20,7 +20,7 @@ export default async function NewRequirementPage() {
   }));
 
   return (
-    <SmoothScroll className="w-full flex-1 flex flex-col min-h-0 bg-zinc-50/30">
+    <SmoothScroll className="w-full h-full flex-1 flex flex-col min-h-0 bg-zinc-50/30">
       <PostRequirementForm vendors={vendorOptions} />
     </SmoothScroll>
   );
