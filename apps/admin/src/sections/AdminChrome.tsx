@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { motion } from "framer-motion";
-import { ClipboardList, FileText, FolderOpen, LayoutDashboard, LogOut, Users, Globe, Image as ImageIcon, Briefcase, Wrench, Info, UserCheck, FileArchive, ShieldCheck } from "lucide-react";
+import { ClipboardList, FileText, FolderOpen, LayoutDashboard, LogOut, Users, Globe, Image as ImageIcon, Briefcase, Wrench, Info, UserCheck, FileArchive, ShieldCheck, Download } from "lucide-react";
 
 import { Sidebar, SidebarBody, SidebarLink, useSidebar } from "@/components/ui/sidebar";
 import Link from "next/link";
@@ -61,7 +61,7 @@ function SidebarContents({
   return (
     <div className="flex h-full flex-col">
       <div className="mb-6 py-1 relative">
-        <button 
+        <button
           onClick={() => setDashboardMenuOpen(!dashboardMenuOpen)}
           onBlur={() => setTimeout(() => setDashboardMenuOpen(false), 200)}
           className="flex items-center gap-2.5 w-full hover:bg-white/10 p-2 rounded-lg transition-colors text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
@@ -85,14 +85,14 @@ function SidebarContents({
               <span className="block text-[11px] text-blue-200">Administration</span>
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`text-blue-200 transition-transform shrink-0 ${dashboardMenuOpen ? "rotate-180" : ""}`}>
-              <path d="m6 9 6 6 6-6"/>
+              <path d="m6 9 6 6 6-6" />
             </svg>
           </motion.div>
         </button>
 
         {dashboardMenuOpen && expanded && (
           <div className="absolute left-0 top-full mt-1 w-full bg-white rounded-xl shadow-lg border border-zinc-200 py-2 z-50 overflow-hidden">
-            <button 
+            <button
               type="button"
               onMouseDown={(e) => {
                 e.preventDefault();
@@ -105,7 +105,7 @@ function SidebarContents({
               <Users className="h-4 w-4" />
               Vendor Management
             </button>
-            <button 
+            <button
               type="button"
               onMouseDown={(e) => {
                 e.preventDefault();
@@ -134,9 +134,28 @@ function SidebarContents({
         ))}
       </nav>
 
-      <div className="border-t border-white/20 pt-3">
-        <Link 
-          href="/profile" 
+      <div className="space-y-2 border-t border-white/20 pt-3">
+        <button
+          type="button"
+          title="Install App"
+          className={`flex w-full items-center gap-3 rounded-full bg-white px-3 py-2.5 shadow-sm transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+            expanded ? "" : "justify-center"
+          }`}
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue">
+            <Download className="h-4 w-4" />
+          </span>
+          <motion.span
+            animate={{ opacity: expanded ? 1 : 0, display: expanded ? "block" : "none" }}
+            initial={false}
+            className="min-w-0 flex-1 whitespace-nowrap text-left"
+          >
+            <span className="block truncate text-sm font-semibold text-brand-blue">Install App</span>
+          </motion.span>
+        </button>
+
+        <Link
+          href="/profile"
           onClick={onNavigate}
           className="flex items-center gap-3 px-2.5 py-2 hover:bg-white/10 rounded-md transition-colors group focus-visible:ring-white focus-visible:ring-2 focus-visible:outline-none"
         >
