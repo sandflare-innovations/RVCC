@@ -1,10 +1,10 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Lock, CircleDashed, Trophy, XCircle, Clock, Edit2 } from "lucide-react";
+import { Lock, CircleDashed, Trophy, XCircle, Clock, Edit2, FileText, ChevronLeft, MapPin, Briefcase, FileSignature, Box, Users } from "lucide-react";
 
 import { rankQuotes } from "@/lib/rfq";
-import { BackButton } from "@/components/ui/back-button";
 import { adminSessionJson } from "@/lib/admin-data";
-import { AwardButton } from "@/sections/AwardButton";
+import { QuotesSection } from "@/sections/QuotesSection";
 
 export const dynamic = "force-dynamic";
 
@@ -21,20 +21,28 @@ function formatDateTime(d: string | null) {
   });
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, icon: Icon, children, badge }: { title: string; icon?: any; children: React.ReactNode; badge?: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-xs font-bold tracking-[0.12em] text-zinc-600 uppercase">{title}</h2>
-      {children}
+    <section className="rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden flex flex-col">
+      <div className="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          {Icon && <Icon className="h-5 w-5 text-brand-blue" />}
+          <h2 className="text-lg font-bold tracking-tight text-zinc-900">{title}</h2>
+        </div>
+        {badge && badge}
+      </div>
+      <div className="p-6 flex-1 bg-white">
+        {children}
+      </div>
     </section>
   );
 }
 
-function Row({ label, value }: { label: string; value?: string | React.ReactNode | null }) {
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-[minmax(140px,220px)_1fr] gap-3 border-b border-zinc-100 py-3 last:border-0">
-      <dt className="text-sm font-medium text-zinc-500">{label}</dt>
-      <dd className="text-sm break-words font-medium text-zinc-950">{value || "—"}</dd>
+    <div className="flex flex-col sm:flex-row sm:items-start py-3 border-b border-zinc-50 last:border-0 last:pb-0 pt-0 first:pt-0">
+      <dt className="w-full sm:w-1/3 text-sm font-semibold text-zinc-500 uppercase tracking-wider text-[11px] mb-1 sm:mb-0 sm:pt-0.5">{label}</dt>
+      <dd className="w-full sm:w-2/3 text-sm text-zinc-900 font-medium leading-relaxed">{value}</dd>
     </div>
   );
 }
@@ -117,6 +125,7 @@ type Payload = {
     id: string;
     newPrice: string | number;
     remarks: string | null;
+    quoteFileUrl: string | null;
     status: string;
     submittedAt: string | null;
     vendorUser: { email: string; name: string | null };
@@ -157,6 +166,7 @@ export default async function RequirementComparisonPage({
         submittedAt: q.submittedAt ? new Date(q.submittedAt) : null,
         who: q.vendorUser.name || q.vendorUser.email,
         vendorEmail: q.vendorUser.email,
+        quoteFileUrl: q.quoteFileUrl,
       }))
   );
   
@@ -164,173 +174,115 @@ export default async function RequirementComparisonPage({
   const isClosed = new Date(req.closesAt).getTime() <= Date.now();
 
   return (
-    <div className="mx-auto w-full max-w-6xl flex-1 overflow-y-auto min-h-0 pr-2 pb-12 space-y-6">
-      <div className="flex items-center justify-between">
-        <BackButton label="Back to requirements" />
-        <button className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-blue/25">
-          <Edit2 className="h-4 w-4" />
-          Edit Requirement
-        </button>
-      </div>
-
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+    <div className="flex flex-col min-h-0 w-full h-full relative">
+      {/* Fixed Sticky Header */}
+      <div className="flex-none flex items-center justify-between bg-white px-6 pb-4 pt-4 z-10">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/requirements"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+            aria-label="Go back"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-950">
+            <h1 className="text-xl font-bold tracking-tight text-zinc-950">
               {req.project}
             </h1>
             {statusBadge(req.status, req.closesAt)}
           </div>
-          <p className="mt-2 text-sm text-zinc-500 font-mono">
-            {req.referenceNumber ?? "— draft —"}
-          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Link 
+            href={`/requirements/${req.id}/edit`}
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-700 shadow-sm transition-all hover:border-brand-blue hover:text-brand-blue focus:ring-[3px] focus:ring-brand-blue/30"
+          >
+            <Edit2 className="h-4 w-4" />
+            Edit Requirement
+          </Link>
         </div>
       </div>
 
-      {req.awardedAt && (
-        <div className="rounded-2xl border border-green-200/50 bg-green-50/50 p-4 text-sm text-green-900 flex items-center gap-3">
-          <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
-            <Trophy className="h-5 w-5 text-green-600" />
-          </div>
-          <div>
-            <p className="font-semibold">Requirement Awarded</p>
-            <p className="text-green-700">
-              Awarded on {formatDateTime(req.awardedAt)}
-              {req.awardedByAdmin ? ` by ${req.awardedByAdmin.email}` : ""}
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
-        <Section title="Details">
-          <dl>
-            <Row label="Scope of Work" value={<span className="whitespace-pre-wrap">{req.scopeOfWork}</span>} />
-            <Row label="Posted Date" value={formatDateTime(req.createdAt)} />
-            <Row label="Closes Date" value={formatDateTime(req.closesAt)} />
-            <Row 
-              label="Selling Price" 
-              value={req.sellingPrice != null ? <span className="tabular-nums">{`${req.sellingPrice} ${req.currency}`}</span> : "Not set"} 
-            />
-          </dl>
-        </Section>
-        
-        <Section title={`Invited Vendors (${invites.length})`}>
-          {invites.length === 0 ? (
-            <p className="text-sm text-zinc-500 text-center py-6 border-2 border-dashed border-zinc-100 rounded-xl">No vendors invited.</p>
-          ) : (
-            <ul className="space-y-3">
-              {invites.map((i) => (
-                <li key={i.id} className="flex flex-col gap-1.5 pb-3 border-b border-zinc-100 last:border-0 last:pb-0">
-                  <span className="text-sm font-medium text-zinc-900 line-clamp-1">{i.vendorUser.email}</span>
-                  <span
-                    className={`self-start text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full ${
-                      i.emailStatus === "FAILED"
-                        ? "bg-rose-100 text-rose-700"
-                        : "bg-zinc-100 text-zinc-600"
-                    }`}
-                  >
-                    {i.emailStatus}
-                  </span>
-                </li>
-              ))}
-            </ul>
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto bg-zinc-50/50 p-6 md:p-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="mx-auto w-full max-w-6xl space-y-8 pb-12">
+          
+          {req.awardedAt && (
+            <div className="rounded-2xl border border-green-200/80 bg-green-50 p-5 text-sm text-green-900 flex items-center gap-4 shadow-sm">
+              <div className="h-12 w-12 bg-green-100/80 rounded-full flex items-center justify-center shrink-0">
+                <Trophy className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <p className="font-bold text-base tracking-tight mb-0.5">Requirement Awarded</p>
+                <p className="text-green-700/80 font-medium">
+                  Awarded on {formatDateTime(req.awardedAt)}
+                  {req.awardedByAdmin ? ` by ${req.awardedByAdmin.email}` : ""}
+                </p>
+              </div>
+            </div>
           )}
-        </Section>
-      </div>
 
-      <section>
-        <div className="flex items-center gap-3 mb-6">
-          <h2 className="text-xl font-semibold text-zinc-950">Quotes Received</h2>
-          <span className="bg-zinc-100 text-zinc-600 text-xs font-bold px-2.5 py-0.5 rounded-full">
-            {ranked.length} Submitted
-          </span>
-          {drafts.length > 0 && (
-            <span className="bg-amber-50 text-amber-600 border border-amber-200 text-xs font-bold px-2.5 py-0.5 rounded-full">
-              {drafts.length} Drafts
-            </span>
-          )}
-        </div>
-
-        {ranked.length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 px-6 py-12 text-center">
-            <h3 className="text-sm font-semibold text-zinc-900">No submitted quotes yet</h3>
-            <p className="mt-1 text-sm text-zinc-500">
-              When vendors submit their quotes, they will appear here, ranked automatically by price.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {ranked.map((q) => {
-              const isWinner = req.awardedQuoteId === q.id;
-              return (
-                <div 
-                  key={q.id} 
-                  className={`flex flex-col p-6 rounded-2xl border transition-all ${
-                    isWinner 
-                      ? 'border-brand-blue bg-blue-50/30 shadow-md ring-1 ring-brand-blue/20' 
-                      : 'border-zinc-200 bg-white hover:border-brand-blue/50 hover:shadow-sm'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-5">
-                    <div className="flex items-center gap-3">
-                      <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${isWinner ? 'bg-brand-blue text-white' : 'bg-zinc-100 text-zinc-600'}`}>
-                        #{q.rank}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-zinc-900 line-clamp-1">{q.who}</h3>
-                        <p className="text-xs text-zinc-500 mt-0.5">{q.vendorEmail}</p>
-                      </div>
-                    </div>
-                    {isWinner && (
-                      <span className="flex items-center gap-1 bg-brand-blue text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full shrink-0">
-                        <Trophy className="h-3 w-3" />
-                        Winner
-                      </span>
-                    )}
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+            <Section title="Requirement Details" icon={Briefcase}>
+              <dl>
+                <Row label="Reference ID" value={<span className="font-mono bg-zinc-100 px-2 py-0.5 rounded text-zinc-600">{req.referenceNumber ?? "— draft —"}</span>} />
+                <Row label="Scope of Work" value={<span className="whitespace-pre-wrap">{req.scopeOfWork}</span>} />
+                <Row label="Posted Date" value={formatDateTime(req.createdAt)} />
+                <Row label="Closes Date" value={formatDateTime(req.closesAt)} />
+                <Row 
+                  label="Selling Price" 
+                  value={req.sellingPrice != null ? <span className="tabular-nums font-bold text-brand-blue bg-brand-blue/5 px-2.5 py-1 rounded-md border border-brand-blue/10">{`${req.sellingPrice} ${req.currency}`}</span> : "Not set"} 
+                />
+              </dl>
+            </Section>
+            
+            <Section title="Invited Vendors" icon={Users} badge={<span className="bg-zinc-200/70 text-zinc-700 text-xs font-bold px-2.5 py-0.5 rounded-full">{invites.length}</span>}>
+              {invites.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center py-10 text-center">
+                  <div className="h-12 w-12 bg-zinc-50 rounded-full flex items-center justify-center mb-3 border border-zinc-100">
+                    <Users className="h-5 w-5 text-zinc-300" />
                   </div>
-                  
-                  <div className="mt-auto pt-5 border-t border-zinc-100 space-y-4">
-                    <div className="flex items-end justify-between">
-                      <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Quoted Price</span>
-                      <span className="text-2xl font-bold text-zinc-900 tabular-nums tracking-tight">
-                        {q.newPrice} <span className="text-sm font-semibold text-zinc-500">{req.currency}</span>
-                      </span>
-                    </div>
-                    
-                    {q.remarks && (
-                      <div>
-                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-1.5">Remarks</span>
-                        <p className="text-sm text-zinc-700 italic bg-zinc-50 p-3 rounded-lg border border-zinc-100/80">
-                          "{q.remarks}"
-                        </p>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center justify-between pt-2">
-                      <span className="text-xs font-medium text-zinc-400">
-                        {q.submittedAt ? formatDateTime(q.submittedAt.toISOString()) : "—"}
-                      </span>
-                      
-                      {!req.awardedQuoteId && (
-                        <AwardButton
-                          requirementId={req.id}
-                          quoteId={q.id}
-                          vendorLabel={q.vendorEmail}
-                          price={q.newPrice}
-                          currency={req.currency}
-                          project={req.project}
-                          closesAt={req.closesAt}
-                        />
-                      )}
-                    </div>
-                  </div>
+                  <p className="text-sm font-medium text-zinc-400">No vendors invited.</p>
                 </div>
-              );
-            })}
+              ) : (
+                <ul className="space-y-4">
+                  {invites.map((i) => (
+                    <li key={i.id} className="flex flex-col gap-1.5 pb-4 border-b border-zinc-100 last:border-0 last:pb-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-sm font-bold text-zinc-800 line-clamp-1">{i.vendorUser.email}</span>
+                        <span
+                          className={`shrink-0 text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full ${
+                            i.emailStatus === "FAILED"
+                              ? "bg-rose-100 text-rose-700"
+                              : i.emailStatus === "SENT"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-zinc-100 text-zinc-600"
+                          }`}
+                        >
+                          {i.emailStatus}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
           </div>
-        )}
-      </section>
+
+          <QuotesSection 
+            ranked={ranked} 
+            draftsCount={drafts.length} 
+            req={{
+              id: req.id,
+              currency: req.currency,
+              project: req.project,
+              closesAt: req.closesAt,
+              awardedQuoteId: req.awardedQuoteId,
+            }} 
+          />
+        </div>
+      </div>
     </div>
   );
 }
