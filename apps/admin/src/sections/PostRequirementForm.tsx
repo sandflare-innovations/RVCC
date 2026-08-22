@@ -189,8 +189,8 @@ export function PostRequirementForm({
 
   return (
     <form onSubmit={(e) => submit(e, true)} className="flex flex-col min-h-0 w-full h-full relative">
-      {/* Fixed Sticky Header */}
-      <div className="flex-none flex items-center justify-between bg-white px-6 pb-4">
+      {/* Sticky header */}
+      <div className="sticky top-0 z-20 flex shrink-0 items-center justify-between border-b border-zinc-200/70 bg-white/95 px-6 py-4 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <button
             type="button"
