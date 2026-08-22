@@ -17,13 +17,13 @@ export function SmoothScroll({ children, className }: { children: React.ReactNod
       wrapper: wrapperRef.current,
       content: contentRef.current,
       duration: 1.8,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      easing: (t) => Math.min(1, 1 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
-      wheelMultiplier: 0.85,
+      wheelMultiplier: 1.0,
       smoothWheel: true,
       syncTouch: true,
-      touchMultiplier: 2,
+      touchMultiplier: 1.5,
     });
     lenisRef.current = lenis;
 
