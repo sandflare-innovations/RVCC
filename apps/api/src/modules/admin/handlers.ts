@@ -1477,6 +1477,15 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
   let closingSoon = 0;
   let awaitingAward = 0;
   let performance: { email: string; invited: number; submitted: number; won: number }[] = [];
+  let recentQuotes: {
+    id: string;
+    newPrice: number;
+    submittedAt: string | null;
+    vendorName: string;
+    vendorEmail: string;
+    requirementId: string;
+    requirementTitle: string;
+  }[] = [];
 
   try {
     const [openRow] = await readSql`
@@ -1530,6 +1539,33 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
       submitted: Number(p.submitted),
       won: Number(p.won),
     }));
+
+    const recentQuotesRows = await readSql`
+      SELECT 
+        q.id,
+        q."newPrice",
+        q."submittedAt",
+        v.name AS "vendorName",
+        v.email AS "vendorEmail",
+        r.id AS "requirementId",
+        r.title AS "requirementTitle"
+      FROM "Quote" q
+      JOIN "VendorUser" v ON q."vendorUserId" = v.id
+      JOIN "Requirement" r ON q."requirementId" = r.id
+      WHERE q.status = 'SUBMITTED'
+      ORDER BY q."submittedAt" DESC NULLS LAST
+      LIMIT 5
+    `;
+
+    recentQuotes = recentQuotesRows.map((r) => ({
+      id: String(r.id),
+      newPrice: Number(r.newPrice),
+      submittedAt: r.submittedAt ? new Date(r.submittedAt as string).toISOString() : null,
+      vendorName: String(r.vendorName || "Unknown Vendor"),
+      vendorEmail: String(r.vendorEmail),
+      requirementId: String(r.requirementId),
+      requirementTitle: String(r.requirementTitle),
+    }));
   } catch (err) {
     const e = err as { code?: string; message?: string };
     const msg = (e.message || "").toLowerCase();
@@ -1552,6 +1588,7 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
       awaitingAward,
       byStatus,
       performance,
+      recentQuotes,
     };
   });
 
