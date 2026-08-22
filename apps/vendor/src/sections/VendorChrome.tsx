@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, LayoutDashboard, Bell, ClipboardList } from "lucide-react";
 
 import type { VendorIdentity } from "@/lib/session";
+import { SmoothScroll } from "@/components/ui";
 import { NotificationBell } from "@/sections/NotificationBell";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +30,9 @@ export function VendorChrome({
   const initial = (vendor.name || vendor.email).charAt(0).toUpperCase();
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 font-enquire selection:bg-white selection:text-brand-blue [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+    <div className="flex h-dvh flex-col overflow-hidden bg-zinc-50 font-enquire selection:bg-white selection:text-brand-blue">
+      <SmoothScroll className="h-full min-h-0 flex-1" paused={mobileMenuOpen}>
+      <div className="flex min-h-full flex-col">
       {/* Top Navigation Bar Container */}
       <div className="w-full px-4 md:px-6 pt-4 md:pt-6">
         <header 
@@ -102,6 +105,7 @@ export function VendorChrome({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             className="fixed inset-0 z-[100] bg-white p-6"
+            data-lenis-prevent
           >
             <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
               <span className="text-sm font-bold tracking-[0.2em] text-zinc-950 uppercase">Menu</span>
@@ -134,6 +138,8 @@ export function VendorChrome({
           {children}
         </div>
       </main>
+      </div>
+      </SmoothScroll>
     </div>
   );
 }
