@@ -65,3 +65,35 @@ export async function proxyAdminList<T>(
     return { ok: false, status: 503, error: "Upstream unavailable." };
   }
 }
+
+/** Proxy a JSON object endpoint. */
+export async function proxyAdminGet<T>(
+  path: string,
+  sessionToken: string,
+  logLabel: string
+): Promise<AdminListResult<T>> {
+  try {
+    const res = await adminUpstreamGet(path, sessionToken);
+    const data = await res.json().catch(() => null);
+
+    if (res.status === 401) {
+      return { ok: false, status: 401, error: "Not signed in." };
+    }
+    if (res.status === 403) {
+      return { ok: false, status: 403, error: "Your role does not permit this action." };
+    }
+    if (!res.ok || !data) {
+      console.error(`[admin BFF ${logLabel}] upstream`, res.status, data);
+      return {
+        ok: false,
+        status: res.status || 503,
+        error: "Could not reach the data service. Retrying…",
+      };
+    }
+
+    return { ok: true, data: data as T };
+  } catch (err) {
+    console.error(`[admin BFF ${logLabel}]`, err);
+    return { ok: false, status: 503, error: "Upstream unavailable." };
+  }
+}
