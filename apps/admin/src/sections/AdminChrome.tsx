@@ -134,47 +134,57 @@ function SidebarContents({
         ))}
       </nav>
 
-      <div className="space-y-2 border-t border-white/20 pt-3">
-        <button
-          type="button"
-          title="Install App"
-          className={`flex w-full items-center gap-3 rounded-full bg-white px-3 py-2.5 shadow-sm transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
-            expanded ? "" : "justify-center"
+      <div>
+        <div
+          className={`overflow-hidden rounded-2xl bg-zinc-100 p-1.5 shadow-sm ${
+            expanded ? "" : "flex flex-col items-center gap-1"
           }`}
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue">
-            <Download className="h-4 w-4" />
-          </span>
-          <motion.span
-            animate={{ opacity: expanded ? 1 : 0, display: expanded ? "block" : "none" }}
-            initial={false}
-            className="min-w-0 flex-1 whitespace-nowrap text-left"
+          <button
+            type="button"
+            title="Install App"
+            className={`flex w-full items-center gap-3 rounded-xl px-2.5 py-2 transition-colors hover:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/30 ${
+              expanded ? "" : "justify-center"
+            }`}
           >
-            <span className="block truncate text-sm font-semibold text-brand-blue">Install App</span>
-          </motion.span>
-        </button>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue">
+              <Download className="h-4 w-4" />
+            </span>
+            <motion.span
+              animate={{ opacity: expanded ? 1 : 0, display: expanded ? "block" : "none" }}
+              initial={false}
+              className="min-w-0 flex-1 whitespace-nowrap text-left"
+            >
+              <span className="block truncate text-sm font-semibold text-brand-blue">Install App</span>
+            </motion.span>
+          </button>
 
-        <Link
-          href="/profile"
-          onClick={onNavigate}
-          className="flex items-center gap-3 px-2.5 py-2 hover:bg-white/10 rounded-md transition-colors group focus-visible:ring-white focus-visible:ring-2 focus-visible:outline-none"
-        >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-brand-blue shadow-sm">
-            {(admin.name || admin.email).charAt(0).toUpperCase()}
-          </span>
-          <motion.span
-            animate={{ opacity: expanded ? 1 : 0, display: expanded ? "block" : "none" }}
-            initial={false}
-            className="min-w-0 whitespace-nowrap"
+          <div className={`bg-zinc-200/80 ${expanded ? "mx-2 h-px" : "h-px w-6"}`} />
+
+          <Link
+            href="/profile"
+            onClick={onNavigate}
+            className={`group flex w-full items-center gap-3 rounded-xl px-2.5 py-2 transition-colors hover:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/30 ${
+              expanded ? "" : "justify-center"
+            }`}
           >
-            <span className="block truncate text-sm font-medium text-white group-hover:text-blue-50 transition-colors">
-              {admin.name || admin.email}
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-blue text-xs font-bold text-white shadow-sm">
+              {(admin.name || admin.email).charAt(0).toUpperCase()}
             </span>
-            <span className="block text-[11px] text-blue-200 group-hover:text-blue-100 transition-colors">
-              {admin.role.replace("_", " ").toLowerCase()}
-            </span>
-          </motion.span>
-        </Link>
+            <motion.span
+              animate={{ opacity: expanded ? 1 : 0, display: expanded ? "block" : "none" }}
+              initial={false}
+              className="min-w-0 flex-1 whitespace-nowrap"
+            >
+              <span className="block truncate text-sm font-semibold text-brand-blue">
+                {admin.name || admin.email}
+              </span>
+              <span className="block text-[11px] text-brand-blue/70">
+                {admin.role.replace("_", " ").toLowerCase()}
+              </span>
+            </motion.span>
+          </Link>
+        </div>
       </div>
     </div>
   );
