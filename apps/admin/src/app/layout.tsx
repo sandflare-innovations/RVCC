@@ -6,6 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import "flag-icons/css/flag-icons.min.css";
 
+import { ServiceWorkerRegistrar } from "./sw-registrar";
 import { PwaSplash } from "./pwa-splash";
 import { PwaUpdateBanner } from "./pwa-update-banner";
 
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <PwaSplash />
         <PwaUpdateBanner />
         {children}
+        <ServiceWorkerRegistrar />
         <SpeedInsights />
       </body>
     </html>
