@@ -54,6 +54,10 @@ export function DonutChart({ data, title, height = 280, className, ...props }: D
               ))}
             </Pie>
             <Tooltip
+              isAnimationActive={false}
+              animationDuration={0}
+              allowEscapeViewBox={{ x: true, y: true }}
+              wrapperStyle={{ outline: "none", zIndex: 20 }}
               content={({ active, payload }) => {
                 if (!active || !payload?.length) return null;
                 const item = payload[0].payload as { name: string; value: number; color: string };
