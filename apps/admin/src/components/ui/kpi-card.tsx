@@ -55,7 +55,7 @@ export function KpiCard({ label, value, href, icon, trend, trendValue, className
   );
 
   const shell = cn(
-    "group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] transition-all duration-300",
+    "group relative flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] transition-all duration-300",
     className,
   );
 

@@ -294,17 +294,17 @@ export default async function AdminDashboard() {
           <div className="px-4 md:px-8 space-y-12 pb-12">
 
             {/* Live Bidding & Overview Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
 
               {/* Left Column: Metrics */}
-              <div className="lg:col-span-2 space-y-12">
-                <section>
+              <div className="lg:col-span-2 flex">
+                <section className="flex h-full w-full flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-lg font-bold tracking-tight text-zinc-900">
                       Registrations Pipeline
                     </h2>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 lg:grid-cols-2">
+                  <div className="grid flex-1 grid-cols-2 auto-rows-fr gap-4">
                     {registrationCards.map((c) => (
                       <KpiCard
                         key={c.key}
@@ -312,6 +312,7 @@ export default async function AdminDashboard() {
                         value={counts[c.key] ?? 0}
                         href={c.href}
                         icon={c.icon}
+                        className="min-h-[148px] py-7"
                       />
                     ))}
                   </div>
