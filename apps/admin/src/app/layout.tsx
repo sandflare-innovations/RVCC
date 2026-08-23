@@ -6,7 +6,6 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import "flag-icons/css/flag-icons.min.css";
 
-import { ServiceWorkerRegistrar } from "./sw-registrar";
 import { PwaSplash } from "./pwa-splash";
 
 const adminSans = Inter({ subsets: ["latin"], display: "swap", variable: "--font-enquire-sans" });
@@ -46,7 +45,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <PwaSplash />
         {children}
-        <ServiceWorkerRegistrar />
         <SpeedInsights />
       </body>
     </html>
