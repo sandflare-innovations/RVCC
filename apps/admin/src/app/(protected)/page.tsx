@@ -257,22 +257,22 @@ export default async function AdminDashboard() {
 
             {/* Marquee Ticker */}
             {displayQuotes.length > 0 && (
-              <div className="mx-2 mb-10 overflow-hidden rounded-full  border-zinc-200 bg-white flex items-center h-10 relative">
-                <div className="absolute left-0 z-10 h-full px-3 flex items-center bg-white border-r border-zinc-100 rounded-l-full">
+              <div className="mx-2 mb-10 overflow-hidden rounded-full border border-brand-blue/10 bg-white flex items-center h-10 relative shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+                <div className="absolute left-0 z-10 h-full px-3.5 flex items-center bg-brand-blue rounded-l-full">
                   <span className="flex h-2 w-2 relative mr-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                   </span>
-                  <span className="text-xs font-bold text-zinc-800 uppercase tracking-wider">Live Bids</span>
+                  <span className="text-[11px] font-bold text-white uppercase tracking-wider">Live Bids</span>
                 </div>
-                <div className="flex whitespace-nowrap animate-marquee items-center pl-32">
+                <div className="flex whitespace-nowrap animate-marquee items-center pl-36">
                   {[...displayQuotes, ...displayQuotes, ...displayQuotes].map((quote, i) => (
                     <div key={i} className="flex items-center mx-6 text-sm">
                       <span className="font-semibold text-brand-blue">{quote.vendorName || quote.vendorEmail}</span>
                       <span className="mx-2 text-zinc-300">•</span>
                       <span className="text-zinc-600 truncate max-w-[200px]">{quote.requirementTitle}</span>
                       <span className="mx-2 text-zinc-300">•</span>
-                      <span className="font-bold text-emerald-600">{formatCurrency(quote.newPrice || 0)}</span>
+                      <span className="font-bold text-brand-blue">{formatCurrency(quote.newPrice || 0)}</span>
                     </div>
                   ))}
                 </div>
@@ -326,13 +326,21 @@ export default async function AdminDashboard() {
                       <Activity className="h-5 w-5 text-brand-blue" />
                       Live Bidding
                     </h2>
-                    <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100">Live</span>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand-blue bg-brand-blue/10 px-2.5 py-1 rounded-full">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-blue opacity-75" />
+                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-blue" />
+                      </span>
+                      Live
+                    </span>
                   </div>
 
-                  <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden flex-1 flex flex-col">
+                  <div className="bg-white rounded-3xl border border-zinc-100/80 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] overflow-hidden flex-1 flex flex-col">
                     {displayQuotes.length === 0 ? (
                       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-                        <Inbox className="h-10 w-10 text-zinc-300 mb-4" />
+                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-blue/10">
+                          <Inbox className="h-6 w-6 text-brand-blue" />
+                        </div>
                         <p className="text-sm font-medium text-zinc-900">No recent quotes</p>
                         <p className="text-xs text-zinc-500 mt-1">Quotes submitted by vendors will appear here in real-time.</p>
                       </div>
@@ -342,19 +350,19 @@ export default async function AdminDashboard() {
                           <Link
                             key={quote.id}
                             href={`/requirements/${quote.requirementId}`}
-                            className="flex flex-col p-4 hover:bg-zinc-50 transition-colors group"
+                            className="flex flex-col p-4 hover:bg-brand-blue/[0.04] transition-colors group"
                           >
                             <div className="flex items-start justify-between mb-1">
                               <p className="text-sm font-semibold text-zinc-900 group-hover:text-brand-blue transition-colors truncate pr-4">
                                 {quote.requirementTitle}
                               </p>
-                              <p className="text-sm font-bold text-emerald-600 tabular-nums shrink-0">
+                              <p className="text-sm font-bold text-brand-blue tabular-nums shrink-0">
                                 {formatCurrency(quote.newPrice)}
                               </p>
                             </div>
                             <div className="flex items-center justify-between text-xs text-zinc-500">
                               <p className="truncate pr-4 flex items-center gap-1.5">
-                                <span className="w-4 h-4 rounded-full bg-zinc-100 flex items-center justify-center text-[8px] font-bold text-zinc-600 shrink-0">
+                                <span className="w-5 h-5 rounded-full bg-brand-blue/10 flex items-center justify-center text-[10px] font-bold text-brand-blue shrink-0">
                                   {quote.vendorName.charAt(0).toUpperCase()}
                                 </span>
                                 {quote.vendorName}
@@ -367,10 +375,10 @@ export default async function AdminDashboard() {
                         ))}
                       </div>
                     )}
-                    <div className="p-4 bg-zinc-50 border-t border-zinc-100 mt-auto">
+                    <div className="p-4 bg-brand-blue/[0.04] border-t border-zinc-100 mt-auto">
                       <Link
                         href="/requirements"
-                        className="text-xs font-semibold text-brand-blue flex items-center justify-center gap-1 hover:text-blue-700 transition-colors"
+                        className="text-xs font-semibold text-brand-blue flex items-center justify-center gap-1 hover:text-[#005a94] transition-colors"
                       >
                         View All Activity <ArrowUpRight className="h-3 w-3" />
                       </Link>
@@ -385,10 +393,10 @@ export default async function AdminDashboard() {
               <DonutChart
                 title="Registration Pipeline"
                 data={[
-                  { name: "Approved", value: counts["APPROVED"] ?? 0, color: "#10b981" },
-                  { name: "Pending", value: counts["SUBMITTED"] ?? 0, color: "#f59e0b" },
-                  { name: "Rejected", value: counts["REJECTED"] ?? 0, color: "#ef4444" },
-                  { name: "Draft", value: counts["DRAFT"] ?? 0, color: "#6b7280" },
+                  { name: "Approved", value: counts["APPROVED"] ?? 0, color: "#0073bc" },
+                  { name: "Pending", value: counts["SUBMITTED"] ?? 0, color: "#4aa3d8" },
+                  { name: "Rejected", value: counts["REJECTED"] ?? 0, color: "#a6a6a6" },
+                  { name: "Draft", value: counts["DRAFT"] ?? 0, color: "#cfe4f3" },
                 ].filter(d => d.value > 0)}
               />
               <BarChart
@@ -412,9 +420,9 @@ export default async function AdminDashboard() {
                 </h2>
               </div>
               {rows.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-white py-16">
-                  <div className="h-16 w-16 bg-zinc-50 rounded-full flex items-center justify-center mb-4">
-                    <Users className="h-8 w-8 text-zinc-400" />
+                <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-brand-blue/20 bg-white py-16">
+                  <div className="h-16 w-16 bg-brand-blue/10 rounded-2xl flex items-center justify-center mb-4">
+                    <Users className="h-8 w-8 text-brand-blue" />
                   </div>
                   <p className="text-sm font-semibold text-zinc-900">No active suppliers yet</p>
                   <p className="mt-1 text-xs text-zinc-500">
@@ -422,26 +430,26 @@ export default async function AdminDashboard() {
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
                   <table className="w-full text-left text-sm border-separate border-spacing-y-2">
-                    <thead className="bg-brand-blue text-white rounded-xl">
+                    <thead className="bg-brand-blue text-white rounded-2xl">
                       <tr>
-                        <th className="px-6 py-3 font-semibold rounded-l-xl">Supplier</th>
-                        <th className="px-6 py-3 text-right font-semibold">Invited</th>
-                        <th className="px-6 py-3 text-right font-semibold">Quoted</th>
-                        <th className="px-6 py-3 text-right font-semibold">Response Rate</th>
-                        <th className="px-6 py-3 text-right font-semibold">Won</th>
-                        <th className="px-6 py-3 text-right font-semibold rounded-r-xl">Win Rate</th>
+                        <th className="px-6 py-3.5 font-semibold rounded-l-2xl">Supplier</th>
+                        <th className="px-6 py-3.5 text-right font-semibold">Invited</th>
+                        <th className="px-6 py-3.5 text-right font-semibold">Quoted</th>
+                        <th className="px-6 py-3.5 text-right font-semibold">Response Rate</th>
+                        <th className="px-6 py-3.5 text-right font-semibold">Won</th>
+                        <th className="px-6 py-3.5 text-right font-semibold rounded-r-2xl">Win Rate</th>
                       </tr>
                     </thead>
                     <tbody>
                       {rows.map((p: any, index: number) => (
-                        <tr key={p.email} className="bg-white ring-1 ring-inset ring-zinc-200/50 rounded-xl transition-shadow hover:ring-brand-blue group">
-                          <td className="px-6 py-4 font-medium text-zinc-900 flex items-center gap-3 rounded-l-xl">
-                            {index === 0 && <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-yellow-100 text-xs font-bold text-yellow-700 ring-2 ring-white shadow-sm">1</span>}
-                            {index === 1 && <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-700 ring-2 ring-white shadow-sm">2</span>}
-                            {index === 2 && <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-800 ring-2 ring-white shadow-sm">3</span>}
-                            {index > 2 && <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-50 text-xs font-medium text-zinc-400">{index + 1}</span>}
+                        <tr key={p.email} className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40 hover:shadow-[0_8px_24px_-16px_rgba(0,115,188,0.45)] group">
+                          <td className="px-6 py-4 font-medium text-zinc-900 flex items-center gap-3 rounded-l-2xl">
+                            {index === 0 && <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-blue text-xs font-bold text-white shadow-sm">1</span>}
+                            {index === 1 && <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-blue/70 text-xs font-bold text-white shadow-sm">2</span>}
+                            {index === 2 && <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-blue/40 text-xs font-bold text-white shadow-sm">3</span>}
+                            {index > 2 && <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-xs font-medium text-brand-blue">{index + 1}</span>}
                             <span className="truncate max-w-[200px]">{p.email}</span>
                           </td>
                           <td className="px-6 py-4 text-right text-zinc-600 tabular-nums">
@@ -452,16 +460,16 @@ export default async function AdminDashboard() {
                           </td>
                           <td className="px-6 py-4 text-right tabular-nums">
                             <span
-                              className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-bold ${p.invited > 0 && p.responseRate < 50
-                                ? "bg-red-50 text-red-700"
-                                : "bg-emerald-50 text-emerald-700"
+                              className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ${p.invited > 0 && p.responseRate < 50
+                                ? "bg-zinc-100 text-zinc-600"
+                                : "bg-brand-blue/10 text-brand-blue"
                                 }`}
                             >
                               {p.invited === 0 ? "—" : `${p.responseRate}%`}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right text-zinc-600 tabular-nums">{p.won}</td>
-                          <td className="px-6 py-4 text-right text-zinc-600 tabular-nums rounded-r-xl">
+                          <td className="px-6 py-4 text-right text-zinc-600 tabular-nums rounded-r-2xl">
                             {p.submitted === 0 ? "—" : `${p.winRate}%`}
                           </td>
                         </tr>
