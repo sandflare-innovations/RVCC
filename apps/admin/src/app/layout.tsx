@@ -14,7 +14,7 @@ import { PwaUpdateBanner } from "./pwa-update-banner";
 const adminSans = Inter({ subsets: ["latin"], display: "swap", variable: "--font-enquire-sans" });
 
 export const viewport: Viewport = {
-  themeColor: "#0073bc",
+  themeColor: "#fafafa",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
