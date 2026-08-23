@@ -13,8 +13,16 @@ import {
  * Cheap cookie-presence gate. Real auth is /auth/me via apps/api.
  * Also slides the browser cookie maxAge forward on every page navigation.
  */
+/** Paths that must be publicly accessible (no auth redirect). */
+const PUBLIC_ASSET_PREFIXES = ["/manifest.json", "/sw.js", "/offline.html", "/icons/"];
+
 export default function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+
+  // PWA assets must be served without auth
+  if (PUBLIC_ASSET_PREFIXES.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
 
   if (pathname === ADMIN_LOGIN_PATH) {
     if (request.nextUrl.searchParams.has(ADMIN_SESSION_EXPIRED_PARAM)) {
@@ -49,5 +57,5 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|offline\\.html|icons/).*)"],
 };
