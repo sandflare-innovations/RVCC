@@ -27,7 +27,7 @@ interface DonutChartProps extends React.HTMLAttributes<HTMLDivElement> {
   height?: number;
 }
 
-export function DonutChart({ data, title, height = 280, className, ...props }: DonutChartProps) {
+export function DonutChart({ data, title, height = 320, className, ...props }: DonutChartProps) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
@@ -42,10 +42,10 @@ export function DonutChart({ data, title, height = 280, className, ...props }: D
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={72}
-              outerRadius={92}
+              innerRadius={82}
+              outerRadius={114}
               paddingAngle={3}
-              cornerRadius={8}
+              cornerRadius={10}
               dataKey="value"
               stroke="none"
             >
