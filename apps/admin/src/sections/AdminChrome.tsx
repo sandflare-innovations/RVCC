@@ -7,6 +7,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ClipboardList, FileText, FolderOpen, LayoutDashboard, LogOut, Users, Globe, Image as ImageIcon, Briefcase, Wrench, Info, UserCheck, FileArchive, ShieldCheck, Download } from "lucide-react";
 
+import { useInstallPrompt } from "@/lib/pwa/install-prompt";
+
 import { Sidebar, SidebarBody, SidebarLink, useSidebar } from "@/components/ui/sidebar";
 import Link from "next/link";
 import Image from "next/image";
@@ -57,6 +59,8 @@ function SidebarContents({
   const [dashboardMenuOpen, setDashboardMenuOpen] = useState(false);
   const isWebsiteDashboard = pathname.startsWith("/content");
   const currentNav = isWebsiteDashboard ? WEBSITE_NAV : VENDOR_NAV;
+
+  const { showInstallButton, canInstall, promptInstall } = useInstallPrompt();
 
   return (
     <div className="flex h-full flex-col">
@@ -140,26 +144,39 @@ function SidebarContents({
             expanded ? "" : "flex flex-col items-center gap-1"
           }`}
         >
-          <button
-            type="button"
-            title="Install App"
-            className={`flex w-full items-center gap-3 rounded-xl px-2.5 py-2 transition-colors hover:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/30 ${
-              expanded ? "" : "justify-center"
-            }`}
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue">
-              <Download className="h-4 w-4" />
-            </span>
-            <motion.span
-              animate={{ opacity: expanded ? 1 : 0, display: expanded ? "block" : "none" }}
-              initial={false}
-              className="min-w-0 flex-1 whitespace-nowrap text-left"
-            >
-              <span className="block truncate text-sm font-semibold text-brand-blue">Install App</span>
-            </motion.span>
-          </button>
+          {/* Install App — visible until the app is installed */}
+          {showInstallButton && (
+            <>
+              <button
+                type="button"
+                title="Install RVCC Admin as an app"
+                disabled={!canInstall}
+                onClick={promptInstall}
+                className={`flex w-full items-center gap-3 rounded-xl px-2.5 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/30 ${
+                  canInstall
+                    ? "cursor-pointer hover:bg-zinc-200/70"
+                    : "cursor-wait opacity-70"
+                } ${expanded ? "" : "justify-center"}`}
+              >
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue ${
+                    canInstall ? "animate-pulse" : ""
+                  }`}
+                >
+                  <Download className="h-4 w-4" />
+                </span>
+                <motion.span
+                  animate={{ opacity: expanded ? 1 : 0, display: expanded ? "block" : "none" }}
+                  initial={false}
+                  className="min-w-0 flex-1 whitespace-nowrap text-left"
+                >
+                  <span className="block truncate text-sm font-semibold text-brand-blue">Install App</span>
+                </motion.span>
+              </button>
 
-          <div className={`bg-zinc-200/80 ${expanded ? "mx-2 h-px" : "h-px w-6"}`} />
+              <div className={`bg-zinc-200/80 ${expanded ? "mx-2 h-px" : "h-px w-6"}`} />
+            </>
+          )}
 
           <Link
             href="/profile"
