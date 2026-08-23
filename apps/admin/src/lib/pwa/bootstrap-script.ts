@@ -6,7 +6,7 @@ export const PWA_BOOTSTRAP_SCRIPT = `
 (function () {
   if (typeof window === "undefined") return;
 
-  window.__RVCC_DEFERRED_INSTALL__ = null;
+  window.__RVCC_DEFERRED_INSTALL__ = window.__RVCC_DEFERRED_INSTALL__ || null;
 
   window.addEventListener("beforeinstallprompt", function (e) {
     e.preventDefault();
@@ -15,12 +15,10 @@ export const PWA_BOOTSTRAP_SCRIPT = `
   });
 
   if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/sw.js", {
-        scope: "/",
-        updateViaCache: "none",
-      });
-    });
+    navigator.serviceWorker.register("/sw.js", {
+      scope: "/",
+      updateViaCache: "none"
+    }).catch(function () {});
   }
 })();
 `;

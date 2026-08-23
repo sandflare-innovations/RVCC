@@ -17,12 +17,17 @@ declare global {
 let deferredPrompt: BeforeInstallPromptEvent | null = null;
 const promptListeners = new Set<() => void>();
 
-function syncDeferredFromWindow() {
-  if (typeof window === "undefined") return;
-  if (window.__RVCC_DEFERRED_INSTALL__) {
-    deferredPrompt = window.__RVCC_DEFERRED_INSTALL__;
-    notifyPromptListeners();
+function getPrompt(): BeforeInstallPromptEvent | null {
+  if (typeof window === "undefined") return null;
+  return deferredPrompt ?? window.__RVCC_DEFERRED_INSTALL__ ?? null;
+}
+
+function setPrompt(next: BeforeInstallPromptEvent | null) {
+  deferredPrompt = next;
+  if (typeof window !== "undefined") {
+    window.__RVCC_DEFERRED_INSTALL__ = next;
   }
+  notifyPromptListeners();
 }
 
 function notifyPromptListeners() {
@@ -34,22 +39,17 @@ function subscribeToPrompt(listener: () => void) {
   return () => promptListeners.delete(listener);
 }
 
-function getDeferredPromptSnapshot() {
-  if (typeof window === "undefined") return null;
-  return deferredPrompt ?? window.__RVCC_DEFERRED_INSTALL__ ?? null;
-}
-
 if (typeof window !== "undefined") {
-  syncDeferredFromWindow();
+  setPrompt(window.__RVCC_DEFERRED_INSTALL__ ?? null);
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
-    deferredPrompt = e as BeforeInstallPromptEvent;
-    window.__RVCC_DEFERRED_INSTALL__ = deferredPrompt;
-    notifyPromptListeners();
+    setPrompt(e as BeforeInstallPromptEvent);
   });
 
-  window.addEventListener("rvcc:pwa-install-available", syncDeferredFromWindow);
+  window.addEventListener("rvcc:pwa-install-available", () => {
+    setPrompt(window.__RVCC_DEFERRED_INSTALL__ ?? deferredPrompt);
+  });
 }
 
 function checkIsInstalled(): boolean {
@@ -57,29 +57,46 @@ function checkIsInstalled(): boolean {
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
     window.matchMedia("(display-mode: fullscreen)").matches ||
-    window.matchMedia("(display-mode: minimal-ui)").matches ||
     // @ts-expect-error — Safari-specific property
-    window.navigator.standalone === true ||
-    document.referrer.includes("android-app://")
+    window.navigator.standalone === true
   );
+}
+
+async function waitForPrompt(timeoutMs = 4000): Promise<BeforeInstallPromptEvent | null> {
+  const existing = getPrompt();
+  if (existing) return existing;
+
+  if ("serviceWorker" in navigator) {
+    try {
+      await navigator.serviceWorker.ready;
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const prompt = getPrompt();
+    if (prompt) return prompt;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+
+  return getPrompt();
 }
 
 export function useInstallPrompt() {
   const [mounted, setMounted] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [prompting, setPrompting] = useState(false);
 
-  const deferred = useSyncExternalStore(
-    subscribeToPrompt,
-    getDeferredPromptSnapshot,
-    () => null
-  );
-
+  const deferred = useSyncExternalStore(subscribeToPrompt, getPrompt, () => null);
   const canInstall = deferred !== null;
 
   useEffect(() => {
     setMounted(true);
     setIsInstalled(checkIsInstalled());
-    syncDeferredFromWindow();
+    setPrompt(getPrompt());
+    void waitForPrompt();
   }, []);
 
   useEffect(() => {
@@ -87,9 +104,7 @@ export function useInstallPrompt() {
 
     const installedHandler = () => {
       setIsInstalled(true);
-      deferredPrompt = null;
-      window.__RVCC_DEFERRED_INSTALL__ = null;
-      notifyPromptListeners();
+      setPrompt(null);
     };
 
     const mql = window.matchMedia("(display-mode: standalone)");
@@ -107,12 +122,13 @@ export function useInstallPrompt() {
   }, [mounted]);
 
   const promptInstall = useCallback(async () => {
-    if (isInstalled) return;
+    if (isInstalled || prompting) return;
 
-    const prompt = deferredPrompt ?? window.__RVCC_DEFERRED_INSTALL__;
-    if (!prompt) return;
-
+    setPrompting(true);
     try {
+      const prompt = await waitForPrompt();
+      if (!prompt) return;
+
       await prompt.prompt();
       const { outcome } = await prompt.userChoice;
 
@@ -120,20 +136,18 @@ export function useInstallPrompt() {
         setIsInstalled(true);
       }
     } catch {
-      // Browser blocked the prompt — no custom fallback UI.
+      /* Browser blocked the native prompt */
     } finally {
-      deferredPrompt = null;
-      window.__RVCC_DEFERRED_INSTALL__ = null;
-      notifyPromptListeners();
+      setPrompt(null);
+      setPrompting(false);
     }
-  }, [isInstalled]);
+  }, [isInstalled, prompting]);
 
   return {
     mounted,
-    /** Native browser install prompt is ready */
     canInstall,
     isInstalled,
-    /** Show install CTA until installed; enabled once the browser prompt is ready */
+    prompting,
     showInstallButton: mounted && !isInstalled,
     promptInstall,
   };

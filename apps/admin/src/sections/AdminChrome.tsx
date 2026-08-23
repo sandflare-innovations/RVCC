@@ -60,7 +60,7 @@ function SidebarContents({
   const isWebsiteDashboard = pathname.startsWith("/content");
   const currentNav = isWebsiteDashboard ? WEBSITE_NAV : VENDOR_NAV;
 
-  const { showInstallButton, canInstall, promptInstall } = useInstallPrompt();
+  const { showInstallButton, canInstall, prompting, promptInstall } = useInstallPrompt();
 
   return (
     <div className="flex h-full flex-col">
@@ -150,17 +150,15 @@ function SidebarContents({
               <button
                 type="button"
                 title="Install RVCC Admin as an app"
-                disabled={!canInstall}
+                disabled={prompting}
                 onClick={promptInstall}
-                className={`flex w-full items-center gap-3 rounded-xl px-2.5 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/30 ${
-                  canInstall
-                    ? "cursor-pointer hover:bg-zinc-200/70"
-                    : "cursor-wait opacity-70"
+                className={`flex w-full items-center gap-3 rounded-xl px-2.5 py-2 transition-colors cursor-pointer hover:bg-zinc-200/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/30 ${
+                  prompting ? "opacity-70" : ""
                 } ${expanded ? "" : "justify-center"}`}
               >
                 <span
                   className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue ${
-                    canInstall ? "animate-pulse" : ""
+                    canInstall && !prompting ? "animate-pulse" : ""
                   }`}
                 >
                   <Download className="h-4 w-4" />
