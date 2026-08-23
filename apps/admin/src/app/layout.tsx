@@ -7,6 +7,7 @@ import "./globals.css";
 import "flag-icons/css/flag-icons.min.css";
 
 import { PwaSplash } from "./pwa-splash";
+import { PwaUpdateBanner } from "./pwa-update-banner";
 
 const adminSans = Inter({ subsets: ["latin"], display: "swap", variable: "--font-enquire-sans" });
 
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${adminSans.variable} font-enquire min-h-screen bg-zinc-50 antialiased`}
       >
         <PwaSplash />
+        <PwaUpdateBanner />
         {children}
         <SpeedInsights />
       </body>
