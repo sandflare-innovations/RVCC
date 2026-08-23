@@ -9,7 +9,7 @@
  * - Push notifications + Background sync support
  */
 
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v8';
 const SHELL_CACHE = `rvcc-admin-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `rvcc-admin-runtime-${CACHE_VERSION}`;
 const FONT_CACHE = `rvcc-admin-fonts-${CACHE_VERSION}`;
@@ -85,7 +85,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // PWA manifest + install icons → Network-first so name/logo changes deploy immediately
-  if (url.pathname === '/manifest.json' || url.pathname.startsWith('/icons/')) {
+  if (url.pathname === '/manifest.json' || url.pathname === '/manifest.webmanifest' || url.pathname.startsWith('/icons/')) {
     event.respondWith(networkFirst(request, SHELL_CACHE, RUNTIME_CACHE_LIMIT));
     return;
   }
