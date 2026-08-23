@@ -1,16 +1,39 @@
 import { Inter } from "next/font/google";
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import "./globals.css";
 import "flag-icons/css/flag-icons.min.css";
 
+import { ServiceWorkerRegistrar } from "./sw-registrar";
+import { PwaSplash } from "./pwa-splash";
+
 const adminSans = Inter({ subsets: ["latin"], display: "swap", variable: "--font-enquire-sans" });
+
+export const viewport: Viewport = {
+  themeColor: "#0073bc",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "RVCC Admin",
   robots: { index: false, follow: false },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "RVCC Admin",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +44,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
         className={`${adminSans.variable} font-enquire min-h-screen bg-zinc-50 antialiased`}
       >
+        <PwaSplash />
         {children}
+        <ServiceWorkerRegistrar />
         <SpeedInsights />
       </body>
     </html>
