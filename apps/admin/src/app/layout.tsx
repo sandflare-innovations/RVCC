@@ -7,6 +7,7 @@ import "./globals.css";
 import "flag-icons/css/flag-icons.min.css";
 
 import { ServiceWorkerRegistrar } from "./sw-registrar";
+import { PwaBootstrap } from "./pwa-bootstrap";
 import { PwaSplash } from "./pwa-splash";
 import { PwaUpdateBanner } from "./pwa-update-banner";
 
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
         className={`${adminSans.variable} font-enquire min-h-screen bg-zinc-50 antialiased`}
       >
+        <PwaBootstrap />
         <PwaSplash />
         <PwaUpdateBanner />
         {children}
