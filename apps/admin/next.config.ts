@@ -15,8 +15,14 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Serve the manifest with no-cache so install metadata stays current
         source: "/manifest.json",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Content-Type", value: "application/manifest+json; charset=utf-8" },
+        ],
+      },
+      {
+        source: "/manifest.webmanifest",
         headers: [
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
           { key: "Content-Type", value: "application/manifest+json; charset=utf-8" },

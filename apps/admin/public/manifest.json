@@ -1,6 +1,6 @@
 {
   "name": "RVCC Admin",
-  "short_name": "RVCC",
+  "short_name": "RVCC Admin",
   "description": "RVCC Vendor Management & Procurement Administration Portal",
   "start_url": "/",
   "scope": "/",
@@ -9,6 +9,9 @@
   "orientation": "any",
   "theme_color": "#0073bc",
   "background_color": "#ffffff",
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "categories": ["business", "productivity"],
   "icons": [
     {
@@ -34,15 +37,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "RVCC Admin Dashboard"
     }
   ]
 }

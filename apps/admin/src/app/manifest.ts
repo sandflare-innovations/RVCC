@@ -1,0 +1,46 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "RVCC Admin",
+    short_name: "RVCC Admin",
+    description: "RVCC Vendor Management & Procurement Administration Portal",
+    start_url: "/",
+    scope: "/",
+    id: "/",
+    display: "standalone",
+    orientation: "any",
+    theme_color: "#0073bc",
+    background_color: "#ffffff",
+    lang: "en",
+    dir: "ltr",
+    prefer_related_applications: false,
+    categories: ["business", "productivity"],
+    icons: [
+      {
+        src: "/icons/icon-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-maskable-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "maskable",
+      },
+      {
+        src: "/icons/icon-maskable-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+    ],
+  };
+}
