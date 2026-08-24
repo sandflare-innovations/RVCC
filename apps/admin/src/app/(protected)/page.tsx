@@ -161,7 +161,7 @@ export default async function AdminDashboard() {
   return (
     <div className="flex flex-col min-h-0 w-full h-full relative">
       <SmoothScroll className="flex-1">
-        <div className="animate-in fade-in space-y-12 duration-500 relative z-10 -mt-6 pt-0">
+        <div className="animate-in fade-in duration-500 relative z-10 min-h-full">
           <style dangerouslySetInnerHTML={{
             __html: `
             @keyframes marquee {
@@ -176,10 +176,9 @@ export default async function AdminDashboard() {
             }
           `}} />
 
-          {/* Top Fold Container */}
-          <div className="flex flex-col min-h-[calc(100vh-7rem)] mb-12">
-            {/* Hero Welcome Section */}
-            <div className="bg-brand-blue rounded-[2.5rem] flex flex-col px-8 py-10 md:py-16 text-white space-y-8 shadow-sm relative z-40 overflow-hidden mx-2 mt-6 mb-4 flex-1 justify-center">
+          <div className="flex min-h-[calc(100dvh-4rem)] flex-col gap-6 pb-8 md:min-h-[calc(100dvh-5.5rem)] md:gap-8 md:pb-10">
+            <section className="flex min-h-0 flex-1 flex-col">
+            <div className="relative z-40 flex h-full min-h-0 flex-1 flex-col justify-between overflow-hidden rounded-[2.5rem] bg-brand-blue px-8 py-7 text-white shadow-sm md:px-12 md:py-8">
 
               {/* Decorative Background Elements with SVG Animation */}
               <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-white opacity-5 blur-3xl pointer-events-none"></div>
@@ -204,60 +203,58 @@ export default async function AdminDashboard() {
                 <rect width="100%" height="100%" fill="url(#hero-gradient)" />
               </svg>
 
-              <div className="relative z-10">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                  <div className="text-left">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-medium text-blue-50 mb-6 backdrop-blur-sm">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                      </span>
-                      Live Sourcing Network
-                    </div>
-                    <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-white">
-                      Vendor Management
-                    </h1>
-                    <p className="text-blue-100/90 text-lg md:text-xl max-w-2xl font-light">
-                      Monitor your supply chain, evaluate vendor performance, and manage ongoing requirements in real-time.
-                    </p>
+              <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+                <div className="max-w-2xl text-left">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-medium text-blue-50 mb-6 backdrop-blur-sm">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    Live Sourcing Network
                   </div>
-
-                  <Link
-                    href="/requirements/new"
-                    className="shrink-0 bg-white hover:bg-blue-50 text-brand-blue font-semibold rounded-2xl px-6 py-4 flex items-center gap-3 transition-all shadow-xl shadow-black/10 hover:shadow-black/20 hover:-translate-y-0.5"
-                  >
-                    <div className="bg-blue-100 rounded-full p-1.5">
-                      <Plus className="h-5 w-5" />
-                    </div>
-                    Post Requirement
-                  </Link>
+                  <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-white">
+                    Vendor Management
+                  </h1>
+                  <p className="text-blue-100/90 text-lg md:text-xl font-light leading-relaxed">
+                    Monitor your supply chain, evaluate vendor performance, and manage ongoing requirements in real-time.
+                  </p>
                 </div>
+
+                <Link
+                  href="/requirements/new"
+                  className="shrink-0 self-start bg-white hover:bg-blue-50 text-brand-blue font-semibold rounded-2xl px-6 py-4 flex items-center gap-3 transition-all shadow-xl shadow-black/10 hover:shadow-black/20 hover:-translate-y-0.5"
+                >
+                  <div className="bg-blue-100 rounded-full p-1.5">
+                    <Plus className="h-5 w-5" />
+                  </div>
+                  Post Requirement
+                </Link>
               </div>
 
-              {/* Quick Stats Over Hero */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-8 relative z-10 border-t border-white/10 pt-8">
-                <div className="flex flex-col">
-                  <p className="text-blue-200 text-sm font-medium mb-1">Active Vendors</p>
-                  <p className="text-3xl font-bold tracking-tight">{activeVendors ?? 0}</p>
+              <div className="relative z-10 mt-8 grid grid-cols-2 gap-6 border-t border-white/10 pt-6 lg:grid-cols-4 md:gap-8 lg:mt-0">
+                <div className="flex flex-col gap-1">
+                  <p className="text-blue-200 text-sm font-medium">Active Vendors</p>
+                  <p className="text-3xl md:text-4xl font-bold tracking-tight">{activeVendors ?? 0}</p>
                 </div>
-                <div className="flex flex-col">
-                  <p className="text-blue-200 text-sm font-medium mb-1">Open Requirements</p>
-                  <p className="text-3xl font-bold tracking-tight">{openCount ?? 0}</p>
+                <div className="flex flex-col gap-1">
+                  <p className="text-blue-200 text-sm font-medium">Open Requirements</p>
+                  <p className="text-3xl md:text-4xl font-bold tracking-tight">{openCount ?? 0}</p>
                 </div>
-                <div className="flex flex-col">
-                  <p className="text-blue-200 text-sm font-medium mb-1">Pending Reviews</p>
-                  <p className="text-3xl font-bold tracking-tight">{counts["SUBMITTED"] ?? 0}</p>
+                <div className="flex flex-col gap-1">
+                  <p className="text-blue-200 text-sm font-medium">Pending Reviews</p>
+                  <p className="text-3xl md:text-4xl font-bold tracking-tight">{counts["SUBMITTED"] ?? 0}</p>
                 </div>
-                <div className="flex flex-col">
-                  <p className="text-blue-200 text-sm font-medium mb-1">Closing Soon</p>
-                  <p className="text-3xl font-bold tracking-tight text-amber-300">{closingSoon ?? 0}</p>
+                <div className="flex flex-col gap-1">
+                  <p className="text-blue-200 text-sm font-medium">Closing Soon</p>
+                  <p className="text-3xl md:text-4xl font-bold tracking-tight text-amber-300">{closingSoon ?? 0}</p>
                 </div>
               </div>
             </div>
+            </section>
 
             {/* Marquee Ticker */}
             {displayQuotes.length > 0 && (
-              <div className="mx-2 mb-10 overflow-hidden rounded-full border border-brand-blue/10 bg-white flex items-center h-10 relative shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+              <div className="shrink-0 overflow-hidden rounded-full border border-brand-blue/10 bg-white flex items-center h-10 relative shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                 <div className="absolute left-0 z-10 h-full px-3.5 flex items-center bg-brand-blue rounded-l-full">
                   <span className="flex h-2 w-2 relative mr-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
@@ -281,7 +278,7 @@ export default async function AdminDashboard() {
             {/* End of Marquee */}
 
             {/* Sourcing Overview (4 cards in single row) */}
-            <section className="mx-4 md:mx-8 mt-2 mb-6">
+            <section className="shrink-0">
               <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 {headline.map((c) => (
                   <KpiCard key={c.label} {...c} />
@@ -289,9 +286,8 @@ export default async function AdminDashboard() {
               </div>
             </section>
           </div>
-          {/* End of Top Fold Container */}
 
-          <div className="px-4 md:px-8 space-y-12 pb-12">
+          <div className="px-4 md:px-8 space-y-12 pb-12 pt-12">
 
             {/* Live Bidding & Overview Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
