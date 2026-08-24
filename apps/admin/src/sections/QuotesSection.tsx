@@ -296,24 +296,24 @@ export function QuotesSection({
           })}
         </div>
       ) : (
-        <div className="overflow-x-auto min-h-0 w-full px-1">
-          <table className="w-full text-left text-sm border-separate border-spacing-y-3">
+        <div className="overflow-x-auto min-h-0 w-full rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
+          <table className="w-full text-left text-sm border-separate border-spacing-y-2">
             <thead className="sticky top-0 z-10">
-              <tr className="text-xs font-bold tracking-[0.08em] text-white bg-brand-blue uppercase">
-                <th className="px-4 py-3 rounded-l-xl">Rank</th>
-                <th className="px-4 py-3">Vendor</th>
-                <th className="px-4 py-3">Price</th>
-                <th className="px-4 py-3">Submitted Date</th>
-                <th className="px-4 py-3 rounded-r-xl text-right">Actions</th>
+              <tr className="bg-brand-blue text-white">
+                <th className="px-6 py-3.5 font-semibold rounded-l-2xl">Rank</th>
+                <th className="px-6 py-3.5 font-semibold">Vendor</th>
+                <th className="px-6 py-3.5 font-semibold">Price</th>
+                <th className="px-6 py-3.5 font-semibold">Submitted Date</th>
+                <th className="px-6 py-3.5 font-semibold rounded-r-2xl text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {sortedQuotes.map((q) => {
                 const isWinner = req.awardedQuoteId === q.id;
                 return (
-                  <tr key={q.id} className={`bg-white ring-1 ring-inset ring-zinc-200/50 rounded-xl transition-shadow hover:ring-brand-blue ${isWinner ? 'bg-blue-50/30 ring-brand-blue/40' : ''}`}>
-                    <td className="px-4 py-3 rounded-l-xl whitespace-nowrap">
-                      <div className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${isWinner ? 'bg-brand-blue text-white' : 'bg-zinc-100 text-zinc-600'}`}>
+                  <tr key={q.id} className={`bg-white ring-1 ring-inset rounded-2xl transition-all hover:ring-brand-blue/40 hover:shadow-[0_8px_24px_-16px_rgba(0,115,188,0.45)] ${isWinner ? 'ring-brand-blue/40 bg-brand-blue/[0.04]' : 'ring-zinc-100'}`}>
+                    <td className="px-6 py-4 rounded-l-2xl whitespace-nowrap">
+                      <div className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${isWinner ? 'bg-brand-blue text-white' : 'bg-brand-blue/10 text-brand-blue'}`}>
                         {q.rank === 1 ? (
                           <Medal className="h-4 w-4 text-yellow-500 drop-shadow-sm" />
                         ) : q.rank === 2 ? (
@@ -325,7 +325,7 @@ export function QuotesSection({
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-semibold text-zinc-900 flex items-center gap-2">
                         {q.who}
                         {isWinner && (
@@ -337,14 +337,14 @@ export function QuotesSection({
                       </div>
                       <div className="text-xs text-zinc-500">{q.vendorEmail}</div>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <span className="font-bold text-zinc-900 tabular-nums">{q.newPrice}</span>
                       <span className="text-xs font-semibold text-zinc-500 ml-1">{req.currency}</span>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-zinc-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-zinc-500">
                       {q.submittedAt ? formatDateTime(q.submittedAt.toISOString()) : "—"}
                     </td>
-                    <td className="px-4 py-3 rounded-r-xl whitespace-nowrap text-right">
+                    <td className="px-6 py-4 rounded-r-2xl whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
                         {q.quoteFileUrl && (
                           <a 
