@@ -19,7 +19,6 @@ import {
 } from "@/lib/vendor-filters";
 import { CreateVendorForm, type IndustryOption } from "@/sections/CreateVendorForm";
 import { VendorRowActions, type VendorSummary } from "@/sections/VendorRowActions";
-import { SmoothScroll } from "@/components/ui";
 
 type VendorRow = CachedVendorRow;
 
@@ -183,8 +182,8 @@ export function VendorAccountsPanel({
   }, [fetchAll]);
 
   return (
-    <div className="flex flex-1 flex-col min-h-0 space-y-6 w-full">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+    <div className="flex flex-1 flex-col min-h-0 w-full">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0 mb-6">
         <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
           <div>
             <p className="text-sm font-medium text-zinc-500">Total Vendors</p>
@@ -223,7 +222,7 @@ export function VendorAccountsPanel({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 shrink-0">
+      <div className="flex flex-nowrap items-center justify-between gap-4 shrink-0 mb-6">
         <div className="flex items-center gap-3 w-full max-w-sm">
           <button
             type="button"
@@ -281,40 +280,40 @@ export function VendorAccountsPanel({
         </div>
       </div>
 
-      <SmoothScroll
-        className={`flex-1 px-2 -mx-2 min-h-0 transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
+      <div
+        className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
         aria-busy={refreshing || initialLoad}
       >
-        <table className="w-full text-left text-sm border-separate border-spacing-y-3 -mt-3">
-          <thead className="sticky top-0 z-10">
-            <tr className="text-xs font-bold tracking-[0.08em] text-white bg-brand-blue uppercase">
-              <th className="px-4 py-3 rounded-l-xl w-12 text-center"></th>
-              <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">Company</th>
-              <th className="px-4 py-3">Reg ID</th>
-              <th className="px-4 py-3">Last sign-in</th>
-              <th className="px-4 py-3 text-right rounded-r-xl">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <div data-lenis-prevent className="min-h-0 flex-1 overflow-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
+            <thead>
+              <tr className="text-white">
+                <th className="sticky top-0 left-0 z-40 whitespace-nowrap rounded-l-2xl bg-brand-blue px-8 py-3.5 font-semibold">Name</th>
+                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Email</th>
+                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Company</th>
+                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Reg ID</th>
+                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Last sign-in</th>
+                <th className="sticky top-0 right-0 z-40 whitespace-nowrap rounded-r-2xl bg-brand-blue px-8 py-3.5 font-semibold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
             {initialLoad && displayed.length === 0 && (
-              <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
-                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
+              <tr className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl">
+                <td colSpan={6} className="px-5 py-10 text-center text-zinc-600 rounded-2xl">
                   Loading vendor accounts…
                 </td>
               </tr>
             )}
             {loadError && displayed.length === 0 && !initialLoad && (
-              <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
-                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
+              <tr className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl">
+                <td colSpan={6} className="px-5 py-10 text-center text-zinc-600 rounded-2xl">
                   {loadError}
                 </td>
               </tr>
             )}
             {!loadError && !initialLoad && displayed.length === 0 && (
-              <tr className="bg-white ring-1 ring-inset ring-zinc-200/50 rounded-xl">
-                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
+              <tr className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl">
+                <td colSpan={6} className="px-5 py-10 text-center text-zinc-600 rounded-2xl">
                   {`No vendor accounts${search ? ` matching “${search}”` : ""} in this view.`}
                 </td>
               </tr>
@@ -322,27 +321,24 @@ export function VendorAccountsPanel({
             {displayed.map((v) => (
               <tr
                 key={v.id}
-                className="bg-white ring-1 ring-inset ring-zinc-200/50 rounded-xl transition-shadow hover:ring-brand-blue group cursor-pointer"
+                className="group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40"
                 onClick={(e) => {
-                  // Prevent navigation if the user is clicking on the actions dropdown or other interactive elements
                   if ((e.target as HTMLElement).closest('button, a')) return;
                   router.push(`/vendors/${v.id}`);
                 }}
               >
-                <td className="px-4 py-4 rounded-l-xl text-center">
-                  {v.portalAccess === "RELEASED" ? (
-                    <CheckCircle className="w-5 h-5 text-emerald-500 mx-auto" />
-                  ) : (
-                    <Lock className="w-5 h-5 text-amber-500 mx-auto" />
-                  )}
+                <td className="sticky left-0 z-10 whitespace-nowrap rounded-l-2xl bg-white px-8 py-4 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
+                  <div className="flex items-center gap-3">
+                    {v.portalAccess === "RELEASED" ? (
+                      <CheckCircle className="h-5 w-5 shrink-0 text-emerald-500" />
+                    ) : (
+                      <Lock className="h-5 w-5 shrink-0 text-amber-500" />
+                    )}
+                    <p className="font-medium text-zinc-950">{v.name || "—"}</p>
+                  </div>
                 </td>
-                <td className="px-4 py-4">
-                  <p className="font-medium text-zinc-950">{v.name || "—"}</p>
-                </td>
-                <td className="px-4 py-4">
-                  <p className="text-zinc-700">{v.email}</p>
-                </td>
-                <td className="px-4 py-4 text-zinc-700">
+                <td className="whitespace-nowrap px-8 py-4 text-zinc-700">{v.email}</td>
+                <td className="whitespace-nowrap px-8 py-4 text-zinc-700">
                   {v.registration ? (
                     <span className="font-medium">
                       {v.registration.company?.legalName || "—"}
@@ -351,7 +347,7 @@ export function VendorAccountsPanel({
                     <span className="text-zinc-500">Added by RVCC</span>
                   )}
                 </td>
-                <td className="px-4 py-4">
+                <td className="min-w-0 whitespace-nowrap px-8 py-4">
                   {v.registration?.referenceNumber ? (
                     <p className="font-mono text-sm text-zinc-600 tabular-nums">
                       {v.registration.referenceNumber}
@@ -360,17 +356,18 @@ export function VendorAccountsPanel({
                     <span className="text-zinc-400">—</span>
                   )}
                 </td>
-                <td className="px-4 py-4 text-zinc-600 tabular-nums">
+                <td className="min-w-0 whitespace-nowrap px-8 py-4 text-zinc-600 tabular-nums">
                   {formatDateTime(v.lastLoginAt) ?? "Never"}
                 </td>
-                <td className="px-4 py-4 rounded-r-xl">
+                <td className="sticky right-0 z-10 whitespace-nowrap rounded-r-2xl bg-white px-8 py-4 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
                   <VendorRowActions vendor={toSummary(v)} onUpdated={updateRowInCache} />
                 </td>
               </tr>
             ))}
-          </tbody>
-        </table>
-      </SmoothScroll>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
