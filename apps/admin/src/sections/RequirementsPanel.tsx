@@ -401,7 +401,7 @@ export function RequirementsPanel() {
                     {formatDateTime(r.closesAt)}
                   </td>
                   <td className="whitespace-nowrap px-8 py-4 text-zinc-600 tabular-nums">{r.invited}</td>
-                  <td className="sticky right-0 z-10 whitespace-nowrap rounded-r-2xl bg-white px-8 py-4 text-zinc-600 tabular-nums ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">{r.submitted}</td>
+                  <td className="whitespace-nowrap rounded-r-2xl px-8 py-4 text-zinc-600 tabular-nums">{r.submitted}</td>
                 </tr>
               ))}
             </tbody>
