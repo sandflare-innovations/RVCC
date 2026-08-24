@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useSearchParams } from "next/navigation";
 
 import Link from "next/link";
-import { SmoothScroll } from "@/components/ui";
 
 import { RefreshCw, Search, ChevronDown, FileText, Radio, Edit2, Award, ChevronUp, CircleDashed, ShieldAlert, CheckCircle, Clock, XCircle, Lock, Trophy } from "lucide-react";
 
@@ -60,11 +59,11 @@ function statusIcon(status: string, closesAt: string | null) {
       </div>
     );
   }
-  
+
   if (status === "DRAFT") return <CircleDashed className="h-4 w-4 text-amber-500 mr-2" />;
   if (status === "AWARDED") return <Trophy className="h-4 w-4 text-brand-blue mr-2" />;
   if (status === "CANCELLED") return <XCircle className="h-4 w-4 text-rose-500 mr-2" />;
-  
+
   return <Clock className="h-4 w-4 text-zinc-400 mr-2" />;
 }
 
@@ -86,7 +85,7 @@ function statusLabel(status: string, closesAt: string | null) {
       </span>
     );
   }
-  
+
   if (status === "DRAFT") {
     return (
       <span className="inline-flex items-center text-amber-700 font-medium">
@@ -95,7 +94,7 @@ function statusLabel(status: string, closesAt: string | null) {
       </span>
     );
   }
-  
+
   if (status === "AWARDED") {
     return (
       <span className="inline-flex items-center text-brand-blue font-medium">
@@ -104,7 +103,7 @@ function statusLabel(status: string, closesAt: string | null) {
       </span>
     );
   }
-  
+
   if (status === "CANCELLED") {
     return (
       <span className="inline-flex items-center text-rose-700 font-medium">
@@ -113,7 +112,7 @@ function statusLabel(status: string, closesAt: string | null) {
       </span>
     );
   }
-  
+
   return (
     <span className="inline-flex items-center text-zinc-700 font-medium">
       {statusIcon(status, closesAt)}
@@ -225,8 +224,8 @@ export function RequirementsPanel() {
   }, []);
 
   return (
-    <div className="flex flex-1 flex-col min-h-0 space-y-6 w-full">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+    <div className="flex flex-1 flex-col min-h-0 w-full">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0 mb-6">
         <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
           <div>
             <p className="text-sm font-medium text-zinc-500">Total RFQs</p>
@@ -265,7 +264,7 @@ export function RequirementsPanel() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 shrink-0">
+      <div className="flex flex-nowrap items-center justify-between gap-4 shrink-0 mb-6">
         <div className="flex items-center gap-3 w-full max-w-sm">
           <button
             type="button"
@@ -277,7 +276,7 @@ export function RequirementsPanel() {
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-brand-blue" : ""}`} aria-hidden />
           </button>
-          
+
           <AnimatedSearchInput
             value={search}
             onChange={onSearchChange}
@@ -297,7 +296,7 @@ export function RequirementsPanel() {
               <span>{REQUIREMENT_FILTERS.find((f) => f.value === filter)?.label || "All"}</span>
               <ChevronDown className="h-4 w-4 text-brand-blue" />
             </button>
-            
+
             {filterOpen && (
               <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-zinc-200 bg-white py-2 shadow-lg z-50">
                 {REQUIREMENT_FILTERS.map((f) => (
@@ -308,9 +307,8 @@ export function RequirementsPanel() {
                       applyFilter(f.value);
                       setFilterOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                      f.value === filter ? "bg-zinc-50 font-semibold text-brand-blue" : "text-zinc-700 hover:bg-zinc-50"
-                    }`}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${f.value === filter ? "bg-zinc-50 font-semibold text-brand-blue" : "text-zinc-700 hover:bg-zinc-50"
+                      }`}
                   >
                     {f.label}
                   </button>
@@ -328,84 +326,88 @@ export function RequirementsPanel() {
         </div>
       </div>
 
-      <SmoothScroll
-        className={`flex-1 px-2 -mx-2 min-h-0 transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
+      <div
+        className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
         aria-busy={refreshing || initialLoad}
       >
-        <table className="w-full text-left text-sm border-separate border-spacing-y-3 -mt-3">
-          <thead className="sticky top-0 z-10">
-            <tr className="text-xs font-bold tracking-[0.08em] text-white bg-brand-blue uppercase">
-              <th className="px-4 py-3 rounded-l-xl">Status</th>
-              <th className="px-4 py-3">Reference</th>
-              <th className="px-4 py-3">Project</th>
-              <th className="px-4 py-3 cursor-pointer select-none hover:bg-white/10 transition-colors" onClick={() => {
-                if (sortCol === "createdAt") setSortDir(d => d === "asc" ? "desc" : "asc");
-                else { setSortCol("createdAt"); setSortDir("desc"); }
-              }}>
-                <div className="flex items-center gap-1">
-                  Posted Date
-                  {sortCol === "createdAt" && (sortDir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />)}
-                </div>
-              </th>
-              <th className="px-4 py-3 cursor-pointer select-none hover:bg-white/10 transition-colors" onClick={() => {
-                if (sortCol === "closesAt") setSortDir(d => d === "asc" ? "desc" : "asc");
-                else { setSortCol("closesAt"); setSortDir("desc"); }
-              }}>
-                <div className="flex items-center gap-1">
-                  Closes Date
-                  {sortCol === "closesAt" && (sortDir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />)}
-                </div>
-              </th>
-              <th className="px-4 py-3">Invited</th>
-              <th className="px-4 py-3 rounded-r-xl">Quotes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {initialLoad && displayed.length === 0 && (
-              <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
-                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
-                  Loading requirements…
-                </td>
+        <div data-lenis-prevent className="min-h-0 flex-1 overflow-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
+            <thead>
+              <tr className="text-white">
+                <th className="sticky top-0 left-0 z-40 whitespace-nowrap rounded-l-2xl bg-brand-blue px-8 py-3.5 font-semibold">Project</th>
+                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Status</th>
+                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Reference</th>
+                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold cursor-pointer select-none hover:bg-brand-blue/90 transition-colors" onClick={() => {
+                  if (sortCol === "createdAt") setSortDir(d => d === "asc" ? "desc" : "asc");
+                  else { setSortCol("createdAt"); setSortDir("desc"); }
+                }}>
+                  <div className="flex items-center gap-1">
+                    Posted Date
+                    {sortCol === "createdAt" && (sortDir === "asc" ? <ChevronUp className="h-3 w-3 shrink-0" /> : <ChevronDown className="h-3 w-3 shrink-0" />)}
+                  </div>
+                </th>
+                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold cursor-pointer select-none hover:bg-brand-blue/80 transition-colors" onClick={() => {
+                  if (sortCol === "closesAt") setSortDir(d => d === "asc" ? "desc" : "asc");
+                  else { setSortCol("closesAt"); setSortDir("desc"); }
+                }}>
+                  <div className="flex items-center gap-1">
+                    Closes Date
+                    {sortCol === "closesAt" && (sortDir === "asc" ? <ChevronUp className="h-3 w-3 shrink-0" /> : <ChevronDown className="h-3 w-3 shrink-0" />)}
+                  </div>
+                </th>
+                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Invited</th>
+                <th className="sticky top-0 right-0 z-40 whitespace-nowrap rounded-r-2xl bg-brand-blue px-8 py-3.5 font-semibold">Quotes</th>
               </tr>
-            )}
-            {loadError && displayed.length === 0 && !initialLoad && (
-              <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
-                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
-                  {loadError}
-                </td>
-              </tr>
-            )}
-            {!loadError && !initialLoad && displayed.length === 0 && (
-              <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
-                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
-                  Nothing posted yet.
-                </td>
-              </tr>
-            )}
-            {displayed.map((r) => (
-              <tr key={r.id} className="bg-white ring-1 ring-inset ring-zinc-200/50 rounded-xl transition-shadow hover:ring-brand-blue group cursor-pointer" onClick={() => window.location.href = `/requirements/${r.id}`}>
-                <td className="px-4 py-3 rounded-l-xl">
-                  {statusLabel(r.status, r.closesAt)}
-                </td>
-                <td className="px-4 py-3">
-                  <span className="text-brand-blue font-mono text-xs tabular-nums font-medium group-hover:underline">
-                    {r.referenceNumber ?? "— draft —"}
-                  </span>
-                </td>
-                <td className="px-4 py-3 font-medium text-zinc-900">{r.project}</td>
-                <td className="px-4 py-3 text-zinc-600 tabular-nums">
-                  {formatDateTime(r.createdAt)}
-                </td>
-                <td className="px-4 py-3 text-zinc-600 tabular-nums">
-                  {formatDateTime(r.closesAt)}
-                </td>
-                <td className="px-4 py-3 text-zinc-600 tabular-nums">{r.invited}</td>
-                <td className="px-4 py-3 text-zinc-600 tabular-nums rounded-r-xl">{r.submitted}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </SmoothScroll>
+            </thead>
+            <tbody>
+              {initialLoad && displayed.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-10 text-center text-zinc-600">
+                    Loading requirements…
+                  </td>
+                </tr>
+              )}
+              {loadError && displayed.length === 0 && !initialLoad && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-10 text-center text-zinc-600">
+                    {loadError}
+                  </td>
+                </tr>
+              )}
+              {!loadError && !initialLoad && displayed.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-10 text-center text-zinc-600">
+                    Nothing posted yet.
+                  </td>
+                </tr>
+              )}
+              {displayed.map((r) => (
+                <tr key={r.id} className="group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40" onClick={() => window.location.href = `/requirements/${r.id}`}>
+                  <td className="sticky left-0 z-10 whitespace-nowrap rounded-l-2xl bg-white px-8 py-4 font-medium text-zinc-900 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
+                    {r.project}
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4">
+                    {statusLabel(r.status, r.closesAt)}
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4">
+                    <span className="text-brand-blue font-mono text-xs tabular-nums font-medium group-hover:underline">
+                      {r.referenceNumber ?? "— draft —"}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4 text-zinc-600 tabular-nums">
+                    {formatDateTime(r.createdAt)}
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4 text-zinc-600 tabular-nums">
+                    {formatDateTime(r.closesAt)}
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4 text-zinc-600 tabular-nums">{r.invited}</td>
+                  <td className="sticky right-0 z-10 whitespace-nowrap rounded-r-2xl bg-white px-8 py-4 text-zinc-600 tabular-nums ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">{r.submitted}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
