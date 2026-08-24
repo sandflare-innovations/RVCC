@@ -50,21 +50,21 @@ export default async function CareersAdminPage() {
         </Link>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50">
-            <tr className="text-xs font-semibold tracking-[0.08em] text-zinc-600 uppercase">
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Department</th>
-              <th className="px-4 py-3">Location</th>
-              <th className="px-4 py-3">State</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+      <div className="overflow-x-auto rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
+        <table className="w-full text-left text-sm border-separate border-spacing-y-2">
+          <thead>
+            <tr className="bg-brand-blue text-white">
+              <th className="px-6 py-3.5 font-semibold rounded-l-2xl">Title</th>
+              <th className="px-6 py-3.5 font-semibold">Department</th>
+              <th className="px-6 py-3.5 font-semibold">Location</th>
+              <th className="px-6 py-3.5 font-semibold">State</th>
+              <th className="px-6 py-3.5 font-semibold text-right rounded-r-2xl">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100">
+          <tbody>
             {jobs.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-zinc-600">
+              <tr className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl">
+                <td colSpan={5} className="px-6 py-10 text-center text-zinc-600 rounded-2xl">
                   {!jobsResult.ok
                     ? `Could not load careers (${jobsResult.status}).`
                     : "No postings yet."}
@@ -72,8 +72,8 @@ export default async function CareersAdminPage() {
               </tr>
             )}
             {jobs.map((j) => (
-              <tr key={j.id} className="transition-colors hover:bg-zinc-50">
-                <td className="px-4 py-3">
+              <tr key={j.id} className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40 hover:shadow-[0_8px_24px_-16px_rgba(0,115,188,0.45)] group">
+                <td className="px-6 py-4 rounded-l-2xl">
                   <Link
                     href={`/content/careers/${j.id}`}
                     className="hover:text-brand-blue font-medium text-zinc-950 underline-offset-2 hover:underline"
@@ -82,15 +82,15 @@ export default async function CareersAdminPage() {
                   </Link>
                   <p className="font-mono text-xs text-zinc-500">/{j.slug}</p>
                 </td>
-                <td className="px-4 py-3 text-zinc-700">{j.department || "—"}</td>
-                <td className="px-4 py-3 text-zinc-700">
+                <td className="px-6 py-4 text-zinc-700">{j.department || "—"}</td>
+                <td className="px-6 py-4 text-zinc-700">
                   {j.location || "—"}
                   {j.isRemote && <span className="text-brand-blue text-xs"> · Remote</span>}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-6 py-4">
                   <StatusBadge status={j.isPublished ? "PUBLISHED" : "DRAFT_CONTENT"} />
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-6 py-4 rounded-r-2xl">
                   <CareerRowActions
                     job={{ id: j.id, title: j.title, slug: j.slug, isPublished: j.isPublished }}
                     canDelete={canDelete}
