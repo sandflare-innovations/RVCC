@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SmoothScroll } from "@/components/ui";
 import countries from "world-countries";
 
 import { RefreshCw, Search, ChevronDown, FileText, CheckCircle, Clock, XCircle, FileCheck, Loader, ChevronUp } from "lucide-react";
@@ -51,17 +50,17 @@ function syncUrl(status: RegistrationFilterValue, search: string) {
 
 function getCountryData(countryString: string | null) {
   if (!countryString) return null;
-  
+
   // Try to find by name first (what the web app saves)
   const byName = countries.find(c => c.name.common.toLowerCase() === countryString.toLowerCase());
   if (byName) return byName;
-  
+
   // Try by cca2
   if (countryString.length === 2) {
     const byCode = countries.find(c => c.cca2.toLowerCase() === countryString.toLowerCase());
     if (byCode) return byCode;
   }
-  
+
   return null;
 }
 
@@ -202,8 +201,8 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
   }, []);
 
   return (
-    <div className="flex flex-1 flex-col min-h-0 space-y-6 w-full">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+    <div className="flex flex-1 flex-col min-h-0 w-full">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0 mb-6">
         <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
           <div>
             <p className="text-sm font-medium text-zinc-500">Total Registrations</p>
@@ -242,7 +241,7 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 shrink-0">
+      <div className="flex flex-nowrap items-center justify-between gap-4 shrink-0 mb-6">
         <div className="flex items-center gap-3 w-full max-w-sm">
           <button
             type="button"
@@ -254,7 +253,7 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-brand-blue" : ""}`} aria-hidden />
           </button>
-          
+
           <AnimatedSearchInput
             value={search}
             onChange={onSearchChange}
@@ -274,7 +273,7 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
               <span>{REGISTRATION_FILTERS.find((f) => f.value === filter)?.label || "All"}</span>
               <ChevronDown className="h-4 w-4 text-brand-blue" />
             </button>
-            
+
             {filterOpen && (
               <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-zinc-200 bg-white py-2 shadow-lg z-50">
                 {REGISTRATION_FILTERS.map((f) => (
@@ -285,9 +284,8 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
                       applyFilter(f.value);
                       setFilterOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-2.5 ${
-                      f.value === filter ? "bg-zinc-50 font-semibold text-brand-blue" : "text-zinc-700 hover:bg-zinc-50"
-                    }`}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-2.5 ${f.value === filter ? "bg-zinc-50 font-semibold text-brand-blue" : "text-zinc-700 hover:bg-zinc-50"
+                      }`}
                   >
                     {f.value === "APPROVED" ? (
                       <CheckCircle className={`w-4 h-4 ${f.value === filter ? "text-emerald-500" : "text-emerald-500/70"}`} />
@@ -309,112 +307,113 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
         </div>
       </div>
 
-      <SmoothScroll
-        className={`flex-1 px-2 -mx-2 min-h-0 transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
+      <div
+        className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
         aria-busy={refreshing || initialLoad}
       >
-        <table className="w-full text-left text-sm border-separate border-spacing-y-3 -mt-3">
-          <thead className="sticky top-0 z-10">
-            <tr className="text-xs font-bold tracking-[0.08em] text-white bg-brand-blue uppercase">
-              <th className="px-4 py-3 rounded-l-xl w-12 text-center"></th>
-              <th className="px-4 py-3">Company</th>
-              <th 
-                className="px-4 py-3 cursor-pointer select-none hover:bg-white/10 transition-colors"
-                onClick={() => setSortDir(d => d === "desc" ? "asc" : "desc")}
-                title="Toggle sort by date"
-              >
-                <div className="flex items-center gap-1.5">
-                  Submitted
-                  {sortDir === "desc" ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
-                </div>
-              </th>
-              <th className="px-4 py-3">Country</th>
-              <th className="px-4 py-3">Contact email</th>
-              <th className="px-4 py-3">Reference</th>
-              <th className="px-4 py-3 text-right rounded-r-xl">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {initialLoad && displayed.length === 0 && (
-              <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
-                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
-                  Loading registrations…
-                </td>
+        <div data-lenis-prevent className="min-h-0 flex-1 overflow-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
+            <thead>
+              <tr className="text-white">
+                <th className="sticky top-0 left-0 z-40 whitespace-nowrap rounded-l-2xl bg-brand-blue px-8 py-3.5 font-semibold">Company</th>
+                <th
+                  className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold cursor-pointer select-none hover:bg-brand-blue/90 transition-colors"
+                  onClick={() => setSortDir(d => d === "desc" ? "asc" : "desc")}
+                  title="Toggle sort by date"
+                >
+                  <div className="flex items-center gap-1.5">
+                    Submitted
+                    {sortDir === "desc" ? <ChevronDown className="w-3.5 h-3.5 shrink-0" /> : <ChevronUp className="w-3.5 h-3.5 shrink-0" />}
+                  </div>
+                </th>
+                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Country</th>
+                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Contact email</th>
+                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Reference</th>
+                <th className="sticky top-0 right-0 z-40 whitespace-nowrap rounded-r-2xl bg-brand-blue px-8 py-3.5 font-semibold text-right">Actions</th>
               </tr>
-            )}
-            {loadError && displayed.length === 0 && !initialLoad && (
-              <tr className="bg-white ring-1 ring-zinc-200/50 rounded-xl">
-                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
-                  {loadError}
-                </td>
-              </tr>
-            )}
-            {!loadError && !initialLoad && displayed.length === 0 && (
-              <tr className="bg-white ring-1 ring-inset ring-zinc-200/50 rounded-xl">
-                <td colSpan={7} className="px-4 py-10 text-center text-zinc-600 rounded-xl">
-                  {`No registrations${search ? ` matching “${search}”` : ""} in this view.`}
-                </td>
-              </tr>
-            )}
-            {displayed.map((r) => (
-              <tr 
-                key={r.id} 
-                className="bg-white ring-1 ring-inset ring-zinc-200/50 rounded-xl transition-shadow hover:ring-brand-blue group cursor-pointer"
-                onClick={(e) => {
-                  if ((e.target as HTMLElement).closest('button, a')) return;
-                  router.push(`/registrations/${r.id}`);
-                }}
-              >
-                <td className="px-4 py-4 rounded-l-xl text-center">
-                  {r.status === "APPROVED" ? (
-                    <span title="Approved"><CheckCircle className="w-5 h-5 text-emerald-500 mx-auto" /></span>
-                  ) : r.status === "SUBMITTED" ? (
-                    <span title="Awaiting Review"><FileCheck className="w-5 h-5 text-brand-blue mx-auto" /></span>
-                  ) : r.status === "REJECTED" ? (
-                    <span title="Rejected"><XCircle className="w-5 h-5 text-rose-500 mx-auto" /></span>
-                  ) : (
-                    <span title="In Progress"><Loader className="w-5 h-5 text-amber-500 mx-auto" /></span>
-                  )}
-                </td>
-                <td className="px-4 py-4">
-                  <Link
-                    href={`/registrations/${r.id}`}
-                    className="hover:text-brand-blue font-medium text-zinc-950 underline-offset-2 hover:underline"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {r.company?.legalName || <span className="text-zinc-500">Unnamed</span>}
-                  </Link>
-                </td>
-                <td className="px-4 py-4 text-zinc-600 tabular-nums">
-                  {formatDate(r.submittedAt)}
-                </td>
-                <td className="px-4 py-4 text-zinc-700">
-                  {r.company?.country ? (
-                    <div className="flex items-center gap-2">
-                      {getCountryFlag(r.company.country)}
-                      <span>{getCountryName(r.company.country)}</span>
+            </thead>
+            <tbody>
+              {initialLoad && displayed.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-10 text-center text-zinc-600">
+                    Loading registrations…
+                  </td>
+                </tr>
+              )}
+              {loadError && displayed.length === 0 && !initialLoad && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-10 text-center text-zinc-600">
+                    {loadError}
+                  </td>
+                </tr>
+              )}
+              {!loadError && !initialLoad && displayed.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-10 text-center text-zinc-600">
+                    {`No registrations${search ? ` matching “${search}”` : ""} in this view.`}
+                  </td>
+                </tr>
+              )}
+              {displayed.map((r) => (
+                <tr
+                  key={r.id}
+                  className="group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40"
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement).closest('button, a')) return;
+                    router.push(`/registrations/${r.id}`);
+                  }}
+                >
+                  <td className="sticky left-0 z-10 whitespace-nowrap rounded-l-2xl bg-white px-8 py-4 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
+                    <div className="flex items-center gap-3">
+                      {r.status === "APPROVED" ? (
+                        <span title="Approved"><CheckCircle className="h-5 w-5 shrink-0 text-emerald-500" /></span>
+                      ) : r.status === "SUBMITTED" ? (
+                        <span title="Awaiting Review"><FileCheck className="h-5 w-5 shrink-0 text-brand-blue" /></span>
+                      ) : r.status === "REJECTED" ? (
+                        <span title="Rejected"><XCircle className="h-5 w-5 shrink-0 text-rose-500" /></span>
+                      ) : (
+                        <span title="In Progress"><Loader className="h-5 w-5 shrink-0 text-amber-500" /></span>
+                      )}
+                      <Link
+                        href={`/registrations/${r.id}`}
+                        className="hover:text-brand-blue font-medium text-zinc-950 underline-offset-2 hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {r.company?.legalName || <span className="text-zinc-500">Unnamed</span>}
+                      </Link>
                     </div>
-                  ) : (
-                    <span className="text-zinc-400">—</span>
-                  )}
-                </td>
-                <td className="px-4 py-4 text-zinc-700">{r.email}</td>
-                <td className="px-4 py-4 font-mono text-sm text-zinc-600 tabular-nums">
-                  {r.referenceNumber || "—"}
-                </td>
-                <td className="px-4 py-4 rounded-r-xl">
-                  <RegistrationRowActions
-                    registration={toSummary(r)}
-                    canDelete={canDelete}
-                    onDeleted={() => removeRow(r.id)}
-                    onUpdated={updateTable}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </SmoothScroll>
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4 text-zinc-600 tabular-nums">
+                    {formatDate(r.submittedAt)}
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4 text-zinc-700">
+                    {r.company?.country ? (
+                      <div className="flex items-center gap-2">
+                        {getCountryFlag(r.company.country)}
+                        <span>{getCountryName(r.company.country)}</span>
+                      </div>
+                    ) : (
+                      <span className="text-zinc-400">—</span>
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4 text-zinc-700">{r.email}</td>
+                  <td className="whitespace-nowrap px-8 py-4 font-mono text-sm text-zinc-600 tabular-nums">
+                    {r.referenceNumber || "—"}
+                  </td>
+                  <td className="sticky right-0 z-10 whitespace-nowrap rounded-r-2xl bg-white px-8 py-4 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
+                    <RegistrationRowActions
+                      registration={toSummary(r)}
+                      canDelete={canDelete}
+                      onDeleted={() => removeRow(r.id)}
+                      onUpdated={updateTable}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {displayed.length === 500 && (
         <p className="text-xs text-zinc-500 shrink-0">
