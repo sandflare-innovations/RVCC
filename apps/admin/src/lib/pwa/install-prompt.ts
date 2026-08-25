@@ -52,7 +52,7 @@ if (typeof window !== "undefined") {
   });
 }
 
-function checkIsInstalled(): boolean {
+function checkIsStandalone(): boolean {
   if (typeof window === "undefined") return false;
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
@@ -87,16 +87,29 @@ async function waitForPrompt(timeoutMs = 4000): Promise<BeforeInstallPromptEvent
 export function useInstallPrompt() {
   const [mounted, setMounted] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [inStandalone, setInStandalone] = useState(false);
   const [prompting, setPrompting] = useState(false);
 
   const deferred = useSyncExternalStore(subscribeToPrompt, getPrompt, () => null);
   const canInstall = deferred !== null;
 
+  // On mount: check standalone mode + detect if PWA is already installed.
+  // The browser only fires `beforeinstallprompt` when the app is NOT installed.
+  // If it never fires, the app is already installed.
   useEffect(() => {
     setMounted(true);
-    setIsInstalled(checkIsInstalled());
+    setInStandalone(checkIsStandalone());
     setPrompt(getPrompt());
     void waitForPrompt();
+
+    // After waiting for beforeinstallprompt, if it never fired the app is installed
+    const timer = setTimeout(() => {
+      if (!getPrompt()) {
+        setIsInstalled(true);
+      }
+    }, 5000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -109,7 +122,10 @@ export function useInstallPrompt() {
 
     const mql = window.matchMedia("(display-mode: standalone)");
     const mqlHandler = (e: MediaQueryListEvent) => {
-      if (e.matches) setIsInstalled(true);
+      if (e.matches) {
+        setInStandalone(true);
+        setIsInstalled(true);
+      }
     };
 
     window.addEventListener("appinstalled", installedHandler);
@@ -147,8 +163,9 @@ export function useInstallPrompt() {
     mounted,
     canInstall,
     isInstalled,
+    inStandalone,
     prompting,
-    showInstallButton: mounted && !isInstalled,
+    showInstallButton: mounted && !isInstalled && !inStandalone,
     promptInstall,
   };
 }
