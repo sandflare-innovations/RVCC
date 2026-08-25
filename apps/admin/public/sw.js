@@ -35,11 +35,13 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Handle SKIP_WAITING message from the client
+// Handle messages from the client
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+
+
 });
 
 // ─── ACTIVATE ─────────────────────────────────────────────────────
@@ -151,12 +153,16 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clients) => {
+      .then(async (clients) => {
         // Focus existing window if found
         for (const client of clients) {
           if (client.url.includes(self.location.origin) && 'focus' in client) {
             client.navigate(targetUrl);
-            return client.focus();
+            try {
+              return await client.focus();
+            } catch {
+              // focus() may fail — fall through to openWindow
+            }
           }
         }
         // Open new window if none exists
