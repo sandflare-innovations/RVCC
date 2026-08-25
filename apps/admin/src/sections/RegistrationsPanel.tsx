@@ -202,43 +202,31 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
 
   return (
     <div className="flex flex-1 flex-col min-h-0 w-full">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0 mb-6">
-        <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
-          <div>
-            <p className="text-sm font-medium text-zinc-500">Total Registrations</p>
-            <p className="text-2xl font-semibold text-zinc-950 mt-1">{metrics.total}</p>
-          </div>
-          <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-brand-blue transition-transform group-hover:scale-110">
-            <FileText className="h-6 w-6" />
-          </div>
-        </div>
-        <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
-          <div>
-            <p className="text-sm font-medium text-zinc-500">Approved</p>
-            <p className="text-2xl font-semibold text-zinc-950 mt-1">{metrics.approved}</p>
-          </div>
-          <div className="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
-            <CheckCircle className="h-6 w-6 transition-all group-hover:animate-pulse" />
-          </div>
-        </div>
-        <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
-          <div>
-            <p className="text-sm font-medium text-zinc-500">Under Review</p>
-            <p className="text-2xl font-semibold text-zinc-950 mt-1">{metrics.underReview}</p>
-          </div>
-          <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-brand-blue">
-            <FileCheck className="h-6 w-6 transition-all group-hover:animate-[spin_3s_linear_infinite]" />
-          </div>
-        </div>
-        <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors">
-          <div>
-            <p className="text-sm font-medium text-zinc-500">Rejected Applications</p>
-            <p className="text-2xl font-semibold text-zinc-950 mt-1">{metrics.rejected}</p>
-          </div>
-          <div className="h-12 w-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-600">
-            <XCircle className="h-6 w-6 transition-all group-hover:animate-bounce" />
-          </div>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0 mb-6">
+        {([
+          { label: "Total Registrations", value: metrics.total, filterVal: "ALL" as const, icon: <FileText className="h-4 w-4" /> },
+          { label: "Approved", value: metrics.approved, filterVal: "APPROVED" as const, icon: <CheckCircle className="h-4 w-4" /> },
+          { label: "Under Review", value: metrics.underReview, filterVal: "SUBMITTED" as const, icon: <FileCheck className="h-4 w-4" /> },
+          { label: "Rejected Applications", value: metrics.rejected, filterVal: "REJECTED" as const, icon: <XCircle className="h-4 w-4" /> },
+        ]).map((card) => (
+          <button
+            key={card.filterVal}
+            type="button"
+            onClick={() => applyFilter(card.filterVal)}
+            className="group relative flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 cursor-pointer shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/40"
+          >
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue/25 to-transparent" />
+            <div className="relative z-10 flex items-start justify-between gap-3">
+              <p className="text-[11px] font-semibold tracking-[0.14em] text-zinc-400 uppercase">{card.label}</p>
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue transition-colors duration-300 group-hover:bg-brand-blue group-hover:text-white">
+                {card.icon}
+              </div>
+            </div>
+            <div className="relative z-10 mt-3 flex items-end justify-between gap-3">
+              <p className="text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">{card.value}</p>
+            </div>
+          </button>
+        ))}
       </div>
 
       <div className="flex flex-nowrap items-center justify-between gap-4 shrink-0 mb-6">
