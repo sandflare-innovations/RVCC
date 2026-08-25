@@ -100,41 +100,53 @@ export default async function ContentDashboardPage() {
         <div className="space-y-8 pb-12">
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors shadow-sm">
-              <div>
-                <p className="text-sm font-medium text-zinc-500">Sections</p>
-                <p className="text-2xl font-semibold text-zinc-950 mt-1">8</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="group relative flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)]">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue/25 to-transparent" />
+              <div className="relative z-10 flex items-start justify-between gap-3">
+                <p className="text-[11px] font-semibold tracking-[0.14em] text-zinc-400 uppercase">Sections</p>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue transition-colors duration-300 group-hover:bg-brand-blue group-hover:text-white">
+                  <Globe className="h-4 w-4" />
+                </div>
               </div>
-              <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-brand-blue transition-transform group-hover:scale-110">
-                <Globe className="h-6 w-6" />
-              </div>
-            </div>
-            <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors shadow-sm">
-              <div>
-                <p className="text-sm font-medium text-zinc-500">Published Jobs</p>
-                <p className="text-2xl font-semibold text-zinc-950 mt-1">{published}</p>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-transform group-hover:scale-110">
-                <FolderOpen className="h-6 w-6" />
+              <div className="relative z-10 mt-3 flex items-end justify-between gap-3">
+                <p className="text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">8</p>
               </div>
             </div>
-            <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors shadow-sm">
-              <div>
-                <p className="text-sm font-medium text-zinc-500">Total Jobs</p>
-                <p className="text-2xl font-semibold text-zinc-950 mt-1">{total}</p>
+            <div className="group relative flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)]">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue/25 to-transparent" />
+              <div className="relative z-10 flex items-start justify-between gap-3">
+                <p className="text-[11px] font-semibold tracking-[0.14em] text-zinc-400 uppercase">Published Jobs</p>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue transition-colors duration-300 group-hover:bg-brand-blue group-hover:text-white">
+                  <FolderOpen className="h-4 w-4" />
+                </div>
               </div>
-              <div className="h-12 w-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 transition-transform group-hover:scale-110">
-                <Briefcase className="h-6 w-6" />
+              <div className="relative z-10 mt-3 flex items-end justify-between gap-3">
+                <p className="text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">{published}</p>
               </div>
             </div>
-            <div className="bg-white border border-zinc-200/50 hover:border-brand-blue rounded-2xl p-4 flex items-center justify-between group transition-colors shadow-sm">
-              <div>
-                <p className="text-sm font-medium text-zinc-500">Draft Jobs</p>
-                <p className="text-2xl font-semibold text-zinc-950 mt-1">{total - published}</p>
+            <div className="group relative flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)]">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue/25 to-transparent" />
+              <div className="relative z-10 flex items-start justify-between gap-3">
+                <p className="text-[11px] font-semibold tracking-[0.14em] text-zinc-400 uppercase">Total Jobs</p>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue transition-colors duration-300 group-hover:bg-brand-blue group-hover:text-white">
+                  <Briefcase className="h-4 w-4" />
+                </div>
               </div>
-              <div className="h-12 w-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 transition-transform group-hover:scale-110">
-                <FileArchive className="h-6 w-6" />
+              <div className="relative z-10 mt-3 flex items-end justify-between gap-3">
+                <p className="text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">{total}</p>
+              </div>
+            </div>
+            <div className="group relative flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)]">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue/25 to-transparent" />
+              <div className="relative z-10 flex items-start justify-between gap-3">
+                <p className="text-[11px] font-semibold tracking-[0.14em] text-zinc-400 uppercase">Draft Jobs</p>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue transition-colors duration-300 group-hover:bg-brand-blue group-hover:text-white">
+                  <FileArchive className="h-4 w-4" />
+                </div>
+              </div>
+              <div className="relative z-10 mt-3 flex items-end justify-between gap-3">
+                <p className="text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">{total - published}</p>
               </div>
             </div>
           </div>
