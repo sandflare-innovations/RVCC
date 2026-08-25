@@ -60,7 +60,7 @@ function SidebarContents({
   const isWebsiteDashboard = pathname.startsWith("/content");
   const currentNav = isWebsiteDashboard ? WEBSITE_NAV : VENDOR_NAV;
 
-  const { showInstallButton, canInstall, prompting, promptInstall } = useInstallPrompt();
+  const { showInstallButton, prompting, promptInstall } = useInstallPrompt();
 
   return (
     <div className="flex h-full flex-col">
@@ -144,7 +144,7 @@ function SidebarContents({
             expanded ? "" : "flex flex-col items-center gap-1"
           }`}
         >
-          {/* Install App — visible until the app is installed */}
+          {/* Install App */}
           {showInstallButton && (
             <>
               <button
@@ -157,9 +157,7 @@ function SidebarContents({
                 } ${expanded ? "" : "justify-center"}`}
               >
                 <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue ${
-                    canInstall && !prompting ? "animate-pulse" : ""
-                  }`}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue"
                 >
                   <Download className="h-4 w-4" />
                 </span>
