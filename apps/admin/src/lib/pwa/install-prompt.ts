@@ -89,6 +89,7 @@ export function useInstallPrompt() {
   const [isInstalled, setIsInstalled] = useState(false);
   const [inStandalone, setInStandalone] = useState(false);
   const [prompting, setPrompting] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   const deferred = useSyncExternalStore(subscribeToPrompt, getPrompt, () => null);
   const canInstall = deferred !== null;
@@ -98,7 +99,14 @@ export function useInstallPrompt() {
   // If it never fires, the app is already installed.
   useEffect(() => {
     setMounted(true);
-    setInStandalone(checkIsStandalone());
+    const standalone = checkIsStandalone();
+    setInStandalone(standalone);
+
+    if (standalone) {
+      setChecked(true);
+      return;
+    }
+
     setPrompt(getPrompt());
     void waitForPrompt();
 
@@ -107,10 +115,20 @@ export function useInstallPrompt() {
       if (!getPrompt()) {
         setIsInstalled(true);
       }
+      setChecked(true);
     }, 5000);
 
     return () => clearTimeout(timer);
   }, []);
+
+  // If beforeinstallprompt fires before the 5s timer, mark checked immediately
+  // so the install button appears right away.
+  useEffect(() => {
+    if (!mounted || checked) return;
+    if (canInstall) {
+      setChecked(true);
+    }
+  }, [mounted, checked, canInstall]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -165,7 +183,7 @@ export function useInstallPrompt() {
     isInstalled,
     inStandalone,
     prompting,
-    showInstallButton: mounted && !isInstalled && !inStandalone,
+    showInstallButton: mounted && checked && !isInstalled && !inStandalone,
     promptInstall,
   };
 }
