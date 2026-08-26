@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
     const res = await enquireWorkerFetch("/otp/verify", {
       method: "POST",
-      body: parsed.data,
+      body: JSON.stringify(parsed.data),
       sessionToken: null,
     });
     const data = (await res.json().catch(() => ({}))) as {

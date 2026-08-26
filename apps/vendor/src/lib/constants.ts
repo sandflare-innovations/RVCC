@@ -1,12 +1,9 @@
-/** Shared by proxy (edge) and server — Node-API free. */
+export { VENDOR_COOKIE, VENDOR_PROFILE_COOKIE, VENDOR_SESSION_TTL_MS } from "@rvcc/utils";
+import { VENDOR_COOKIE, VENDOR_PROFILE_COOKIE, VENDOR_SESSION_TTL_MS } from "@rvcc/utils";
 
-export const VENDOR_COOKIE = "rvcc_vendor_session";
-/** Non-httpOnly chrome display cache — layout skips /auth/me when this is set. */
-export const VENDOR_PROFILE_COOKIE = "rvcc_vendor_profile";
-/** Vendor portal sessions stay signed in for a month with sliding renewal. */
-export const VENDOR_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30d
 export const VENDOR_LOGIN_PATH = "/login";
 export const VENDOR_HOME_PATH = "/";
+
 
 /**
  * Where a server-side guard sends a request whose cookie exists but whose

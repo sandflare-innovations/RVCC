@@ -10,6 +10,9 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@rvcc/schemas": "workspace:*",
+    "@rvcc/types": "workspace:*",
+    "@rvcc/utils": "workspace:*",
     "clsx": "^2.1.1",
     "framer-motion": "^13.1.0",
     "lenis": "^1.3.26",

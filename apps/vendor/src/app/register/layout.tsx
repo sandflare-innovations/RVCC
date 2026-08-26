@@ -9,13 +9,7 @@ export { metadata } from "@/components/layout/PortalShell";
 export default async function RegisterLayout({ children }: { children: React.ReactNode }) {
   const vendor = await getVendorFromSession();
   if (vendor) {
-    if (!vendor.registrationComplete) {
-      // Incomplete account with a session should stay in the wizard.
-    } else if (vendor.portalAccess !== "RELEASED") {
-      redirect("/access-held");
-    } else {
-      redirect(vendor.mustChangePassword ? "/portal/password" : "/portal");
-    }
+    redirect(vendor.mustChangePassword ? "/change-password" : "/");
   }
 
   return (

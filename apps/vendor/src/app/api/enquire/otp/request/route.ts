@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     }
     const res = await enquireWorkerFetch("/otp/request", {
       method: "POST",
-      body: { email: parsed.data.email },
+      body: JSON.stringify({ email: parsed.data.email }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return NextResponse.json(data, { status: res.status });
