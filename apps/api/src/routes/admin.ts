@@ -29,6 +29,11 @@ import {
   handleVendorsList,
 } from "../modules/admin/handlers";
 import {
+  handleAdminChangePasswordWithCurrent,
+  handleAdminChangePasswordRequestOtp,
+  handleAdminChangePasswordVerify,
+} from "../modules/admin/change-password";
+import {
   handleAdminNotificationsGet,
   handleAdminNotificationsMarkRead,
 } from "../modules/admin/notifications";
@@ -62,6 +67,15 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
     }
     if (path === "/auth/me" && request.method === "GET") {
       return await handleMe(sql, env, request);
+    }
+    if (path === "/auth/change-password/reset" && request.method === "POST") {
+      return await handleAdminChangePasswordWithCurrent(sql, env, request);
+    }
+    if (path === "/auth/change-password/request-otp" && request.method === "POST") {
+      return await handleAdminChangePasswordRequestOtp(sql, env, request);
+    }
+    if (path === "/auth/change-password/verify" && request.method === "POST") {
+      return await handleAdminChangePasswordVerify(sql, env, request);
     }
 
     if (path === "/notifications" && request.method === "GET") {

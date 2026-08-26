@@ -257,6 +257,17 @@ model RegistrationOtp {
   @@index([email])
 }
 
+model AdminOtp {
+  id         String    @id @default(cuid())
+  adminId    String
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([adminId])
+}
+
 model CompanyProfile {
   id               String               @id @default(cuid())
   registrationId   String               @unique

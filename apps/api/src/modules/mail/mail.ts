@@ -385,3 +385,33 @@ export async function sendAwardEmail(
   const { subject, html, text } = awardEmailHtml(opts);
   await sendMail(env, { to, subject, html, text });
 }
+
+// ── Admin Password Change OTP ─────────────────────────────────────────────
+
+function adminPasswordChangeOtpHtml(code: string, expiresMinutes: number) {
+  const subject = "RVCC Admin — Password Change Verification";
+  const html = shell({
+    preheader: `Your RVCC password change code is ${code}`,
+    title: "Password Change Code",
+    bodyHtml: `
+      <p style="margin:0 0 16px;">A password change was requested for your admin account. Use the code below to verify.</p>
+      <div style="margin:24px 0;padding:20px;border:2px solid ${BRAND};text-align:center;">
+        <p style="margin:0 0 8px;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:#a1a1aa;font-weight:700;">Verification code</p>
+        <p style="margin:0;font-size:32px;letter-spacing:0.25em;font-weight:800;color:${BRAND};font-family:ui-monospace,Menlo,Consolas,monospace;">${code}</p>
+      </div>
+      <p style="margin:0;color:#71717a;font-size:13px;">Expires in <strong>${expiresMinutes} minutes</strong>. If you did not request this, change your password immediately.</p>
+    `,
+  });
+  const text = `RVCC Admin — Password Change\n\nYour verification code is ${code}.\nIt expires in ${expiresMinutes} minutes.\nIf you did not request this, change your password immediately.\n\n— RVCC Procurement`;
+  return { subject, html, text };
+}
+
+export async function sendAdminPasswordChangeOtp(
+  env: Env,
+  to: string,
+  code: string,
+  expiresMinutes = 10
+): Promise<void> {
+  const { subject, html, text } = adminPasswordChangeOtpHtml(code, expiresMinutes);
+  await sendMail(env, { to, subject, html, text });
+}
