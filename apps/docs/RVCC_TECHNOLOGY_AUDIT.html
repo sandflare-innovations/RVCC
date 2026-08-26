@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RVCC Platform | Architecture, Technology Stack & Strategic Audit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0066cc;
+            --primary-dark: #004499;
+            --primary-light: #e6f0ff;
+            --primary-subtle: #f0f7ff;
+            --accent-cyan: #0ea5e9;
+            --accent-emerald: #059669;
+            --accent-amber: #d97706;
+            --accent-rose: #e11d48;
+            --text-main: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+            --border-blue: #bfdbfe;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 18mm 16mm 18mm 16mm;
+            @top-right {
+                content: "RVCC Technology Audit";
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                font-size: 8pt;
+                color: #94a3b8;
+            }
+            @bottom-right {
+                content: "Page " counter(page);
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                font-size: 8pt;
+                color: #94a3b8;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #ffffff;
+            color: var(--text-main);
+            line-height: 1.55;
+            font-size: 13.5px;
+        }
+
+        .page-break {
+            page-break-before: always;
+            break-before: page;
+        }
+
+        .avoid-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        /* --- HERO / COVER HEADER --- */
+        .cover-header {
+            background: linear-gradient(135deg, #004499 0%, #0066cc 60%, #0ea5e9 100%);
+            border-radius: 16px;
+            padding: 38px 36px;
+            color: #ffffff;
+            margin-bottom: 26px;
+            box-shadow: 0 10px 25px -5px rgba(0, 102, 204, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cover-header::after {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+        }
+
+        .badge-pill {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(8px);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 999px;
+            margin-bottom: 14px;
+        }
+
+        .cover-title {
+            font-size: 26px;
+            font-weight: 800;
+            line-height: 1.25;
+            letter-spacing: -0.02em;
+            margin-bottom: 10px;
+        }
+
+        .cover-subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 400;
+            max-width: 680px;
+            margin-bottom: 20px;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.22);
+        }
+
+        .meta-item {
+            font-size: 11.5px;
+        }
+        .meta-label {
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .meta-val {
+            font-weight: 600;
+            color: #ffffff;
+            margin-top: 2px;
+        }
+
+        /* --- SECTION STYLES --- */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin: 28px 0 16px 0;
+            letter-spacing: -0.02em;
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        /* --- GRID CARDS --- */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        .card-primary {
+            border-left: 4px solid var(--primary);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-badge {
+            font-size: 10.5px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .tech-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .tech-list li {
+            position: relative;
+            padding-left: 14px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .tech-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 2px 6px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            color: #334155;
+        }
+
+        /* --- AUDIT SECTIONS (RIGHT vs WRONG) --- */
+        .audit-card {
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .audit-card.right {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-left: 4px solid var(--accent-emerald);
+        }
+
+        .audit-card.wrong {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            border-left: 4px solid var(--accent-rose);
+        }
+
+        .audit-card.warning {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-left: 4px solid var(--accent-amber);
+        }
+
+        .audit-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 13.5px;
+            margin-bottom: 6px;
+        }
+
+        .audit-header.right { color: #15803d; }
+        .audit-header.wrong { color: #be123c; }
+        .audit-header.warning { color: #b45309; }
+
+        .audit-body {
+            font-size: 12px;
+            color: #334155;
+            line-height: 1.5;
+        }
+
+        .audit-impact {
+            margin-top: 6px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #475569;
+            background: rgba(255,255,255,0.7);
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        /* --- ROADMAP TABLE --- */
+        .roadmap-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .roadmap-table th {
+            background: #f8fafc;
+            color: var(--primary-dark);
+            font-weight: 700;
+            text-align: left;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-light);
+            text-transform: uppercase;
+            font-size: 10.5px;
+            letter-spacing: 0.05em;
+        }
+
+        .roadmap-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+
+        .roadmap-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .roadmap-table tr:nth-child(even) td {
+            background-color: #fafbfc;
+        }
+
+        .priority-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .priority-p0 { background: #ffe4e6; color: #be123c; }
+        .priority-p1 { background: #fef3c7; color: #92400e; }
+        .priority-p2 { background: #e0e7ff; color: #3730a3; }
+
+        /* --- ARCHITECTURE DIAGRAM / FLOW --- */
+        .arch-diagram {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 18px;
+            margin: 14px 0;
+            text-align: center;
+        }
+
+        .arch-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .arch-box {
+            background: #ffffff;
+            border: 1px solid var(--border-blue);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .arch-box.hub {
+            grid-column: span 3;
+            background: linear-gradient(to right, #eff6ff, #f0fdf4);
+            border-color: #93c5fd;
+        }
+
+        .arch-title {
+            font-weight: 700;
+            font-size: 12.5px;
+            color: var(--primary-dark);
+        }
+
+        .arch-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* --- FOOTER --- */
+        .footer {
+            margin-top: 30px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== PAGE 1: COVER & TECH STACK BREAKDOWN ==================== -->
+    <div class="cover-header">
+        <div class="badge-pill">RVCC Technical Architecture & Audit</div>
+        <div class="cover-title">Technology Stack, Section Handling & Engineering Recommendations</div>
+        <div class="cover-subtitle">A comprehensive breakdown of all apps, architectural choices (pros & risks), and the roadmap for scalability and performance.</div>
+        
+        <div class="meta-grid">
+            <div class="meta-item">
+                <div class="meta-label">Architecture</div>
+                <div class="meta-val">Turborepo + Edge API</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Apps Count</div>
+                <div class="meta-val">4 Discrete Services</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Theme / Palette</div>
+                <div class="meta-val">White & Marine Blue</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Status</div>
+                <div class="meta-val">Production Ready / Scaling</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 1 -->
+    <div class="section-title">
+        <span class="section-number">1</span>
+        <span>Technology Stack & Handling By Application</span>
+    </div>
+
+    <div class="grid-2 avoid-break">
+        <!-- Web App -->
+        <div class="card card-primary">
+            <div class="card-header">
+                <div class="card-title">
+                    🌐 apps/web
+                </div>
+                <span class="card-badge">Marketing + Enquire (:3000)</span>
+            </div>
+            <ul class="tech-list">
+                <li><strong>Next.js 16 (Turbopack) & React 19</strong>: Server-rendered marketing pages and optimized dynamic routing.</li>
+                <li><strong>TailwindCSS v4 & Lenis</strong>: Lightning-fast styling engine with inertial smooth scrolling.</li>
+                <li><strong>Three.js & @react-three/fiber</strong>: Interactive WebGL 3D model visualization.</li>
+                <li><strong>Framer Motion & PageFlip</strong>: Micro-animations and flip-book brochure catalog experience.</li>
+                <li><strong>PDF.js & React-PDF</strong>: Client-side compliant document previewer.</li>
+                <li><strong>Zod & reCAPTCHA</strong>: Multi-step registration validation & anti-bot shielding.</li>
+            </ul>
+            <div class="tag-row">
+                <span class="tag">Next.js 16</span>
+                <span class="tag">Three.js</span>
+                <span class="tag">Tailwind v4</span>
+                <span class="tag">Zod</span>
+                <span class="tag">Vercel</span>
+            </div>
+        </div>
+
+        <!-- API -->
+        <div class="card card-primary">
+            <div class="card-header">
+                <div class="card-title">
+                    ⚡ apps/api
+                </div>
+                <span class="card-badge">Unified Backend API (:4000)</span>
+            </div>
+            <ul class="tech-list">
+                <li><strong>Hono v4 on Cloudflare Workers</strong>: Ultra-low latency edge compute runtime (sub-millisecond cold starts).</li>
+                <li><strong>Postgres.js</strong>: Direct high-performance serverless PostgreSQL connection driver.</li>
+                <li><strong>Cloudflare R2 + aws4fetch</strong>: S3-compatible zero-egress asset storage for compliance documents.</li>
+                <li><strong>Worker-Mailer & Nodemailer</strong>: Edge email dispatch for registration verifications and OTPs.</li>
+                <li><strong>Dual-Target Execution</strong>: Cloudflare Workers for production + Node.js HTTP server for dev.</li>
+            </ul>
+            <div class="tag-row">
+                <span class="tag">Hono v4</span>
+                <span class="tag">Cloudflare Workers</span>
+                <span class="tag">R2</span>
+                <span class="tag">PostgreSQL</span>
+            </div>
+        </div>
+
+        <!-- Admin App -->
+        <div class="card card-primary">
+            <div class="card-header">
+                <div class="card-title">
+                    🛡️ apps/admin
+                </div>
+                <span class="card-badge">Staff Backoffice (:3001)</span>
+            </div>
+            <ul class="tech-list">
+                <li><strong>Next.js 16 & React 19</strong>: Authenticated backoffice with session token proxies (`src/proxy.ts`).</li>
+                <li><strong>Recharts</strong>: KPI metric cards, registration trends, and real-time activity analytics.</li>
+                <li><strong>React-PDF</strong>: Integrated compliance certificate verification and vendor audit panels.</li>
+                <li><strong>Lucide Icons & Flag Icons</strong>: Visual status badges, geographic distribution indicators.</li>
+                <li><strong>Custom Migration Scripts</strong>: TSX-driven administration and account seeding CLI.</li>
+            </ul>
+            <div class="tag-row">
+                <span class="tag">Recharts</span>
+                <span class="tag">Session Auth</span>
+                <span class="tag">Tailwind v4</span>
+                <span class="tag">Vitest</span>
+            </div>
+        </div>
+
+        <!-- Vendor App -->
+        <div class="card card-primary">
+            <div class="card-header">
+                <div class="card-title">
+                    🏭 apps/vendor
+                </div>
+                <span class="card-badge">Supplier Self-Service (:3002)</span>
+            </div>
+            <ul class="tech-list">
+                <li><strong>Next.js 16 Protected Portal</strong>: Isolated supplier workspace for profile management.</li>
+                <li><strong>Zod Form Validation</strong>: Capability declarations, machinery specs, and certificate submissions.</li>
+                <li><strong>Signed R2 Uploads</strong>: Secure direct-to-bucket upload flows for heavy supplier documentation.</li>
+                <li><strong>Lenis & Framer Motion</strong>: Clean, polished UI with step-based status trackers.</li>
+            </ul>
+            <div class="tag-row">
+                <span class="tag">Supplier Portal</span>
+                <span class="tag">R2 Uploads</span>
+                <span class="tag">Framer Motion</span>
+                <span class="tag">Zod</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monorepo Topology Diagram -->
+    <div class="arch-diagram avoid-break">
+        <div style="font-weight: 700; color: var(--primary-dark); font-size: 13px; margin-bottom: 4px;">Shared Infrastructure & Network Topology</div>
+        <div class="arch-box hub">
+            <div class="arch-title">🌐 Central PostgreSQL Database & Cloudflare R2 Storage</div>
+            <div class="arch-subtitle">Single source of truth for vendor registries, enquiry leads, audit trails & media buckets</div>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin: 6px 0;">▲ REST API, JWT Sessions & Direct R2 Presigned URLs via Edge API (Hono) ▲</div>
+        <div class="arch-grid">
+            <div class="arch-box">
+                <div class="arch-title">apps/web</div>
+                <div class="arch-subtitle">Customer Enquiries (:3000)</div>
+            </div>
+            <div class="arch-box">
+                <div class="arch-title">apps/vendor</div>
+                <div class="arch-subtitle">Vendor Self-Service (:3002)</div>
+            </div>
+            <div class="arch-box">
+                <div class="arch-title">apps/admin</div>
+                <div class="arch-subtitle">Staff Backoffice (:3001)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- ==================== PAGE 2: RIGHT vs WRONG ARCHITECTURAL AUDIT ==================== -->
+    <div class="section-title">
+        <span class="section-number">2</span>
+        <span>What We Did Right vs. What Needs Attention</span>
+    </div>
+
+    <div class="grid-2">
+        <!-- COLUMN 1: WHAT WE DID RIGHT -->
+        <div>
+            <div style="font-size: 14px; font-weight: 800; color: #15803d; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <span>✓</span> WHAT WE DID RIGHT (STRENGTHS)
+            </div>
+
+            <div class="audit-card right avoid-break">
+                <div class="audit-header right">1. Discrete Turborepo App Isolation</div>
+                <div class="audit-body">
+                    Splitting <strong>Marketing</strong>, <strong>Vendor</strong>, and <strong>Admin</strong> into separate Next.js apps prevents administrative code and sensitive business logic from leaking into public bundles, while allowing autonomous team deployments.
+                </div>
+                <div class="audit-impact">Impact: Enhanced security and optimized frontend bundle sizes.</div>
+            </div>
+
+            <div class="audit-card right avoid-break">
+                <div class="audit-header right">2. Edge Compute with Hono & Workers</div>
+                <div class="audit-body">
+                    Deploying the unified API (`apps/api`) on Cloudflare Workers using Hono delivers sub-millisecond cold starts and distributed edge execution with zero server maintenance overhead.
+                </div>
+                <div class="audit-impact">Impact: Global performance with near-zero infrastructure cost.</div>
+            </div>
+
+            <div class="audit-card right avoid-break">
+                <div class="audit-header right">3. Cloudflare R2 Storage without Egress Fees</div>
+                <div class="audit-body">
+                    Serving heavy supplier documents, certificates, and media through Cloudflare R2 eliminates AWS S3 egress penalties while maintaining full S3 API compatibility.
+                </div>
+                <div class="audit-impact">Impact: 100% predictable, low-cost asset hosting.</div>
+            </div>
+
+            <div class="audit-card right avoid-break">
+                <div class="audit-header right">4. Modern UI Stack (Tailwind v4 + Framer)</div>
+                <div class="audit-body">
+                    Using Tailwind CSS v4 alongside Framer Motion and Lenis gives the platform modern micro-interactions, smooth scrolling, and a premium aesthetic without heavy CSS frameworks.
+                </div>
+                <div class="audit-impact">Impact: State-of-the-art user experience across devices.</div>
+            </div>
+        </div>
+
+        <!-- COLUMN 2: WHAT IS WRONG / RISKS -->
+        <div>
+            <div style="font-size: 14px; font-weight: 800; color: #be123c; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <span>⚠️</span> WHAT IS WRONG / RISKY (VULNERABILITIES)
+            </div>
+
+            <div class="audit-card wrong avoid-break">
+                <div class="audit-header wrong">1. Direct Edge DB Connections (Connection Storms)</div>
+                <div class="audit-body">
+                    Cloudflare Workers connecting directly to standard PostgreSQL via `postgres.js` will exhaust <code>max_connections</code> under burst traffic, triggering intermittent <strong>503 Service Unavailable</strong> errors.
+                </div>
+                <div class="audit-impact">Fix: Connect via Cloudflare Hyperdrive or PgBouncer.</div>
+            </div>
+
+            <div class="audit-card wrong avoid-break">
+                <div class="audit-header wrong">2. No Shared Packages (`packages/` folder)</div>
+                <div class="audit-body">
+                    All 4 apps duplicate TypeScript types, DTOs, and Zod schemas independently. When an enquiry or vendor data model changes, developers must manually synchronize code across 3 repositories.
+                </div>
+                <div class="audit-impact">Fix: Extract `packages/types` and `packages/schemas`.</div>
+            </div>
+
+            <div class="audit-card wrong avoid-break">
+                <div class="audit-header wrong">3. Raw SQL Queries (Lack of ORM Type Safety)</div>
+                <div class="audit-body">
+                    Writing hand-crafted SQL strings inside API route handlers introduces maintenance friction, schema drift, and increases the potential risk of SQL syntax bugs during migrations.
+                </div>
+                <div class="audit-impact">Fix: Adopt Drizzle ORM for zero-overhead type-safe queries.</div>
+            </div>
+
+            <div class="audit-card warning avoid-break">
+                <div class="audit-header warning">4. Heavy SSR Overkill in Admin & Vendor Apps</div>
+                <div class="audit-body">
+                    Next.js App Router with server-side rendering is ideal for the public marketing site (`web`), but adds proxy and hydration complexity for internal, authenticated backoffices.
+                </div>
+                <div class="audit-impact">Fix: Leverage React Query (TanStack Query) for client caching.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SECTION 3: STRATEGIC ACTION PLAN ==================== -->
+    <div class="section-title avoid-break" style="margin-top: 24px;">
+        <span class="section-number">3</span>
+        <span>Strategic Improvements & Priority Roadmap</span>
+    </div>
+
+    <table class="roadmap-table avoid-break">
+        <thead>
+            <tr>
+                <th style="width: 12%;">Priority</th>
+                <th style="width: 25%;">Initiative</th>
+                <th style="width: 38%;">Action Plan</th>
+                <th style="width: 25%;">Expected Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="priority-badge priority-p0">P0 - Urgent</span></td>
+                <td><strong>Connection Pooler / Hyperdrive</strong></td>
+                <td>Route Cloudflare Workers database traffic through Cloudflare Hyperdrive or Supabase/Neon transaction pooling.</td>
+                <td>Eliminates DB connection exhaustion & crashes at peak load.</td>
+            </tr>
+            <tr>
+                <td><span class="priority-badge priority-p0">P0 - Urgent</span></td>
+                <td><strong>Extract Shared Monorepo Packages</strong></td>
+                <td>Create <code>packages/schemas</code> and <code>packages/types</code> to share Zod validation rules and DTOs across Web, Admin, and API.</td>
+                <td>Zero duplicate validation logic; 100% type sync between frontend & backend.</td>
+            </tr>
+            <tr>
+                <td><span class="priority-badge priority-p1">P1 - High</span></td>
+                <td><strong>Drizzle ORM Migration</strong></td>
+                <td>Replace raw SQL strings in <code>apps/api/src/modules/</code> with Drizzle schema declarations and queries.</td>
+                <td>Automatic migrations, type-safe database queries, and easier refactoring.</td>
+            </tr>
+            <tr>
+                <td><span class="priority-badge priority-p1">P1 - High</span></td>
+                <td><strong>TanStack Query (React Query)</strong></td>
+                <td>Implement React Query in <code>apps/admin</code> and <code>apps/vendor</code> for data fetching, table pagination, and optimistic updates.</td>
+                <td>Instant dashboard navigation, background data sync, and cleaner UI code.</td>
+            </tr>
+            <tr>
+                <td><span class="priority-badge priority-p2">P2 - Medium</span></td>
+                <td><strong>Centralized Telemetry & Sentry</strong></td>
+                <td>Integrate edge error monitoring (Sentry / Axiom) across Cloudflare Workers and Next.js frontends.</td>
+                <td>Real-time alerts on failed enquiry submissions or API exceptions.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer avoid-break">
+        <div><strong>RVCC Platform Architecture Report</strong> &bull; Generated for Technical Review</div>
+        <div>Confidential & Internal Engineering Documentation</div>
+    </div>
+
+</body>
+</html>
