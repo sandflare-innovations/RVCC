@@ -9,20 +9,16 @@ import {
   CheckCircle,
   FileText,
   CalendarDays,
-  User,
   KeyRound,
   History,
-  Info
+  ExternalLink
 } from "lucide-react";
 
 import { adminSessionJson } from "@/lib/admin-data";
 import { BackButton } from "@/components/ui/back-button";
 import { StatusBadge } from "@/lib/ui";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
-import { ENQUIRE_QUESTIONNAIRE } from "@/data/enquire-questionnaire";
 import { VendorProfileActions } from "./VendorProfileActions";
-import { RegistrationDetailsToggle } from "./RegistrationDetailsToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -50,45 +46,6 @@ function formatDateOnly(d: string | null) {
   });
 }
 
-type RegistrationDetail = {
-  id: string;
-  email: string;
-  status: string;
-  referenceNumber: string | null;
-  reviewedAt: string | null;
-  reviewNote: string | null;
-  productCategories: string[];
-  company: Record<string, unknown> | null;
-  contacts: Array<Record<string, unknown>>;
-  addresses: Array<Record<string, unknown>>;
-  classifications: Array<Record<string, unknown>>;
-  bankAccounts: Array<Record<string, unknown>>;
-  questionnaire: Array<{ questionKey: string; answer: string }>;
-  attachments: Array<{
-    id: string;
-    section: string;
-    fileName: string;
-    fileUrl: string;
-    mimeType?: string;
-  }>;
-};
-
-function str(v: unknown): string {
-  return v == null ? "" : String(v);
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-xs font-bold tracking-[0.12em] text-brand-blue uppercase flex items-center gap-2">
-        <Info className="w-4 h-4" />
-        {title}
-      </h2>
-      {children}
-    </section>
-  );
-}
-
 function getInitials(name: string | null | undefined, email: string): string {
   if (name && name.trim().length > 0) {
     const parts = name.trim().split(" ");
@@ -98,15 +55,6 @@ function getInitials(name: string | null | undefined, email: string): string {
     return parts[0].substring(0, 2).toUpperCase();
   }
   return email.substring(0, 2).toUpperCase();
-}
-
-function Row({ label, value }: { label: string; value?: string | null }) {
-  return (
-    <div className="grid grid-cols-[minmax(140px,220px)_1fr] gap-3 border-b border-zinc-100 py-3 last:border-0">
-      <dt className="text-sm font-medium text-zinc-500">{label}</dt>
-      <dd className="text-sm break-words text-zinc-950 font-medium">{value?.trim() || "—"}</dd>
-    </div>
-  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -252,19 +200,6 @@ async function VendorData({ id }: { id: string }) {
   const { vendor, quotes, invites } = result.data;
   const isLocked = !!vendor.lockedUntil;
 
-  let registrationDetail = null;
-  if (vendor.registrationId) {
-    const regRes = await adminSessionJson<RegistrationDetail>(`/registrations/${vendor.registrationId}`);
-    if (regRes.ok) registrationDetail = regRes.data;
-  }
-
-  const r = registrationDetail;
-  const company = r?.company ?? null;
-  const tax = (company?.taxIdentifiers ?? {}) as Record<string, string>;
-  const categories = (r?.productCategories ?? [])
-    .map((cid) => ENQUIRE_CATEGORIES.find((c) => c.id === cid)?.label ?? cid)
-    .join(", ");
-
   return (
     <div className="h-full overflow-y-auto bg-white [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       <div className="w-full px-8 py-8 space-y-8 pb-24">
@@ -358,9 +293,10 @@ async function VendorData({ id }: { id: string }) {
                   
                   <Link 
                     href={`/registrations/${vendor.registrationId}`}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:ring-offset-1"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-blue px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:ring-offset-1"
                   >
                     View Application
+                    <ExternalLink className="w-4 h-4" />
                   </Link>
                 </div>
               </div>
@@ -523,131 +459,7 @@ async function VendorData({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* Full Registration Profile Information */}
-      {r && (
-        <RegistrationDetailsToggle>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-6">
-              <Section title="Company Profile">
-                <dl>
-                  <Row label="Legal name" value={str(company?.legalName)} />
-                  <Row label="Trading name" value={str(company?.dbaName)} />
-                  <Row label="Country" value={str(company?.country)} />
-                  <Row label="Organization type" value={str(company?.organizationType)} />
-                  <Row label="Supplier type" value={str(company?.supplierType)} />
-                  <Row label="Year established" value={str(company?.yearEstablished)} />
-                  <Row label="Website" value={str(company?.website)} />
-                  <Row label="VAT" value={tax.vat} />
-                  <Row label="CR" value={tax.cr} />
-                  <Row label="TIN" value={tax.tin} />
-                  <Row label="D-U-N-S" value={str(company?.dunsNumber)} />
-                  <Row label="Description" value={str(company?.description)} />
-                </dl>
-              </Section>
 
-              {r.classifications.length > 0 && (
-                <Section title={`Classifications (${r.classifications.length})`}>
-                  <div className="space-y-4">
-                    {r.classifications.map((c) => (
-                      <dl key={str(c.id)} className="rounded-lg border border-zinc-100 p-4 bg-zinc-50/50">
-                        <Row label="Classification" value={str(c.classification)} />
-                        <Row label="Certificate no." value={str(c.certificateNumber)} />
-                        <Row label="Agency" value={str(c.certifyingAgency)} />
-                        <Row
-                          label="Valid"
-                          value={[str(c.effectiveDate), str(c.expirationDate)].filter(Boolean).join(" → ")}
-                        />
-                      </dl>
-                    ))}
-                  </div>
-                </Section>
-              )}
-
-              {r.bankAccounts.length > 0 && (
-                <Section title={`Bank accounts (${r.bankAccounts.length})`}>
-                  <div className="space-y-4">
-                    {r.bankAccounts.map((b) => (
-                      <dl key={str(b.id)} className="rounded-lg border border-zinc-100 p-4 bg-zinc-50/50">
-                        <Row
-                          label="Bank"
-                          value={[str(b.bankName), str(b.branchName)].filter(Boolean).join(" — ")}
-                        />
-                        <Row label="Account name" value={str(b.accountName)} />
-                        <Row label="Account number" value={str(b.accountNumber)} />
-                        <Row label="IBAN" value={str(b.iban)} />
-                        <Row label="Routing" value={str(b.routingNumber)} />
-                        <Row
-                          label="Currency / country"
-                          value={[str(b.currency), str(b.country)].filter(Boolean).join(" · ")}
-                        />
-                      </dl>
-                    ))}
-                  </div>
-                </Section>
-              )}
-            </div>
-
-            <div className="space-y-6">
-              <Section title={`Contacts (${r.contacts.length})`}>
-                {r.contacts.length === 0 && <p className="text-sm text-zinc-600">None provided.</p>}
-                <div className="space-y-4">
-                  {r.contacts.map((c) => (
-                    <dl key={str(c.id)} className="rounded-lg border border-zinc-100 p-4 bg-zinc-50/50">
-                      <Row label="Name" value={`${str(c.firstName)} ${str(c.lastName)}`.trim()} />
-                      <Row label="Email" value={str(c.email)} />
-                      <Row label="Job title" value={str(c.jobTitle)} />
-                      <Row label="Phone" value={str(c.phone) || str(c.mobile)} />
-                      <Row label="Administrative" value={c.isAdministrative ? "Yes" : "No"} />
-                    </dl>
-                  ))}
-                </div>
-              </Section>
-
-              <Section title={`Addresses (${r.addresses.length})`}>
-                {r.addresses.length === 0 && <p className="text-sm text-zinc-600">None provided.</p>}
-                <div className="space-y-4">
-                  {r.addresses.map((a) => (
-                    <dl key={str(a.id)} className="rounded-lg border border-zinc-100 p-4 bg-zinc-50/50">
-                      <Row label="Label" value={str(a.label)} />
-                      <Row
-                        label="Address"
-                        value={[a.line1, a.line2, a.city, a.region, a.postalCode, a.country]
-                          .map(str)
-                          .filter(Boolean)
-                          .join(", ")}
-                      />
-                      <Row
-                        label="Purposes"
-                        value={Array.isArray(a.purposes) ? (a.purposes as string[]).join(", ") : ""}
-                      />
-                      <Row
-                        label="Contact"
-                        value={[str(a.phone), str(a.email)].filter(Boolean).join(" · ")}
-                      />
-                    </dl>
-                  ))}
-                </div>
-              </Section>
-
-              <Section title="Products & services">
-                <p className="text-sm font-medium text-zinc-950 px-2 py-1">{categories || "—"}</p>
-              </Section>
-
-              <Section title="Questionnaire">
-                <dl>
-                  {ENQUIRE_QUESTIONNAIRE.map((q) => (
-                    <Row
-                      key={q.key}
-                      label={q.label}
-                      value={r.questionnaire.find((a) => a.questionKey === q.key)?.answer}
-                    />
-                  ))}
-                </dl>
-              </Section>
-            </div>
-          </div>
-        </RegistrationDetailsToggle>
-      )}
       </div>
     </div>
   );
