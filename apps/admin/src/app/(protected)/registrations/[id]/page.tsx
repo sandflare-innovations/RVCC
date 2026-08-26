@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BackButton } from "@/components/ui/back-button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { ArrowLeft } from "lucide-react";
 
@@ -33,6 +35,10 @@ function Row({ label, value }: { label: string; value?: string | null }) {
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
 
 type RegistrationDetail = {
   id: string;
@@ -67,8 +73,48 @@ function str(v: unknown): string {
   return v == null ? "" : String(v);
 }
 
-export default async function RegistrationDetail({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+/* ------------------------------------------------------------------ */
+/*  Skeleton fallbacks                                                  */
+/* ------------------------------------------------------------------ */
+
+function RegistrationDetailSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-9 w-36 rounded-lg" />
+      
+      {/* Header skeleton */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-7 w-64" />
+            <Skeleton className="h-5 w-20 rounded-full" />
+          </div>
+          <Skeleton className="h-4 w-48" />
+        </div>
+      </div>
+
+      {/* Sections skeleton */}
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Section key={i} title={`Section ${i + 1}`}>
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, j) => (
+              <div key={j} className="grid grid-cols-[minmax(140px,220px)_1fr] gap-3 py-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+            ))}
+          </div>
+        </Section>
+      ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Async data component (streamed via Suspense)                       */
+/* ------------------------------------------------------------------ */
+
+async function RegistrationData({ id }: { id: string }) {
   const [admin, result] = await Promise.all([
     getAdminFromSession(),
     adminSessionJson<RegistrationDetail>(`/registrations/${encodeURIComponent(id)}`),
@@ -91,7 +137,7 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
     .join(", ");
 
   return (
-    <div className="space-y-6">
+    <>
       <BackButton label="Back to registrations" />
 
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -121,7 +167,7 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
               : "—"}{" "}
             by {r.reviewedBy?.name || r.reviewedBy?.email || "a deleted account"}
           </span>
-          {r.reviewNote && <p className="mt-1.5 text-zinc-700">“{r.reviewNote}”</p>}
+          {r.reviewNote && <p className="mt-1.5 text-zinc-700">"{r.reviewNote}"</p>}
         </div>
       )}
 
@@ -293,6 +339,20 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
           </ul>
         </Section>
       )}
-    </div>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page (static shell + streamed data)                                */
+/* ------------------------------------------------------------------ */
+
+export default async function RegistrationDetail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+
+  return (
+    <Suspense fallback={<RegistrationDetailSkeleton />}>
+      <RegistrationData id={id} />
+    </Suspense>
   );
 }

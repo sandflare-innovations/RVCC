@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { 
@@ -17,6 +18,7 @@ import {
 import { adminSessionJson } from "@/lib/admin-data";
 import { BackButton } from "@/components/ui/back-button";
 import { StatusBadge } from "@/lib/ui";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
 import { ENQUIRE_QUESTIONNAIRE } from "@/data/enquire-questionnaire";
 import { VendorProfileActions } from "./VendorProfileActions";
@@ -107,6 +109,10 @@ function Row({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
 type Payload = {
   vendor: {
     id: string;
@@ -150,12 +156,88 @@ type Payload = {
   }>;
 };
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+/* ------------------------------------------------------------------ */
+/*  Skeleton fallbacks                                                  */
+/* ------------------------------------------------------------------ */
+
+function VendorDetailSkeleton() {
+  return (
+    <div className="h-full overflow-y-auto bg-white [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="w-full px-8 py-8 space-y-8 pb-24">
+        <Skeleton className="h-9 w-32 rounded-lg" />
+        
+        {/* Header skeleton */}
+        <div className="bg-white rounded-3xl border border-zinc-200 p-8 shadow-sm flex flex-col md:flex-row md:items-start justify-between gap-6">
+          <div className="flex items-start gap-6">
+            <Skeleton className="h-24 w-24 rounded-2xl" />
+            <div className="flex flex-col gap-3">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-32" />
+              <div className="flex gap-2 mt-2">
+                <Skeleton className="h-6 w-20 rounded-full" />
+                <Skeleton className="h-6 w-20 rounded-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Cards skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 rounded-2xl border border-zinc-200 bg-white p-6">
+            <Skeleton className="h-5 w-48 mb-4" />
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-zinc-200 bg-white p-6">
+            <Skeleton className="h-5 w-40 mb-4" />
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex justify-between">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Lists skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="rounded-2xl border border-zinc-200 bg-white p-6">
+              <Skeleton className="h-5 w-32 mb-4" />
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, j) => (
+                  <div key={j} className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-40" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Async data component (streamed via Suspense)                       */
+/* ------------------------------------------------------------------ */
+
+async function VendorData({ id }: { id: string }) {
   const result = await adminSessionJson<Payload>(`/vendors/${encodeURIComponent(id)}`);
   
   if (!result.ok) {
@@ -168,8 +250,6 @@ export default async function Page({
   }
 
   const { vendor, quotes, invites } = result.data;
-  
-  // Use a simple truthiness check for lockedUntil to avoid Date.now() mismatch during SSR
   const isLocked = !!vendor.lockedUntil;
 
   let registrationDetail = null;
@@ -192,7 +272,6 @@ export default async function Page({
         
         {/* Premium Header Profile Section */}
         <div className="bg-white rounded-3xl border border-zinc-200 p-8 shadow-sm flex flex-col md:flex-row md:items-start justify-between gap-6 relative overflow-hidden group hover:border-brand-blue/30 transition-colors">
-          {/* Subtle background gradient */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-brand-blue/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
           
           <div className="flex items-start gap-6 relative z-10">
@@ -239,7 +318,7 @@ export default async function Page({
       {/* Grid Layout for Metrics & Registration */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Registration Card (Takes up 2 columns on lg screens if they have registration, otherwise 1) */}
+        {/* Registration Card */}
         <div className={`col-span-1 ${vendor.registration ? 'lg:col-span-2' : ''} bg-white rounded-2xl border border-zinc-200 overflow-hidden`}>
           <div className="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4 flex items-center justify-between">
             <h3 className="font-semibold text-zinc-950 flex items-center gap-2">
@@ -571,5 +650,23 @@ export default async function Page({
       )}
       </div>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page (static shell + streamed data)                                */
+/* ------------------------------------------------------------------ */
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  return (
+    <Suspense fallback={<VendorDetailSkeleton />}>
+      <VendorData id={id} />
+    </Suspense>
   );
 }

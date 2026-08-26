@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Lock, CircleDashed, Trophy, XCircle, Clock, Edit2, FileText, ChevronLeft, MapPin, Briefcase, FileSignature, Box, Users } from "lucide-react";
@@ -5,6 +6,7 @@ import { Lock, CircleDashed, Trophy, XCircle, Clock, Edit2, FileText, ChevronLef
 import { rankQuotes } from "@/lib/rfq";
 import { adminSessionJson } from "@/lib/admin-data";
 import { QuotesSection } from "@/sections/QuotesSection";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +108,70 @@ function statusBadge(status: string, closesAt: string | null) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  Skeleton fallbacks                                                  */
+/* ------------------------------------------------------------------ */
+
+function RequirementDetailSkeleton() {
+  return (
+    <div className="flex flex-col min-h-0 w-full h-full relative">
+      {/* Static header skeleton */}
+      <div className="flex-none flex items-center justify-between bg-white px-6 pb-4 pt-4 z-10">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-9 w-9 rounded-full" />
+          <Skeleton className="h-6 w-64" />
+        </div>
+        <Skeleton className="h-9 w-36 rounded-full" />
+      </div>
+
+      <div className="flex-1 overflow-y-auto bg-zinc-50/50 p-6 md:p-8">
+        <div className="mx-auto w-full max-w-6xl space-y-8 pb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+            <Section title="Requirement Details" icon={Briefcase}>
+              <div className="space-y-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-start py-3">
+                    <Skeleton className="h-3 w-24 mt-1" />
+                    <Skeleton className="h-4 w-48 ml-auto" />
+                  </div>
+                ))}
+              </div>
+            </Section>
+            <Section title="Invited Vendors" icon={Users}>
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between pb-4 border-b border-zinc-100">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            </Section>
+          </div>
+
+          {/* Quotes skeleton */}
+          <div className="rounded-2xl border border-zinc-200 bg-white p-6 space-y-4">
+            <Skeleton className="h-6 w-40" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="rounded-xl border border-zinc-200 p-4 space-y-3">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-3 w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
 type Payload = {
   requirement: {
     id: string;
@@ -137,12 +203,11 @@ type Payload = {
   }>;
 };
 
-export default async function RequirementComparisonPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+/* ------------------------------------------------------------------ */
+/*  Async data component (streamed via Suspense)                       */
+/* ------------------------------------------------------------------ */
+
+async function RequirementData({ id }: { id: string }) {
   const result = await adminSessionJson<Payload>(`/requirements/${encodeURIComponent(id)}`);
   
   if (!result.ok) {
@@ -171,10 +236,9 @@ export default async function RequirementComparisonPage({
   );
   
   const drafts = quotes.filter((q) => q.status !== "SUBMITTED");
-  const isClosed = new Date(req.closesAt).getTime() <= Date.now();
 
   return (
-    <div className="flex flex-col min-h-0 w-full h-full relative">
+    <>
       {/* Fixed Sticky Header */}
       <div className="flex-none flex items-center justify-between bg-white px-6 pb-4 pt-4 z-10">
         <div className="flex items-center gap-3">
@@ -186,15 +250,13 @@ export default async function RequirementComparisonPage({
             <ChevronLeft className="h-6 w-6" />
           </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold tracking-tight text-zinc-950">
-              {req.project}
-            </h1>
+            <h1 className="text-xl font-bold tracking-tight text-zinc-950">{req.project}</h1>
             {statusBadge(req.status, req.closesAt)}
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <Link 
+          <Link
             href={`/requirements/${req.id}/edit`}
             className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-700 shadow-sm transition-all hover:border-brand-blue hover:text-brand-blue focus:ring-[3px] focus:ring-brand-blue/30"
           >
@@ -283,6 +345,24 @@ export default async function RequirementComparisonPage({
           />
         </div>
       </div>
-    </div>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page (static shell + streamed data)                                */
+/* ------------------------------------------------------------------ */
+
+export default async function RequirementComparisonPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  return (
+    <Suspense fallback={<RequirementDetailSkeleton />}>
+      <RequirementData id={id} />
+    </Suspense>
   );
 }
