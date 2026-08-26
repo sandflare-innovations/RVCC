@@ -1,10 +1,19 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Ara Hamah Alislam";
+  src: url("/fonts/Ara Hamah Alislam Regular/Ara Hamah Alislam Regular.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-brand-blue: #0073bc;
   --color-brand-black: #000000;
   --color-brand-white: #ffffff;
   --color-brand-grey: #a6a6a6;
+  --font-heading: "Ara Hamah Alislam", ui-serif, Georgia, serif;
 }
 
 @utility font-enquire {
