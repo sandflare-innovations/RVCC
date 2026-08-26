@@ -29,13 +29,26 @@ interface DonutChartProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function DonutChart({ data, title, height = 320, className, ...props }: DonutChartProps) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
+  const [mousePos, setMousePos] = React.useState<{ x: number; y: number } | null>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setMousePos({ x: e.clientX - rect.left + 14, y: e.clientY - rect.top + 14 });
+  };
 
   return (
     <div className={cn(cardClass, className)} {...props}>
       {title && (
         <p className="mb-2 text-[15px] font-semibold tracking-tight text-zinc-900">{title}</p>
       )}
-      <div className="relative" style={{ height }}>
+      <div
+        ref={containerRef}
+        className="relative"
+        style={{ height }}
+        onMouseMove={handleMouseMove}
+      >
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -57,6 +70,7 @@ export function DonutChart({ data, title, height = 320, className, ...props }: D
               isAnimationActive={false}
               animationDuration={0}
               allowEscapeViewBox={{ x: true, y: true }}
+              position={mousePos ?? undefined}
               wrapperStyle={{ outline: "none", zIndex: 20 }}
               content={({ active, payload }) => {
                 if (!active || !payload?.length) return null;
