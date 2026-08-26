@@ -22,6 +22,11 @@ import {
   makeReferenceNumber,
   timingSafeEqualHex,
 } from "./db";
+import {
+  otpRequestSchema,
+  otpVerifySchema,
+  draftPatchSchema,
+} from "@rvcc/schemas";
 import { issueEmailGate, readEmailGate } from "./email-gate";
 
 const OTP_TTL_MS = 15 * 60 * 1000;
@@ -176,11 +181,12 @@ export async function resolveEnquireRegistration(sql: Sql, env: Env, request: Re
 }
 
 export async function handleOtpRequest(sql: Sql, env: Env, request: Request): Promise<Response> {
-  const body = (await request.json()) as { email?: string };
-  const email = body.email?.trim().toLowerCase();
-  if (!email || !email.includes("@")) {
+  const raw = await request.json().catch(() => ({}));
+  const parsed = otpRequestSchema.safeParse(raw);
+  if (!parsed.success) {
     return json(env, request, { error: "Valid email is required" }, 400);
   }
+  const email = parsed.data.email;
 
   if (!smtpConfigured(env)) {
     return json(env, request, { error: "Mail service unavailable" }, 503);
@@ -219,12 +225,12 @@ export async function handleOtpRequest(sql: Sql, env: Env, request: Request): Pr
 }
 
 export async function handleOtpVerify(sql: Sql, env: Env, request: Request): Promise<Response> {
-  const body = (await request.json()) as { email?: string; code?: string };
-  const email = body.email?.trim().toLowerCase();
-  const code = body.code?.trim();
-  if (!email || !code || !/^\d{6}$/.test(code)) {
+  const raw = await request.json().catch(() => ({}));
+  const parsed = otpVerifySchema.safeParse(raw);
+  if (!parsed.success) {
     return json(env, request, { error: "Email and 6-digit code are required" }, 400);
   }
+  const { email, code } = parsed.data;
 
   const codeHash = await hashSha256(code);
   const [otp] = await sql`
@@ -325,7 +331,12 @@ export async function handleDraftPatch(sql: Sql, env: Env, request: Request): Pr
     return json(env, request, { error: "Registration already submitted" }, 400);
   }
 
-  const data = (await request.json()) as Record<string, unknown>;
+  const raw = await request.json().catch(() => ({}));
+  const parsed = draftPatchSchema.safeParse(raw);
+  if (!parsed.success) {
+    return json(env, request, { error: "Invalid payload", details: parsed.error.flatten() }, 400);
+  }
+  const data = parsed.data;
   const id = existing.id as string;
 
   if (data.company && typeof data.company === "object") {

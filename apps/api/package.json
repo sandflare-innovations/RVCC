@@ -20,6 +20,8 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.14.4",
+    "@rvcc/schemas": "workspace:*",
+    "@rvcc/types": "workspace:*",
     "aws4fetch": "^1.0.20",
     "hono": "^4.8.5",
     "nodemailer": "^9.0.4",
