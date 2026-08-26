@@ -96,6 +96,7 @@ export function VendorAccountsPanel({
   const [initialLoad, setInitialLoad] = useState(() => !readVendorCache());
   const [refreshing, setRefreshing] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [activeDropdownRow, setActiveDropdownRow] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const requestId = useRef(0);
 
@@ -309,7 +310,7 @@ export function VendorAccountsPanel({
             {displayed.map((v) => (
               <tr
                 key={v.id}
-                className="group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40"
+                className={`group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40 ${activeDropdownRow === v.id ? 'relative z-[60]' : ''}`}
                 onClick={(e) => {
                   if ((e.target as HTMLElement).closest('button, a')) return;
                   router.push(`/vendors/${v.id}`);
@@ -348,7 +349,7 @@ export function VendorAccountsPanel({
                   {formatDateTime(v.lastLoginAt) ?? "Never"}
                 </td>
                 <td className="sticky right-0 z-10 whitespace-nowrap rounded-r-2xl bg-white px-8 py-4 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
-                  <VendorRowActions vendor={toSummary(v)} onUpdated={updateRowInCache} />
+                  <VendorRowActions vendor={toSummary(v)} onUpdated={updateRowInCache} onDropdownOpen={(open) => setActiveDropdownRow(open ? v.id : null)} />
                 </td>
               </tr>
             ))}
