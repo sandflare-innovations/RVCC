@@ -402,13 +402,85 @@ export function RequirementsPanel() {
 
 export function RequirementsSkeleton() {
   return (
-    <div className="space-y-6 animate-pulse">
-      <div className="space-y-2">
-        <div className="h-8 w-48 rounded bg-zinc-200" />
-        <div className="h-4 w-full max-w-xl rounded bg-zinc-100" />
+    <div className="flex flex-1 flex-col min-h-0 w-full animate-pulse">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0 mb-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="relative flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)]"
+          >
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent" />
+            <div className="relative z-10 flex items-start justify-between gap-3">
+              <div className="h-3 w-20 rounded bg-zinc-100" />
+              <div className="h-8 w-8 shrink-0 rounded-2xl bg-zinc-100" />
+            </div>
+            <div className="relative z-10 mt-3">
+              <div className="h-7 w-12 rounded bg-zinc-200" />
+            </div>
+          </div>
+        ))}
       </div>
-      <div className="h-10 w-40 rounded bg-zinc-100" />
-      <div className="h-64 rounded-lg border border-zinc-200 bg-white" />
+
+      {/* Toolbar */}
+      <div className="flex flex-nowrap items-center justify-between gap-4 shrink-0 mb-6">
+        <div className="flex items-center gap-3 w-full max-w-sm">
+          <div className="h-[42px] w-[42px] shrink-0 rounded-full border border-zinc-200 bg-white" />
+          <div className="h-[42px] flex-1 rounded-full border border-zinc-200 bg-white" />
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="h-10 w-40 rounded-full border border-zinc-200 bg-white" />
+          <div className="h-11 w-36 rounded-full bg-zinc-100" />
+        </div>
+      </div>
+
+      {/* Table Container */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
+        {/* Table Header */}
+        <div className="overflow-hidden">
+          <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
+            <thead>
+              <tr className="text-white">
+                {['Project', 'Status', 'Reference', 'Posted Date', 'Closes Date', 'Invited', 'Quotes'].map((h, i) => (
+                  <th
+                    key={h}
+                    className={`whitespace-nowrap bg-zinc-100 px-8 py-3.5 font-semibold ${i === 0 ? 'rounded-l-2xl' : ''} ${i === 6 ? 'rounded-r-2xl' : ''}`}
+                  >
+                    <div className="h-3 rounded bg-zinc-200" style={{ width: h === 'Project' ? '80px' : h === 'Status' ? '48px' : '64px' }} />
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl">
+                  <td className="sticky left-0 z-10 whitespace-nowrap rounded-l-2xl bg-white px-8 py-4 ring-1 ring-inset ring-zinc-100">
+                    <div className="h-4 w-36 rounded bg-zinc-100" />
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4">
+                    <div className="h-4 w-20 rounded bg-zinc-100" />
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4">
+                    <div className="h-4 w-24 rounded bg-zinc-100" />
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4">
+                    <div className="h-4 w-32 rounded bg-zinc-100" />
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4">
+                    <div className="h-4 w-32 rounded bg-zinc-100" />
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4">
+                    <div className="h-4 w-8 rounded bg-zinc-100" />
+                  </td>
+                  <td className="whitespace-nowrap rounded-r-2xl px-8 py-4">
+                    <div className="h-4 w-8 rounded bg-zinc-100" />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
