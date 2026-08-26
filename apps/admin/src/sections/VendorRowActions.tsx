@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { AlertCircle, ExternalLink, Eye, KeyRound, Lock, Unlock, MoreVertical } from "lucide-react";
+import { AlertCircle, Check, Copy, ExternalLink, Eye, KeyRound, Lock, Unlock, MoreVertical } from "lucide-react";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
@@ -40,10 +41,12 @@ function Row({ label, value }: { label: string; value?: string | null }) {
 export function VendorRowActions({
   vendor,
   onUpdated,
+  onDropdownOpen,
 }: {
   vendor: VendorSummary;
   /** Refresh list without a full page navigation. */
   onUpdated?: () => void;
+  onDropdownOpen?: (open: boolean) => void;
 }) {
   const router = useRouter();
   const [showDetails, setShowDetails] = useState(false);
@@ -52,6 +55,9 @@ export function VendorRowActions({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [issued, setIssued] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [accessIssued, setAccessIssued] = useState<string | null>(null);
+  const [accessCopied, setAccessCopied] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -59,6 +65,7 @@ export function VendorRowActions({
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+        onDropdownOpen?.(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -67,6 +74,16 @@ export function VendorRowActions({
 
   const v = vendor;
   const held = v.portalAccess !== "RELEASED";
+
+  const copyPassword = async (text: string, setCopied: (v: boolean) => void) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* fallback: select the text for manual copy */
+    }
+  };
 
   const setPortalAccess = async (portalAccess: "HELD" | "RELEASED", notifyEmail: boolean) => {
     setBusy(true);
@@ -83,8 +100,7 @@ export function VendorRowActions({
         return;
       }
       const data = await res.json().catch(() => ({}));
-      if (data.tempPassword) setIssued(data.tempPassword);
-      setShowAccess(false);
+      if (data.tempPassword) setAccessIssued(data.tempPassword);
       if (onUpdated) onUpdated();
       else router.refresh();
     } catch {
@@ -119,17 +135,27 @@ export function VendorRowActions({
 
   return (
     <>
-      <div className="relative flex items-center justify-end" ref={dropdownRef}>
+      <div className={`relative flex items-center justify-end ${showDropdown ? "z-[60]" : ""}`} ref={dropdownRef}>
         <button
           type="button"
-          onClick={() => setShowDropdown((s) => !s)}
+          onClick={() => {
+              const next = !showDropdown;
+              setShowDropdown(next);
+              onDropdownOpen?.(next);
+            }}
           className="hover:text-brand-blue rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
         >
           <MoreVertical className="h-4 w-4" />
         </button>
 
-        {showDropdown && (
-          <div className="absolute right-0 top-full z-10 mt-1 w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-lg">
+        {showDropdown && dropdownRef.current && createPortal(
+          <div
+            className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
+            style={{
+              top: dropdownRef.current.getBoundingClientRect().bottom + 4,
+              right: window.innerWidth - dropdownRef.current.getBoundingClientRect().right,
+            }}
+          >
             <button
               type="button"
               onClick={() => {
@@ -159,15 +185,17 @@ export function VendorRowActions({
               onClick={() => {
                 setShowDropdown(false);
                 setError(null);
-                setIssued(null);
+                setAccessIssued(null);
+                setAccessCopied(false);
                 setShowAccess(true);
               }}
               className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
             >
               {held ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-              {held ? "Release access" : "Hold access"}
+              {held ? "Release access" : "Block access"}
             </button>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
 
@@ -212,6 +240,7 @@ export function VendorRowActions({
         onClose={() => {
           setShowReset(false);
           setIssued(null);
+          setCopied(false);
         }}
         title="Reset password"
         description={v.email}
@@ -222,6 +251,7 @@ export function VendorRowActions({
               onClick={() => {
                 setShowReset(false);
                 setIssued(null);
+                setCopied(false);
               }}
               className="bg-brand-blue hover:bg-brand-blue/90 h-10 rounded-md px-4 text-sm font-semibold text-white transition-colors"
             >
@@ -260,11 +290,41 @@ export function VendorRowActions({
           </div>
         )}
         {issued ? (
-          <div className="border-brand-blue bg-brand-blue/5 rounded-md border-l-4 p-4">
-            <p className="text-sm font-semibold text-zinc-900">New temporary password</p>
-            <p className="border-brand-blue/40 mt-2 rounded-md border bg-white px-3 py-2 font-mono text-sm">
-              {issued}
-            </p>
+          <div className="flex flex-col items-center gap-4 py-2 text-center">
+            <div className="bg-brand-blue/10 flex h-14 w-14 items-center justify-center rounded-full">
+              <KeyRound className="h-7 w-7 text-brand-blue" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-base font-semibold text-zinc-900">New temporary password issued</p>
+              <p className="text-sm text-zinc-500">Share this with <strong>{v.email}</strong> securely.</p>
+            </div>
+            <div className="w-full">
+              <div className="flex items-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
+                <input
+                  readOnly
+                  value={issued}
+                  className="flex-1 bg-transparent px-4 py-3 font-mono text-sm text-zinc-900 outline-none select-all"
+                  onFocus={(e) => e.target.select()}
+                />
+                <button
+                  type="button"
+                  onClick={() => void copyPassword(issued, setCopied)}
+                  className="flex h-full items-center gap-1.5 border-l border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-4 w-4 text-green-600" />
+                      <span className="text-green-600">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         ) : (
           <p className="text-sm text-zinc-700">
@@ -276,11 +336,27 @@ export function VendorRowActions({
 
       <Modal
         open={showAccess}
-        onClose={() => setShowAccess(false)}
-        title={held ? "Release portal access" : "Hold portal access"}
+        onClose={() => {
+          setShowAccess(false);
+          setAccessIssued(null);
+          setAccessCopied(false);
+        }}
+        title={held ? "Release portal access" : "Block portal access"}
         description={v.email}
         footer={
-          held ? (
+          accessIssued ? (
+            <button
+              type="button"
+              onClick={() => {
+                setShowAccess(false);
+                setAccessIssued(null);
+                setAccessCopied(false);
+              }}
+              className="bg-brand-blue hover:bg-brand-blue/90 h-10 rounded-md px-4 text-sm font-semibold text-white transition-colors"
+            >
+              Done
+            </button>
+          ) : held ? (
             <>
               <button
                 type="button"
@@ -325,7 +401,7 @@ export function VendorRowActions({
                 className="inline-flex h-10 items-center gap-2 rounded-md bg-zinc-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-black disabled:opacity-55"
               >
                 <Lock className="h-4 w-4" />
-                {busy ? "Holding…" : "Hold access"}
+                {busy ? "Blocking…" : "Block access"}
               </button>
             </>
           )
@@ -340,7 +416,44 @@ export function VendorRowActions({
             <span>{error}</span>
           </div>
         )}
-        {held ? (
+        {accessIssued ? (
+          <div className="flex flex-col items-center gap-4 py-2 text-center">
+            <div className="bg-brand-blue/10 flex h-14 w-14 items-center justify-center rounded-full">
+              <KeyRound className="h-7 w-7 text-brand-blue" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-base font-semibold text-zinc-900">New temporary password issued</p>
+              <p className="text-sm text-zinc-500">Share this with <strong>{v.email}</strong> securely.</p>
+            </div>
+            <div className="w-full">
+              <div className="flex items-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
+                <input
+                  readOnly
+                  value={accessIssued}
+                  className="flex-1 bg-transparent px-4 py-3 font-mono text-sm text-zinc-900 outline-none select-all"
+                  onFocus={(e) => e.target.select()}
+                />
+                <button
+                  type="button"
+                  onClick={() => void copyPassword(accessIssued, setAccessCopied)}
+                  className="flex h-full items-center gap-1.5 border-l border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100"
+                >
+                  {accessCopied ? (
+                    <>
+                      <Check className="h-4 w-4 text-green-600" />
+                      <span className="text-green-600">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : held ? (
           <p className="text-sm text-zinc-700">
             Release portal access for <strong className="text-zinc-950">{v.email}</strong>? Choose{" "}
             <strong>Notify Via Email</strong> to send “Access Your Vendor Portal”, or{" "}
@@ -348,7 +461,7 @@ export function VendorRowActions({
           </p>
         ) : (
           <p className="text-sm text-zinc-700">
-            Hold portal access for <strong className="text-zinc-950">{v.email}</strong>? They will
+            Block portal access for <strong className="text-zinc-950">{v.email}</strong>? They will
             be signed out and cannot use vendor pages until you release access again.
           </p>
         )}
