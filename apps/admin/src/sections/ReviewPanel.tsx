@@ -117,24 +117,14 @@ export function ReviewPanel({
 
   return (
     <>
-      <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-        <div>
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-950">
-            <Scale className="h-4 w-4 text-zinc-500" />
-            Review Required
-          </h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            Evaluate this registration to approve or reject the vendor.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800"
-        >
-          Review Decision
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-2 rounded-lg bg-brand-blue px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-blue/90"
+      >
+        <Scale className="h-4 w-4" />
+        Review Application
+      </button>
 
       <Modal
         open={open}
