@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -24,11 +25,13 @@ export function RegistrationRowActions({
   canDelete,
   onDeleted,
   onUpdated,
+  onDropdownOpen,
 }: {
   registration: RegistrationSummary;
   canDelete: boolean;
   onDeleted?: () => void;
   onUpdated?: () => void;
+  onDropdownOpen?: (open: boolean) => void;
 }) {
   const router = useRouter();
   const [showDelete, setShowDelete] = useState(false);
@@ -42,6 +45,7 @@ export function RegistrationRowActions({
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+        onDropdownOpen?.(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -77,17 +81,27 @@ export function RegistrationRowActions({
 
   return (
     <>
-      <div className="relative flex items-center justify-end" ref={dropdownRef}>
+      <div className={`relative flex items-center justify-end ${showDropdown ? "z-[60]" : ""}`} ref={dropdownRef}>
         <button
           type="button"
-          onClick={() => setShowDropdown((s) => !s)}
+          onClick={() => {
+              const next = !showDropdown;
+              setShowDropdown(next);
+              onDropdownOpen?.(next);
+            }}
           className="hover:text-brand-blue rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
         >
           <MoreVertical className="h-4 w-4" />
         </button>
 
-        {showDropdown && (
-          <div className="absolute right-0 top-full z-10 mt-1 w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-lg">
+        {showDropdown && dropdownRef.current && createPortal(
+          <div
+            className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
+            style={{
+              top: dropdownRef.current.getBoundingClientRect().bottom + 4,
+              right: window.innerWidth - dropdownRef.current.getBoundingClientRect().right,
+            }}
+          >
             <Link
               href={`/registrations/${r.id}`}
               onClick={() => setShowDropdown(false)}
@@ -111,7 +125,8 @@ export function RegistrationRowActions({
                 Delete
               </button>
             )}
-          </div>
+          </div>,
+          document.body
         )}
       </div>
 

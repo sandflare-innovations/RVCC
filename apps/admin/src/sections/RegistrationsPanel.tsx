@@ -107,6 +107,7 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
   const [refreshing, setRefreshing] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
+  const [activeDropdownRow, setActiveDropdownRow] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const requestId = useRef(0);
 
@@ -345,7 +346,7 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
               {displayed.map((r) => (
                 <tr
                   key={r.id}
-                  className="group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40"
+                  className={`group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40 ${activeDropdownRow === r.id ? 'relative z-[60]' : ''}`}
                   onClick={(e) => {
                     if ((e.target as HTMLElement).closest('button, a')) return;
                     router.push(`/registrations/${r.id}`);
@@ -394,6 +395,7 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
                       canDelete={canDelete}
                       onDeleted={() => removeRow(r.id)}
                       onUpdated={updateTable}
+                      onDropdownOpen={(open) => setActiveDropdownRow(open ? r.id : null)}
                     />
                   </td>
                 </tr>

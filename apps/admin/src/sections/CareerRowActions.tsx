@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 import { useRouter } from "next/navigation";
 
@@ -12,9 +13,11 @@ import { readApiError } from "@/lib/read-error";
 export function CareerRowActions({
   job,
   canDelete,
+  onDropdownOpen,
 }: {
   job: { id: string; title: string; slug: string; isPublished: boolean };
   canDelete: boolean;
+  onDropdownOpen?: (open: boolean) => void;
 }) {
   const router = useRouter();
   const [showDelete, setShowDelete] = useState(false);
@@ -28,6 +31,7 @@ export function CareerRowActions({
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+        onDropdownOpen?.(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -72,17 +76,27 @@ export function CareerRowActions({
 
   return (
     <>
-      <div className="relative flex items-center justify-end" ref={dropdownRef}>
+      <div className={`relative flex items-center justify-end ${showDropdown ? "z-[60]" : ""}`} ref={dropdownRef}>
         <button
           type="button"
-          onClick={() => setShowDropdown((s) => !s)}
+          onClick={() => {
+              const next = !showDropdown;
+              setShowDropdown(next);
+              onDropdownOpen?.(next);
+            }}
           className="hover:text-brand-blue rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
         >
           <MoreVertical className="h-4 w-4" />
         </button>
 
-        {showDropdown && (
-          <div className="absolute right-0 top-full z-10 mt-1 w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-lg">
+        {showDropdown && dropdownRef.current && createPortal(
+          <div
+            className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
+            style={{
+              top: dropdownRef.current.getBoundingClientRect().bottom + 4,
+              right: window.innerWidth - dropdownRef.current.getBoundingClientRect().right,
+            }}
+          >
             <button
               type="button"
               onClick={() => {
@@ -121,7 +135,8 @@ export function CareerRowActions({
                 Delete
               </button>
             )}
-          </div>
+          </div>,
+          document.body
         )}
       </div>
 
