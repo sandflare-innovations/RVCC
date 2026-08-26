@@ -256,7 +256,7 @@ export function AdminChrome({
 
       <div className="flex flex-1 flex-col overflow-hidden bg-white rounded-3xl my-3 mr-3 ml-3 border border-zinc-200/60 min-h-0 min-w-0">
         <main className="flex-1 flex flex-col min-h-0 overflow-hidden p-5 md:p-8 rounded-3xl">
-          <div className="mx-auto w-full max-w-7xl flex-1 flex flex-col min-h-0 overflow-hidden">{children}</div>
+          <div className="w-full flex-1 flex flex-col min-h-0 overflow-hidden">{children}</div>
         </main>
       </div>
     </div>
