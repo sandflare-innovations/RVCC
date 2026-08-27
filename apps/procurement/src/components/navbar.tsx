@@ -21,7 +21,7 @@ export function Navbar({ onOpenNewRequest, onRefreshData }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-zinc-200/80 bg-white/95 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-8xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand / Logo */}
         <Link href="/" className="flex items-center gap-3 group">
