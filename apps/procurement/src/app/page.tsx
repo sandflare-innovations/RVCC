@@ -290,21 +290,20 @@ export default function RequesterDashboard() {
           {viewMode === "table" ? (
             /* Fluid Full-Width Table with Sticky Header & Smooth Horizontal / Vertical Scroll */
             <div className="flex-1 min-h-0 overflow-auto">
-              <table className="w-full text-left text-sm border-separate border-spacing-y-2.5 min-w-[980px]">
+              <table className="w-full text-left text-sm border-separate border-spacing-y-2.5 min-w-[880px]">
                 <thead className="sticky top-0 z-30 bg-[#0073bc] text-white">
                   <tr className="whitespace-nowrap text-xs font-bold uppercase tracking-wider">
                     <th className="sticky left-0 z-40 bg-[#0073bc] px-6 py-3.5 rounded-l-2xl shadow-[2px_0_5px_rgba(0,0,0,0.08)]">
                       Requisition
                     </th>
                     <th className="bg-[#0073bc] px-5 py-3.5">Department / Trade</th>
-                    <th className="bg-[#0073bc] px-5 py-3.5">Priority</th>
-                    <th className="bg-[#0073bc] px-5 py-3.5">Status</th>
+                    <th className="bg-[#0073bc] px-5 py-3.5 text-center">Priority</th>
+                    <th className="bg-[#0073bc] px-5 py-3.5 text-center">Status</th>
                     <th className="bg-[#0073bc] px-5 py-3.5 text-right">
                       Estimated Amount
                     </th>
-                    <th className="bg-[#0073bc] px-5 py-3.5">Required By</th>
-                    <th className="sticky right-0 z-40 bg-[#0073bc] px-6 py-3.5 text-right rounded-r-2xl shadow-[-2px_0_5px_rgba(0,0,0,0.08)]">
-                      Action
+                    <th className="bg-[#0073bc] px-6 py-3.5 text-right rounded-r-2xl">
+                      Required By
                     </th>
                   </tr>
                 </thead>
@@ -344,22 +343,22 @@ export default function RequesterDashboard() {
                             {req.department}
                           </td>
 
-                          <td className="px-5 py-4 text-xs">
+                          <td className="px-5 py-4 text-center">
                             <span
-                              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold border ${priorityBadge.bgClass} ${priorityBadge.textClass} ${priorityBadge.borderClass}`}
+                              className={`inline-flex w-[120px] items-center justify-center rounded-full py-1 text-xs font-semibold border ${priorityBadge.bgClass} ${priorityBadge.textClass} ${priorityBadge.borderClass}`}
                             >
                               {priorityBadge.label}
                             </span>
                           </td>
 
-                          <td className="px-5 py-4 text-xs">
+                          <td className="px-5 py-4 text-center">
                             <span
-                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold border ${statusBadge.bgClass} ${statusBadge.textClass} ${statusBadge.borderClass}`}
+                              className={`inline-flex w-[130px] items-center justify-center gap-1.5 rounded-full py-1 text-xs font-semibold border ${statusBadge.bgClass} ${statusBadge.textClass} ${statusBadge.borderClass}`}
                             >
                               <span
-                                className={`h-1.5 w-1.5 rounded-full ${statusBadge.dotClass}`}
+                                className={`h-1.5 w-1.5 rounded-full shrink-0 ${statusBadge.dotClass}`}
                               />
-                              {statusBadge.label}
+                              <span className="truncate">{statusBadge.label}</span>
                             </span>
                           </td>
 
@@ -372,23 +371,13 @@ export default function RequesterDashboard() {
                             </div>
                           </td>
 
-                          <td className="px-5 py-4 text-zinc-600 text-xs">
+                          <td className="px-6 py-4 text-right text-zinc-600 text-xs rounded-r-2xl">
                             <div className="font-bold text-zinc-900 text-sm">
                               {formatDate(req.requiredByDate)}
                             </div>
                             <div className="text-xs text-zinc-400">
                               Sub. {formatDate(req.createdAt)}
                             </div>
-                          </td>
-
-                          <td className="sticky right-0 z-20 bg-white group-hover:bg-zinc-50/90 transition-colors px-6 py-4 text-right rounded-r-2xl shadow-[-2px_0_5px_rgba(0,0,0,0.02)]">
-                            <Link
-                              href={`/requirements/${req.id}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-bold text-zinc-700 group-hover:border-[#0073bc] group-hover:bg-[#0073bc] group-hover:text-white transition-all shadow-2xs"
-                            >
-                              View <ArrowUpRight className="h-4 w-4" />
-                            </Link>
                           </td>
                         </tr>
                       );
