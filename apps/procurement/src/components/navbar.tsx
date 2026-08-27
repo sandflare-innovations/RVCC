@@ -14,10 +14,16 @@ interface NavbarProps {
 export function Navbar({ onOpenNewRequest }: NavbarProps) {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-8xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Brand / Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative h-10 w-28 flex items-center">
+      <div className="relative mx-auto flex h-16 max-w-8xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Left Placeholder for balanced symmetry */}
+        <div className="flex items-center gap-2.5 w-28 sm:w-36" />
+
+        {/* Center Brand / Logo */}
+        <Link
+          href="/"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-3 group"
+        >
+          <div className="relative h-10 w-28 flex items-center justify-center">
             <Image
               src="/images/logo/logo.webp"
               alt="RVCC Logo"
@@ -36,8 +42,7 @@ export function Navbar({ onOpenNewRequest }: NavbarProps) {
         </Link>
 
         {/* Right Action Buttons */}
-        <div className="flex items-center gap-2.5">
-          {/* PWA Install Button */}
+        <div className="flex items-center justify-end gap-2.5 w-28 sm:w-36">
           <PwaInstallButton />
         </div>
       </div>
