@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
+const adminSans = Inter({
   subsets: ["latin"],
-  variable: "--font-inter",
   display: "swap",
+  variable: "--font-enquire-sans",
 });
 
 export const metadata: Metadata = {
@@ -22,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="antialiased min-h-screen bg-slate-50 text-slate-900 selection:bg-[#0073bc] selection:text-white">
+    <html lang="en" className={adminSans.variable}>
+      <body className="antialiased min-h-screen bg-zinc-50 font-enquire text-zinc-900 selection:bg-[#0073bc] selection:text-white">
         {children}
       </body>
     </html>

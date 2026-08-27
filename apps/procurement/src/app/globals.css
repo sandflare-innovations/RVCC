@@ -1,21 +1,29 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Ara Hamah Alislam";
+  src: url("/fonts/Ara Hamah Alislam Regular/Ara Hamah Alislam Regular.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-brand-blue: #0073bc;
   --color-brand-black: #000000;
   --color-brand-white: #ffffff;
   --color-brand-grey: #a6a6a6;
+  --font-heading: "Ara Hamah Alislam", ui-serif, Georgia, serif;
 }
 
-:root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+@utility font-enquire {
+  font-family: var(--font-enquire-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+html,
 body {
-  background-color: #f8fafc;
-  color: #0f172a;
-  font-family: var(--font-inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif);
+  min-height: 100%;
+  font-family: var(--font-enquire-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Hide scrollbar utility */
