@@ -39,16 +39,6 @@ export function Navbar({ onOpenNewRequest }: NavbarProps) {
         <div className="flex items-center gap-2.5">
           {/* PWA Install Button */}
           <PwaInstallButton />
-
-          {onOpenNewRequest && (
-            <button
-              onClick={onOpenNewRequest}
-              className="flex items-center gap-1.5 rounded-full bg-[#0073bc] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005f9e] active:scale-98 transition-all cursor-pointer"
-            >
-              <Plus className="h-4 w-4" />
-              <span>New Requisition</span>
-            </button>
-          )}
         </div>
       </div>
     </header>
