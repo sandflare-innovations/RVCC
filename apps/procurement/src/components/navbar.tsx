@@ -5,18 +5,24 @@ import Link from "next/link";
 import Image from "next/image";
 import { Plus } from "lucide-react";
 import { PwaInstallButton } from "@/components/pwa/pwa-install-button";
+import { UserProfileMenu } from "@/components/user-profile-menu";
 
 interface NavbarProps {
   onOpenNewRequest?: () => void;
   onRefreshData?: () => void;
+  user?: {
+    name?: string;
+    email?: string;
+    role?: string;
+  } | null;
 }
 
-export function Navbar({ onOpenNewRequest }: NavbarProps) {
+export function Navbar({ onOpenNewRequest, user }: NavbarProps) {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md">
       <div className="relative mx-auto flex h-16 max-w-8xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Left Placeholder for balanced symmetry */}
-        <div className="flex items-center gap-2.5 w-28 sm:w-36" />
+        <div className="flex items-center gap-2.5 w-28 sm:w-44" />
 
         {/* Center Brand / Logo */}
         <Link
@@ -42,10 +48,12 @@ export function Navbar({ onOpenNewRequest }: NavbarProps) {
         </Link>
 
         {/* Right Action Buttons */}
-        <div className="flex items-center justify-end gap-2.5 w-28 sm:w-36">
+        <div className="flex items-center justify-end gap-3 w-28 sm:w-44">
           <PwaInstallButton />
+          <UserProfileMenu user={user} />
         </div>
       </div>
     </header>
   );
 }
+

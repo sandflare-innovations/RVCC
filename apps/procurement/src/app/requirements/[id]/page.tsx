@@ -29,14 +29,17 @@ import {
   getStatusBadgeInfo,
   getPriorityBadgeInfo,
 } from "@/lib/formatters";
+import { getClientProcurementProfile, ProcurementProfile } from "@/lib/profile-client";
 
 export default function RequisitionDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const [user, setUser] = useState<ProcurementProfile | null>(null);
   const [request, setRequest] = useState<PurchaseRequest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setUser(getClientProcurementProfile());
     if (params?.id) {
       const found = ProcurementStore.getRequestById(String(params.id));
       setRequest(found);
@@ -47,7 +50,7 @@ export default function RequisitionDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-zinc-50 text-zinc-900">
-        <Navbar />
+        <Navbar user={user} />
         <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-8">
           <div className="animate-pulse space-y-6">
             <div className="h-8 w-48 bg-zinc-200 rounded-xl" />
@@ -58,10 +61,11 @@ export default function RequisitionDetailPage() {
     );
   }
 
+
   if (!request) {
     return (
       <div className="min-h-screen bg-zinc-50 text-zinc-900">
-        <Navbar />
+        <Navbar user={user} />
         <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16 text-center">
           <div className="rounded-3xl border border-zinc-200 bg-white p-12 shadow-sm">
             <h2 className="text-xl font-bold text-zinc-900">Requisition Not Found</h2>
@@ -86,7 +90,7 @@ export default function RequisitionDetailPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900 pb-16">
-      <Navbar />
+      <Navbar user={user} />
 
       <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         {/* Navigation & Header */}

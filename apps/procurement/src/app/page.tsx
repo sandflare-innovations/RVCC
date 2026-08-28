@@ -10,9 +10,11 @@ import { RequisitionsGrid } from "@/components/requests/requisitions-grid";
 import { NewRequestModal } from "@/components/requests/new-request-modal";
 import { PurchaseRequest, ProcurementStats } from "@/types/procurement";
 import { ProcurementStore } from "@/lib/storage";
+import { getClientProcurementProfile, ProcurementProfile } from "@/lib/profile-client";
 
 export default function RequesterDashboard() {
   const router = useRouter();
+  const [user, setUser] = useState<ProcurementProfile | null>(null);
   const [requests, setRequests] = useState<PurchaseRequest[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,12 +27,14 @@ export default function RequesterDashboard() {
     setIsRefreshing(true);
     const data = ProcurementStore.getRequests();
     setRequests(data);
+    setUser(getClientProcurementProfile());
     setTimeout(() => setIsRefreshing(false), 400);
   };
 
   useEffect(() => {
     loadData();
   }, []);
+
 
   const handleCreateRequest = (newReqData: any) => {
     const created = ProcurementStore.addRequest(newReqData);
@@ -72,6 +76,7 @@ export default function RequesterDashboard() {
         <Navbar
           onOpenNewRequest={() => setIsModalOpen(true)}
           onRefreshData={loadData}
+          user={user}
         />
       </div>
 
