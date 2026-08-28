@@ -37,37 +37,45 @@ if (!VALID_ROLES.includes(role as (typeof VALID_ROLES)[number])) {
   process.exit(1);
 }
 
-const sql = postgres(process.env.DATABASE_URL, { max: 1, prepare: false });
+async function main() {
+  const sql = postgres(process.env.DATABASE_URL!, { max: 1, prepare: false });
 
-try {
-  const normalized = email.trim().toLowerCase();
-  const passwordHash = await hashPassword(password);
-  const id = cuid();
+  try {
+    const normalized = email.trim().toLowerCase();
+    const passwordHash = await hashPassword(password);
+    const id = cuid();
 
-  const [admin] = await sql`
-    INSERT INTO "AdminUser" (
-      id, email, name, "passwordHash", role, "isActive",
-      "failedAttempts", "lockedUntil", "createdAt", "updatedAt"
-    )
-    VALUES (
-      ${id}, ${normalized}, ${name}, ${passwordHash}, ${role}::"AdminRole", true,
-      0, NULL, NOW(), NOW()
-    )
-    ON CONFLICT (email) DO UPDATE SET
-      "passwordHash" = EXCLUDED."passwordHash",
-      name = EXCLUDED.name,
-      role = EXCLUDED.role,
-      "isActive" = true,
-      "failedAttempts" = 0,
-      "lockedUntil" = NULL,
-      "updatedAt" = NOW()
-    RETURNING email, role
-  `;
+    const [admin] = await sql`
+      INSERT INTO "AdminUser" (
+        id, email, name, "passwordHash", role, "isActive",
+        "failedAttempts", "lockedUntil", "createdAt", "updatedAt"
+      )
+      VALUES (
+        ${id}, ${normalized}, ${name}, ${passwordHash}, ${role}::"AdminRole", true,
+        0, NULL, NOW(), NOW()
+      )
+      ON CONFLICT (email) DO UPDATE SET
+        "passwordHash" = EXCLUDED."passwordHash",
+        name = EXCLUDED.name,
+        role = EXCLUDED.role,
+        "isActive" = true,
+        "failedAttempts" = 0,
+        "lockedUntil" = NULL,
+        "updatedAt" = NOW()
+      RETURNING email, role
+    `;
 
-  console.log(`\n  ${admin.email}  (${admin.role})  — ready.\n  Sign in at /login\n`);
-} catch (err) {
-  console.error("Failed:", (err as Error).message);
-  process.exit(1);
-} finally {
-  await sql.end({ timeout: 2 });
+    console.log(`\n  ${admin.email}  (${admin.role})  — ready.\n  Sign in at /login\n`);
+  } catch (err) {
+    console.error("Failed:", (err as Error).message);
+    process.exit(1);
+  } finally {
+    await sql.end({ timeout: 2 });
+  }
 }
+
+main().catch((err) => {
+  console.error("Fatal error:", err);
+  process.exit(1);
+});
+
