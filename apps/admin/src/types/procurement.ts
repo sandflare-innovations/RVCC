@@ -52,14 +52,17 @@ export interface PurchaseRequest {
   priority: PriorityLevel;
   requiredByDate: string;
   status: RequestStatus;
-  items: RequestItem[];
+  items?: RequestItem[];
+  itemCount?: number;
+
   totalEstimatedAmount: number;
   currency: string;
-  attachments: Attachment[];
+  attachments?: Attachment[];
   adminNotes?: string;
   rejectionReason?: string;
   assignedBuyer?: string;
   createdAt: string;
   updatedAt: string;
-  auditTrail: AuditLogEntry[];
+  auditTrail?: AuditLogEntry[];
 }
+

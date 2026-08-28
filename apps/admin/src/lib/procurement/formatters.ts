@@ -49,15 +49,15 @@ export function getStatusBadgeInfo(status: RequestStatus): {
     case "submitted":
       return {
         label: "Submitted",
-        bgClass: "bg-blue-50",
-        textClass: "text-[#0073bc] font-semibold",
+        bgClass: "bg-blue-50 text-brand-blue border-blue-200",
+        textClass: "text-brand-blue font-semibold",
         borderClass: "border-blue-200",
-        dotClass: "bg-[#0073bc] animate-pulse",
+        dotClass: "bg-brand-blue",
       };
     case "under_review":
       return {
         label: "Under Review",
-        bgClass: "bg-amber-50",
+        bgClass: "bg-amber-50 text-amber-700 border-amber-200",
         textClass: "text-amber-700 font-semibold",
         borderClass: "border-amber-200",
         dotClass: "bg-amber-500",
@@ -65,7 +65,7 @@ export function getStatusBadgeInfo(status: RequestStatus): {
     case "approved":
       return {
         label: "Approved",
-        bgClass: "bg-emerald-50",
+        bgClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
         textClass: "text-emerald-700 font-semibold",
         borderClass: "border-emerald-200",
         dotClass: "bg-emerald-500",
@@ -73,15 +73,15 @@ export function getStatusBadgeInfo(status: RequestStatus): {
     case "rejected":
       return {
         label: "Rejected",
-        bgClass: "bg-red-50",
-        textClass: "text-red-700 font-semibold",
-        borderClass: "border-red-200",
-        dotClass: "bg-red-500",
+        bgClass: "bg-rose-50 text-rose-700 border-rose-200",
+        textClass: "text-rose-700 font-semibold",
+        borderClass: "border-rose-200",
+        dotClass: "bg-rose-500",
       };
     case "revision_requested":
       return {
         label: "Revision Req.",
-        bgClass: "bg-purple-50",
+        bgClass: "bg-purple-50 text-purple-700 border-purple-200",
         textClass: "text-purple-700 font-semibold",
         borderClass: "border-purple-200",
         dotClass: "bg-purple-500",
@@ -89,13 +89,15 @@ export function getStatusBadgeInfo(status: RequestStatus): {
     default:
       return {
         label: "Draft",
-        bgClass: "bg-zinc-100",
+        bgClass: "bg-zinc-100 text-zinc-700 border-zinc-200",
         textClass: "text-zinc-700 font-semibold",
         borderClass: "border-zinc-200",
         dotClass: "bg-zinc-400",
       };
   }
 }
+
+
 
 export function getPriorityBadgeInfo(priority: PriorityLevel): {
   label: string;

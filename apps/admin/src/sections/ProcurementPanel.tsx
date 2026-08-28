@@ -20,11 +20,22 @@ import {
   Layers,
   ArrowRight,
   TrendingUp,
+  LayoutGrid,
+  Table as TableIcon,
+  Calendar,
+  User,
+  AlertCircle,
+  ArrowUpDown,
 } from "lucide-react";
 
+
 import { AnimatedSearchInput } from "@/lib/ui";
+import { fetchTableJson } from "@/lib/table-fetch";
+import {
+  readProcurementCache,
+  writeProcurementCache,
+} from "@/lib/procurement/procurement-cache";
 import { PurchaseRequest, RequestStatus } from "@/types/procurement";
-import { AdminProcurementStore } from "@/lib/procurement/storage";
 import {
   formatCurrency,
   formatDate,
@@ -32,7 +43,13 @@ import {
   getPriorityBadgeInfo,
 } from "@/lib/procurement/formatters";
 
-type ProcurementFilterValue = "ALL" | "SUBMITTED" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "REVISION_REQUESTED";
+type ProcurementFilterValue =
+  | "ALL"
+  | "SUBMITTED"
+  | "UNDER_REVIEW"
+  | "APPROVED"
+  | "REJECTED"
+  | "REVISION_REQUESTED";
 
 const PROCUREMENT_FILTERS: { value: ProcurementFilterValue; label: string }[] = [
   { value: "ALL", label: "All Requisitions" },
@@ -56,35 +73,90 @@ export function ProcurementPanel() {
   const [filter, setFilter] = useState<ProcurementFilterValue>("ALL");
   const [search, setSearch] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [activeSortBy, setActiveSortBy] = useState<"date" | "priority">("date");
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
+  const [viewMode, setViewMode] = useState<"table" | "card">("table");
 
   const [allRows, setAllRows] = useState<PurchaseRequest[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const requestId = useRef(0);
 
-  const loadData = useCallback(() => {
-    setRefreshing(true);
-    const data = AdminProcurementStore.getRequests();
-    setAllRows(data);
-    setInitialLoad(false);
-    setTimeout(() => setRefreshing(false), 250);
-  }, []);
+  const toggleSort = (mode: "date" | "priority") => {
+    if (activeSortBy === mode) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
+      setActiveSortBy(mode);
+      setSortDir("desc");
+    }
+  };
+
+
+
+
+
+
+  const fetchAll = useCallback(async (opts?: { background?: boolean }) => {
+    const id = ++requestId.current;
+    if (!opts?.background) setRefreshing(true);
+    setLoadError(null);
+
+    try {
+      const result = await fetchTableJson<PurchaseRequest>("/api/procurement");
+      if (id !== requestId.current) return;
+
+      if (!result.ok) {
+        if (allRows.length === 0) setLoadError(result.error);
+        return;
+      }
+
+      setAllRows(result.data);
+      writeProcurementCache(result.data);
+    } catch {
+      if (id !== requestId.current) return;
+      if (allRows.length === 0) setLoadError("Network error — please try again.");
+    } finally {
+      if (id === requestId.current) {
+        setRefreshing(false);
+        setInitialLoad(false);
+      }
+    }
+  }, [allRows.length]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    const cached = readProcurementCache();
+    if (cached?.length) {
+      setAllRows(cached);
+      setInitialLoad(false);
+      void fetchAll({ background: true });
+    } else {
+      void fetchAll();
+    }
+  }, [fetchAll]);
 
-  // Metrics for Top 4 Cards (exact admin panel theme)
+
+  // Metrics for Top 4 Cards
   const metrics = useMemo(() => {
     const total = allRows.length;
     const approved = allRows.filter((r) => r.status === "approved").length;
-    const underReview = allRows.filter((r) => r.status === "under_review" || r.status === "submitted").length;
+    const underReview = allRows.filter(
+      (r) => r.status === "under_review" || r.status === "submitted"
+    ).length;
     const rejected = allRows.filter((r) => r.status === "rejected").length;
     return { total, approved, underReview, rejected };
   }, [allRows]);
 
-  // Filter & Search Logic
+  // Priority weight for sorting: urgent=4, high=3, medium=2, low=1
+  const priorityWeight: Record<string, number> = {
+    urgent: 4,
+    high: 3,
+    medium: 2,
+    low: 1,
+  };
+
+  // Filter & Search Logic with Sorting by Date or Priority
   const displayed = useMemo(() => {
     return allRows
       .filter((r) => {
@@ -100,15 +172,33 @@ export function ProcurementPanel() {
           r.title.toLowerCase().includes(q) ||
           r.referenceNumber.toLowerCase().includes(q) ||
           r.department.toLowerCase().includes(q) ||
-          r.requesterName.toLowerCase().includes(q)
+          r.requesterName.toLowerCase().includes(q) ||
+          r.priority.toLowerCase().includes(q)
         );
       })
       .sort((a, b) => {
-        const timeA = new Date(a.createdAt).getTime() || 0;
-        const timeB = new Date(b.createdAt).getTime() || 0;
-        return sortDir === "desc" ? timeB - timeA : timeA - timeB;
+        if (activeSortBy === "priority") {
+          const weightA = priorityWeight[a.priority.toLowerCase()] || 0;
+          const weightB = priorityWeight[b.priority.toLowerCase()] || 0;
+          if (weightA !== weightB) {
+            return sortDir === "desc" ? weightB - weightA : weightA - weightB;
+          }
+          // Secondary sort by date
+          const timeA = new Date(a.createdAt).getTime() || 0;
+          const timeB = new Date(b.createdAt).getTime() || 0;
+          return timeB - timeA;
+        } else {
+          // Sort by Date
+          const timeA = new Date(a.createdAt).getTime() || 0;
+          const timeB = new Date(b.createdAt).getTime() || 0;
+          return sortDir === "desc" ? timeB - timeA : timeA - timeB;
+        }
       });
-  }, [allRows, filter, search, sortDir]);
+  }, [allRows, filter, search, activeSortBy, sortDir]);
+
+
+
+
 
   const applyFilter = (next: ProcurementFilterValue) => {
     if (next === filter) return;
@@ -119,7 +209,7 @@ export function ProcurementPanel() {
 
   return (
     <div className="flex flex-1 flex-col min-h-0 w-full">
-      {/* KPI 4 Cards with exact admin UI aesthetics */}
+      {/* KPI 4 Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0 mb-6">
         {[
           {
@@ -171,12 +261,12 @@ export function ProcurementPanel() {
         ))}
       </div>
 
-      {/* Action Bar (Search + Filter dropdown + Refresh) */}
-      <div className="flex flex-nowrap items-center justify-between gap-4 shrink-0 mb-6">
-        <div className="flex items-center gap-3 w-full max-w-sm">
+      {/* Action Bar (Search + Filter + View Mode Switch + Refresh) */}
+      <div className="flex flex-wrap items-center justify-between gap-4 shrink-0 mb-6">
+        <div className="flex items-center gap-3 w-full sm:w-auto flex-1 max-w-sm">
           <button
             type="button"
-            onClick={() => loadData()}
+            onClick={() => void fetchAll()}
             disabled={refreshing}
             title="Refresh table data"
             aria-label="Refresh procurements table"
@@ -188,6 +278,7 @@ export function ProcurementPanel() {
             />
           </button>
 
+
           <AnimatedSearchInput
             value={search}
             onChange={(val) => setSearch(val)}
@@ -197,6 +288,70 @@ export function ProcurementPanel() {
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
+          {/* View Mode Toggle Button: Table vs Cards (Clean border without gray background) */}
+          <div className="flex items-center rounded-full border border-brand-blue bg-white p-0.5">
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              title="Table View"
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                viewMode === "table"
+                  ? "bg-brand-blue text-white shadow-2xs font-bold"
+                  : "text-brand-blue hover:bg-brand-blue/5"
+              }`}
+            >
+              <TableIcon className="h-3.5 w-3.5" />
+              <span>Table</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("card")}
+              title="Card View"
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                viewMode === "card"
+                  ? "bg-brand-blue text-white shadow-2xs font-bold"
+                  : "text-brand-blue hover:bg-brand-blue/5"
+              }`}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span>Cards</span>
+            </button>
+          </div>
+          {/* Date Sort Toggle Button */}
+          <button
+            type="button"
+            onClick={() => toggleSort("date")}
+            title="Click to toggle Date sorting"
+            className={`focus-visible:ring-brand-blue/25 flex items-center gap-2 rounded-full border py-2.5 px-4 text-xs font-semibold outline-none focus-visible:ring-[3px] transition-all cursor-pointer shadow-2xs shrink-0 ${
+              activeSortBy === "date"
+                ? "border-brand-blue bg-brand-blue text-white"
+                : "border-brand-blue bg-white text-brand-blue hover:bg-brand-blue/5"
+            }`}
+          >
+            <ArrowUpDown className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              Date: <strong className={activeSortBy === "date" ? "text-white font-bold" : "text-zinc-950 font-bold"}>{activeSortBy === "date" && sortDir === "asc" ? "Oldest First" : "Newest First"}</strong>
+            </span>
+          </button>
+
+          {/* Priority Sort Toggle Button */}
+          <button
+            type="button"
+            onClick={() => toggleSort("priority")}
+            title="Click to toggle Priority sorting"
+            className={`focus-visible:ring-brand-blue/25 flex items-center gap-2 rounded-full border py-2.5 px-4 text-xs font-semibold outline-none focus-visible:ring-[3px] transition-all cursor-pointer shadow-2xs shrink-0 ${
+              activeSortBy === "priority"
+                ? "border-brand-blue bg-brand-blue text-white"
+                : "border-brand-blue bg-white text-brand-blue hover:bg-brand-blue/5"
+            }`}
+          >
+            <ArrowUpDown className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              Priority: <strong className={activeSortBy === "priority" ? "text-white font-bold" : "text-zinc-950 font-bold"}>{activeSortBy === "priority" && sortDir === "asc" ? "Low First" : "Urgent First"}</strong>
+            </span>
+          </button>
+
+          {/* Status Filter Dropdown */}
           <div className="relative shrink-0">
             <button
               type="button"
@@ -227,15 +382,35 @@ export function ProcurementPanel() {
                     }`}
                   >
                     {f.value === "APPROVED" ? (
-                      <CheckCircle className={`w-4 h-4 ${f.value === filter ? "text-emerald-500" : "text-emerald-500/70"}`} />
+                      <CheckCircle
+                        className={`w-4 h-4 ${
+                          f.value === filter ? "text-emerald-500" : "text-emerald-500/70"
+                        }`}
+                      />
                     ) : f.value === "UNDER_REVIEW" ? (
-                      <Clock className={`w-4 h-4 ${f.value === filter ? "text-amber-500" : "text-amber-500/70"}`} />
+                      <Clock
+                        className={`w-4 h-4 ${
+                          f.value === filter ? "text-amber-500" : "text-amber-500/70"
+                        }`}
+                      />
                     ) : f.value === "SUBMITTED" ? (
-                      <FileCheck className={`w-4 h-4 ${f.value === filter ? "text-brand-blue" : "text-brand-blue/70"}`} />
+                      <FileCheck
+                        className={`w-4 h-4 ${
+                          f.value === filter ? "text-brand-blue" : "text-brand-blue/70"
+                        }`}
+                      />
                     ) : f.value === "REJECTED" ? (
-                      <XCircle className={`w-4 h-4 ${f.value === filter ? "text-rose-500" : "text-rose-500/70"}`} />
+                      <XCircle
+                        className={`w-4 h-4 ${
+                          f.value === filter ? "text-rose-500" : "text-rose-500/70"
+                        }`}
+                      />
                     ) : f.value === "REVISION_REQUESTED" ? (
-                      <RotateCcw className={`w-4 h-4 ${f.value === filter ? "text-purple-500" : "text-purple-500/70"}`} />
+                      <RotateCcw
+                        className={`w-4 h-4 ${
+                          f.value === filter ? "text-purple-500" : "text-purple-500/70"
+                        }`}
+                      />
                     ) : (
                       <span className="w-4 h-4" />
                     )}
@@ -248,142 +423,287 @@ export function ProcurementPanel() {
         </div>
       </div>
 
-      {/* Styled Admin Data Table with Brand Blue Header */}
-      <div
-        className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] transition-opacity duration-150 ${
-          refreshing ? "opacity-70" : "opacity-100"
-        }`}
-        aria-busy={refreshing || initialLoad}
-      >
+      {/* Main Content: Table View OR Card Grid View */}
+      {viewMode === "table" ? (
         <div
-          data-lenis-prevent
-          className="min-h-0 flex-1 overflow-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] transition-opacity duration-150 ${
+            refreshing ? "opacity-70" : "opacity-100"
+          }`}
+          aria-busy={refreshing || initialLoad}
         >
-          <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
-            <thead>
-              <tr className="text-white">
-                <th className="sticky top-0 left-0 z-40 whitespace-nowrap rounded-l-2xl bg-brand-blue px-6 py-3.5 font-semibold">
-                  Reference & Title
-                </th>
-                <th
-                  className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold cursor-pointer select-none hover:bg-brand-blue/90 transition-colors"
-                  onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))}
-                  title="Toggle sort by date"
-                >
-                  <div className="flex items-center gap-1.5">
-                    Date
-                    {sortDir === "desc" ? (
-                      <ChevronDown className="w-3.5 h-3.5 shrink-0" />
-                    ) : (
-                      <ChevronUp className="w-3.5 h-3.5 shrink-0" />
-                    )}
-                  </div>
-                </th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold">
-                  Department
-                </th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold">
-                  Requester
-                </th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold">
-                  Est. Amount
-                </th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold">
-                  Status
-                </th>
-                <th className="sticky top-0 right-0 z-40 whitespace-nowrap rounded-r-2xl bg-brand-blue px-6 py-3.5 font-semibold text-right">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {initialLoad && displayed.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-zinc-600">
-                    Loading procurement requisitions…
-                  </td>
-                </tr>
-              )}
-              {!initialLoad && displayed.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-zinc-600">
-                    {`No requisitions${search ? ` matching "${search}"` : ""} in this view.`}
-                  </td>
-                </tr>
-              )}
-              {displayed.map((r) => {
-                const statusBadge = getStatusBadgeInfo(r.status);
-                const priorityBadge = getPriorityBadgeInfo(r.priority);
-
-                return (
-                  <tr
-                    key={r.id}
-                    className="group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40"
-                    onClick={() => router.push(`/procurement/${r.id}`)}
+          <div
+            data-lenis-prevent
+            className="min-h-0 flex-1 overflow-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
+              <thead>
+                <tr className="text-white">
+                  <th className="sticky top-0 left-0 z-40 whitespace-nowrap rounded-l-2xl bg-brand-blue px-6 py-3.5 font-semibold">
+                    Reference & Title
+                  </th>
+                  <th
+                    className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold cursor-pointer select-none hover:bg-brand-blue/90 transition-colors"
+                    onClick={() => toggleSort("date")}
+                    title="Click to sort by Date (Newest / Oldest)"
                   >
-                    {/* Fixed First Column: Reference and Title */}
-                    <td className="sticky left-0 z-10 whitespace-nowrap rounded-l-2xl bg-white py-4 pl-6 pr-4 font-medium text-zinc-950 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
-                      <div className="flex flex-col">
-                        <span className="font-mono text-xs font-bold text-brand-blue">
-                          {r.referenceNumber}
-                        </span>
-                        <span className="text-sm font-semibold text-zinc-900 line-clamp-1 max-w-xs group-hover:text-brand-blue transition-colors">
-                          {r.title}
-                        </span>
-                      </div>
-                    </td>
+                    <div className="flex items-center gap-1.5">
+                      Date
+                      {activeSortBy === "date" && (
+                        sortDir === "desc" ? (
+                          <ChevronDown className="w-3.5 h-3.5 shrink-0" />
+                        ) : (
+                          <ChevronUp className="w-3.5 h-3.5 shrink-0" />
+                        )
+                      )}
+                    </div>
+                  </th>
+                  <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold">
+                    Department
+                  </th>
+                  <th
+                    className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold text-center cursor-pointer select-none hover:bg-brand-blue/90 transition-colors"
+                    onClick={() => toggleSort("priority")}
+                    title="Click to sort by Priority (Urgent / Low)"
+                  >
+                    <div className="flex items-center justify-center gap-1.5">
+                      Priority
+                      {activeSortBy === "priority" && (
+                        sortDir === "desc" ? (
+                          <ChevronDown className="w-3.5 h-3.5 shrink-0" />
+                        ) : (
+                          <ChevronUp className="w-3.5 h-3.5 shrink-0" />
+                        )
+                      )}
+                    </div>
+                  </th>
+                  <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold">
+                    Requester
+                  </th>
+                  <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold">
+                    Est. Amount
+                  </th>
+                  <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold text-center">
+                    Status
+                  </th>
+                  <th className="sticky top-0 right-0 z-40 whitespace-nowrap rounded-r-2xl bg-brand-blue px-6 py-3.5 font-semibold text-right">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
 
-                    {/* Date */}
-                    <td className="whitespace-nowrap px-6 py-4 text-xs font-medium text-zinc-600">
-                      {formatDate(r.createdAt)}
-                    </td>
 
-                    {/* Department */}
-                    <td className="whitespace-nowrap px-6 py-4 text-xs font-semibold text-zinc-800">
-                      {r.department}
-                    </td>
 
-                    {/* Requester */}
-                    <td className="whitespace-nowrap px-6 py-4 text-xs font-medium text-zinc-600">
-                      {r.requesterName}
-                    </td>
 
-                    {/* Estimated Amount */}
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-bold text-zinc-950 tabular-nums">
-                      {formatCurrency(r.totalEstimatedAmount, r.currency)}
-                    </td>
 
-                    {/* Status */}
-                    <td className="whitespace-nowrap px-6 py-4 text-xs font-semibold">
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusBadge.bgClass} ${statusBadge.textClass} ${statusBadge.borderClass}`}
-                      >
-                        <span className={`h-1.5 w-1.5 rounded-full ${statusBadge.dotClass}`} />
-                        {statusBadge.label}
-                      </span>
-                    </td>
+              <tbody>
 
-                    {/* Fixed Last Column: Action */}
-                    <td
-                      className="sticky right-0 z-10 whitespace-nowrap rounded-r-2xl bg-white py-4 pl-4 pr-6 text-right ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Link
-                        href={`/procurement/${r.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-brand-blue bg-white px-3.5 py-1.5 text-xs font-semibold text-brand-blue shadow-2xs hover:bg-brand-blue hover:text-white transition-all cursor-pointer"
-                      >
-                        <span>View</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
+                {initialLoad && displayed.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-10 text-center text-zinc-600">
+                      Loading procurement requisitions…
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                )}
+                {!initialLoad && displayed.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-10 text-center text-zinc-600">
+                      {`No requisitions${search ? ` matching "${search}"` : ""} in this view.`}
+                    </td>
+                  </tr>
+                )}
+                {displayed.map((r) => {
+                  const statusBadge = getStatusBadgeInfo(r.status);
+                  const priorityBadge = getPriorityBadgeInfo(r.priority);
+
+                  return (
+                    <tr
+                      key={r.id}
+                      className="group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40"
+                      onClick={() => router.push(`/procurement/${r.id}`)}
+                    >
+                      {/* Fixed First Column: Reference and Title */}
+                      <td className="sticky left-0 z-10 whitespace-nowrap rounded-l-2xl bg-white py-4 pl-6 pr-4 font-medium text-zinc-950 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
+                        <div className="flex flex-col">
+                          <span className="font-mono text-xs font-bold text-brand-blue">
+                            {r.referenceNumber}
+                          </span>
+                          <span className="text-sm font-semibold text-zinc-900 line-clamp-1 max-w-xs group-hover:text-brand-blue transition-colors">
+                            {r.title}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Date */}
+                      <td className="whitespace-nowrap px-6 py-4 text-xs font-medium text-zinc-600">
+                        {formatDate(r.createdAt)}
+                      </td>
+
+                      {/* Department */}
+                      <td className="whitespace-nowrap px-6 py-4 text-xs font-semibold text-zinc-800">
+                        {r.department}
+                      </td>
+
+                      {/* Priority — Uniform Width Soft Capsule */}
+                      <td className="whitespace-nowrap px-6 py-4 text-center">
+                        <span
+                          className={`inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider min-w-[105px] ${priorityBadge.bgClass}`}
+                        >
+                          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${priorityBadge.dotClass}`} />
+                          <span>{priorityBadge.label}</span>
+                        </span>
+                      </td>
+
+
+                      {/* Requester */}
+                      <td className="whitespace-nowrap px-6 py-4 text-xs font-medium text-zinc-600">
+                        {r.requesterName}
+                      </td>
+
+
+                      {/* Estimated Amount */}
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-bold text-zinc-950 tabular-nums">
+                        {formatCurrency(r.totalEstimatedAmount, r.currency)}
+                      </td>
+
+                      {/* Status — Soft Tinted Uniform Width Capsule */}
+                      <td className="whitespace-nowrap px-6 py-4 text-xs font-semibold text-center">
+                        <span
+                          className={`inline-flex justify-center items-center rounded-full border px-3.5 py-1 text-[11px] font-semibold whitespace-nowrap min-w-[120px] ${statusBadge.bgClass}`}
+                        >
+                          {statusBadge.label}
+                        </span>
+                      </td>
+
+                      {/* Fixed Last Column: Action (Button activates on row hover) */}
+                      <td
+                        className="sticky right-0 z-10 whitespace-nowrap rounded-r-2xl bg-white py-4 pl-4 pr-6 text-right ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Link
+                          href={`/procurement/${r.id}`}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-brand-blue bg-white px-3.5 py-1.5 text-xs font-semibold text-brand-blue shadow-2xs group-hover:bg-brand-blue group-hover:text-white transition-all cursor-pointer"
+                        >
+                          <span>View</span>
+                          <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
+                      </td>
+
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      ) : (
+        /* Card Design Grid View - Scrollable */
+        <div
+          data-lenis-prevent
+          className="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden pr-1 pb-8"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {initialLoad && displayed.length === 0 && (
+              <div className="col-span-full py-12 text-center text-zinc-500">
+                Loading procurement requisitions...
+              </div>
+            )}
+            {!initialLoad && displayed.length === 0 && (
+              <div className="col-span-full py-12 text-center text-zinc-500 bg-white rounded-3xl border border-zinc-200 p-8">
+                <p className="text-sm font-semibold text-zinc-700">No requisitions found</p>
+                <p className="text-xs text-zinc-400 mt-1">Try adjusting your search query or filters.</p>
+              </div>
+            )}
+            {displayed.map((r) => {
+              const statusBadge = getStatusBadgeInfo(r.status);
+              const priorityBadge = getPriorityBadgeInfo(r.priority);
+
+              return (
+                <div
+                  key={r.id}
+                  onClick={() => router.push(`/procurement/${r.id}`)}
+                  className="group relative flex flex-col justify-between rounded-3xl border border-zinc-200 bg-white p-6 shadow-xs hover:border-brand-blue/60 hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="space-y-3.5">
+                    {/* Top Meta: Ref + Status Capsule + Priority */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-xs font-bold text-brand-blue bg-brand-blue/10 px-2.5 py-1 rounded-md">
+                        {r.referenceNumber}
+                      </span>
+                      <span
+                        className={`inline-flex justify-center items-center rounded-full border px-3 py-0.5 text-[11px] font-semibold whitespace-nowrap min-w-[115px] ${statusBadge.bgClass}`}
+                      >
+                        {statusBadge.label}
+                      </span>
+                    </div>
+
+                    {/* Title & Description */}
+                    <div>
+                      <h3 className="text-base font-bold text-zinc-950 group-hover:text-brand-blue transition-colors line-clamp-1">
+                        {r.title}
+                      </h3>
+                      <p className="text-xs text-zinc-500 mt-1 line-clamp-2 leading-relaxed">
+                        {r.description}
+                      </p>
+                    </div>
+
+                    {/* Details summary */}
+                    <div className="space-y-1.5 pt-2 border-t border-zinc-100 text-xs text-zinc-600">
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-400 font-medium flex items-center gap-1.5">
+                          <Building className="h-3.5 w-3.5" />
+                          Department:
+                        </span>
+                        <span className="font-semibold text-zinc-800 truncate max-w-[160px]">
+                          {r.department}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-400 font-medium flex items-center gap-1.5">
+                          <User className="h-3.5 w-3.5" />
+                          Requester:
+                        </span>
+                        <span className="font-semibold text-zinc-800 truncate max-w-[160px]">
+                          {r.requesterName}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-400 font-medium flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5" />
+                          Required Date:
+                        </span>
+                        <span className="font-semibold text-zinc-800">{formatDate(r.requiredByDate)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Footer: Amount & Action Link (Button activates on card hover) */}
+                  <div className="mt-5 pt-4 border-t border-zinc-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400">
+                        Est. Total Amount
+                      </span>
+                      <p className="text-lg font-extrabold text-zinc-950 tabular-nums">
+                        {formatCurrency(r.totalEstimatedAmount, r.currency)}
+                      </p>
+                    </div>
+
+                    <Link
+                      href={`/procurement/${r.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-brand-blue bg-white px-4 py-1.5 text-xs font-semibold text-brand-blue shadow-2xs group-hover:bg-brand-blue group-hover:text-white transition-all"
+                    >
+                      <span>Details</span>
+                      <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
     </div>
   );
