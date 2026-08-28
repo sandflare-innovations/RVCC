@@ -323,8 +323,8 @@ export function ProcurementPanel() {
                     className="group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40"
                     onClick={() => router.push(`/procurement/${r.id}`)}
                   >
-                    {/* Reference and Title */}
-                    <td className="whitespace-nowrap rounded-l-2xl py-4 pl-6 pr-4 font-medium text-zinc-950">
+                    {/* Fixed First Column: Reference and Title */}
+                    <td className="sticky left-0 z-10 whitespace-nowrap rounded-l-2xl bg-white py-4 pl-6 pr-4 font-medium text-zinc-950 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
                       <div className="flex flex-col">
                         <span className="font-mono text-xs font-bold text-brand-blue">
                           {r.referenceNumber}
@@ -334,6 +334,7 @@ export function ProcurementPanel() {
                         </span>
                       </div>
                     </td>
+
 
                     {/* Date */}
                     <td className="whitespace-nowrap px-6 py-4 text-xs font-medium text-zinc-600">
