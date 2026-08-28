@@ -58,9 +58,12 @@ model AdminUser {
   requirements  Requirement[]  @relation("RequirementAuthor")
   awarded       Requirement[]  @relation("RequirementAwarder")
   notifications Notification[]
+  procurementRequisitions PurchaseRequest[]
+  procurementAudits       PurchaseRequestAuditLog[]
 
   @@index([email])
 }
+
 
 /// Careers content, editable from the admin panel.
 /// department/employmentType are plain strings, not enums, so staff can add a
@@ -502,3 +505,105 @@ model Notification {
   @@index([vendorUserId, readAt])
   @@index([adminId, readAt])
 }
+
+enum ProcurementStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  REVISION_REQUESTED
+}
+
+enum ProcurementPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+/// Construction purchase requisitions created by procurement team and reviewed by admins.
+model PurchaseRequest {
+  id              String             @id @default(cuid())
+  referenceNumber String             @unique
+  title           String
+  description     String             @default("")
+  department      String
+  requesterName   String
+  requesterEmail  String?
+  priority        ProcurementPriority @default(MEDIUM)
+  status          ProcurementStatus   @default(SUBMITTED)
+  requiredByDate  DateTime
+  currency        String             @default("SAR")
+  estimatedAmount Decimal            @default(0) @db.Decimal(14, 2)
+  costCenter      String?
+  adminNotes      String?
+
+  createdById     String?
+  createdBy       AdminUser?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  items           PurchaseRequestItem[]
+  attachments     PurchaseRequestAttachment[]
+  auditLogs       PurchaseRequestAuditLog[]
+
+  @@index([status, priority])
+  @@index([department])
+  @@index([createdAt(sort: Desc)])
+}
+
+model PurchaseRequestItem {
+  id                 String          @id @default(cuid())
+  purchaseRequestId  String
+  purchaseRequest    PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
+
+  name               String
+  category           String
+  quantity           Decimal         @db.Decimal(12, 2)
+  unit               String
+  estimatedUnitPrice Decimal         @db.Decimal(14, 2)
+  totalPrice         Decimal         @db.Decimal(14, 2)
+  preferredVendor    String?
+  notes              String?
+  sortOrder          Int             @default(0)
+
+  createdAt          DateTime        @default(now())
+
+  @@index([purchaseRequestId, sortOrder])
+}
+
+model PurchaseRequestAttachment {
+  id                String          @id @default(cuid())
+  purchaseRequestId String
+  purchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
+
+  name              String
+  url               String
+  sizeBytes         Int             @default(0)
+  mimeType          String          @default("application/pdf")
+  uploadedAt        DateTime        @default(now())
+
+  @@index([purchaseRequestId])
+}
+
+model PurchaseRequestAuditLog {
+  id                String             @id @default(cuid())
+  purchaseRequestId String
+  purchaseRequest   PurchaseRequest    @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
+
+  action            String
+  actorName         String
+  actorRole         String             @default("admin")
+  actorId           String?
+  actor             AdminUser?         @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  previousStatus    ProcurementStatus?
+  newStatus         ProcurementStatus?
+  note              String?
+  timestamp         DateTime           @default(now())
+
+  @@index([purchaseRequestId, timestamp(sort: Desc)])
+}
+

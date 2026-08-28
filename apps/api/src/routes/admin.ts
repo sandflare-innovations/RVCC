@@ -37,6 +37,15 @@ import {
   handleAdminNotificationsGet,
   handleAdminNotificationsMarkRead,
 } from "../modules/admin/notifications";
+import {
+  handleProcurementCreate,
+  handleProcurementDelete,
+  handleProcurementGet,
+  handleProcurementList,
+  handleProcurementReview,
+} from "../modules/admin/procurement";
+
+
 
 /**
  * Admin domain router. Paths are relative to `/admin` (e.g. `/auth/login`).
@@ -151,7 +160,31 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       }
     }
 
+    if (path === "/procurement" && request.method === "GET") {
+      return await handleProcurementList(sql, env, request);
+    }
+    if (path === "/procurement" && request.method === "POST") {
+      return await handleProcurementCreate(sql, env, request);
+    }
+
+    const procurementReview = path.match(/^\/procurement\/([^/]+)\/review$/);
+    if (procurementReview && request.method === "POST") {
+      return await handleProcurementReview(sql, env, request, decodeURIComponent(procurementReview[1]!));
+    }
+
+    const procurementOne = path.match(/^\/procurement\/([^/]+)$/);
+    if (procurementOne) {
+      if (request.method === "GET") {
+        return await handleProcurementGet(sql, env, request, decodeURIComponent(procurementOne[1]!));
+      }
+      if (request.method === "DELETE") {
+        return await handleProcurementDelete(sql, env, request, decodeURIComponent(procurementOne[1]!));
+      }
+    }
+
+
     if (path === "/careers" && request.method === "GET") {
+
       return await handleCareersList(sql, env, request);
     }
     if (path === "/careers" && request.method === "POST") {
