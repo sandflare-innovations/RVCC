@@ -18,6 +18,8 @@ import {
   ArrowDownToLine,
   Layers,
   ArrowUpRight,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { PurchaseRequest } from "@/types/procurement";
@@ -37,15 +39,65 @@ export default function RequisitionDetailPage() {
   const [user, setUser] = useState<ProcurementProfile | null>(null);
   const [request, setRequest] = useState<PurchaseRequest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     setUser(getClientProcurementProfile());
-    if (params?.id) {
-      const found = ProcurementStore.getRequestById(String(params.id));
-      setRequest(found);
-      setIsLoading(false);
-    }
+    const fetchDetail = async () => {
+      if (params?.id) {
+        setIsLoading(true);
+        try {
+          const res = await fetch(`/api/procurement/${encodeURIComponent(String(params.id))}`, {
+            cache: "no-store",
+          });
+          if (res.ok) {
+            const found = await res.json();
+            setRequest(found);
+          } else {
+            setRequest(null);
+          }
+        } catch (err) {
+          console.error("Failed to load requisition", err);
+          setRequest(null);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void fetchDetail();
   }, [params?.id]);
+
+  const handleDeleteConfirm = async () => {
+    if (!request) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const res = await fetch(`/api/procurement/${encodeURIComponent(request.id)}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete purchase requisition");
+      }
+
+      // Sync local storage if present
+      ProcurementStore.delete(request.id);
+
+      // Navigate back to dashboard
+      router.push("/");
+      router.refresh();
+    } catch (err: any) {
+      console.error("Delete failed", err);
+      setDeleteError(err.message || "Failed to delete. Please try again.");
+      setIsDeleting(false);
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -125,7 +177,7 @@ export default function RequisitionDetailPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="rounded-2xl border border-zinc-100 bg-white px-4 py-2 text-right shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
                 Total Est. Cost
@@ -134,8 +186,19 @@ export default function RequisitionDetailPage() {
                 {formatCurrency(request.totalEstimatedAmount, request.currency)}
               </span>
             </div>
+
+            {/* Delete Requisition Action */}
+            <button
+              type="button"
+              onClick={() => setDeleteModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-2xl border border-rose-200 bg-white px-4 py-2.5 text-xs font-semibold text-rose-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:bg-rose-50 hover:border-rose-300 transition-all cursor-pointer"
+            >
+              <Trash2 className="h-4 w-4 text-rose-600" />
+              <span>Delete</span>
+            </button>
           </div>
         </div>
+
 
         {/* Top Overview Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -197,7 +260,7 @@ export default function RequisitionDetailPage() {
                     Itemized Bill of Quantities
                   </h2>
                   <p className="text-xs text-zinc-400 mt-0.5">
-                    {request.items.length} line item(s) requested for purchase
+                    {request.items?.length || 0} line item(s) requested for purchase
                   </p>
                 </div>
                 <div className="rounded-xl bg-zinc-50 px-3 py-1 text-xs font-mono font-bold text-zinc-900 border border-zinc-200/80">
@@ -217,7 +280,7 @@ export default function RequisitionDetailPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100">
-                    {request.items.map((item) => (
+                    {request.items?.map((item) => (
                       <tr key={item.id} className="hover:bg-zinc-50/70">
                         <td className="px-4 py-3.5">
                           <p className="font-semibold text-zinc-900">{item.name}</p>
@@ -274,12 +337,12 @@ export default function RequisitionDetailPage() {
             {/* Attached Quotes */}
             <div className="rounded-3xl border border-zinc-100/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
               <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-[#0073bc] mb-3">
-                Supporting Quotes ({request.attachments.length})
+                Supporting Quotes ({request.attachments?.length || 0})
               </h2>
 
-              {request.attachments.length > 0 ? (
+              {Boolean(request.attachments && request.attachments.length > 0) ? (
                 <div className="space-y-2.5">
-                  {request.attachments.map((att) => (
+                  {request.attachments?.map((att) => (
                     <div
                       key={att.id}
                       className="flex items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50/70 p-3 text-xs"
@@ -314,11 +377,12 @@ export default function RequisitionDetailPage() {
               </h2>
 
               <div className="space-y-4 pl-2 border-l-2 border-zinc-100">
-                {request.auditTrail.map((log) => (
+                {request.auditTrail?.map((log) => (
                   <div key={log.id} className="relative pl-5 text-xs">
                     <div className="absolute -left-[7px] top-1 h-2.5 w-2.5 rounded-full bg-[#0073bc] ring-4 ring-white" />
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-zinc-900">{log.action}</span>
+
                       <span className="text-[10px] text-zinc-400 font-mono">
                         {formatDateTime(log.timestamp)}
                       </span>
@@ -338,6 +402,72 @@ export default function RequisitionDetailPage() {
           </div>
         </div>
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-3xl border border-zinc-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-zinc-950">Delete Requisition</h3>
+                <p className="text-xs text-zinc-500 font-mono">{request.referenceNumber}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <p className="text-sm text-zinc-600 leading-relaxed">
+                Are you sure you want to permanently delete{" "}
+                <strong className="text-zinc-950 font-semibold">"{request.title}"</strong>?
+              </p>
+              <p className="text-xs text-zinc-400">
+                This action cannot be undone. All associated line items, attachments, and history logs will be removed.
+              </p>
+
+              {deleteError && (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+                  {deleteError}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setDeleteError(null);
+                }}
+                className="rounded-2xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleDeleteConfirm}
+                className="inline-flex items-center gap-1.5 rounded-2xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-rose-700 transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Delete Requisition</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

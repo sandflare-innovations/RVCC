@@ -66,8 +66,15 @@ export class ProcurementStore {
     return created;
   }
 
+  static delete(id: string): void {
+    const requests = this.getRequests();
+    const updated = requests.filter((r) => r.id !== id && r.referenceNumber.toLowerCase() !== id.toLowerCase());
+    this.saveRequests(updated);
+  }
+
   static resetToDefault(): void {
     if (typeof window === "undefined") return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PURCHASE_REQUESTS));
   }
 }
+
