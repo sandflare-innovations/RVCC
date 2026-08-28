@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { motion } from "framer-motion";
-import { ClipboardList, FileText, FolderOpen, LayoutDashboard, LogOut, Users, Globe, Image as ImageIcon, Briefcase, Wrench, Info, UserCheck, FileArchive, ShieldCheck, Download } from "lucide-react";
+import { ClipboardList, FileText, FolderOpen, LayoutDashboard, LogOut, Users, Globe, Image as ImageIcon, Briefcase, Wrench, Info, UserCheck, FileArchive, ShieldCheck, Download, ShoppingBag } from "lucide-react";
 
 import { useInstallPrompt } from "@/lib/pwa/install-prompt";
 
@@ -20,10 +20,12 @@ const ICON = "h-5 w-5 shrink-0";
 
 const VENDOR_NAV = [
   { href: "/", label: "Dashboard", icon: <LayoutDashboard className={ICON} />, exact: true },
+  { href: "/procurement", label: "Procurement Requisitions", icon: <ShoppingBag className={ICON} /> },
   { href: "/vendors", label: "Vendor Accounts", icon: <Users className={ICON} /> },
   { href: "/requirements", label: "RFQs / Requirements", icon: <ClipboardList className={ICON} /> },
   { href: "/registrations", label: "Vendor Registrations", icon: <FileText className={ICON} /> },
 ];
+
 
 const WEBSITE_NAV = [
   { href: "/content", label: "Dashboard", icon: <LayoutDashboard className={ICON} />, exact: true },
