@@ -134,10 +134,11 @@ export function PwaInstallButton() {
       onClick={handleInstallClick}
       disabled={isPrompting}
       title="Install RVCC Procurement as App"
-      className="flex items-center gap-1.5 rounded-full border border-[#0073bc] bg-[#0073bc]/5 px-3.5 py-1.5 text-xs font-bold text-[#0073bc] hover:bg-[#0073bc] hover:text-white transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50"
+      className="flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-full border border-[#0073bc] bg-[#0073bc]/5 px-3.5 py-1.5 text-xs font-bold text-[#0073bc] hover:bg-[#0073bc] hover:text-white transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50"
     >
-      <Download className="h-3.5 w-3.5" />
-      <span>{isPrompting ? "Installing..." : "Install App"}</span>
+      <Download className="h-3.5 w-3.5 shrink-0" />
+      <span className="whitespace-nowrap">{isPrompting ? "Installing..." : "Install App"}</span>
     </button>
   );
 }
+
