@@ -55,15 +55,16 @@ export function RequisitionsTable({
                       <span className="font-mono text-xs font-bold text-[#0073bc] bg-[#0073bc]/10 px-2.5 py-0.5 rounded-lg">
                         {req.referenceNumber}
                       </span>
-                      {req.attachments.length > 0 && (
+                      {Boolean(req.attachments && req.attachments.length > 0) && (
                         <span
-                          title={`${req.attachments.length} attachments`}
+                          title={`${req.attachments?.length || 0} attachments`}
                           className="flex items-center text-zinc-400 gap-0.5 text-xs"
                         >
                           <Paperclip className="h-3.5 w-3.5" />
-                          <span className="font-semibold">{req.attachments.length}</span>
+                          <span className="font-semibold">{req.attachments?.length || 0}</span>
                         </span>
                       )}
+
                     </div>
                     <p className="font-bold text-zinc-950 group-hover:text-[#0073bc] transition-colors mt-1 max-w-[340px] truncate text-sm">
                       {req.title}
@@ -98,8 +99,10 @@ export function RequisitionsTable({
                       {formatCurrency(req.totalEstimatedAmount, req.currency)}
                     </div>
                     <div className="text-xs text-zinc-400 font-medium">
-                      {req.items.length} {req.items.length === 1 ? "BOQ item" : "BOQ items"}
+                      {(req.items?.length ?? req.itemCount ?? 0)}{" "}
+                      {(req.items?.length ?? req.itemCount ?? 0) === 1 ? "BOQ item" : "BOQ items"}
                     </div>
+
                   </td>
 
                   <td className="px-6 py-4 text-right text-zinc-600 text-xs rounded-r-2xl">

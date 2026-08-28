@@ -50,12 +50,13 @@ export function RequisitionsGrid({
                     <span className="font-mono text-xs font-bold text-[#0073bc] bg-[#0073bc]/10 px-3 py-1 rounded-xl">
                       {req.referenceNumber}
                     </span>
-                    {req.attachments.length > 0 && (
+                    {Boolean(req.attachments && req.attachments.length > 0) && (
                       <span className="flex items-center gap-1 text-xs text-zinc-400 font-medium">
                         <Paperclip className="h-3.5 w-3.5" />
-                        {req.attachments.length}
+                        {req.attachments?.length || 0}
                       </span>
                     )}
+
                   </div>
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold border ${statusBadge.bgClass} ${statusBadge.textClass} ${statusBadge.borderClass}`}
@@ -93,12 +94,14 @@ export function RequisitionsGrid({
               <div className="flex items-center justify-between pt-4 mt-4 border-t border-zinc-100">
                 <div>
                   <span className="text-[11px] uppercase font-bold tracking-wider text-zinc-400 block">
-                    Total Est. BOQ ({req.items.length} {req.items.length === 1 ? "item" : "items"})
+                    Total Est. BOQ ({(req.items?.length ?? req.itemCount ?? 0)}{" "}
+                    {(req.items?.length ?? req.itemCount ?? 0) === 1 ? "item" : "items"})
                   </span>
                   <span className="font-mono text-lg sm:text-xl font-extrabold text-[#0073bc]">
                     {formatCurrency(req.totalEstimatedAmount, req.currency)}
                   </span>
                 </div>
+
                 <Link
                   href={`/requirements/${req.id}`}
                   onClick={(e) => e.stopPropagation()}

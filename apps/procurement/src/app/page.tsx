@@ -23,24 +23,50 @@ export default function RequesterDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
 
-  const loadData = () => {
+  const loadData = async () => {
     setIsRefreshing(true);
-    const data = ProcurementStore.getRequests();
-    setRequests(data);
     setUser(getClientProcurementProfile());
-    setTimeout(() => setIsRefreshing(false), 400);
+    try {
+      const res = await fetch("/api/procurement", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setRequests(data);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load procurements from API", err);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, []);
 
+  const handleCreateRequest = async (newReqData: any) => {
+    try {
+      const res = await fetch("/api/procurement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newReqData),
+      });
 
-  const handleCreateRequest = (newReqData: any) => {
-    const created = ProcurementStore.addRequest(newReqData);
-    loadData();
-    router.push(`/requirements/${created.id}`);
+      if (res.ok) {
+        const created = await res.json();
+        await loadData();
+        router.push(`/requirements/${created.id || created.referenceNumber}`);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to create requisition. Please check all fields.");
+      }
+    } catch (e) {
+      console.error("Failed to create request", e);
+      alert("Network error while creating requisition.");
+    }
   };
+
 
   // Calculate metrics
   const stats: ProcurementStats = {
