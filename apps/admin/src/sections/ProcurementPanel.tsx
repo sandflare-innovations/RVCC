@@ -151,9 +151,7 @@ export function ProcurementPanel() {
             key={card.filterVal}
             type="button"
             onClick={() => applyFilter(card.filterVal)}
-            className={`group relative flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-3xl border bg-white p-4 cursor-pointer shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/40 ${
-              filter === card.filterVal ? "border-brand-blue ring-1 ring-brand-blue" : "border-zinc-200"
-            }`}
+            className="group relative flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 cursor-pointer shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/40"
           >
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue/25 to-transparent" />
             <div className="relative z-10 flex items-start justify-between gap-3">
@@ -298,6 +296,7 @@ export function ProcurementPanel() {
                 </th>
               </tr>
             </thead>
+
             <tbody>
               {initialLoad && displayed.length === 0 && (
                 <tr>
@@ -335,7 +334,6 @@ export function ProcurementPanel() {
                       </div>
                     </td>
 
-
                     {/* Date */}
                     <td className="whitespace-nowrap px-6 py-4 text-xs font-medium text-zinc-600">
                       {formatDate(r.createdAt)}
@@ -366,8 +364,11 @@ export function ProcurementPanel() {
                       </span>
                     </td>
 
-                    {/* Action */}
-                    <td className="whitespace-nowrap rounded-r-2xl py-4 pl-4 pr-6 text-right" onClick={(e) => e.stopPropagation()}>
+                    {/* Fixed Last Column: Action */}
+                    <td
+                      className="sticky right-0 z-10 whitespace-nowrap rounded-r-2xl bg-white py-4 pl-4 pr-6 text-right ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Link
                         href={`/procurement/${r.id}`}
                         className="inline-flex items-center gap-1.5 rounded-xl border border-brand-blue bg-white px-3.5 py-1.5 text-xs font-semibold text-brand-blue shadow-2xs hover:bg-brand-blue hover:text-white transition-all cursor-pointer"
@@ -383,6 +384,7 @@ export function ProcurementPanel() {
           </table>
         </div>
       </div>
+
     </div>
   );
 }
