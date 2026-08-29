@@ -431,168 +431,135 @@ export function ProcurementPanel() {
           }`}
           aria-busy={refreshing || initialLoad}
         >
+          {/* Fixed Top Header */}
+          <div className="shrink-0 bg-brand-blue text-white rounded-2xl px-6 py-3.5 shadow-xs mb-2">
+            <div className="grid grid-cols-12 gap-3 items-center text-xs font-semibold">
+              <div className="col-span-3 min-w-0">Reference & Title</div>
+              <div
+                className="col-span-1 min-w-0 flex items-center gap-1.5 cursor-pointer select-none hover:text-white/80 transition-colors"
+                onClick={() => toggleSort("date")}
+                title="Click to sort by Date (Newest / Oldest)"
+              >
+                <span>Date</span>
+                {activeSortBy === "date" && (
+                  sortDir === "desc" ? (
+                    <ChevronDown className="w-3.5 h-3.5 shrink-0" />
+                  ) : (
+                    <ChevronUp className="w-3.5 h-3.5 shrink-0" />
+                  )
+                )}
+              </div>
+              <div className="col-span-2 min-w-0">Department</div>
+              <div
+                className="col-span-2 min-w-0 flex items-center justify-center gap-1.5 text-center cursor-pointer select-none hover:text-white/80 transition-colors"
+                onClick={() => toggleSort("priority")}
+                title="Click to sort by Priority (Urgent / Low)"
+              >
+                <span>Priority</span>
+                {activeSortBy === "priority" && (
+                  sortDir === "desc" ? (
+                    <ChevronDown className="w-3.5 h-3.5 shrink-0" />
+                  ) : (
+                    <ChevronUp className="w-3.5 h-3.5 shrink-0" />
+                  )
+                )}
+              </div>
+              <div className="col-span-1 min-w-0">Requester</div>
+              <div className="col-span-1 min-w-0">Est. Amount</div>
+              <div className="col-span-1 min-w-0 text-center">Status</div>
+              <div className="col-span-1 min-w-0 text-right">Actions</div>
+            </div>
+          </div>
+
+          {/* Scrollable Rows */}
           <div
             data-lenis-prevent
-            className="min-h-0 flex-1 overflow-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden space-y-2 pr-1"
           >
-            <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
-              <thead>
-                <tr className="text-white">
-                  <th className="sticky top-0 left-0 z-40 whitespace-nowrap rounded-l-2xl bg-brand-blue px-6 py-3.5 font-semibold">
-                    Reference & Title
-                  </th>
-                  <th
-                    className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold cursor-pointer select-none hover:bg-brand-blue/90 transition-colors"
-                    onClick={() => toggleSort("date")}
-                    title="Click to sort by Date (Newest / Oldest)"
-                  >
-                    <div className="flex items-center gap-1.5">
-                      Date
-                      {activeSortBy === "date" && (
-                        sortDir === "desc" ? (
-                          <ChevronDown className="w-3.5 h-3.5 shrink-0" />
-                        ) : (
-                          <ChevronUp className="w-3.5 h-3.5 shrink-0" />
-                        )
-                      )}
+            {initialLoad && displayed.length === 0 && (
+              <div className="px-6 py-10 text-center text-zinc-600">
+                Loading procurement requisitions…
+              </div>
+            )}
+            {!initialLoad && displayed.length === 0 && (
+              <div className="px-6 py-10 text-center text-zinc-600">
+                {`No requisitions${search ? ` matching "${search}"` : ""} in this view.`}
+              </div>
+            )}
+            {displayed.map((r) => {
+              const statusBadge = getStatusBadgeInfo(r.status);
+              const priorityBadge = getPriorityBadgeInfo(r.priority);
+
+              return (
+                <div
+                  key={r.id}
+                  onClick={() => router.push(`/procurement/${r.id}`)}
+                  className="grid grid-cols-12 gap-3 items-center group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl p-4 transition-all hover:ring-brand-blue/40 hover:shadow-[0_8px_24px_-16px_rgba(0,115,188,0.45)] text-sm"
+                >
+                  {/* Reference & Title */}
+                  <div className="col-span-3 min-w-0">
+                    <div className="flex flex-col">
+                      <span className="font-mono text-xs font-bold text-brand-blue">
+                        {r.referenceNumber}
+                      </span>
+                      <span className="text-sm font-semibold text-zinc-900 truncate group-hover:text-brand-blue transition-colors">
+                        {r.title}
+                      </span>
                     </div>
-                  </th>
-                  <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold">
-                    Department
-                  </th>
-                  <th
-                    className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold text-center cursor-pointer select-none hover:bg-brand-blue/90 transition-colors"
-                    onClick={() => toggleSort("priority")}
-                    title="Click to sort by Priority (Urgent / Low)"
-                  >
-                    <div className="flex items-center justify-center gap-1.5">
-                      Priority
-                      {activeSortBy === "priority" && (
-                        sortDir === "desc" ? (
-                          <ChevronDown className="w-3.5 h-3.5 shrink-0" />
-                        ) : (
-                          <ChevronUp className="w-3.5 h-3.5 shrink-0" />
-                        )
-                      )}
-                    </div>
-                  </th>
-                  <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold">
-                    Requester
-                  </th>
-                  <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold">
-                    Est. Amount
-                  </th>
-                  <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-6 py-3.5 font-semibold text-center">
-                    Status
-                  </th>
-                  <th className="sticky top-0 right-0 z-40 whitespace-nowrap rounded-r-2xl bg-brand-blue px-6 py-3.5 font-semibold text-right">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
+                  </div>
 
+                  {/* Date */}
+                  <div className="col-span-1 min-w-0 text-xs font-medium text-zinc-600 truncate">
+                    {formatDate(r.createdAt)}
+                  </div>
 
+                  {/* Department */}
+                  <div className="col-span-2 min-w-0 text-xs font-semibold text-zinc-800 truncate">
+                    {r.department}
+                  </div>
 
-
-
-              <tbody>
-
-                {initialLoad && displayed.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-10 text-center text-zinc-600">
-                      Loading procurement requisitions…
-                    </td>
-                  </tr>
-                )}
-                {!initialLoad && displayed.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-10 text-center text-zinc-600">
-                      {`No requisitions${search ? ` matching "${search}"` : ""} in this view.`}
-                    </td>
-                  </tr>
-                )}
-                {displayed.map((r) => {
-                  const statusBadge = getStatusBadgeInfo(r.status);
-                  const priorityBadge = getPriorityBadgeInfo(r.priority);
-
-                  return (
-                    <tr
-                      key={r.id}
-                      className="group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40"
-                      onClick={() => router.push(`/procurement/${r.id}`)}
+                  {/* Priority */}
+                  <div className="col-span-2 min-w-0 text-center">
+                    <span
+                      className={`inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider min-w-[105px] ${priorityBadge.bgClass}`}
                     >
-                      {/* Fixed First Column: Reference and Title */}
-                      <td className="sticky left-0 z-10 whitespace-nowrap rounded-l-2xl bg-white py-4 pl-6 pr-4 font-medium text-zinc-950 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
-                        <div className="flex flex-col">
-                          <span className="font-mono text-xs font-bold text-brand-blue">
-                            {r.referenceNumber}
-                          </span>
-                          <span className="text-sm font-semibold text-zinc-900 line-clamp-1 max-w-xs group-hover:text-brand-blue transition-colors">
-                            {r.title}
-                          </span>
-                        </div>
-                      </td>
+                      <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${priorityBadge.dotClass}`} />
+                      <span>{priorityBadge.label}</span>
+                    </span>
+                  </div>
 
-                      {/* Date */}
-                      <td className="whitespace-nowrap px-6 py-4 text-xs font-medium text-zinc-600">
-                        {formatDate(r.createdAt)}
-                      </td>
+                  {/* Requester */}
+                  <div className="col-span-1 min-w-0 text-xs font-medium text-zinc-600 truncate">
+                    {r.requesterName}
+                  </div>
 
-                      {/* Department */}
-                      <td className="whitespace-nowrap px-6 py-4 text-xs font-semibold text-zinc-800">
-                        {r.department}
-                      </td>
+                  {/* Est. Amount */}
+                  <div className="col-span-1 min-w-0 text-sm font-bold text-zinc-950 font-mono truncate">
+                    {formatCurrency(r.totalEstimatedAmount, r.currency)}
+                  </div>
 
-                      {/* Priority — Uniform Width Soft Capsule */}
-                      <td className="whitespace-nowrap px-6 py-4 text-center">
-                        <span
-                          className={`inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider min-w-[105px] ${priorityBadge.bgClass}`}
-                        >
-                          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${priorityBadge.dotClass}`} />
-                          <span>{priorityBadge.label}</span>
-                        </span>
-                      </td>
+                  {/* Status */}
+                  <div className="col-span-1 min-w-0 text-center">
+                    <span
+                      className={`inline-flex justify-center items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold truncate ${statusBadge.bgClass}`}
+                    >
+                      {statusBadge.label}
+                    </span>
+                  </div>
 
-
-                      {/* Requester */}
-                      <td className="whitespace-nowrap px-6 py-4 text-xs font-medium text-zinc-600">
-                        {r.requesterName}
-                      </td>
-
-
-                      {/* Estimated Amount */}
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-bold text-zinc-950 tabular-nums">
-                        {formatCurrency(r.totalEstimatedAmount, r.currency)}
-                      </td>
-
-                      {/* Status — Soft Tinted Uniform Width Capsule */}
-                      <td className="whitespace-nowrap px-6 py-4 text-xs font-semibold text-center">
-                        <span
-                          className={`inline-flex justify-center items-center rounded-full border px-3.5 py-1 text-[11px] font-semibold whitespace-nowrap min-w-[120px] ${statusBadge.bgClass}`}
-                        >
-                          {statusBadge.label}
-                        </span>
-                      </td>
-
-                      {/* Fixed Last Column: Action (Button activates on row hover) */}
-                      <td
-                        className="sticky right-0 z-10 whitespace-nowrap rounded-r-2xl bg-white py-4 pl-4 pr-6 text-right ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Link
-                          href={`/procurement/${r.id}`}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-brand-blue bg-white px-3.5 py-1.5 text-xs font-semibold text-brand-blue shadow-2xs group-hover:bg-brand-blue group-hover:text-white transition-all cursor-pointer"
-                        >
-                          <span>View</span>
-                          <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
-                        </Link>
-                      </td>
-
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  {/* Actions */}
+                  <div className="col-span-1 min-w-0 text-right" onClick={(e) => e.stopPropagation()}>
+                    <Link
+                      href={`/procurement/${r.id}`}
+                      className="inline-flex items-center gap-1 rounded-full border border-brand-blue bg-white px-3 py-1 text-xs font-semibold text-brand-blue shadow-2xs group-hover:bg-brand-blue group-hover:text-white transition-all cursor-pointer"
+                    >
+                      <span>View</span>
+                      <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       ) : (
