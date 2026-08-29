@@ -53,6 +53,8 @@ function toAppEnv(env: WorkerEnv): import("./config/env").Env {
   };
 }
 
+import { syncExchangeRates } from "./modules/bidding/fx";
+
 export default {
   async fetch(request: Request, env: WorkerEnv): Promise<Response> {
     if (!env.DATABASE_URL) {
@@ -65,4 +67,11 @@ export default {
     const app = createApp(toAppEnv(env));
     return app.fetch(request);
   },
+
+  async scheduled(event: any, env: WorkerEnv, ctx: any) {
+    if (env.DATABASE_URL) {
+      process.env.DATABASE_URL = env.DATABASE_URL;
+      ctx.waitUntil(syncExchangeRates());
+    }
+  }
 };

@@ -112,6 +112,13 @@ model Permission {
   updatedAt   DateTime @default(now()) @updatedAt
 }
 
+model ExchangeRate {
+  id         String   @id @default(cuid())
+  currency   Currency @unique
+  rateToSar  Decimal  @db.Decimal(12, 6)
+  updatedAt  DateTime @default(now()) @updatedAt
+}
+
 model RolePermission {
   roleId       String
   permissionId String

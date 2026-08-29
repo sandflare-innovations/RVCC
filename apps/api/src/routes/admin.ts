@@ -150,6 +150,12 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       return await handleAdminLiveBids(sql, env, request, decodeURIComponent(reqLiveBids[1]!));
     }
 
+    if (path === "/bidding/fx-sync" && request.method === "POST") {
+      const { syncExchangeRates } = await import("../modules/bidding/fx");
+      await syncExchangeRates();
+      return json(env, request, { ok: true, message: "Exchange rates synchronized successfully" });
+    }
+
     const requirementOne = path.match(/^\/requirements\/([^/]+)$/);
     if (requirementOne && request.method === "GET") {
       return await handleRequirementGet(sql, env, request, decodeURIComponent(requirementOne[1]!));
