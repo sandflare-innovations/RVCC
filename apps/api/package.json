@@ -21,12 +21,14 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.14.4",
+    "@prisma/adapter-pg": "^5.22.0",
     "@prisma/client": "5.22.0",
     "@rvcc/schemas": "workspace:*",
     "@rvcc/types": "workspace:*",
     "aws4fetch": "^1.0.20",
     "hono": "^4.8.5",
     "nodemailer": "^9.0.4",
+    "pg": "^8.23.0",
     "postgres": "^3.4.5",
     "worker-mailer": "^1.2.1"
   },
