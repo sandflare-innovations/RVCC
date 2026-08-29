@@ -44,6 +44,15 @@ import {
   handleProcurementList,
   handleProcurementReview,
 } from "../modules/admin/procurement";
+import {
+  handleStaffCreate,
+  handleStaffDelete,
+  handleStaffList,
+  handleStaffOtpRequest,
+  handleStaffPasswordReset,
+  handleStaffUpdate,
+} from "../modules/admin/staff";
+
 
 
 
@@ -181,6 +190,31 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
         return await handleProcurementDelete(sql, env, request, decodeURIComponent(procurementOne[1]!));
       }
     }
+
+    // Staff & Admin Management Routes
+    if (path === "/staff/otp/request" && request.method === "POST") {
+      return await handleStaffOtpRequest(sql, env, request);
+    }
+    if (path === "/staff" && request.method === "GET") {
+      return await handleStaffList(sql, env, request);
+    }
+    if (path === "/staff" && request.method === "POST") {
+      return await handleStaffCreate(sql, env, request);
+    }
+    const staffPassword = path.match(/^\/staff\/([^/]+)\/password$/);
+    if (staffPassword && request.method === "POST") {
+      return await handleStaffPasswordReset(sql, env, request, decodeURIComponent(staffPassword[1]!));
+    }
+    const staffOne = path.match(/^\/staff\/([^/]+)$/);
+    if (staffOne) {
+      if (request.method === "PATCH") {
+        return await handleStaffUpdate(sql, env, request, decodeURIComponent(staffOne[1]!));
+      }
+      if (request.method === "DELETE") {
+        return await handleStaffDelete(sql, env, request, decodeURIComponent(staffOne[1]!));
+      }
+    }
+
 
 
     if (path === "/careers" && request.method === "GET") {

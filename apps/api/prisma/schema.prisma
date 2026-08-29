@@ -20,10 +20,14 @@ enum BusinessRelationship {
 }
 
 enum AdminRole {
-  SUPER_ADMIN // manage admins + everything below
-  ADMIN // approve/reject vendors, manage content
-  REVIEWER // read-only
+  SUPER_ADMIN        // Full root access to all portals & security
+  ADMIN              // Full operational admin
+  PROCUREMENT_ADMIN  // Procurements & purchase requisitions only
+  VENDOR_ADMIN       // Vendor accounts, registrations & RFQs only
+  WEBSITE_ADMIN      // Company website content management only
+  REVIEWER           // Read-only audit & inspection access
 }
+
 
 /// Portal login gate — separate from registration completeness.
 /// HELD: account may exist but supplier cannot use vendor pages.
@@ -39,6 +43,9 @@ model AdminUser {
   id           String    @id @default(cuid())
   email        String    @unique
   name         String    @default("")
+  position     String    @default("")
+  department   String    @default("")
+  phone        String    @default("")
   passwordHash String
   role         AdminRole @default(ADMIN)
   isActive     Boolean   @default(true)
@@ -60,9 +67,25 @@ model AdminUser {
   notifications Notification[]
   procurementRequisitions PurchaseRequest[]
   procurementAudits       PurchaseRequestAuditLog[]
+  otpChallenges           AdminOtpChallenge[]
 
   @@index([email])
 }
+
+/// OTP challenges for high-security staff management operations.
+model AdminOtpChallenge {
+  id        String   @id @default(cuid())
+  adminId   String
+  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  action    String   // e.g. "CREATE_STAFF", "UPDATE_STAFF", "DELETE_STAFF", "RESET_PASSWORD"
+  codeHash  String   // SHA-256 hash of 6-digit numeric OTP
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([adminId, action])
+}
+
 
 
 /// Careers content, editable from the admin panel.
