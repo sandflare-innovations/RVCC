@@ -2,9 +2,10 @@ import { randomInt } from "node:crypto";
 import type { Env } from "../../config/env";
 import { json } from "../../lib/http";
 import { hashPassword } from "../../lib/password";
-import { type Sql, cuid, hashSha256 } from "./db";
+import { cuid, hashSha256 } from "./db";
 import { requireAdmin, writeAudit } from "./auth";
 import type { AdminRoleName } from "./constants";
+import { prisma } from "../../lib/prisma";
 
 export interface StaffListItem {
   id: string;
@@ -32,7 +33,7 @@ function generateOtpCode(): string {
 
 /** Verify action OTP for the logged-in administrator */
 async function verifyOtpChallenge(
-  sql: Sql,
+  _sql: unknown,
   adminId: string,
   action: string,
   otpCode: string
@@ -45,35 +46,39 @@ async function verifyOtpChallenge(
   const now = new Date();
 
   // Find latest active challenge for this admin and action
-  const [challenge] = await sql`
-    SELECT * FROM "AdminOtp"
-    WHERE "adminId" = ${adminId} AND action = ${action}
-      AND "expiresAt" > ${now} AND "consumedAt" IS NULL
-    ORDER BY "createdAt" DESC
-    LIMIT 1
-  `;
+  const challenge = await prisma.adminOtp.findFirst({
+    where: {
+      adminId,
+      action,
+      expiresAt: { gt: now },
+      consumedAt: null,
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
   if (!challenge) {
     return { valid: false, error: "No active verification code found or code has expired. Please request a new OTP." };
   }
 
   if (Number(challenge.attempts) >= MAX_OTP_ATTEMPTS) {
-    await sql`DELETE FROM "AdminOtp" WHERE id = ${challenge.id as string}`;
+    await prisma.adminOtp.delete({ where: { id: challenge.id } });
     return { valid: false, error: "Maximum verification attempts exceeded. Please request a new OTP." };
   }
 
-  const storedHash = (challenge.codeHash || challenge.code_hash) as string;
-  if (storedHash !== codeHash) {
-    await sql`
-      UPDATE "AdminOtp"
-      SET attempts = attempts + 1
-      WHERE id = ${challenge.id as string}
-    `;
+  if (challenge.codeHash !== codeHash) {
+    await prisma.adminOtp.update({
+      where: { id: challenge.id },
+      data: { attempts: { increment: 1 } },
+    });
     return { valid: false, error: "Invalid verification code. Please check and try again." };
   }
 
   // Valid OTP: mark consumed to prevent replay attacks
-  await sql`UPDATE "AdminOtp" SET "consumedAt" = NOW() WHERE id = ${challenge.id as string}`;
+  await prisma.adminOtp.update({
+    where: { id: challenge.id },
+    data: { consumedAt: new Date() },
+  });
+
   return { valid: true };
 }
 
@@ -82,7 +87,7 @@ async function verifyOtpChallenge(
  * Generates and sends a 6-digit OTP code to the requesting admin's email.
  */
 export async function handleStaffOtpRequest(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request
 ): Promise<Response> {
@@ -98,24 +103,30 @@ export async function handleStaffOtpRequest(
   const action = typeof (body as any)?.action === "string" ? (body as any).action : "STAFF_MANAGEMENT";
 
   // Clean old expired challenges for this admin
-  await sql`
-    DELETE FROM "AdminOtp"
-    WHERE "adminId" = ${auth.admin.id} OR "expiresAt" < NOW()
-  `;
+  await prisma.adminOtp.deleteMany({
+    where: {
+      OR: [
+        { adminId: auth.admin.id },
+        { expiresAt: { lt: new Date() } },
+      ],
+    },
+  });
 
   const code = generateOtpCode();
   const codeHash = await hashSha256(code);
   const challengeId = cuid();
   const expiresAt = new Date(Date.now() + OTP_TTL_MS);
 
-  await sql`
-    INSERT INTO "AdminOtp" (
-      id, "adminId", action, "codeHash", attempts, "expiresAt", "createdAt"
-    ) VALUES (
-      ${challengeId}, ${auth.admin.id}, ${action}, ${codeHash}, 0, ${expiresAt}, NOW()
-    )
-  `;
-
+  await prisma.adminOtp.create({
+    data: {
+      id: challengeId,
+      adminId: auth.admin.id,
+      action,
+      codeHash,
+      attempts: 0,
+      expiresAt,
+    },
+  });
 
   // Log OTP for audit & local simulation
   console.log(`\n======================================================`);
@@ -139,46 +150,52 @@ export async function handleStaffOtpRequest(
  * Lists all staff and admin accounts.
  */
 export async function handleStaffList(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request
 ): Promise<Response> {
   const auth = await requireAdmin(sql, env, request);
   if (auth.deny) return auth.deny;
 
-  const rows = await sql`
-    SELECT
-      id, email, name, position, department, phone, role, "isActive",
-      "lastLoginAt", "failedAttempts", "lockedUntil", "createdAt", "updatedAt"
-    FROM "AdminUser"
-    ORDER BY
-      CASE
-        WHEN role = 'SUPER_ADMIN' THEN 1
-        WHEN role = 'ADMIN' THEN 2
-        WHEN role = 'PROCUREMENT_ADMIN' THEN 3
-        WHEN role = 'VENDOR_ADMIN' THEN 4
-        WHEN role = 'WEBSITE_ADMIN' THEN 5
-        ELSE 6
-      END ASC,
-      "createdAt" ASC
-  `;
+  const rows = await prisma.adminUser.findMany({
+    include: { role: true },
+    orderBy: { createdAt: "asc" },
+  });
 
-  const staff: StaffListItem[] = rows.map((r) => {
-    const isLocked = Boolean(r.lockedUntil && new Date(r.lockedUntil as string | Date) > new Date());
+  const rolePriority: Record<string, number> = {
+    SUPER_ADMIN: 1,
+    ADMIN: 2,
+    PROCUREMENT_ADMIN: 3,
+    VENDOR_ADMIN: 4,
+    WEBSITE_ADMIN: 5,
+    REVIEWER: 6,
+  };
+
+  const sortedRows = [...rows].sort((a, b) => {
+    const roleA = (a.role?.name || "ADMIN");
+    const roleB = (b.role?.name || "ADMIN");
+    const pA = rolePriority[roleA] || 99;
+    const pB = rolePriority[roleB] || 99;
+    return pA - pB;
+  });
+
+  const staff: StaffListItem[] = sortedRows.map((r) => {
+    const isLocked = Boolean(r.lockedUntil && new Date(r.lockedUntil) > new Date());
+    const roleName = (r.role?.name || "ADMIN") as AdminRoleName;
     return {
-      id: r.id as string,
-      email: r.email as string,
-      name: (r.name as string) || "",
-      position: (r.position as string) || "",
-      department: (r.department as string) || "",
-      phone: (r.phone as string) || "",
-      role: r.role as AdminRoleName,
+      id: r.id,
+      email: r.email,
+      name: r.name || "",
+      position: r.position || "",
+      department: r.department || "",
+      phone: r.phone || "",
+      role: roleName,
       isActive: Boolean(r.isActive),
-      lastLoginAt: r.lastLoginAt ? new Date(r.lastLoginAt as string).toISOString() : null,
+      lastLoginAt: r.lastLoginAt ? new Date(r.lastLoginAt).toISOString() : null,
       failedAttempts: Number(r.failedAttempts) || 0,
       isLocked,
-      createdAt: new Date(r.createdAt as string).toISOString(),
-      updatedAt: new Date(r.updatedAt as string).toISOString(),
+      createdAt: new Date(r.createdAt).toISOString(),
+      updatedAt: new Date(r.updatedAt).toISOString(),
     };
   });
 
@@ -190,7 +207,7 @@ export async function handleStaffList(
  * Creates a new staff/admin user. Requires OTP verification.
  */
 export async function handleStaffCreate(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request
 ): Promise<Response> {
@@ -220,9 +237,10 @@ export async function handleStaffCreate(
   }
 
   const normalizedEmail = email.trim().toLowerCase();
-  const [existing] = await sql`
-    SELECT id FROM "AdminUser" WHERE email = ${normalizedEmail} LIMIT 1
-  `;
+  const existing = await prisma.adminUser.findUnique({
+    where: { email: normalizedEmail },
+  });
+
   if (existing) {
     return json(env, request, { error: "An account with this email already exists." }, 409);
   }
@@ -232,17 +250,34 @@ export async function handleStaffCreate(
   const validRoles = ["SUPER_ADMIN", "ADMIN", "PROCUREMENT_ADMIN", "VENDOR_ADMIN", "WEBSITE_ADMIN", "REVIEWER"];
   const validRole = (validRoles.includes(role) ? role : "ADMIN") as AdminRoleName;
 
-  await sql`
-    INSERT INTO "AdminUser" (
-      id, email, name, position, department, phone, "passwordHash",
-      role, "isActive", "createdAt", "updatedAt"
-    ) VALUES (
-      ${staffId}, ${normalizedEmail}, ${name || ""}, ${position || ""},
-      ${department || ""}, ${phone || ""}, ${passwordHash}, ${validRole},
-      true, NOW(), NOW()
-    )
-  `;
+  // Find or create role
+  let roleRecord = await prisma.role.findUnique({
+    where: { name: validRole },
+  });
 
+  if (!roleRecord) {
+    roleRecord = await prisma.role.create({
+      data: {
+        name: validRole,
+        description: `${validRole} Role`,
+        isSystem: true,
+      },
+    });
+  }
+
+  await prisma.adminUser.create({
+    data: {
+      id: staffId,
+      email: normalizedEmail,
+      name: name || "",
+      position: position || "",
+      department: department || "",
+      phone: phone || "",
+      passwordHash,
+      roleId: roleRecord.id,
+      isActive: true,
+    },
+  });
 
   await writeAudit(sql, {
     adminId: auth.admin.id,
@@ -260,7 +295,7 @@ export async function handleStaffCreate(
  * Updates staff profile (name, position, department, phone, role, active status). Requires OTP for role or status changes.
  */
 export async function handleStaffUpdate(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -275,20 +310,27 @@ export async function handleStaffUpdate(
     return json(env, request, { error: "Invalid JSON body" }, 400);
   }
 
-  const [target] = await sql`SELECT * FROM "AdminUser" WHERE id = ${id} LIMIT 1`;
+  const target = await prisma.adminUser.findUnique({
+    where: { id },
+    include: { role: true },
+  });
+
   if (!target) {
     return json(env, request, { error: "Staff user not found" }, 404);
   }
 
   const { name, position, department, phone, role, isActive, otpCode } = body;
+  const currentRoleName = target.role?.name || "ADMIN";
 
   // Protect against demoting or disabling the only active super admin
-  if (target.role === "SUPER_ADMIN" && (role !== "SUPER_ADMIN" || isActive === false)) {
-    const [superAdmins] = await sql`
-      SELECT COUNT(*)::int as count FROM "AdminUser"
-      WHERE role = 'SUPER_ADMIN' AND "isActive" = true
-    `;
-    if ((superAdmins?.count ?? 0) <= 1) {
+  if (currentRoleName === "SUPER_ADMIN" && (role !== "SUPER_ADMIN" || isActive === false)) {
+    const superAdminsCount = await prisma.adminUser.count({
+      where: {
+        role: { name: "SUPER_ADMIN" },
+        isActive: true,
+      },
+    });
+    if (superAdminsCount <= 1) {
       return json(env, request, { error: "Cannot demote or deactivate the last active Super Admin." }, 400);
     }
   }
@@ -302,33 +344,42 @@ export async function handleStaffUpdate(
     }
   }
 
-  const nextName = typeof name === "string" ? name : (target.name as string);
-  const nextPosition = typeof position === "string" ? position : (target.position as string);
-  const nextDepartment = typeof department === "string" ? department : (target.department as string);
-  const nextPhone = typeof phone === "string" ? phone : (target.phone as string);
+  const nextName = typeof name === "string" ? name : target.name;
+  const nextPosition = typeof position === "string" ? position : target.position;
+  const nextDepartment = typeof department === "string" ? department : target.department;
+  const nextPhone = typeof phone === "string" ? phone : target.phone;
   const validRoles = ["SUPER_ADMIN", "ADMIN", "PROCUREMENT_ADMIN", "VENDOR_ADMIN", "WEBSITE_ADMIN", "REVIEWER"];
-  const nextRole = typeof role === "string" && validRoles.includes(role) ? (role as AdminRoleName) : (target.role as AdminRoleName);
+  const nextRoleName = typeof role === "string" && validRoles.includes(role) ? (role as AdminRoleName) : (currentRoleName as AdminRoleName);
   const nextIsActive = typeof isActive === "boolean" ? isActive : Boolean(target.isActive);
 
+  let nextRoleId = target.roleId;
+  if (role !== undefined && role !== currentRoleName) {
+    const roleRecord = await prisma.role.upsert({
+      where: { name: nextRoleName },
+      update: {},
+      create: { name: nextRoleName, description: `${nextRoleName} Role`, isSystem: true },
+    });
+    nextRoleId = roleRecord.id;
+  }
 
-  await sql`
-    UPDATE "AdminUser"
-    SET
-      name = ${nextName},
-      position = ${nextPosition},
-      department = ${nextDepartment},
-      phone = ${nextPhone},
-      role = ${nextRole},
-      "isActive" = ${nextIsActive},
-      "updatedAt" = NOW()
-    WHERE id = ${id}
-  `;
+  await prisma.adminUser.update({
+    where: { id },
+    data: {
+      name: nextName,
+      position: nextPosition,
+      department: nextDepartment,
+      phone: nextPhone,
+      roleId: nextRoleId,
+      isActive: nextIsActive,
+    },
+  });
 
   // If user is blocked / deactivated, immediately revoke all their active sessions
   if (nextIsActive === false) {
-    await sql`DELETE FROM "AdminSession" WHERE "adminId" = ${id}`;
+    await prisma.adminSession.deleteMany({
+      where: { adminId: id },
+    });
   }
-
 
   await writeAudit(sql, {
     adminId: auth.admin.id,
@@ -338,7 +389,7 @@ export async function handleStaffUpdate(
     metadata: {
       email: target.email,
       name: nextName,
-      role: nextRole,
+      role: nextRoleName,
       isActive: nextIsActive,
       position: nextPosition,
       department: nextDepartment,
@@ -353,7 +404,7 @@ export async function handleStaffUpdate(
  * Resets a staff member's password. Requires OTP verification.
  */
 export async function handleStaffPasswordReset(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -373,7 +424,11 @@ export async function handleStaffPasswordReset(
     return json(env, request, { error: "Password must be at least 8 characters long." }, 400);
   }
 
-  const [target] = await sql`SELECT id, email, name FROM "AdminUser" WHERE id = ${id} LIMIT 1`;
+  const target = await prisma.adminUser.findUnique({
+    where: { id },
+    select: { id: true, email: true, name: true },
+  });
+
   if (!target) {
     return json(env, request, { error: "Staff user not found" }, 404);
   }
@@ -387,20 +442,19 @@ export async function handleStaffPasswordReset(
   const passwordHash = await hashPassword(newPassword);
 
   // Update password and clear any failed lockout counters
-  await sql`
-    UPDATE "AdminUser"
-    SET
-      "passwordHash" = ${passwordHash},
-      "failedAttempts" = 0,
-      "lockedUntil" = NULL,
-      "updatedAt" = NOW()
-    WHERE id = ${id}
-  `;
+  await prisma.adminUser.update({
+    where: { id },
+    data: {
+      passwordHash,
+      failedAttempts: 0,
+      lockedUntil: null,
+    },
+  });
 
   // Revoke all existing sessions for this user so they must re-authenticate with new password
-  await sql`
-    DELETE FROM "AdminSession" WHERE "adminId" = ${id}
-  `;
+  await prisma.adminSession.deleteMany({
+    where: { adminId: id },
+  });
 
   await writeAudit(sql, {
     adminId: auth.admin.id,
@@ -415,10 +469,10 @@ export async function handleStaffPasswordReset(
 
 /**
  * DELETE /admin/staff/:id
- * Permanently removes a staff account. Requires OTP verification.
+ * Removes a staff account (soft-deletes via Prisma client extension). Requires OTP verification.
  */
 export async function handleStaffDelete(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -438,17 +492,24 @@ export async function handleStaffDelete(
     return json(env, request, { error: "You cannot delete your own active administrator account." }, 400);
   }
 
-  const [target] = await sql`SELECT id, email, name, role FROM "AdminUser" WHERE id = ${id} LIMIT 1`;
+  const target = await prisma.adminUser.findUnique({
+    where: { id },
+    include: { role: true },
+  });
+
   if (!target) {
     return json(env, request, { error: "Staff user not found" }, 404);
   }
 
-  if (target.role === "SUPER_ADMIN") {
-    const [superAdmins] = await sql`
-      SELECT COUNT(*)::int as count FROM "AdminUser"
-      WHERE role = 'SUPER_ADMIN' AND "isActive" = true
-    `;
-    if ((superAdmins?.count ?? 0) <= 1) {
+  const roleName = target.role?.name || "ADMIN";
+  if (roleName === "SUPER_ADMIN") {
+    const superAdminsCount = await prisma.adminUser.count({
+      where: {
+        role: { name: "SUPER_ADMIN" },
+        isActive: true,
+      },
+    });
+    if (superAdminsCount <= 1) {
       return json(env, request, { error: "Cannot delete the last active Super Admin account." }, 400);
     }
   }
@@ -459,15 +520,16 @@ export async function handleStaffDelete(
     return json(env, request, { error: otpCheck.error }, 403);
   }
 
-  // Delete will cascade sessions, audits, and challenges
-  await sql`DELETE FROM "AdminUser" WHERE id = ${id}`;
+  // Delete staff user and revoke sessions
+  await prisma.adminSession.deleteMany({ where: { adminId: id } });
+  await prisma.adminUser.delete({ where: { id } });
 
   await writeAudit(sql, {
     adminId: auth.admin.id,
     action: "DELETE_STAFF_USER",
     entityType: "AdminUser",
     entityId: id,
-    metadata: { email: target.email, name: target.name, role: target.role },
+    metadata: { email: target.email, name: target.name, role: roleName },
   });
 
   return json(env, request, { success: true, deletedId: id });

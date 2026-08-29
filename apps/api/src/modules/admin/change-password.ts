@@ -2,8 +2,9 @@ import { hashPassword, verifyPassword } from "../../lib/password";
 import type { Env } from "../../config/env";
 import { json } from "../../lib/http";
 import { requireAdmin, writeAudit } from "./auth";
-import { type Sql, cuid, hashSha256 } from "./db";
+import { cuid, hashSha256 } from "./db";
 import { sendAdminPasswordChangeOtp, smtpConfigured } from "../mail/mail";
+import { prisma } from "../../lib/prisma";
 
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const OTP_MAX_PER_HOUR = 5;
@@ -12,7 +13,7 @@ const OTP_MAX_PER_HOUR = 5;
  * Step 1: Reset password directly with current password (no OTP).
  */
 export async function handleAdminChangePasswordWithCurrent(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request
 ): Promise<Response> {
@@ -34,46 +35,51 @@ export async function handleAdminChangePasswordWithCurrent(
   }
 
   // Fetch the admin's password hash
-  const [adminUser] = await sql`
-    SELECT id, email, "passwordHash" FROM "AdminUser" WHERE id = ${admin.id} LIMIT 1
-  `;
+  const adminUser = await prisma.adminUser.findUnique({
+    where: { id: admin.id },
+    select: { id: true, email: true, passwordHash: true },
+  });
+
   if (!adminUser) {
     return json(env, request, { error: "Account not found." }, 404);
   }
 
   // Verify current password
-  if (!(await verifyPassword(currentPassword, adminUser.passwordHash as string))) {
+  if (!(await verifyPassword(currentPassword, adminUser.passwordHash))) {
     return json(env, request, { error: "Incorrect current password." }, 401);
   }
 
   // Hash and update the new password
   const passwordHash = await hashPassword(newPassword);
-  await sql`
-    UPDATE "AdminUser"
-    SET "passwordHash" = ${passwordHash},
-        "failedAttempts" = 0,
-        "lockedUntil" = NULL,
-        "updatedAt" = NOW()
-    WHERE id = ${admin.id}
-  `;
+  await prisma.adminUser.update({
+    where: { id: admin.id },
+    data: {
+      passwordHash,
+      failedAttempts: 0,
+      lockedUntil: null,
+    },
+  });
 
   // Revoke all other sessions (keep current one)
   const currentToken = request.headers.get("X-Admin-Session");
   if (currentToken) {
     const tokenHash = await hashSha256(currentToken);
-    await sql`
-      UPDATE "AdminSession"
-      SET "revokedAt" = NOW()
-      WHERE "adminId" = ${admin.id}
-        AND "tokenHash" != ${tokenHash}
-        AND "revokedAt" IS NULL
-    `;
+    await prisma.adminSession.updateMany({
+      where: {
+        adminId: admin.id,
+        tokenHash: { not: tokenHash },
+        revokedAt: null,
+      },
+      data: { revokedAt: new Date() },
+    });
   } else {
-    await sql`
-      UPDATE "AdminSession"
-      SET "revokedAt" = NOW()
-      WHERE "adminId" = ${admin.id} AND "revokedAt" IS NULL
-    `;
+    await prisma.adminSession.updateMany({
+      where: {
+        adminId: admin.id,
+        revokedAt: null,
+      },
+      data: { revokedAt: new Date() },
+    });
   }
 
   await writeAudit(sql, {
@@ -91,17 +97,18 @@ export async function handleAdminChangePasswordWithCurrent(
  * Step 1: Send OTP to admin's email (forgot password — no current password needed).
  */
 export async function handleAdminChangePasswordRequestOtp(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request
 ): Promise<Response> {
   const { admin, deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
 
-  // Fetch the admin's email
-  const [adminUser] = await sql`
-    SELECT id, email FROM "AdminUser" WHERE id = ${admin.id} LIMIT 1
-  `;
+  const adminUser = await prisma.adminUser.findUnique({
+    where: { id: admin.id },
+    select: { id: true, email: true },
+  });
+
   if (!adminUser) {
     return json(env, request, { error: "Account not found." }, 404);
   }
@@ -111,13 +118,15 @@ export async function handleAdminChangePasswordRequestOtp(
   }
 
   // Rate limit: max 5 OTPs per hour per admin
-  const [{ count }] = await sql`
-    SELECT COUNT(*)::int AS count FROM "AdminOtp"
-    WHERE "adminId" = ${admin.id}
-      AND action = 'PASSWORD_CHANGE'
-      AND "createdAt" > NOW() - INTERVAL '1 hour'
-  `;
-  if (Number(count) >= OTP_MAX_PER_HOUR) {
+  const count = await prisma.adminOtp.count({
+    where: {
+      adminId: admin.id,
+      action: "PASSWORD_CHANGE",
+      createdAt: { gt: new Date(Date.now() - 60 * 60 * 1000) },
+    },
+  });
+
+  if (count >= OTP_MAX_PER_HOUR) {
     return json(env, request, { error: "Too many requests. Try again later." }, 429);
   }
 
@@ -127,20 +136,28 @@ export async function handleAdminChangePasswordRequestOtp(
   const expiresAt = new Date(Date.now() + OTP_TTL_MS);
 
   // Invalidate any previous unconsumed OTPs for this admin
-  await sql`
-    UPDATE "AdminOtp" SET "consumedAt" = NOW()
-    WHERE "adminId" = ${admin.id}
-      AND action = 'PASSWORD_CHANGE' AND "consumedAt" IS NULL
-  `;
+  await prisma.adminOtp.updateMany({
+    where: {
+      adminId: admin.id,
+      action: "PASSWORD_CHANGE",
+      consumedAt: null,
+    },
+    data: { consumedAt: new Date() },
+  });
 
-  await sql`
-    INSERT INTO "AdminOtp" (id, "adminId", action, "codeHash", "expiresAt", "createdAt")
-    VALUES (${cuid()}, ${admin.id}, 'PASSWORD_CHANGE', ${codeHash}, ${expiresAt}, NOW())
-  `;
+  await prisma.adminOtp.create({
+    data: {
+      id: cuid(),
+      adminId: admin.id,
+      action: "PASSWORD_CHANGE",
+      codeHash,
+      expiresAt,
+    },
+  });
 
   // Send OTP email
   try {
-    await sendAdminPasswordChangeOtp(env, adminUser.email as string, code, 10);
+    await sendAdminPasswordChangeOtp(env, adminUser.email, code, 10);
   } catch (err) {
     console.error("[admin] change-password OTP mail failed", err);
     return json(env, request, { error: "Unable to send verification code." }, 500);
@@ -161,7 +178,7 @@ export async function handleAdminChangePasswordRequestOtp(
  * Step 2: Verify OTP and change password.
  */
 export async function handleAdminChangePasswordVerify(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request
 ): Promise<Response> {
@@ -182,66 +199,59 @@ export async function handleAdminChangePasswordVerify(
 
   // Find the latest unconsumed OTP
   const codeHash = await hashSha256(code);
-  const [otp] = await sql`
-    SELECT * FROM "AdminOtp"
-    WHERE "adminId" = ${admin.id}
-      AND action = 'PASSWORD_CHANGE'
-      AND "consumedAt" IS NULL
-      AND "expiresAt" > NOW()
-    ORDER BY "createdAt" DESC
-    LIMIT 1
-  `;
+  const otp = await prisma.adminOtp.findFirst({
+    where: {
+      adminId: admin.id,
+      action: "PASSWORD_CHANGE",
+      consumedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
   if (!otp) {
     return json(env, request, { error: "No valid verification code found. Request a new one." }, 404);
   }
 
   // Timing-safe comparison
-  const storedHash = (otp.codeHash || otp.code_hash) as string;
+  const storedHash = otp.codeHash;
   if (storedHash.length !== codeHash.length || storedHash !== codeHash) {
     return json(env, request, { error: "Invalid verification code." }, 401);
   }
 
   // Mark OTP as consumed
-  await sql`UPDATE "AdminOtp" SET "consumedAt" = NOW() WHERE id = ${otp.id}`;
+  await prisma.adminOtp.update({
+    where: { id: otp.id },
+    data: { consumedAt: new Date() },
+  });
 
   // Hash and update the new password
   const passwordHash = await hashPassword(newPassword);
-  await sql`
-    UPDATE "AdminUser"
-    SET "passwordHash" = ${passwordHash},
-        "failedAttempts" = 0,
-        "lockedUntil" = NULL,
-        "updatedAt" = NOW()
-    WHERE id = ${admin.id}
-  `;
+  await prisma.adminUser.update({
+    where: { id: admin.id },
+    data: {
+      passwordHash,
+      failedAttempts: 0,
+      lockedUntil: null,
+    },
+  });
 
-  // Revoke all other sessions (keep current one)
-  const currentToken = request.headers.get("X-Admin-Session");
-  if (currentToken) {
-    const tokenHash = await hashSha256(currentToken);
-    await sql`
-      UPDATE "AdminSession"
-      SET "revokedAt" = NOW()
-      WHERE "adminId" = ${admin.id}
-        AND "tokenHash" != ${tokenHash}
-        AND "revokedAt" IS NULL
-    `;
-  } else {
-    await sql`
-      UPDATE "AdminSession"
-      SET "revokedAt" = NOW()
-      WHERE "adminId" = ${admin.id} AND "revokedAt" IS NULL
-    `;
-  }
+  // Invalidate all active sessions
+  await prisma.adminSession.updateMany({
+    where: {
+      adminId: admin.id,
+      revokedAt: null,
+    },
+    data: { revokedAt: new Date() },
+  });
 
   await writeAudit(sql, {
     adminId: admin.id,
-    action: "admin.password_changed",
+    action: "admin.password_reset_via_otp",
     entityType: "AdminUser",
     entityId: admin.id,
     metadata: { method: "otp" },
   });
 
-  return json(env, request, { ok: true });
+  return json(env, request, { ok: true, message: "Password updated successfully. Please sign in again." });
 }

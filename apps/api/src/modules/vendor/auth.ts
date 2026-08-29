@@ -1,7 +1,10 @@
 import { hashPassword, verifyPassword } from "../../lib/password";
-
 import { LOCKOUT_MS, MAX_FAILED_ATTEMPTS, VENDOR_SESSION_TTL_MS } from "./constants";
-import { type Sql, cuid, hashSha256 } from "./db";
+import { hashSha256 } from "./db";
+import { prisma } from "../../lib/prisma";
+import type { Env } from "../../config/env";
+import { json } from "../../lib/http";
+import { randomBytes } from "node:crypto";
 
 export type VendorLoginResult =
   | {
@@ -22,211 +25,246 @@ export type VendorIdentity = {
   email: string;
   name: string;
   mustChangePassword: boolean;
-  /** Null for accounts an admin created directly, with no public registration. */
   registrationId: string | null;
   portalAccess: "HELD" | "RELEASED";
   registrationComplete: boolean;
 };
 
+function generateSessionToken(): string {
+  return randomBytes(32).toString("hex");
+}
+
 /** Same shape and same anti-enumeration behaviour as the admin login. */
 export async function attemptVendorLogin(
-  sql: Sql,
+  _sql: unknown,
   email: string,
-  password: string
+  password: string,
+  meta?: { ipAddress?: string; userAgent?: string }
 ): Promise<VendorLoginResult> {
   const normalized = email.trim().toLowerCase();
-  const [vendor] = await sql`
-    SELECT * FROM "VendorUser" WHERE email = ${normalized} LIMIT 1
-  `;
+  const ip = meta?.ipAddress || "127.0.0.1";
+  const userAgent = meta?.userAgent || "";
+
+  const vendor = await prisma.vendorUser.findUnique({
+    where: { email: normalized },
+  });
 
   if (!vendor) {
     await hashPassword(password); // equalise timing
     return { ok: false, reason: "invalid" };
   }
 
-  if (vendor.lockedUntil && new Date(vendor.lockedUntil as string | Date) > new Date()) {
+  if (vendor.lockedUntil && new Date(vendor.lockedUntil) > new Date()) {
+    void prisma.vendorLoginHistory.create({
+      data: {
+        vendorId: vendor.id,
+        ipAddress: ip,
+        userAgent,
+        status: "FAILED",
+        failureReason: "ACCOUNT_LOCKED",
+      },
+    }).catch(() => {});
+
     return {
       ok: false,
       reason: "locked",
-      retryAfterMs: new Date(vendor.lockedUntil as string | Date).getTime() - Date.now(),
+      retryAfterMs: new Date(vendor.lockedUntil).getTime() - Date.now(),
     };
   }
 
-  if (!vendor.isActive) return { ok: false, reason: "disabled" };
+  if (!vendor.isActive) {
+    void prisma.vendorLoginHistory.create({
+      data: {
+        vendorId: vendor.id,
+        ipAddress: ip,
+        userAgent,
+        status: "FAILED",
+        failureReason: "ACCOUNT_DISABLED",
+      },
+    }).catch(() => {});
 
-  if (!(await verifyPassword(password, String(vendor.passwordHash)))) {
+    return { ok: false, reason: "disabled" };
+  }
+
+  if (!(await verifyPassword(password, vendor.passwordHash))) {
     const failedAttempts = Number(vendor.failedAttempts) + 1;
     const lock = failedAttempts >= MAX_FAILED_ATTEMPTS;
-    await sql`
-      UPDATE "VendorUser"
-      SET "failedAttempts" = ${lock ? 0 : failedAttempts},
-          "lockedUntil" = ${lock ? new Date(Date.now() + LOCKOUT_MS) : null},
-          "updatedAt" = NOW()
-      WHERE id = ${vendor.id}
-    `;
+
+    await prisma.vendorUser.update({
+      where: { id: vendor.id },
+      data: {
+        failedAttempts: lock ? 0 : failedAttempts,
+        lockedUntil: lock ? new Date(Date.now() + LOCKOUT_MS) : null,
+      },
+    });
+
+    void prisma.vendorLoginHistory.create({
+      data: {
+        vendorId: vendor.id,
+        ipAddress: ip,
+        userAgent,
+        status: "FAILED",
+        failureReason: "INVALID_PASSWORD",
+      },
+    }).catch(() => {});
+
     return lock
       ? { ok: false, reason: "locked", retryAfterMs: LOCKOUT_MS }
       : { ok: false, reason: "invalid" };
   }
 
-  const portalAccess = (vendor.portalAccess as string) === "RELEASED" ? "RELEASED" : "HELD";
+  const portalAccess = vendor.portalAccess === "RELEASED" ? "RELEASED" : "HELD";
   if (portalAccess === "HELD") {
     return { ok: false, reason: "held" };
   }
 
-  await sql`
-    UPDATE "VendorUser"
-    SET "failedAttempts" = 0,
-        "lockedUntil" = NULL,
-        "lastLoginAt" = NOW(),
-        "updatedAt" = NOW()
-    WHERE id = ${vendor.id}
-  `;
+  await prisma.vendorUser.update({
+    where: { id: vendor.id },
+    data: {
+      failedAttempts: 0,
+      lockedUntil: null,
+      lastLoginAt: new Date(),
+    },
+  });
+
+  void prisma.vendorLoginHistory.create({
+    data: {
+      vendorId: vendor.id,
+      ipAddress: ip,
+      userAgent,
+      status: "SUCCESS",
+      failureReason: null,
+    },
+  }).catch(() => {});
 
   return {
     ok: true,
-    vendorId: String(vendor.id),
+    vendorId: vendor.id,
     mustChangePassword: Boolean(vendor.mustChangePassword),
     portalAccess: "RELEASED",
     vendor: {
-      id: String(vendor.id),
-      email: String(vendor.email),
-      name: String(vendor.name ?? ""),
+      id: vendor.id,
+      email: vendor.email,
+      name: vendor.name ?? "",
     },
   };
 }
 
 export async function createVendorSession(
-  sql: Sql,
+  _sql: unknown,
   vendorId: string,
   userAgent = ""
 ): Promise<string> {
-  const token = Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) =>
-    b.toString(16).padStart(2, "0")
-  ).join("");
+  const token = generateSessionToken();
   const tokenHash = await hashSha256(token);
   const expiresAt = new Date(Date.now() + VENDOR_SESSION_TTL_MS);
 
-  await sql`
-    INSERT INTO "VendorSession" (id, "tokenHash", "vendorId", "userAgent", "expiresAt", "createdAt")
-    VALUES (
-      ${cuid()},
-      ${tokenHash},
-      ${vendorId},
-      ${userAgent.slice(0, 255)},
-      ${expiresAt},
-      NOW()
-    )
-  `;
+  await prisma.vendorSession.create({
+    data: {
+      tokenHash,
+      vendorId,
+      userAgent: userAgent.slice(0, 255),
+      expiresAt,
+    },
+  });
 
   return token;
 }
 
-/**
- * Authoritative vendor session check.
- *
- * Only `X-Vendor-Session` is accepted — never `X-Admin-Session`. Vendor and
- * admin sessions live in separate tables on purpose.
- */
 export async function getVendorFromSession(
-  sql: Sql,
+  _sql: unknown,
   token: string | null | undefined
 ): Promise<VendorIdentity | null> {
   if (!token) return null;
 
-  const tokenHash = await hashSha256(token);
-  const [row] = await sql`
-    SELECT
-      v.id,
-      v.email,
-      v.name,
-      v."mustChangePassword",
-      v."registrationId",
-      v."isActive",
-      v."portalAccess",
-      r."registrationComplete" AS "registrationComplete",
-      s."revokedAt",
-      s."expiresAt"
-    FROM "VendorSession" s
-    INNER JOIN "VendorUser" v ON v.id = s."vendorId"
-    LEFT JOIN "SupplierRegistration" r ON r.id = v."registrationId"
-    WHERE s."tokenHash" = ${tokenHash}
-    LIMIT 1
-  `;
-
-  if (!row) return null;
-  if (row.revokedAt) return null;
-  if (new Date(row.expiresAt as string | Date) < new Date()) return null;
-  if (!row.isActive) return null;
-
-  // Sliding expiry — only write to DB when session is past half its TTL to avoid write bottlenecks
-  const expiresAtMs = new Date(row.expiresAt as string | Date).getTime();
-  if (expiresAtMs - Date.now() < VENDOR_SESSION_TTL_MS / 2) {
-    const tokenHashForTouch = tokenHash;
-    void sql`
-      UPDATE "VendorSession"
-      SET "expiresAt" = ${new Date(Date.now() + VENDOR_SESSION_TTL_MS)}
-      WHERE "tokenHash" = ${tokenHashForTouch} AND "revokedAt" IS NULL
-    `.catch(() => {
-      /* non-fatal */
+  try {
+    const tokenHash = await hashSha256(token);
+    const session = await prisma.vendorSession.findUnique({
+      where: { tokenHash },
+      include: {
+        vendor: {
+          include: { registration: true },
+        },
+      },
     });
+
+    if (!session) return null;
+    if (session.revokedAt) return null;
+    if (new Date(session.expiresAt) < new Date()) return null;
+    if (!session.vendor || !session.vendor.isActive) return null;
+
+    const expiresAtMs = new Date(session.expiresAt).getTime();
+    if (expiresAtMs - Date.now() < VENDOR_SESSION_TTL_MS / 2) {
+      void prisma.vendorSession.update({
+        where: { id: session.id },
+        data: {
+          expiresAt: new Date(Date.now() + VENDOR_SESSION_TTL_MS),
+        },
+      }).catch(() => {});
+    }
+
+    const regComplete = session.vendor.registration
+      ? Boolean(session.vendor.registration.registrationComplete)
+      : true;
+
+    return {
+      id: session.vendor.id,
+      email: session.vendor.email,
+      name: session.vendor.name,
+      mustChangePassword: Boolean(session.vendor.mustChangePassword),
+      registrationId: session.vendor.registrationId,
+      portalAccess: session.vendor.portalAccess,
+      registrationComplete: regComplete,
+    };
+  } catch (err) {
+    console.error("[vendor session] lookup failed", err);
+    return null;
   }
-
-  const portalAccess = (row.portalAccess as string) === "RELEASED" ? "RELEASED" : "HELD";
-  // Admin-created vendors (no registration) count as complete.
-  const registrationComplete =
-    row.registrationId == null ? true : Boolean(row.registrationComplete);
-
-  return {
-    id: String(row.id),
-    email: String(row.email),
-    name: String(row.name ?? ""),
-    mustChangePassword: Boolean(row.mustChangePassword),
-    registrationId: row.registrationId == null ? null : String(row.registrationId),
-    portalAccess,
-    registrationComplete,
-  };
 }
 
 export async function revokeVendorSession(
-  sql: Sql,
+  _sql: unknown,
   token: string | null | undefined
 ): Promise<void> {
   if (!token) return;
-  const tokenHash = await hashSha256(token);
-  await sql`
-    UPDATE "VendorSession"
-    SET "revokedAt" = NOW()
-    WHERE "tokenHash" = ${tokenHash} AND "revokedAt" IS NULL
-  `;
+  try {
+    const tokenHash = await hashSha256(token);
+    await prisma.vendorSession.updateMany({
+      where: { tokenHash, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+  } catch {
+    /* non-fatal */
+  }
 }
 
-/** Used after a password change so other devices are signed out. */
-export async function revokeAllVendorSessions(
-  sql: Sql,
-  vendorId: string,
-  exceptToken?: string | null
-): Promise<void> {
-  if (exceptToken) {
-    const exceptHash = await hashSha256(exceptToken);
-    await sql`
-      UPDATE "VendorSession"
-      SET "revokedAt" = NOW()
-      WHERE "vendorId" = ${vendorId}
-        AND "revokedAt" IS NULL
-        AND "tokenHash" <> ${exceptHash}
-    `;
-    return;
+export async function requireVendor(
+  sql: unknown,
+  env: Env,
+  request: Request
+): Promise<{ vendor: VendorIdentity; deny: null } | { vendor: null; deny: Response }> {
+  const token = request.headers.get("X-Vendor-Session");
+  if (!token) {
+    return {
+      vendor: null,
+      deny: json(env, request, { error: "Not signed in" }, 401),
+    };
   }
 
-  await sql`
-    UPDATE "VendorSession"
-    SET "revokedAt" = NOW()
-    WHERE "vendorId" = ${vendorId} AND "revokedAt" IS NULL
-  `;
-}
+  const vendor = await getVendorFromSession(sql, token);
+  if (!vendor) {
+    return {
+      vendor: null,
+      deny: json(env, request, { error: "Session expired or invalid" }, 401),
+    };
+  }
 
-/** Raw session token from X-Vendor-Session only — never X-Admin-Session. */
-export function vendorSessionFrom(request: Request): string | null {
-  return request.headers.get("X-Vendor-Session");
+  if (vendor.portalAccess === "HELD") {
+    return {
+      vendor: null,
+      deny: json(env, request, { error: "Access held", code: "PORTAL_ACCESS_HELD" }, 403),
+    };
+  }
+
+  return { vendor, deny: null };
 }
