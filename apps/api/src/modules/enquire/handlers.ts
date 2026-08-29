@@ -192,9 +192,23 @@ export async function handleOtpRequest(sql: Sql, env: Env, request: Request): Pr
     return json(env, request, { error: "Mail service unavailable" }, 503);
   }
 
+  // Ensure a vendor record exists for this email so VendorOtp FK is strictly satisfied
+  let [vendor] = await sql`
+    SELECT id FROM "VendorUser" WHERE lower(email) = ${email.toLowerCase()} LIMIT 1
+  `;
+  if (!vendor) {
+    const newVendorId = cuid();
+    const placeholderHash = await hashPassword(cuid());
+    await sql`
+      INSERT INTO "VendorUser" (id, email, name, "passwordHash", "portalAccess", "isActive", "createdAt", "updatedAt")
+      VALUES (${newVendorId}, ${email.toLowerCase()}, '', ${placeholderHash}, 'HELD', true, NOW(), NOW())
+    `;
+    vendor = { id: newVendorId };
+  }
+
   const [{ count }] = await sql`
-    SELECT COUNT(*)::int AS count FROM "OtpChallenge"
-    WHERE "ownerType" = 'REGISTRATION' AND "ownerId" = ${email}
+    SELECT COUNT(*)::int AS count FROM "VendorOtp"
+    WHERE "vendorId" = ${vendor.id}
       AND action = 'REGISTRATION_VERIFY'
       AND "createdAt" > NOW() - INTERVAL '1 hour'
   `;
@@ -207,8 +221,8 @@ export async function handleOtpRequest(sql: Sql, env: Env, request: Request): Pr
   const expiresAt = new Date(Date.now() + OTP_TTL_MS);
 
   await sql`
-    INSERT INTO "OtpChallenge" (id, "ownerType", "ownerId", action, "codeHash", "expiresAt", "createdAt")
-    VALUES (${cuid()}, 'REGISTRATION', ${email}, 'REGISTRATION_VERIFY', ${codeHash}, ${expiresAt}, NOW())
+    INSERT INTO "VendorOtp" (id, "vendorId", action, "codeHash", attempts, "expiresAt", "createdAt")
+    VALUES (${cuid()}, ${vendor.id}, 'REGISTRATION_VERIFY', ${codeHash}, 0, ${expiresAt}, NOW())
   `;
 
   // OTP only — registration rows are created on final submit (browser holds drafts).
@@ -234,10 +248,21 @@ export async function handleOtpVerify(sql: Sql, env: Env, request: Request): Pro
   }
   const { email, code } = parsed.data;
 
+  const [vendorRecord] = await sql`
+    SELECT id, "mustChangePassword", "isActive", "portalAccess"
+    FROM "VendorUser"
+    WHERE lower(email) = ${email.toLowerCase()}
+    LIMIT 1
+  `;
+
+  if (!vendorRecord) {
+    return json(env, request, { error: "Invalid or expired access code" }, 401);
+  }
+
   const codeHash = await hashSha256(code);
   const [otp] = await sql`
-    SELECT * FROM "OtpChallenge"
-    WHERE "ownerType" = 'REGISTRATION' AND "ownerId" = ${email}
+    SELECT * FROM "VendorOtp"
+    WHERE "vendorId" = ${vendorRecord.id}
       AND action = 'REGISTRATION_VERIFY'
       AND "consumedAt" IS NULL
       AND "expiresAt" > NOW()
@@ -245,11 +270,12 @@ export async function handleOtpVerify(sql: Sql, env: Env, request: Request): Pro
     LIMIT 1
   `;
 
-  if (!otp || !timingSafeEqualHex(String(otp.codeHash), codeHash)) {
+  const storedHash = otp ? ((otp.codeHash || otp.code_hash) as string) : "";
+  if (!otp || !timingSafeEqualHex(storedHash, codeHash)) {
     return json(env, request, { error: "Invalid or expired access code" }, 401);
   }
 
-  await sql`UPDATE "OtpChallenge" SET "consumedAt" = NOW() WHERE id = ${otp.id}`;
+  await sql`UPDATE "VendorOtp" SET "consumedAt" = NOW() WHERE id = ${otp.id}`;
 
   // Active vendor with released portal access → open portal.
   const [vendor] = await sql`
