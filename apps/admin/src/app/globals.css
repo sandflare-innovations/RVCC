@@ -25,6 +25,27 @@ body {
   min-height: 100%;
 }
 
+/* Ensure sticky table headers and fixed columns remain rock-solid with no jitter during scrolling */
+thead th.sticky {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
+  background-clip: padding-box !important;
+}
+
+thead th.sticky.left-0 {
+  z-index: 40 !important;
+}
+
+thead th.sticky.right-0 {
+  z-index: 40 !important;
+}
+
+tbody td.sticky {
+  position: sticky !important;
+  background-clip: padding-box !important;
+}
+
 @keyframes typing {
   0%,
 100% {
@@ -151,3 +172,18 @@ body {
     opacity: 1;
   }
 }
+
+/* Global scrollbar hiding utility */
+.no-scrollbar::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar,
+* {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
