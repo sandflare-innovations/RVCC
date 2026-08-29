@@ -33,7 +33,7 @@ jobs:
           cache: "pnpm"
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile --allow-scripts=@prisma/client,@prisma/engines,prisma,esbuild,workerd,unrs-resolver
+        run: pnpm install --frozen-lockfile
 
       - name: Validate Database Schema
         run: pnpm --filter api exec prisma validate
