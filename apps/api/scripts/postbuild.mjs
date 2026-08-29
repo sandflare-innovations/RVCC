@@ -5,10 +5,14 @@
 import { spawnSync } from "node:child_process";
 
 function shouldDeploy() {
+  // Explicit opt-in via env var (set in deploy workflow only)
   if (process.env.RVCC_AUTO_DEPLOY === "1" || process.env.RVCC_AUTO_DEPLOY === "true") {
     return true;
   }
-  if (process.env.CI === "true" || process.env.CI === "1") return true;
+  // Only deploy in CI if Cloudflare credentials are available
+  if ((process.env.CI === "true" || process.env.CI === "1") && process.env.CLOUDFLARE_API_TOKEN) {
+    return true;
+  }
   if (process.env.CF_PAGES === "1") return true;
   if (process.env.WORKERS_CI === "1") return true;
   return false;
