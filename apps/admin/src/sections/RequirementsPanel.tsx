@@ -318,82 +318,79 @@ export function RequirementsPanel() {
         className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
         aria-busy={refreshing || initialLoad}
       >
-        <div data-lenis-prevent className="min-h-0 flex-1 overflow-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
-            <thead>
-              <tr className="text-white">
-                <th className="sticky top-0 left-0 z-40 whitespace-nowrap rounded-l-2xl bg-brand-blue px-8 py-3.5 font-semibold">Project</th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Status</th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Reference</th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold cursor-pointer select-none hover:bg-brand-blue/90 transition-colors" onClick={() => {
-                  if (sortCol === "createdAt") setSortDir(d => d === "asc" ? "desc" : "asc");
-                  else { setSortCol("createdAt"); setSortDir("desc"); }
-                }}>
-                  <div className="flex items-center gap-1">
-                    Posted Date
-                    {sortCol === "createdAt" && (sortDir === "asc" ? <ChevronUp className="h-3 w-3 shrink-0" /> : <ChevronDown className="h-3 w-3 shrink-0" />)}
-                  </div>
-                </th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold cursor-pointer select-none hover:bg-brand-blue/80 transition-colors" onClick={() => {
-                  if (sortCol === "closesAt") setSortDir(d => d === "asc" ? "desc" : "asc");
-                  else { setSortCol("closesAt"); setSortDir("desc"); }
-                }}>
-                  <div className="flex items-center gap-1">
-                    Closes Date
-                    {sortCol === "closesAt" && (sortDir === "asc" ? <ChevronUp className="h-3 w-3 shrink-0" /> : <ChevronDown className="h-3 w-3 shrink-0" />)}
-                  </div>
-                </th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Invited</th>
-                <th className="sticky top-0 right-0 z-40 whitespace-nowrap rounded-r-2xl bg-brand-blue px-8 py-3.5 font-semibold">Quotes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {initialLoad && displayed.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-zinc-600">
-                    Loading requirements…
-                  </td>
-                </tr>
-              )}
-              {loadError && displayed.length === 0 && !initialLoad && (
-                <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-zinc-600">
-                    {loadError}
-                  </td>
-                </tr>
-              )}
-              {!loadError && !initialLoad && displayed.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-zinc-600">
-                    Nothing posted yet.
-                  </td>
-                </tr>
-              )}
-              {displayed.map((r) => (
-                <tr key={r.id} className="group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40" onClick={() => window.location.href = `/requirements/${r.id}`}>
-                  <td className="sticky left-0 z-10 whitespace-nowrap rounded-l-2xl bg-white px-8 py-4 font-medium text-zinc-900 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
-                    {r.project}
-                  </td>
-                  <td className="whitespace-nowrap px-8 py-4">
-                    {statusLabel(r.status, r.closesAt)}
-                  </td>
-                  <td className="whitespace-nowrap px-8 py-4">
-                    <span className="text-brand-blue font-mono text-xs tabular-nums font-medium group-hover:underline">
-                      {r.referenceNumber ?? "— draft —"}
-                    </span>
-                  </td>
-                  <td className="whitespace-nowrap px-8 py-4 text-zinc-600 tabular-nums">
-                    {formatDateTime(r.createdAt)}
-                  </td>
-                  <td className="whitespace-nowrap px-8 py-4 text-zinc-600 tabular-nums">
-                    {formatDateTime(r.closesAt)}
-                  </td>
-                  <td className="whitespace-nowrap px-8 py-4 text-zinc-600 tabular-nums">{r.invited}</td>
-                  <td className="whitespace-nowrap rounded-r-2xl px-8 py-4 text-zinc-600 tabular-nums">{r.submitted}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Fixed Top Header */}
+        <div className="shrink-0 bg-brand-blue text-white rounded-2xl px-6 py-3.5 shadow-xs mb-2">
+          <div className="grid grid-cols-12 gap-3 items-center text-xs font-semibold">
+            <div className="col-span-3 min-w-0">Project</div>
+            <div className="col-span-2 min-w-0">Status</div>
+            <div className="col-span-2 min-w-0">Reference</div>
+            <div
+              className="col-span-2 min-w-0 flex items-center gap-1 cursor-pointer select-none hover:text-white/80 transition-colors"
+              onClick={() => {
+                if (sortCol === "createdAt") setSortDir(d => d === "asc" ? "desc" : "asc");
+                else { setSortCol("createdAt"); setSortDir("desc"); }
+              }}
+            >
+              <span>Posted Date</span>
+              {sortCol === "createdAt" && (sortDir === "asc" ? <ChevronUp className="h-3 w-3 shrink-0" /> : <ChevronDown className="h-3 w-3 shrink-0" />)}
+            </div>
+            <div
+              className="col-span-2 min-w-0 flex items-center gap-1 cursor-pointer select-none hover:text-white/80 transition-colors"
+              onClick={() => {
+                if (sortCol === "closesAt") setSortDir(d => d === "asc" ? "desc" : "asc");
+                else { setSortCol("closesAt"); setSortDir("desc"); }
+              }}
+            >
+              <span>Closes Date</span>
+              {sortCol === "closesAt" && (sortDir === "asc" ? <ChevronUp className="h-3 w-3 shrink-0" /> : <ChevronDown className="h-3 w-3 shrink-0" />)}
+            </div>
+            <div className="col-span-1 min-w-0 text-right">Quotes</div>
+          </div>
+        </div>
+
+        {/* Scrollable Rows */}
+        <div data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden space-y-2 pr-1">
+          {initialLoad && displayed.length === 0 && (
+            <div className="px-6 py-10 text-center text-zinc-600">
+              Loading requirements…
+            </div>
+          )}
+          {loadError && displayed.length === 0 && !initialLoad && (
+            <div className="px-6 py-10 text-center text-zinc-600">
+              {loadError}
+            </div>
+          )}
+          {!loadError && !initialLoad && displayed.length === 0 && (
+            <div className="px-6 py-10 text-center text-zinc-600">
+              Nothing posted yet.
+            </div>
+          )}
+          {displayed.map((r) => (
+            <div
+              key={r.id}
+              className="grid grid-cols-12 gap-3 items-center group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl p-4 transition-all hover:ring-brand-blue/40 text-sm"
+              onClick={() => window.location.href = `/requirements/${r.id}`}
+            >
+              <div className="col-span-3 min-w-0 font-medium text-zinc-900 truncate">
+                {r.project}
+              </div>
+              <div className="col-span-2 min-w-0 truncate">
+                {statusLabel(r.status, r.closesAt)}
+              </div>
+              <div className="col-span-2 min-w-0 font-mono text-xs text-brand-blue tabular-nums font-medium group-hover:underline truncate">
+                {r.referenceNumber ?? "— draft —"}
+              </div>
+              <div className="col-span-2 min-w-0 text-zinc-600 tabular-nums text-xs truncate">
+                {formatDateTime(r.createdAt)}
+              </div>
+              <div className="col-span-2 min-w-0 text-zinc-600 tabular-nums text-xs truncate">
+                {formatDateTime(r.closesAt)}
+              </div>
+              <div className="col-span-1 min-w-0 text-right text-zinc-600 tabular-nums font-mono text-xs truncate">
+                {r.submitted} ({r.invited} inv)
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
