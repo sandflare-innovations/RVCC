@@ -273,88 +273,75 @@ export function VendorAccountsPanel({
         className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
         aria-busy={refreshing || initialLoad}
       >
-        <div data-lenis-prevent className="min-h-0 flex-1 overflow-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
-            <thead>
-              <tr className="text-white">
-                <th className="sticky top-0 left-0 z-40 whitespace-nowrap rounded-l-2xl bg-brand-blue px-8 py-3.5 font-semibold">Name</th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Email</th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Company</th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Reg ID</th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Last sign-in</th>
-                <th className="sticky top-0 right-0 z-40 whitespace-nowrap rounded-r-2xl bg-brand-blue px-8 py-3.5 font-semibold text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-            {initialLoad && displayed.length === 0 && (
-              <tr className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl">
-                <td colSpan={6} className="px-5 py-10 text-center text-zinc-600 rounded-2xl">
-                  Loading vendor accounts…
-                </td>
-              </tr>
-            )}
-            {loadError && displayed.length === 0 && !initialLoad && (
-              <tr className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl">
-                <td colSpan={6} className="px-5 py-10 text-center text-zinc-600 rounded-2xl">
-                  {loadError}
-                </td>
-              </tr>
-            )}
-            {!loadError && !initialLoad && displayed.length === 0 && (
-              <tr className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl">
-                <td colSpan={6} className="px-5 py-10 text-center text-zinc-600 rounded-2xl">
-                  {`No vendor accounts${search ? ` matching “${search}”` : ""} in this view.`}
-                </td>
-              </tr>
-            )}
-            {displayed.map((v) => (
-              <tr
-                key={v.id}
-                className={`group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40 ${activeDropdownRow === v.id ? 'relative z-[60]' : ''}`}
-                onClick={(e) => {
-                  if ((e.target as HTMLElement).closest('button, a')) return;
-                  router.push(`/vendors/${v.id}`);
-                }}
-              >
-                <td className="sticky left-0 z-10 whitespace-nowrap rounded-l-2xl bg-white px-8 py-4 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
-                  <div className="flex items-center gap-3">
-                    {v.portalAccess === "RELEASED" ? (
-                      <CheckCircle className="h-5 w-5 shrink-0 text-emerald-500" />
-                    ) : (
-                      <Lock className="h-5 w-5 shrink-0 text-amber-500" />
-                    )}
-                    <p className="font-medium text-zinc-950">{v.name || "—"}</p>
-                  </div>
-                </td>
-                <td className="whitespace-nowrap px-8 py-4 text-zinc-700">{v.email}</td>
-                <td className="whitespace-nowrap px-8 py-4 text-zinc-700">
-                  {v.registration ? (
-                    <span className="font-medium">
-                      {v.registration.company?.legalName || "—"}
-                    </span>
+        {/* Fixed Top Header */}
+        <div className="shrink-0 bg-brand-blue text-white rounded-2xl px-6 py-3.5 shadow-xs mb-2">
+          <div className="grid grid-cols-12 gap-3 items-center text-xs font-semibold">
+            <div className="col-span-3 min-w-0">Name</div>
+            <div className="col-span-3 min-w-0">Email</div>
+            <div className="col-span-2 min-w-0">Company</div>
+            <div className="col-span-2 min-w-0">Reg ID</div>
+            <div className="col-span-1 min-w-0">Last sign-in</div>
+            <div className="col-span-1 min-w-0 text-right">Actions</div>
+          </div>
+        </div>
+
+        {/* Scrollable Rows */}
+        <div data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden space-y-2 pr-1">
+          {initialLoad && displayed.length === 0 && (
+            <div className="px-6 py-10 text-center text-zinc-600">
+              Loading vendor accounts…
+            </div>
+          )}
+          {loadError && displayed.length === 0 && !initialLoad && (
+            <div className="px-6 py-10 text-center text-zinc-600">
+              {loadError}
+            </div>
+          )}
+          {!loadError && !initialLoad && displayed.length === 0 && (
+            <div className="px-6 py-10 text-center text-zinc-600">
+              {`No vendor accounts${search ? ` matching “${search}”` : ""} in this view.`}
+            </div>
+          )}
+          {displayed.map((v) => (
+            <div
+              key={v.id}
+              className={`grid grid-cols-12 gap-3 items-center group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl p-4 transition-all hover:ring-brand-blue/40 text-sm ${activeDropdownRow === v.id ? 'relative z-[60]' : ''}`}
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest('button, a')) return;
+                router.push(`/vendors/${v.id}`);
+              }}
+            >
+              <div className="col-span-3 min-w-0">
+                <div className="flex items-center gap-3">
+                  {v.portalAccess === "RELEASED" ? (
+                    <CheckCircle className="h-5 w-5 shrink-0 text-emerald-500" />
                   ) : (
-                    <span className="text-zinc-500">Added by RVCC</span>
+                    <Lock className="h-5 w-5 shrink-0 text-amber-500" />
                   )}
-                </td>
-                <td className="min-w-0 whitespace-nowrap px-8 py-4">
-                  {v.registration?.referenceNumber ? (
-                    <p className="font-mono text-sm text-zinc-600 tabular-nums">
-                      {v.registration.referenceNumber}
-                    </p>
-                  ) : (
-                    <span className="text-zinc-400">—</span>
-                  )}
-                </td>
-                <td className="min-w-0 whitespace-nowrap px-8 py-4 text-zinc-600 tabular-nums">
-                  {formatDateTime(v.lastLoginAt) ?? "Never"}
-                </td>
-                <td className="sticky right-0 z-10 whitespace-nowrap rounded-r-2xl bg-white px-8 py-4 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
-                  <VendorRowActions vendor={toSummary(v)} onUpdated={updateRowInCache} onDropdownOpen={(open) => setActiveDropdownRow(open ? v.id : null)} />
-                </td>
-              </tr>
-            ))}
-            </tbody>
-          </table>
+                  <p className="font-medium text-zinc-950 truncate">{v.name || "—"}</p>
+                </div>
+              </div>
+              <div className="col-span-3 min-w-0 text-zinc-700 text-xs truncate">{v.email}</div>
+              <div className="col-span-2 min-w-0 text-zinc-700 truncate">
+                {v.registration ? (
+                  <span className="font-medium truncate block">
+                    {v.registration.company?.legalName || "—"}
+                  </span>
+                ) : (
+                  <span className="text-zinc-500">Added by RVCC</span>
+                )}
+              </div>
+              <div className="col-span-2 min-w-0 font-mono text-xs text-zinc-600 tabular-nums truncate">
+                {v.registration?.referenceNumber || "—"}
+              </div>
+              <div className="col-span-1 min-w-0 text-zinc-600 tabular-nums text-xs truncate">
+                {formatDateTime(v.lastLoginAt) ?? "Never"}
+              </div>
+              <div className="col-span-1 min-w-0 text-right">
+                <VendorRowActions vendor={toSummary(v)} onUpdated={updateRowInCache} onDropdownOpen={(open) => setActiveDropdownRow(open ? v.id : null)} />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
