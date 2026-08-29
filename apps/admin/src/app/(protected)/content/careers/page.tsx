@@ -72,56 +72,58 @@ async function CareersData() {
   const canDelete = Boolean(admin && hasRole(admin.role, "SUPER_ADMIN"));
 
   return (
-    <div className="overflow-x-auto rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
-      <table className="w-full text-left text-sm border-separate border-spacing-y-2">
-        <thead>
-          <tr className="bg-brand-blue text-white">
-            <th className="px-6 py-3.5 font-semibold rounded-l-2xl">Title</th>
-            <th className="px-6 py-3.5 font-semibold">Department</th>
-            <th className="px-6 py-3.5 font-semibold">Location</th>
-            <th className="px-6 py-3.5 font-semibold">State</th>
-            <th className="px-6 py-3.5 font-semibold text-right rounded-r-2xl">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {jobs.length === 0 && (
-            <tr className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl">
-              <td colSpan={5} className="px-6 py-10 text-center text-zinc-600 rounded-2xl">
-                {!jobsResult.ok
-                  ? `Could not load careers (${jobsResult.status}).`
-                  : "No postings yet."}
-              </td>
-            </tr>
-          )}
-          {jobs.map((j) => (
-            <tr key={j.id} className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40 hover:shadow-[0_8px_24px_-16px_rgba(0,115,188,0.45)] group">
-              <td className="px-6 py-4 rounded-l-2xl">
-                <Link
-                  href={`/content/careers/${j.id}`}
-                  className="hover:text-brand-blue font-medium text-zinc-950 underline-offset-2 hover:underline"
-                >
-                  {j.title}
-                </Link>
-                <p className="font-mono text-xs text-zinc-500">/{j.slug}</p>
-              </td>
-              <td className="px-6 py-4 text-zinc-700">{j.department || "—"}</td>
-              <td className="px-6 py-4 text-zinc-700">
-                {j.location || "—"}
-                {j.isRemote && <span className="text-brand-blue text-xs"> · Remote</span>}
-              </td>
-              <td className="px-6 py-4">
-                <StatusBadge status={j.isPublished ? "PUBLISHED" : "DRAFT_CONTENT"} />
-              </td>
-              <td className="px-6 py-4 rounded-r-2xl">
-                <CareerRowActions
-                  job={{ id: j.id, title: j.title, slug: j.slug, isPublished: j.isPublished }}
-                  canDelete={canDelete}
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="flex flex-col min-h-0 w-full rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
+      {/* Fixed Top Header */}
+      <div className="shrink-0 bg-brand-blue text-white rounded-2xl px-6 py-3.5 shadow-xs mb-2">
+        <div className="grid grid-cols-12 gap-3 items-center text-xs font-semibold">
+          <div className="col-span-4 min-w-0">Title</div>
+          <div className="col-span-3 min-w-0">Department</div>
+          <div className="col-span-2 min-w-0">Location</div>
+          <div className="col-span-2 min-w-0">State</div>
+          <div className="col-span-1 min-w-0 text-right">Actions</div>
+        </div>
+      </div>
+
+      {/* Scrollable Rows */}
+      <div data-lenis-prevent className="min-h-0 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden space-y-2 pr-1">
+        {jobs.length === 0 && (
+          <div className="px-6 py-10 text-center text-zinc-600">
+            {!jobsResult.ok
+              ? `Could not load careers (${jobsResult.status}).`
+              : "No postings yet."}
+          </div>
+        )}
+        {jobs.map((j) => (
+          <div
+            key={j.id}
+            className="grid grid-cols-12 gap-3 items-center bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl p-4 transition-all hover:ring-brand-blue/40 hover:shadow-[0_8px_24px_-16px_rgba(0,115,188,0.45)] text-sm group"
+          >
+            <div className="col-span-4 min-w-0">
+              <Link
+                href={`/content/careers/${j.id}`}
+                className="hover:text-brand-blue font-medium text-zinc-950 underline-offset-2 hover:underline truncate block"
+              >
+                {j.title}
+              </Link>
+              <p className="font-mono text-xs text-zinc-500 truncate">/{j.slug}</p>
+            </div>
+            <div className="col-span-3 min-w-0 text-zinc-700 truncate">{j.department || "—"}</div>
+            <div className="col-span-2 min-w-0 text-zinc-700 truncate">
+              {j.location || "—"}
+              {j.isRemote && <span className="text-brand-blue text-xs"> · Remote</span>}
+            </div>
+            <div className="col-span-2 min-w-0 truncate">
+              <StatusBadge status={j.isPublished ? "PUBLISHED" : "DRAFT_CONTENT"} />
+            </div>
+            <div className="col-span-1 min-w-0 text-right">
+              <CareerRowActions
+                job={{ id: j.id, title: j.title, slug: j.slug, isPublished: j.isPublished }}
+                canDelete={canDelete}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
