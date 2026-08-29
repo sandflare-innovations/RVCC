@@ -15,9 +15,7 @@
     "test": "vitest run",
     "deploy": "wrangler deploy",
     "release": "node scripts/release.mjs",
-    "cf:secret": "wrangler secret put",
-    "db:upgrade-sourcing": "node --env-file-if-exists=.env scripts/apply-sourcing-upgrade.mjs",
-    "db:upgrade-uploads": "node --env-file-if-exists=.env scripts/apply-uploads-upgrade.mjs"
+    "cf:secret": "wrangler secret put"
   },
   "dependencies": {
     "@hono/node-server": "^1.14.4",
