@@ -42,7 +42,7 @@ const SEARCH_PLACEHOLDERS = [
   "staff name...",
   "email address...",
   "job position...",
-  "role (Super Admin, Procurement Admin)...",
+  "role...",
 ];
 
 
@@ -389,9 +389,8 @@ export function StaffPanel() {
               type="button"
               onClick={() => setViewMode("table")}
               title="Table View"
-              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                viewMode === "table" ? "bg-brand-blue text-white shadow-2xs font-bold" : "text-brand-blue hover:bg-brand-blue/5"
-              }`}
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${viewMode === "table" ? "bg-brand-blue text-white shadow-2xs font-bold" : "text-brand-blue hover:bg-brand-blue/5"
+                }`}
             >
               <TableIcon className="h-3.5 w-3.5" />
               <span>Table</span>
@@ -400,9 +399,8 @@ export function StaffPanel() {
               type="button"
               onClick={() => setViewMode("card")}
               title="Card View"
-              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                viewMode === "card" ? "bg-brand-blue text-white shadow-2xs font-bold" : "text-brand-blue hover:bg-brand-blue/5"
-              }`}
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${viewMode === "card" ? "bg-brand-blue text-white shadow-2xs font-bold" : "text-brand-blue hover:bg-brand-blue/5"
+                }`}
             >
               <LayoutGrid className="h-3.5 w-3.5" />
               <span>Cards</span>
@@ -437,9 +435,8 @@ export function StaffPanel() {
       {/* Main Content Area */}
       {viewMode === "table" ? (
         <div
-          className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] transition-opacity duration-150 ${
-            refreshing ? "opacity-70" : "opacity-100"
-          }`}
+          className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"
+            }`}
         >
           {/* Fixed Top Header */}
           <div className="shrink-0 bg-brand-blue text-white rounded-2xl px-6 py-3.5 shadow-xs mb-2">
@@ -528,11 +525,10 @@ export function StaffPanel() {
                         type="button"
                         onClick={() => handleInitiateToggleBlock(staff)}
                         title={staff.isActive ? "Block administrator account" : "Unblock administrator account"}
-                        className={`p-1.5 rounded-xl transition-colors cursor-pointer ${
-                          staff.isActive
+                        className={`p-1.5 rounded-xl transition-colors cursor-pointer ${staff.isActive
                             ? "text-zinc-400 hover:text-rose-600 hover:bg-rose-50"
                             : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                        }`}
+                          }`}
                       >
                         {staff.isActive ? <Ban className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
                       </button>
@@ -626,11 +622,10 @@ export function StaffPanel() {
                       <button
                         type="button"
                         onClick={() => handleInitiateToggleBlock(staff)}
-                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                          staff.isActive
+                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${staff.isActive
                             ? "text-zinc-500 hover:text-rose-600 hover:bg-rose-50"
                             : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                        }`}
+                          }`}
                         title={staff.isActive ? "Block account" : "Unblock account"}
                       >
                         {staff.isActive ? <Ban className="h-3.5 w-3.5" /> : <CheckCircle className="h-3.5 w-3.5" />}
@@ -850,9 +845,8 @@ function CreateStaffModal({
                         setRole(rKey);
                         setRoleDropdownOpen(false);
                       }}
-                      className={`w-full text-left p-3 transition-colors flex items-start justify-between gap-3 cursor-pointer ${
-                        isSelected ? "bg-blue-50/50" : "hover:bg-zinc-50"
-                      }`}
+                      className={`w-full text-left p-3 transition-colors flex items-start justify-between gap-3 cursor-pointer ${isSelected ? "bg-blue-50/50" : "hover:bg-zinc-50"
+                        }`}
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -1022,9 +1016,8 @@ function EditStaffModal({
                         setRole(rKey);
                         setRoleDropdownOpen(false);
                       }}
-                      className={`w-full text-left p-3 transition-colors flex items-start justify-between gap-3 cursor-pointer ${
-                        isSelected ? "bg-blue-50/50" : "hover:bg-zinc-50"
-                      }`}
+                      className={`w-full text-left p-3 transition-colors flex items-start justify-between gap-3 cursor-pointer ${isSelected ? "bg-blue-50/50" : "hover:bg-zinc-50"
+                        }`}
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -1348,11 +1341,10 @@ function OtpVerificationModal({
                     value={digits[idx] || ""}
                     onChange={(e) => handleChange(idx, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(idx, e)}
-                    className={`h-12 w-11 sm:h-13 sm:w-12 rounded-2xl border text-center text-xl font-bold font-mono transition-all duration-150 focus:outline-none ${
-                      isFilled
+                    className={`h-12 w-11 sm:h-13 sm:w-12 rounded-2xl border text-center text-xl font-bold font-mono transition-all duration-150 focus:outline-none ${isFilled
                         ? "border-brand-blue bg-blue-50/30 text-brand-blue shadow-xs"
                         : "border-zinc-200 bg-zinc-50/50 text-zinc-900 focus:border-brand-blue focus:bg-white focus:ring-4 focus:ring-brand-blue/15"
-                    }`}
+                      }`}
                   />
                 );
               })}
