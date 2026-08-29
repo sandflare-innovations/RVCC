@@ -46,8 +46,9 @@ async function verifyOtpChallenge(
 
   // Find latest active challenge for this admin and action
   const [challenge] = await sql`
-    SELECT * FROM "AdminOtpChallenge"
-    WHERE "adminId" = ${adminId} AND action = ${action} AND "expiresAt" > ${now}
+    SELECT * FROM "OtpChallenge"
+    WHERE "ownerType" = 'ADMIN' AND "ownerId" = ${adminId} AND action = ${action}
+      AND "expiresAt" > ${now} AND "consumedAt" IS NULL
     ORDER BY "createdAt" DESC
     LIMIT 1
   `;
@@ -57,21 +58,21 @@ async function verifyOtpChallenge(
   }
 
   if (Number(challenge.attempts) >= MAX_OTP_ATTEMPTS) {
-    await sql`DELETE FROM "AdminOtpChallenge" WHERE id = ${challenge.id as string}`;
+    await sql`DELETE FROM "OtpChallenge" WHERE id = ${challenge.id as string}`;
     return { valid: false, error: "Maximum verification attempts exceeded. Please request a new OTP." };
   }
 
   if (challenge.codeHash !== codeHash) {
     await sql`
-      UPDATE "AdminOtpChallenge"
+      UPDATE "OtpChallenge"
       SET attempts = attempts + 1
       WHERE id = ${challenge.id as string}
     `;
     return { valid: false, error: "Invalid verification code. Please check and try again." };
   }
 
-  // Valid OTP: delete challenge to prevent replay attacks
-  await sql`DELETE FROM "AdminOtpChallenge" WHERE id = ${challenge.id as string}`;
+  // Valid OTP: mark consumed to prevent replay attacks
+  await sql`UPDATE "OtpChallenge" SET "consumedAt" = NOW() WHERE id = ${challenge.id as string}`;
   return { valid: true };
 }
 
@@ -95,10 +96,10 @@ export async function handleStaffOtpRequest(
   }
   const action = typeof (body as any)?.action === "string" ? (body as any).action : "STAFF_MANAGEMENT";
 
-  // Clean old expired challenges
+  // Clean old expired challenges for this admin
   await sql`
-    DELETE FROM "AdminOtpChallenge"
-    WHERE "adminId" = ${auth.admin.id} OR "expiresAt" < NOW()
+    DELETE FROM "OtpChallenge"
+    WHERE ("ownerType" = 'ADMIN' AND "ownerId" = ${auth.admin.id}) OR "expiresAt" < NOW()
   `;
 
   const code = generateOtpCode();
@@ -107,10 +108,10 @@ export async function handleStaffOtpRequest(
   const expiresAt = new Date(Date.now() + OTP_TTL_MS);
 
   await sql`
-    INSERT INTO "AdminOtpChallenge" (
-      id, "adminId", action, "codeHash", attempts, "expiresAt", "createdAt"
+    INSERT INTO "OtpChallenge" (
+      id, "ownerType", "ownerId", action, "codeHash", attempts, "expiresAt", "createdAt"
     ) VALUES (
-      ${challengeId}, ${auth.admin.id}, ${action}, ${codeHash}, 0, ${expiresAt}, NOW()
+      ${challengeId}, 'ADMIN', ${auth.admin.id}, ${action}, ${codeHash}, 0, ${expiresAt}, NOW()
     )
   `;
 

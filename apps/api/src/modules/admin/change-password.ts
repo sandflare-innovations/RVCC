@@ -112,8 +112,10 @@ export async function handleAdminChangePasswordRequestOtp(
 
   // Rate limit: max 5 OTPs per hour per admin
   const [{ count }] = await sql`
-    SELECT COUNT(*)::int AS count FROM "AdminOtp"
-    WHERE "adminId" = ${admin.id} AND "createdAt" > NOW() - INTERVAL '1 hour'
+    SELECT COUNT(*)::int AS count FROM "OtpChallenge"
+    WHERE "ownerType" = 'ADMIN' AND "ownerId" = ${admin.id}
+      AND action = 'PASSWORD_CHANGE'
+      AND "createdAt" > NOW() - INTERVAL '1 hour'
   `;
   if (Number(count) >= OTP_MAX_PER_HOUR) {
     return json(env, request, { error: "Too many requests. Try again later." }, 429);
@@ -126,13 +128,14 @@ export async function handleAdminChangePasswordRequestOtp(
 
   // Invalidate any previous unconsumed OTPs for this admin
   await sql`
-    UPDATE "AdminOtp" SET "consumedAt" = NOW()
-    WHERE "adminId" = ${admin.id} AND "consumedAt" IS NULL
+    UPDATE "OtpChallenge" SET "consumedAt" = NOW()
+    WHERE "ownerType" = 'ADMIN' AND "ownerId" = ${admin.id}
+      AND action = 'PASSWORD_CHANGE' AND "consumedAt" IS NULL
   `;
 
   await sql`
-    INSERT INTO "AdminOtp" (id, "adminId", "codeHash", "expiresAt", "createdAt")
-    VALUES (${cuid()}, ${admin.id}, ${codeHash}, ${expiresAt}, NOW())
+    INSERT INTO "OtpChallenge" (id, "ownerType", "ownerId", action, "codeHash", "expiresAt", "createdAt")
+    VALUES (${cuid()}, 'ADMIN', ${admin.id}, 'PASSWORD_CHANGE', ${codeHash}, ${expiresAt}, NOW())
   `;
 
   // Send OTP email
@@ -180,8 +183,9 @@ export async function handleAdminChangePasswordVerify(
   // Find the latest unconsumed OTP
   const codeHash = await hashSha256(code);
   const [otp] = await sql`
-    SELECT * FROM "AdminOtp"
-    WHERE "adminId" = ${admin.id}
+    SELECT * FROM "OtpChallenge"
+    WHERE "ownerType" = 'ADMIN' AND "ownerId" = ${admin.id}
+      AND action = 'PASSWORD_CHANGE'
       AND "consumedAt" IS NULL
       AND "expiresAt" > NOW()
     ORDER BY "createdAt" DESC
@@ -199,7 +203,7 @@ export async function handleAdminChangePasswordVerify(
   }
 
   // Mark OTP as consumed
-  await sql`UPDATE "AdminOtp" SET "consumedAt" = NOW() WHERE id = ${otp.id}`;
+  await sql`UPDATE "OtpChallenge" SET "consumedAt" = NOW() WHERE id = ${otp.id}`;
 
   // Hash and update the new password
   const passwordHash = await hashPassword(newPassword);

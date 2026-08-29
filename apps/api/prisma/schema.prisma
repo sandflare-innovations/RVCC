@@ -67,23 +67,26 @@ model AdminUser {
   notifications Notification[]
   procurementRequisitions PurchaseRequest[]
   procurementAudits       PurchaseRequestAuditLog[]
-  otpChallenges           AdminOtpChallenge[]
 
   @@index([email])
 }
 
-/// OTP challenges for high-security staff management operations.
-model AdminOtpChallenge {
-  id        String   @id @default(cuid())
-  adminId   String
-  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  action    String   // e.g. "CREATE_STAFF", "UPDATE_STAFF", "DELETE_STAFF", "RESET_PASSWORD"
-  codeHash  String   // SHA-256 hash of 6-digit numeric OTP
-  attempts  Int      @default(0)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+/// Unified OTP challenge table — covers admin staff operations, admin login/password
+/// changes, and vendor registration verification. ownerType + ownerId isolate
+/// each security domain; action distinguishes the purpose.
+model OtpChallenge {
+  id         String    @id @default(cuid())
+  ownerType  String    // "ADMIN" | "VENDOR" | "REGISTRATION"
+  ownerId    String    // adminId, vendorId, or email for registration
+  action     String    // e.g. "STAFF_MANAGEMENT", "PASSWORD_CHANGE", "REGISTRATION_VERIFY"
+  codeHash   String    // SHA-256 hash of 6-digit numeric OTP
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
 
-  @@index([adminId, action])
+  @@index([ownerType, ownerId, action])
+  @@index([expiresAt])
 }
 
 
@@ -272,27 +275,7 @@ model SupplierRegistration {
   @@index([registrationComplete])
 }
 
-model RegistrationOtp {
-  id         String    @id @default(cuid())
-  email      String
-  codeHash   String
-  expiresAt  DateTime
-  consumedAt DateTime?
-  createdAt  DateTime  @default(now())
-
-  @@index([email])
-}
-
-model AdminOtp {
-  id         String    @id @default(cuid())
-  adminId    String
-  codeHash   String
-  expiresAt  DateTime
-  consumedAt DateTime?
-  createdAt  DateTime  @default(now())
-
-  @@index([adminId])
-}
+// AdminOtp and RegistrationOtp have been merged into OtpChallenge above.
 
 model CompanyProfile {
   id               String               @id @default(cuid())

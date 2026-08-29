@@ -193,8 +193,10 @@ export async function handleOtpRequest(sql: Sql, env: Env, request: Request): Pr
   }
 
   const [{ count }] = await sql`
-    SELECT COUNT(*)::int AS count FROM "RegistrationOtp"
-    WHERE email = ${email} AND "createdAt" > NOW() - INTERVAL '1 hour'
+    SELECT COUNT(*)::int AS count FROM "OtpChallenge"
+    WHERE "ownerType" = 'REGISTRATION' AND "ownerId" = ${email}
+      AND action = 'REGISTRATION_VERIFY'
+      AND "createdAt" > NOW() - INTERVAL '1 hour'
   `;
   if (Number(count) >= OTP_MAX_PER_HOUR) {
     return json(env, request, { error: "Too many access code requests. Try again later." }, 429);
@@ -205,8 +207,8 @@ export async function handleOtpRequest(sql: Sql, env: Env, request: Request): Pr
   const expiresAt = new Date(Date.now() + OTP_TTL_MS);
 
   await sql`
-    INSERT INTO "RegistrationOtp" (id, email, "codeHash", "expiresAt", "createdAt")
-    VALUES (${cuid()}, ${email}, ${codeHash}, ${expiresAt}, NOW())
+    INSERT INTO "OtpChallenge" (id, "ownerType", "ownerId", action, "codeHash", "expiresAt", "createdAt")
+    VALUES (${cuid()}, 'REGISTRATION', ${email}, 'REGISTRATION_VERIFY', ${codeHash}, ${expiresAt}, NOW())
   `;
 
   // OTP only — registration rows are created on final submit (browser holds drafts).
@@ -234,8 +236,9 @@ export async function handleOtpVerify(sql: Sql, env: Env, request: Request): Pro
 
   const codeHash = await hashSha256(code);
   const [otp] = await sql`
-    SELECT * FROM "RegistrationOtp"
-    WHERE email = ${email}
+    SELECT * FROM "OtpChallenge"
+    WHERE "ownerType" = 'REGISTRATION' AND "ownerId" = ${email}
+      AND action = 'REGISTRATION_VERIFY'
       AND "consumedAt" IS NULL
       AND "expiresAt" > NOW()
     ORDER BY "createdAt" DESC
@@ -246,7 +249,7 @@ export async function handleOtpVerify(sql: Sql, env: Env, request: Request): Pro
     return json(env, request, { error: "Invalid or expired access code" }, 401);
   }
 
-  await sql`UPDATE "RegistrationOtp" SET "consumedAt" = NOW() WHERE id = ${otp.id}`;
+  await sql`UPDATE "OtpChallenge" SET "consumedAt" = NOW() WHERE id = ${otp.id}`;
 
   // Active vendor with released portal access → open portal.
   const [vendor] = await sql`
