@@ -45,27 +45,41 @@ async function main() {
     const passwordHash = await hashPassword(password);
     const id = cuid();
 
+    // Ensure role exists in Role table
+    let [roleRecord] = await sql`
+      SELECT id FROM "Role" WHERE name = ${role} LIMIT 1
+    `;
+    let roleId = roleRecord?.id;
+    if (!roleId) {
+      roleId = cuid();
+      await sql`
+        INSERT INTO "Role" (id, name, description, "isSystem", "createdAt", "updatedAt")
+        VALUES (${roleId}, ${role}, ${role + ' Administrator Role'}, true, NOW(), NOW())
+        ON CONFLICT (name) DO UPDATE SET "updatedAt" = NOW()
+      `;
+    }
+
     const [admin] = await sql`
       INSERT INTO "AdminUser" (
-        id, email, name, "passwordHash", role, "isActive",
+        id, email, name, "passwordHash", "roleId", "isActive",
         "failedAttempts", "lockedUntil", "createdAt", "updatedAt"
       )
       VALUES (
-        ${id}, ${normalized}, ${name}, ${passwordHash}, ${role}::"AdminRole", true,
+        ${id}, ${normalized}, ${name}, ${passwordHash}, ${roleId}, true,
         0, NULL, NOW(), NOW()
       )
       ON CONFLICT (email) DO UPDATE SET
         "passwordHash" = EXCLUDED."passwordHash",
         name = EXCLUDED.name,
-        role = EXCLUDED.role,
+        "roleId" = EXCLUDED."roleId",
         "isActive" = true,
         "failedAttempts" = 0,
         "lockedUntil" = NULL,
         "updatedAt" = NOW()
-      RETURNING email, role
+      RETURNING email, "roleId"
     `;
 
-    console.log(`\n  ${admin.email}  (${admin.role})  — ready.\n  Sign in at /login\n`);
+    console.log(`\n  ${admin.email}  (${role})  — ready.\n  Sign in at /login\n`);
   } catch (err) {
     console.error("Failed:", (err as Error).message);
     process.exit(1);
