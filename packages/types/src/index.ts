@@ -112,3 +112,61 @@ export interface ApiResponse<T = unknown> {
   error?: string;
   message?: string;
 }
+
+// ── Live Bidding & Real-Time Ranking Types ────────────────────────────────────
+
+export interface AdminQuoteRankingItem {
+  id: string;
+  rank: number;
+  newPrice: string;
+  currency: string;
+  amountSar: string | null;
+  remarks: string | null;
+  quoteFileUrl?: string | null;
+  submittedAt: string | null;
+  who: string;
+  vendorEmail: string;
+  vendorId: string;
+  isLeading: boolean;
+  varianceFromL1Percent?: number;
+}
+
+export interface AdminLiveBidsPayload {
+  requirementId: string;
+  project: string;
+  currency: string;
+  status: string;
+  closesAt: string;
+  awardedQuoteId: string | null;
+  totalQuotes: number;
+  lowestPrice: string | null;
+  averagePrice: string | null;
+  quotes: AdminQuoteRankingItem[];
+  updatedAt: string;
+}
+
+export interface VendorAnonymizedBidItem {
+  rank: number;
+  price: string;
+  currency: string;
+  submittedAt: string | null;
+  isYou: boolean;
+  maskedName: string; // e.g. "You" or "Bidder #1"
+}
+
+export interface VendorLiveBidsPayload {
+  requirementId: string;
+  project: string;
+  currency: string;
+  status: string;
+  closesAt: string;
+  totalBidders: number;
+  lowestPrice: string | null;
+  myRank: number | null;
+  myPrice: string | null;
+  myStatus: "DRAFT" | "SUBMITTED" | "NOT_STARTED";
+  isLeading: boolean;
+  leaderboard: VendorAnonymizedBidItem[];
+  updatedAt: string;
+}
+
