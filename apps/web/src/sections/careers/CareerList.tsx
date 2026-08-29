@@ -7,7 +7,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 
 import { Icons } from "@/lib/icons";
 
-import type { JobPosition } from "@/data/careers";
+import type { JobPosition } from "@/types/careers";
 
 import { cn } from "@lib/utils";
 

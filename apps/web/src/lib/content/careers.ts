@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { JobPosition } from "@/data/careers";
+import type { JobPosition } from "@/types/careers";
 import { CAREERS_CACHE_TAG, CAREERS_REVALIDATE_SECONDS } from "@/lib/cache";
 
 export const DEPARTMENTS = ["Architecture", "Engineering", "Management", "Operations"] as const;
