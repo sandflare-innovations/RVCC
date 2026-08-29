@@ -300,108 +300,99 @@ export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
         className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] transition-opacity duration-150 ${refreshing ? "opacity-70" : "opacity-100"}`}
         aria-busy={refreshing || initialLoad}
       >
-        <div data-lenis-prevent className="min-h-0 flex-1 overflow-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
-            <thead>
-              <tr className="text-white">
-                <th className="sticky top-0 left-0 z-40 whitespace-nowrap rounded-l-2xl bg-brand-blue px-8 py-3.5 font-semibold">Company</th>
-                <th
-                  className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold cursor-pointer select-none hover:bg-brand-blue/90 transition-colors"
-                  onClick={() => setSortDir(d => d === "desc" ? "asc" : "desc")}
-                  title="Toggle sort by date"
-                >
-                  <div className="flex items-center gap-1.5">
-                    Submitted
-                    {sortDir === "desc" ? <ChevronDown className="w-3.5 h-3.5 shrink-0" /> : <ChevronUp className="w-3.5 h-3.5 shrink-0" />}
+        {/* Fixed Top Header */}
+        <div className="shrink-0 bg-brand-blue text-white rounded-2xl px-6 py-3.5 shadow-xs mb-2">
+          <div className="grid grid-cols-12 gap-3 items-center text-xs font-semibold">
+            <div className="col-span-3 min-w-0">Company</div>
+            <div
+              className="col-span-2 min-w-0 flex items-center gap-1.5 cursor-pointer select-none hover:text-white/80 transition-colors"
+              onClick={() => setSortDir(d => d === "desc" ? "asc" : "desc")}
+              title="Toggle sort by date"
+            >
+              <span>Submitted</span>
+              {sortDir === "desc" ? <ChevronDown className="w-3.5 h-3.5 shrink-0" /> : <ChevronUp className="w-3.5 h-3.5 shrink-0" />}
+            </div>
+            <div className="col-span-2 min-w-0">Country</div>
+            <div className="col-span-2 min-w-0">Contact email</div>
+            <div className="col-span-2 min-w-0">Reference</div>
+            <div className="col-span-1 min-w-0 text-right">Actions</div>
+          </div>
+        </div>
+
+        {/* Scrollable Rows */}
+        <div data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden space-y-2 pr-1">
+          {initialLoad && displayed.length === 0 && (
+            <div className="px-6 py-10 text-center text-zinc-600">
+              Loading registrations…
+            </div>
+          )}
+          {loadError && displayed.length === 0 && !initialLoad && (
+            <div className="px-6 py-10 text-center text-zinc-600">
+              {loadError}
+            </div>
+          )}
+          {!loadError && !initialLoad && displayed.length === 0 && (
+            <div className="px-6 py-10 text-center text-zinc-600">
+              {`No registrations${search ? ` matching “${search}”` : ""} in this view.`}
+            </div>
+          )}
+          {displayed.map((r) => (
+            <div
+              key={r.id}
+              className={`grid grid-cols-12 gap-3 items-center group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl p-4 transition-all hover:ring-brand-blue/40 text-sm ${activeDropdownRow === r.id ? 'relative z-[60]' : ''}`}
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest('button, a')) return;
+                router.push(`/registrations/${r.id}`);
+              }}
+            >
+              <div className="col-span-3 min-w-0">
+                <div className="flex items-center gap-3">
+                  {r.status === "APPROVED" ? (
+                    <span title="Approved"><CheckCircle className="h-5 w-5 shrink-0 text-emerald-500" /></span>
+                  ) : r.status === "SUBMITTED" ? (
+                    <span title="Awaiting Review"><FileCheck className="h-5 w-5 shrink-0 text-brand-blue" /></span>
+                  ) : r.status === "REJECTED" ? (
+                    <span title="Rejected"><XCircle className="h-5 w-5 shrink-0 text-rose-500" /></span>
+                  ) : (
+                    <span title="In Progress"><Loader className="h-5 w-5 shrink-0 text-amber-500" /></span>
+                  )}
+                  <Link
+                    href={`/registrations/${r.id}`}
+                    className="hover:text-brand-blue font-medium text-zinc-950 underline-offset-2 hover:underline truncate"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {r.company?.legalName || <span className="text-zinc-500">Unnamed</span>}
+                  </Link>
+                </div>
+              </div>
+              <div className="col-span-2 min-w-0 text-zinc-600 tabular-nums text-xs truncate">
+                {formatDate(r.submittedAt)}
+              </div>
+              <div className="col-span-2 min-w-0 text-zinc-700 truncate">
+                {r.company?.country ? (
+                  <div className="flex items-center gap-2 truncate">
+                    {getCountryFlag(r.company.country)}
+                    <span className="truncate">{getCountryName(r.company.country)}</span>
                   </div>
-                </th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Country</th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Contact email</th>
-                <th className="sticky top-0 z-30 whitespace-nowrap bg-brand-blue px-8 py-3.5 font-semibold">Reference</th>
-                <th className="sticky top-0 right-0 z-40 whitespace-nowrap rounded-r-2xl bg-brand-blue px-8 py-3.5 font-semibold text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {initialLoad && displayed.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-zinc-600">
-                    Loading registrations…
-                  </td>
-                </tr>
-              )}
-              {loadError && displayed.length === 0 && !initialLoad && (
-                <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-zinc-600">
-                    {loadError}
-                  </td>
-                </tr>
-              )}
-              {!loadError && !initialLoad && displayed.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-zinc-600">
-                    {`No registrations${search ? ` matching “${search}”` : ""} in this view.`}
-                  </td>
-                </tr>
-              )}
-              {displayed.map((r) => (
-                <tr
-                  key={r.id}
-                  className={`group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40 ${activeDropdownRow === r.id ? 'relative z-[60]' : ''}`}
-                  onClick={(e) => {
-                    if ((e.target as HTMLElement).closest('button, a')) return;
-                    router.push(`/registrations/${r.id}`);
-                  }}
-                >
-                  <td className="sticky left-0 z-10 whitespace-nowrap rounded-l-2xl bg-white px-8 py-4 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
-                    <div className="flex items-center gap-3">
-                      {r.status === "APPROVED" ? (
-                        <span title="Approved"><CheckCircle className="h-5 w-5 shrink-0 text-emerald-500" /></span>
-                      ) : r.status === "SUBMITTED" ? (
-                        <span title="Awaiting Review"><FileCheck className="h-5 w-5 shrink-0 text-brand-blue" /></span>
-                      ) : r.status === "REJECTED" ? (
-                        <span title="Rejected"><XCircle className="h-5 w-5 shrink-0 text-rose-500" /></span>
-                      ) : (
-                        <span title="In Progress"><Loader className="h-5 w-5 shrink-0 text-amber-500" /></span>
-                      )}
-                      <Link
-                        href={`/registrations/${r.id}`}
-                        className="hover:text-brand-blue font-medium text-zinc-950 underline-offset-2 hover:underline"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {r.company?.legalName || <span className="text-zinc-500">Unnamed</span>}
-                      </Link>
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap px-8 py-4 text-zinc-600 tabular-nums">
-                    {formatDate(r.submittedAt)}
-                  </td>
-                  <td className="whitespace-nowrap px-8 py-4 text-zinc-700">
-                    {r.company?.country ? (
-                      <div className="flex items-center gap-2">
-                        {getCountryFlag(r.company.country)}
-                        <span>{getCountryName(r.company.country)}</span>
-                      </div>
-                    ) : (
-                      <span className="text-zinc-400">—</span>
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-8 py-4 text-zinc-700">{r.email}</td>
-                  <td className="whitespace-nowrap px-8 py-4 font-mono text-sm text-zinc-600 tabular-nums">
-                    {r.referenceNumber || "—"}
-                  </td>
-                  <td className="sticky right-0 z-10 whitespace-nowrap rounded-r-2xl bg-white px-8 py-4 ring-1 ring-inset ring-zinc-100 group-hover:ring-brand-blue/40">
-                    <RegistrationRowActions
-                      registration={toSummary(r)}
-                      canDelete={canDelete}
-                      onDeleted={() => removeRow(r.id)}
-                      onUpdated={updateTable}
-                      onDropdownOpen={(open) => setActiveDropdownRow(open ? r.id : null)}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                ) : (
+                  <span className="text-zinc-400">—</span>
+                )}
+              </div>
+              <div className="col-span-2 min-w-0 text-zinc-700 text-xs truncate">{r.email}</div>
+              <div className="col-span-2 min-w-0 font-mono text-xs text-zinc-600 tabular-nums truncate">
+                {r.referenceNumber || "—"}
+              </div>
+              <div className="col-span-1 min-w-0 text-right">
+                <RegistrationRowActions
+                  registration={toSummary(r)}
+                  canDelete={canDelete}
+                  onDeleted={() => removeRow(r.id)}
+                  onUpdated={updateTable}
+                  onDropdownOpen={(open) => setActiveDropdownRow(open ? r.id : null)}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
