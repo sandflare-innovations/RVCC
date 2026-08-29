@@ -1,0 +1,51 @@
+name: Production Release & Deploy
+
+on:
+  push:
+    branches:
+      - prod
+      - main
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-pipeline:
+    name: Production Verification & Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.15.1
+          run_install: false
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Database Schema
+        run: pnpm --filter api exec prisma validate
+
+      - name: Generate Prisma Client
+        run: pnpm --filter api db:generate
+
+      - name: Run Quality Gate (Tests)
+        run: pnpm test
+
+      - name: Compile Production Bundles
+        run: pnpm build
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
