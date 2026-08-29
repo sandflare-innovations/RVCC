@@ -12,50 +12,30 @@ import { PurchaseRequest, ProcurementStats } from "@/types/procurement";
 import { ProcurementStore } from "@/lib/storage";
 import { getClientProcurementProfile, ProcurementProfile } from "@/lib/profile-client";
 
+import { useProcurementStore } from "@/lib/store";
+
 export default function RequesterDashboard() {
   const router = useRouter();
-  const [user, setUser] = useState<ProcurementProfile | null>(null);
-  const [requests, setRequests] = useState<PurchaseRequest[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [departmentFilter, setDepartmentFilter] = useState<string>("all");
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
-
-  const loadData = async () => {
-    setIsRefreshing(true);
-    const clientProfile = getClientProcurementProfile();
-    if (clientProfile) {
-      setUser(clientProfile);
-    }
-    try {
-      const [reqRes, meRes] = await Promise.all([
-        fetch("/api/procurement", { cache: "no-store" }),
-        fetch("/api/me", { cache: "no-store" }).catch(() => null),
-      ]);
-
-      if (meRes && meRes.ok) {
-        const meData = await meRes.json();
-        if (meData?.user) setUser(meData.user);
-      }
-
-      if (reqRes.ok) {
-        const data = await reqRes.json();
-        if (Array.isArray(data)) {
-          setRequests(data);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to load procurements from API", err);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
+  const {
+    user,
+    requests,
+    isModalOpen,
+    searchQuery,
+    statusFilter,
+    departmentFilter,
+    viewMode,
+    isRefreshing,
+    setIsModalOpen,
+    setSearchQuery,
+    setStatusFilter,
+    setDepartmentFilter,
+    setViewMode,
+    loadData,
+  } = useProcurementStore();
 
   useEffect(() => {
-    void loadData();
-  }, []);
+    loadData();
+  }, [loadData]);
 
   const handleCreateRequest = async (newReqData: any) => {
     try {
