@@ -46,8 +46,8 @@ async function verifyOtpChallenge(
 
   // Find latest active challenge for this admin and action
   const [challenge] = await sql`
-    SELECT * FROM "OtpChallenge"
-    WHERE "ownerType" = 'ADMIN' AND "ownerId" = ${adminId} AND action = ${action}
+    SELECT * FROM "AdminOtp"
+    WHERE "adminId" = ${adminId} AND action = ${action}
       AND "expiresAt" > ${now} AND "consumedAt" IS NULL
     ORDER BY "createdAt" DESC
     LIMIT 1
@@ -58,13 +58,14 @@ async function verifyOtpChallenge(
   }
 
   if (Number(challenge.attempts) >= MAX_OTP_ATTEMPTS) {
-    await sql`DELETE FROM "OtpChallenge" WHERE id = ${challenge.id as string}`;
+    await sql`DELETE FROM "AdminOtp" WHERE id = ${challenge.id as string}`;
     return { valid: false, error: "Maximum verification attempts exceeded. Please request a new OTP." };
   }
 
-  if (challenge.codeHash !== codeHash) {
+  const storedHash = (challenge.codeHash || challenge.code_hash) as string;
+  if (storedHash !== codeHash) {
     await sql`
-      UPDATE "OtpChallenge"
+      UPDATE "AdminOtp"
       SET attempts = attempts + 1
       WHERE id = ${challenge.id as string}
     `;
@@ -72,7 +73,7 @@ async function verifyOtpChallenge(
   }
 
   // Valid OTP: mark consumed to prevent replay attacks
-  await sql`UPDATE "OtpChallenge" SET "consumedAt" = NOW() WHERE id = ${challenge.id as string}`;
+  await sql`UPDATE "AdminOtp" SET "consumedAt" = NOW() WHERE id = ${challenge.id as string}`;
   return { valid: true };
 }
 
@@ -98,8 +99,8 @@ export async function handleStaffOtpRequest(
 
   // Clean old expired challenges for this admin
   await sql`
-    DELETE FROM "OtpChallenge"
-    WHERE ("ownerType" = 'ADMIN' AND "ownerId" = ${auth.admin.id}) OR "expiresAt" < NOW()
+    DELETE FROM "AdminOtp"
+    WHERE "adminId" = ${auth.admin.id} OR "expiresAt" < NOW()
   `;
 
   const code = generateOtpCode();
@@ -108,10 +109,10 @@ export async function handleStaffOtpRequest(
   const expiresAt = new Date(Date.now() + OTP_TTL_MS);
 
   await sql`
-    INSERT INTO "OtpChallenge" (
-      id, "ownerType", "ownerId", action, "codeHash", attempts, "expiresAt", "createdAt"
+    INSERT INTO "AdminOtp" (
+      id, "adminId", action, "codeHash", attempts, "expiresAt", "createdAt"
     ) VALUES (
-      ${challengeId}, 'ADMIN', ${auth.admin.id}, ${action}, ${codeHash}, 0, ${expiresAt}, NOW()
+      ${challengeId}, ${auth.admin.id}, ${action}, ${codeHash}, 0, ${expiresAt}, NOW()
     )
   `;
 
