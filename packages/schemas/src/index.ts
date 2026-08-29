@@ -6,3 +6,4 @@ export * from "./vendor-onboarding";
 export * from "./procurement";
 export * from "./sourcing";
 export * from "./audit";
+export { z } from "zod";
