@@ -1,11 +1,12 @@
 packages:
   - "apps/*"
   - "packages/*"
-allowBuilds:
-  '@prisma/client': set this to true or false
-  '@prisma/engines': set this to true or false
-  esbuild: false
-  prisma: set this to true or false
-  sharp: false
-  unrs-resolver: false
-  workerd: false
+
+onlyBuiltDependencies:
+  - "@prisma/client"
+  - "@prisma/engines"
+  - "prisma"
+  - "esbuild"
+  - "sharp"
+  - "workerd"
+  - "unrs-resolver"
