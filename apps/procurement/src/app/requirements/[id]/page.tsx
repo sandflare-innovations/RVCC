@@ -21,7 +21,7 @@ import {
   Trash2,
   Loader2,
 } from "lucide-react";
-import { Navbar } from "@/components/navbar";
+import { Navbar } from "@/sections/layout/navbar";
 import { PurchaseRequest } from "@/types/procurement";
 import { ProcurementStore } from "@/lib/storage";
 import {

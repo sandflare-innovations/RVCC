@@ -3,9 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus } from "lucide-react";
 import { PwaInstallButton } from "@/components/pwa/pwa-install-button";
-import { UserProfileMenu } from "@/components/user-profile-menu";
+import { UserProfileMenu } from "./user-profile-menu";
 
 interface NavbarProps {
   onOpenNewRequest?: () => void;

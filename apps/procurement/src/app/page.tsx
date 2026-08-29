@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Navbar } from "@/components/navbar";
-import { MetricsOverview } from "@/components/dashboard/metrics-overview";
-import { DashboardToolbar } from "@/components/dashboard/dashboard-toolbar";
-import { RequisitionsTable } from "@/components/requests/requisitions-table";
-import { RequisitionsGrid } from "@/components/requests/requisitions-grid";
-import { NewRequestModal } from "@/components/requests/new-request-modal";
+import { Navbar } from "@/sections/layout/navbar";
+import { MetricsOverview } from "@/sections/dashboard/metrics-overview";
+import { DashboardToolbar } from "@/sections/dashboard/dashboard-toolbar";
+import { RequisitionsTable } from "@/sections/requests/requisitions-table";
+import { RequisitionsGrid } from "@/sections/requests/requisitions-grid";
+import { NewRequestModal } from "@/sections/requests/new-request-modal";
 import { PurchaseRequest, ProcurementStats } from "@/types/procurement";
 import { ProcurementStore } from "@/lib/storage";
 import { getClientProcurementProfile, ProcurementProfile } from "@/lib/profile-client";
