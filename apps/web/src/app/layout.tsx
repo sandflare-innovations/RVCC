@@ -1,9 +1,9 @@
 import Script from "next/script";
-
 import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-
+import { PwaUpdateBanner } from "@/components/pwa/pwa-update-banner";
+import { ServiceWorkerRegistrar } from "@/components/pwa/sw-registrar";
 
 import "./globals.css";
 import "flag-icons/css/flag-icons.min.css";
@@ -23,7 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <body className="font-primary relative flex min-h-full flex-col" suppressHydrationWarning>
-          {children}
+        <PwaUpdateBanner />
+        {children}
+        <ServiceWorkerRegistrar />
         <SpeedInsights />
         <Script id="microsoft-clarity" strategy="lazyOnload">
           {`(function(c,l,a,r,i,t,y){

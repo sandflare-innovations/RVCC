@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 
 import { ServiceWorkerRegistrar } from "@/components/pwa/sw-registrar";
+import { PwaUpdateBanner } from "@/components/pwa/pwa-update-banner";
 
 import "./globals.css";
 
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
         className={`${vendorSans.variable} font-enquire min-h-screen bg-zinc-50 antialiased`}
       >
+        <PwaUpdateBanner />
         {children}
         <ServiceWorkerRegistrar />
       </body>
