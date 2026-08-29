@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Trophy, FileText, LayoutGrid, List, ArrowUpDown, ChevronDown, Calendar, Calculator, Sigma, Medal } from "lucide-react";
+import { Trophy, FileText, LayoutGrid, List, ArrowUpDown, ChevronDown, Calendar, Calculator, Sigma, Medal, Radio } from "lucide-react";
 import { AwardButton } from "./AwardButton";
+import { useAdminLiveBidding } from "@/hooks/use-admin-live-bidding";
 
 function formatDateTime(d: string | null) {
   if (!d) return "—";
@@ -56,8 +57,25 @@ export function QuotesSection({
   const [sort, setSort] = useState<SortOption>("price-asc");
   const [sortOpen, setSortOpen] = useState(false);
 
+  // Live real-time stream subscription (SSE)
+  const { data: liveData, status: liveStatus } = useAdminLiveBidding(req.id);
+
+  // Convert live quotes or fallback to initial SSR ranked data
+  const currentRanked: QuoteInfo[] = liveData?.quotes
+    ? liveData.quotes.map((q) => ({
+        id: q.id,
+        rank: q.rank,
+        newPrice: q.newPrice,
+        remarks: q.remarks,
+        quoteFileUrl: q.quoteFileUrl,
+        submittedAt: q.submittedAt ? new Date(q.submittedAt) : null,
+        who: q.who,
+        vendorEmail: q.vendorEmail,
+      }))
+    : ranked;
+
   // Sorting logic
-  const sortedQuotes = [...ranked].sort((a, b) => {
+  const sortedQuotes = [...currentRanked].sort((a, b) => {
     if (sort === "price-asc") {
       return Number(a.newPrice) - Number(b.newPrice);
     }
@@ -77,11 +95,13 @@ export function QuotesSection({
     return 0;
   });
 
-  // Calculate Metrics
-  const totalQuotes = ranked.length;
-  const averagePrice = totalQuotes > 0 
-    ? (ranked.reduce((acc, q) => acc + Number(q.newPrice), 0) / totalQuotes).toFixed(2)
-    : "0.00";
+  // Calculate Metrics (Live or Initial)
+  const totalQuotes = liveData?.totalQuotes ?? currentRanked.length;
+  const averagePrice =
+    liveData?.averagePrice ??
+    (totalQuotes > 0
+      ? (currentRanked.reduce((acc, q) => acc + Number(q.newPrice), 0) / totalQuotes).toFixed(2)
+      : "0.00");
 
   return (
     <section>
@@ -128,10 +148,30 @@ export function QuotesSection({
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <h2 className="text-xl font-bold tracking-tight text-zinc-950 flex items-center gap-2">
             Quotes Received
           </h2>
+          {/* Live Indicator */}
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
+              liveStatus === "live"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-zinc-50 text-zinc-600 border-zinc-200"
+            }`}
+          >
+            <span className="relative flex h-2 w-2">
+              {liveStatus === "live" && (
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              )}
+              <span
+                className={`relative inline-flex rounded-full h-2 w-2 ${
+                  liveStatus === "live" ? "bg-emerald-500" : "bg-zinc-400"
+                }`}
+              ></span>
+            </span>
+            {liveStatus === "live" ? "Live Bidding" : "Connecting..."}
+          </span>
           {draftsCount > 0 && (
             <span className="bg-amber-50 text-amber-600 border border-amber-200 text-xs font-bold px-2.5 py-0.5 rounded-full">
               {draftsCount} Drafts
