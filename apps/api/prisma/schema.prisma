@@ -295,6 +295,9 @@ model CompanyProfile {
   yearEstablished  String               @default("")
   dunsNumber       String               @default("")
   description      String               @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model SupplierContact {
@@ -310,6 +313,9 @@ model SupplierContact {
   isAdministrative Boolean              @default(false)
   requestUserAccount Boolean            @default(false)
   sortOrder        Int                  @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([registrationId])
 }
@@ -330,6 +336,9 @@ model SupplierAddress {
   purposes       String[]             @default([])
   sortOrder      Int                  @default(0)
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([registrationId])
 }
 
@@ -343,6 +352,9 @@ model BusinessClassification {
   effectiveDate  String               @default("")
   expirationDate String               @default("")
   sortOrder      Int                  @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([registrationId])
 }
@@ -361,6 +373,9 @@ model BankAccount {
   currency       String               @default("SAR")
   sortOrder      Int                  @default(0)
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([registrationId])
 }
 
@@ -370,6 +385,9 @@ model QuestionnaireAnswer {
   registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
   questionKey    String
   answer         String               @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([registrationId, questionKey])
   @@index([registrationId])
