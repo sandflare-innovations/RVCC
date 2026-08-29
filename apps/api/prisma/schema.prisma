@@ -1,542 +1,55 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
+// =========================================================================
+// 1. ENUMS (Status Tracking, State Machines, Currencies & Security)
+// =========================================================================
+
+enum Currency {
+  SAR
+  USD
+  AED
+  INR
+  EUR
+}
+
+enum LoginStatus {
+  SUCCESS
+  FAILED
+}
+
 enum RegistrationStatus {
   DRAFT
-  SUBMITTED
+  PENDING
   APPROVED
   REJECTED
 }
 
-enum BusinessRelationship {
-  PROSPECTIVE
-  SPEND_AUTHORIZED
-}
-
-enum AdminRole {
-  SUPER_ADMIN        // Full root access to all portals & security
-  ADMIN              // Full operational admin
-  PROCUREMENT_ADMIN  // Procurements & purchase requisitions only
-  VENDOR_ADMIN       // Vendor accounts, registrations & RFQs only
-  WEBSITE_ADMIN      // Company website content management only
-  REVIEWER           // Read-only audit & inspection access
-}
-
-
-/// Portal login gate — separate from registration completeness.
-/// HELD: account may exist but supplier cannot use vendor pages.
-/// RELEASED: admin granted portal access (optionally emailed).
-enum PortalAccess {
-  HELD
-  RELEASED
-}
-
-/// Staff accounts for the admin panel. Deliberately separate from VendorUser:
-/// a vendor must never be able to escalate into staff access.
-model AdminUser {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  name         String    @default("")
-  position     String    @default("")
-  department   String    @default("")
-  phone        String    @default("")
-  passwordHash String
-  role         AdminRole @default(ADMIN)
-  isActive     Boolean   @default(true)
-  lastLoginAt  DateTime?
-
-  // Throttling — see lib/admin/auth.ts
-  failedAttempts Int       @default(0)
-  lockedUntil    DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  sessions     AdminSession[]
-  auditLogs    AuditLog[]
-  reviewed     SupplierRegistration[]
-  jobPostings  JobPosting[]
-  requirements  Requirement[]  @relation("RequirementAuthor")
-  awarded       Requirement[]  @relation("RequirementAwarder")
-  notifications Notification[]
-  procurementRequisitions PurchaseRequest[]
-
-  @@index([email])
-}
-
-/// Unified OTP challenge table — covers admin staff operations, admin login/password
-/// changes, and vendor registration verification. ownerType + ownerId isolate
-/// each security domain; action distinguishes the purpose.
-model OtpChallenge {
-  id         String    @id @default(cuid())
-  ownerType  String    // "ADMIN" | "VENDOR" | "REGISTRATION"
-  ownerId    String    // adminId, vendorId, or email for registration
-  action     String    // e.g. "STAFF_MANAGEMENT", "PASSWORD_CHANGE", "REGISTRATION_VERIFY"
-  codeHash   String    // SHA-256 hash of 6-digit numeric OTP
-  attempts   Int       @default(0)
-  expiresAt  DateTime
-  consumedAt DateTime?
-  createdAt  DateTime  @default(now())
-
-  @@index([ownerType, ownerId, action])
-  @@index([expiresAt])
-}
-
-
-
-/// Careers content, editable from the admin panel.
-/// department/employmentType are plain strings, not enums, so staff can add a
-/// new department without a schema migration and redeploy.
-model JobPosting {
-  id             String   @id @default(cuid())
-  slug           String   @unique
-  title          String
-  department     String   @default("")
-  location       String   @default("")
-  employmentType String   @default("Full-time")
-  description    String   @default("")
-  requirements   String[] @default([])
-  benefits       String[] @default([])
-  isRemote       Boolean  @default(false)
-
-  /// Drafts stay invisible on the public site until this is set.
-  isPublished Boolean  @default(false)
-  postedAt    DateTime @default(now())
-  sortOrder   Int      @default(0)
-
-  createdById String?
-  createdBy   AdminUser? @relation(fields: [createdById], references: [id], onDelete: SetNull)
-
-  applications JobApplication[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([isPublished, sortOrder])
-}
-
-/// CV submissions from the public careers page.
-model JobApplication {
-  id           String     @id @default(cuid())
-  jobPostingId String
-  jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
-
-  fullName   String
-  email      String
-  phone      String @default("")
-  cvFileName String
-  cvFileUrl  String
-  cvMimeType String @default("application/pdf")
-
-  createdAt DateTime @default(now())
-
-  @@index([jobPostingId])
-  @@index([createdAt(sort: Desc)])
-}
-
-/// Only the SHA-256 of the session token is stored, so a database leak does not
-/// hand over live sessions. The raw token lives solely in the httpOnly cookie.
-model AdminSession {
-  id        String    @id @default(cuid())
-  tokenHash String    @unique
-  adminId   String
-  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  userAgent String    @default("")
-  expiresAt DateTime
-  revokedAt DateTime?
-  createdAt DateTime  @default(now())
-
-  @@index([adminId])
-}
-
-/// Vendor login. Public registration creates the row with portalAccess=HELD;
-/// admin Release grants portal pages (and optional email).
-model VendorUser {
-  id                 String  @id @default(cuid())
-  email              String  @unique
-  name               String  @default("")
-  passwordHash       String
-  mustChangePassword Boolean @default(true)
-  isActive           Boolean @default(true)
-  /// HELD until admin releases portal access from User Management.
-  portalAccess       PortalAccess @default(HELD)
-
-  /// Null for accounts an admin created directly — most RVCC suppliers already
-  /// exist as companies and never use the public registration wizard.
-  /// SetNull rather than Cascade: removing a registration record must never
-  /// destroy a working login.
-  registrationId String?
-  registration   SupplierRegistration? @relation(fields: [registrationId], references: [id], onDelete: SetNull)
-
-  failedAttempts Int       @default(0)
-  lockedUntil    DateTime?
-  lastLoginAt    DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  sessions      VendorSession[]
-  industries    Industry[]
-  invites       RequirementInvite[]
-  quotes        Quote[]
-  notifications Notification[]
-
-  @@index([registrationId])
-  @@index([email])
-  @@index([portalAccess])
-}
-
-/// A category of work a supplier or agent can be invited for, e.g. "Civil Works".
-/// Plain rows rather than an enum so staff can add one without a migration and
-/// redeploy — the same reasoning as JobPosting.department.
-model Industry {
-  id       String  @id @default(cuid())
-  name     String  @unique
-  slug     String  @unique
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  vendors VendorUser[]
-
-  @@index([isActive])
-}
-
-model VendorSession {
-  id        String     @id @default(cuid())
-  tokenHash String     @unique
-  vendorId  String
-  vendor    VendorUser @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  userAgent String     @default("")
-  expiresAt DateTime
-  revokedAt DateTime?
-  createdAt DateTime   @default(now())
-
-  @@index([vendorId])
-}
-
-/// Append-only trail of privileged actions. Unified audit log covering both
-/// general admin actions and procurement status transitions.
-model AuditLog {
-  id             String     @id @default(cuid())
-  adminId        String?
-  admin          AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
-  action         String     // e.g. "registration.approved", "Requisition Submitted"
-  entityType     String     // e.g. "SupplierRegistration", "PurchaseRequest"
-  entityId       String
-  actorName      String     @default("")   // denormalized display name
-  actorRole      String     @default("")   // "admin", "requester", "system"
-  previousStatus String?                    // for status transitions
-  newStatus      String?                    // for status transitions
-  note           String?                    // reviewer/approver notes
-  metadata       Json       @default("{}")
-  createdAt      DateTime   @default(now())
-
-  @@index([entityType, entityId])
-  @@index([adminId])
-  @@index([createdAt])
-}
-
-model SupplierRegistration {
-  id                 String               @id @default(cuid())
-  referenceNumber    String?              @unique
-  status             RegistrationStatus   @default(DRAFT)
-  businessRelationship BusinessRelationship @default(PROSPECTIVE)
-  email              String
-  currentStep        String               @default("verify")
-  sessionToken       String?              @unique
-  /// True after the supplier finishes and submits the full registration form.
-  registrationComplete Boolean            @default(false)
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  submittedAt        DateTime?
-
-  // Review outcome, written by the admin panel.
-  reviewedAt         DateTime?
-  reviewedById       String?
-  reviewedBy         AdminUser?           @relation(fields: [reviewedById], references: [id], onDelete: SetNull)
-  reviewNote         String?
-  vendorUsers        VendorUser[]
-
-  company            CompanyProfile?
-  contacts           SupplierContact[]
-  addresses          SupplierAddress[]
-  classifications    BusinessClassification[]
-  bankAccounts       BankAccount[]
-  productCategories  String[]             @default([])
-  questionnaire      QuestionnaireAnswer[]
-  attachments        RegistrationAttachment[]
-
-  @@index([email])
-  @@index([status])
-  @@index([registrationComplete])
-}
-
-// AdminOtp and RegistrationOtp have been merged into OtpChallenge above.
-
-model CompanyProfile {
-  id               String               @id @default(cuid())
-  registrationId   String               @unique
-  registration     SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-  legalName        String               @default("")
-  dbaName          String               @default("")
-  country          String               @default("")
-  taxIdentifiers   Json                 @default("{}")
-  organizationType String               @default("")
-  supplierType     String               @default("")
-  website          String               @default("")
-  yearEstablished  String               @default("")
-  dunsNumber       String               @default("")
-  description      String               @default("")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model SupplierContact {
-  id               String               @id @default(cuid())
-  registrationId   String
-  registration     SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-  firstName        String               @default("")
-  lastName         String               @default("")
-  email            String               @default("")
-  jobTitle         String               @default("")
-  phone            String               @default("")
-  mobile           String               @default("")
-  isAdministrative Boolean              @default(false)
-  requestUserAccount Boolean            @default(false)
-  sortOrder        Int                  @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([registrationId])
-}
-
-model SupplierAddress {
-  id             String               @id @default(cuid())
-  registrationId String
-  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-  label          String               @default("")
-  line1          String               @default("")
-  line2          String               @default("")
-  city           String               @default("")
-  region         String               @default("")
-  postalCode     String               @default("")
-  country        String               @default("")
-  phone          String               @default("")
-  email          String               @default("")
-  purposes       String[]             @default([])
-  sortOrder      Int                  @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([registrationId])
-}
-
-model BusinessClassification {
-  id             String               @id @default(cuid())
-  registrationId String
-  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-  classification String               @default("")
-  certificateNumber String            @default("")
-  certifyingAgency String             @default("")
-  effectiveDate  String               @default("")
-  expirationDate String               @default("")
-  sortOrder      Int                  @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([registrationId])
-}
-
-model BankAccount {
-  id             String               @id @default(cuid())
-  registrationId String
-  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-  country        String               @default("")
-  bankName       String               @default("")
-  branchName     String               @default("")
-  accountName    String               @default("")
-  accountNumber  String               @default("")
-  iban           String               @default("")
-  routingNumber  String               @default("")
-  currency       String               @default("SAR")
-  sortOrder      Int                  @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([registrationId])
-}
-
-model QuestionnaireAnswer {
-  id             String               @id @default(cuid())
-  registrationId String
-  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-  questionKey    String
-  answer         String               @default("")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([registrationId, questionKey])
-  @@index([registrationId])
-}
-
-model RegistrationAttachment {
-  id             String               @id @default(cuid())
-  registrationId String
-  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-  section        String
-  fileName       String
-  fileUrl        String
-  mimeType       String               @default("")
-  createdAt      DateTime             @default(now())
-
-  @@index([registrationId])
-}
-
 enum RequirementStatus {
   DRAFT
-  OPEN
-  CANCELLED
-  AWARDED
-}
-
-enum InviteEmailStatus {
   PENDING
-  SENT
-  FAILED
-}
-
-/// Work put out to quote. Closed is not a status: it means closesAt < now(),
-/// and storing it as well would let the flag and the clock disagree.
-/// CANCELLED and AWARDED are stored because the clock cannot express them.
-model Requirement {
-  id              String  @id @default(cuid())
-  referenceNumber String? @unique
-
-  scopeOfWork String
-  project     String
-  /// Admin reference only — never selected by a participant query.
-  sellingPrice Decimal? @db.Decimal(14, 2)
-  currency     String   @default("SAR")
-
-  closesAt DateTime
-  status   RequirementStatus @default(DRAFT)
-
-  createdByAdminId String
-  createdByAdmin   AdminUser @relation("RequirementAuthor", fields: [createdByAdminId], references: [id])
-
-  /// The winning quote. @unique so one quote cannot win twice.
-  awardedQuoteId   String?    @unique
-  awardedQuote     Quote?     @relation("AwardedQuote", fields: [awardedQuoteId], references: [id], onDelete: SetNull)
-  awardedAt        DateTime?
-  awardedByAdminId String?
-  awardedByAdmin   AdminUser? @relation("RequirementAwarder", fields: [awardedByAdminId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  invites RequirementInvite[]
-  quotes  Quote[]
-
-  @@index([status, closesAt])
-}
-
-/// Who was asked to quote. One row per vendor per requirement.
-model RequirementInvite {
-  id            String      @id @default(cuid())
-  requirementId String
-  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
-
-  vendorUserId String
-  vendorUser   VendorUser @relation(fields: [vendorUserId], references: [id], onDelete: Cascade)
-
-  emailStatus InviteEmailStatus @default(PENDING)
-  emailError  String?
-  emailedAt   DateTime?
-
-  createdAt DateTime @default(now())
-
-  @@unique([requirementId, vendorUserId])
-  @@index([vendorUserId])
+  OPEN
+  AWARDED
+  CANCELLED
+  REJECTED
 }
 
 enum QuoteStatus {
   DRAFT
   SUBMITTED
-}
-
-/// One participant's price for one requirement. Rank is never stored: it is
-/// computed when the admin opens the comparison, because a stored rank goes
-/// stale the moment someone edits their price.
-model Quote {
-  id            String      @id @default(cuid())
-  requirementId String
-  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
-
-  vendorUserId String
-  vendorUser   VendorUser @relation(fields: [vendorUserId], references: [id], onDelete: Cascade)
-
-  newPrice Decimal? @db.Decimal(14, 2)
-  remarks  String   @default("")
-
-  status      QuoteStatus @default(DRAFT)
-  submittedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  awardedFor Requirement? @relation("AwardedQuote")
-
-  @@unique([requirementId, vendorUserId])
-  @@index([requirementId, status])
-}
-
-enum NotificationType {
-  REQUIREMENT_POSTED
-  QUOTE_SUBMITTED
-  QUOTE_AWARDED
-}
-
-/// In-app bell. Recipient is a vendor or an admin — the two are separate
-/// nullable links rather than one polymorphic id, so both stay real foreign
-/// keys and a deleted account takes its notifications with it.
-model Notification {
-  id String @id @default(cuid())
-
-  vendorUserId String?
-  vendorUser   VendorUser? @relation(fields: [vendorUserId], references: [id], onDelete: Cascade)
-
-  adminId String?
-  admin   AdminUser? @relation(fields: [adminId], references: [id], onDelete: Cascade)
-
-  type     NotificationType
-  title    String
-  body     String   @default("")
-  linkPath String
-
-  readAt    DateTime?
-  createdAt DateTime  @default(now())
-
-  @@index([vendorUserId, readAt])
-  @@index([adminId, readAt])
+  ACCEPTED
+  REJECTED
 }
 
 enum ProcurementStatus {
   DRAFT
-  SUBMITTED
+  PENDING
   UNDER_REVIEW
   APPROVED
   REJECTED
@@ -550,69 +63,714 @@ enum ProcurementPriority {
   URGENT
 }
 
-/// Construction purchase requisitions created by procurement team and reviewed by admins.
+enum PortalAccess {
+  HELD
+  RELEASED
+}
+
+enum BusinessRelationship {
+  PROSPECTIVE
+  SPEND_AUTHORIZED
+}
+
+// =========================================================================
+// 2. RBAC DOMAIN (Role & Permission)
+// =========================================================================
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique // e.g. "SUPER_ADMIN", "PROCUREMENT_MANAGER", "VIEWER"
+  description String   @default("")
+  isSystem    Boolean  @default(false) @map("is_system") // System roles cannot be deleted
+
+  admins      AdminUser[]
+  permissions RolePermission[]
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at") // Soft Deletion
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  slug        String   @unique // e.g. "procurement:approve", "vendors:read", "staff:manage"
+  description String   @default("")
+  category    String   @default("GENERAL")
+
+  roles       RolePermission[]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String     @map("role_id")
+  permissionId String     @map("permission_id")
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  assignedAt   DateTime   @default(now()) @map("assigned_at")
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// =========================================================================
+// 3. USER ACCOUNTS, AUTHENTICATION & LOGIN HISTORY
+// =========================================================================
+
+model AdminUser {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String    @default("")
+  position       String    @default("")
+  department     String    @default("")
+  phone          String    @default("")
+  passwordHash   String    @map("password_hash")
+  isActive       Boolean   @default(true) @map("is_active")
+  lastLoginAt    DateTime? @map("last_login_at")
+
+  // RBAC Link (Restricted delete: cannot delete a role with active admins)
+  roleId         String    @map("role_id")
+  role           Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  // Throttling
+  failedAttempts Int       @default(0) @map("failed_attempts")
+  lockedUntil    DateTime? @map("locked_until")
+
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at") // Soft Deletion
+
+  sessions       AdminSession[]
+  otps           AdminOtp[]
+  loginHistory   AdminLoginHistory[]
+  auditLogs      AuditLog[]
+  reviewedRegs   SupplierRegistration[]
+  jobPostings    JobPosting[]
+  requirements   Requirement[]          @relation("RequirementAuthor")
+  awardedReqs    Requirement[]          @relation("RequirementAwarder")
+  notifications  Notification[]
+  purchaseReqs   PurchaseRequest[]
+
+  @@index([email])
+  @@index([roleId])
+  @@index([deletedAt])
+  @@map("admin_users")
+}
+
+model AdminSession {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique @map("token_hash")
+  adminId   String    @map("admin_id")
+  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  userAgent String    @default("") @map("user_agent")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([adminId])
+  @@map("admin_sessions")
+}
+
+/// Strict foreign-key bound Admin OTP table
+model AdminOtp {
+  id         String    @id @default(cuid())
+  adminId    String    @map("admin_id")
+  admin      AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  action     String    // e.g. "STAFF_MANAGEMENT", "PASSWORD_RESET"
+  codeHash   String    @map("code_hash")
+  attempts   Int       @default(0)
+  expiresAt  DateTime  @map("expires_at")
+  consumedAt DateTime? @map("consumed_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([adminId, action])
+  @@index([expiresAt])
+  @@map("admin_otps")
+}
+
+/// Tracks comprehensive staff authentication attempts and security telemetry
+model AdminLoginHistory {
+  id            String      @id @default(cuid())
+  adminId       String      @map("admin_id")
+  admin         AdminUser   @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  ipAddress     String      @map("ip_address")
+  userAgent     String      @default("") @map("user_agent")
+  status        LoginStatus
+  failureReason String?     @map("failure_reason") // e.g. "INVALID_CREDENTIALS", "ACCOUNT_LOCKED"
+  loginAt       DateTime    @default(now()) @map("login_at")
+
+  @@index([adminId, loginAt(sort: Desc)])
+  @@map("admin_login_history")
+}
+
+model VendorUser {
+  id                 String               @id @default(cuid())
+  email              String               @unique
+  name               String               @default("")
+  passwordHash       String               @map("password_hash")
+  mustChangePassword Boolean              @default(true) @map("must_change_password")
+  isActive           Boolean              @default(true) @map("is_active")
+  portalAccess       PortalAccess         @default(HELD) @map("portal_access")
+
+  registrationId     String?              @map("registration_id")
+  registration       SupplierRegistration? @relation(fields: [registrationId], references: [id], onDelete: SetNull)
+
+  failedAttempts     Int                  @default(0) @map("failed_attempts")
+  lockedUntil        DateTime?            @map("locked_until")
+  lastLoginAt        DateTime?            @map("last_login_at")
+
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  deletedAt          DateTime?            @map("deleted_at") // Soft Deletion
+
+  sessions           VendorSession[]
+  otps               VendorOtp[]
+  loginHistory       VendorLoginHistory[]
+  auditLogs          AuditLog[]
+  industries         Industry[]
+  invites            RequirementInvite[]
+  quotes             Quote[]
+  notifications      Notification[]
+
+  @@index([email])
+  @@index([portalAccess])
+  @@index([deletedAt])
+  @@map("vendor_users")
+}
+
+model VendorSession {
+  id        String     @id @default(cuid())
+  tokenHash String     @unique @map("token_hash")
+  vendorId  String     @map("vendor_id")
+  vendor    VendorUser @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  userAgent String     @default("") @map("user_agent")
+  expiresAt DateTime   @map("expires_at")
+  revokedAt DateTime?  @map("revoked_at")
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  @@index([vendorId])
+  @@map("vendor_sessions")
+}
+
+/// Strict foreign-key bound Vendor OTP table
+model VendorOtp {
+  id         String     @id @default(cuid())
+  vendorId   String     @map("vendor_id")
+  vendor     VendorUser @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  action     String     // e.g. "LOGIN_VERIFY", "PASSWORD_RESET"
+  codeHash   String     @map("code_hash")
+  attempts   Int        @default(0)
+  expiresAt  DateTime   @map("expires_at")
+  consumedAt DateTime?  @map("consumed_at")
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  @@index([vendorId, action])
+  @@index([expiresAt])
+  @@map("vendor_otps")
+}
+
+/// Tracks external vendor login telemetry and anomaly detection
+model VendorLoginHistory {
+  id            String      @id @default(cuid())
+  vendorId      String      @map("vendor_id")
+  vendor        VendorUser  @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  ipAddress     String      @map("ip_address")
+  userAgent     String      @default("") @map("user_agent")
+  status        LoginStatus
+  failureReason String?     @map("failure_reason")
+  loginAt       DateTime    @default(now()) @map("login_at")
+
+  @@index([vendorId, loginAt(sort: Desc)])
+  @@map("vendor_login_history")
+}
+
+// =========================================================================
+// 4. VENDOR ONBOARDING DOMAIN
+// =========================================================================
+
+/// [SOFT-DELETE RESOLUTION NOTE]
+/// Hard DB-level cascade deletes (onDelete: Cascade) have been removed from
+/// SupplierRegistration children. Application layers or Prisma Client Extensions
+/// ($extends / prisma-extension-soft-delete) should intercept soft-deletions on
+/// SupplierRegistration and propagate deletedAt timestamps across CompanyProfile,
+/// Contacts, Addresses, Classifications, and BankAccounts.
+model SupplierRegistration {
+  id                   String               @id @default(cuid())
+  referenceNumber      String?              @unique @map("reference_number")
+  status               RegistrationStatus   @default(DRAFT)
+  businessRelationship BusinessRelationship @default(PROSPECTIVE) @map("business_relationship")
+  email                String
+  currentStep          String               @default("verify") @map("current_step")
+  sessionToken         String?              @unique @map("session_token")
+  registrationComplete Boolean              @default(false) @map("registration_complete")
+
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
+  submittedAt          DateTime?            @map("submitted_at")
+  deletedAt            DateTime?            @map("deleted_at") // Soft Deletion
+
+  reviewedAt           DateTime?            @map("reviewed_at")
+  reviewedById         String?              @map("reviewed_by_id")
+  reviewedBy           AdminUser?           @relation(fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewNote           String?              @map("review_note")
+
+  vendorUsers          VendorUser[]
+  company              CompanyProfile?
+  contacts             SupplierContact[]
+  addresses            SupplierAddress[]
+  classifications      BusinessClassification[]
+  bankAccounts         BankAccount[]
+  productCategories    String[]             @default([]) @map("product_categories")
+  questionnaire        QuestionnaireAnswer[]
+  attachments          RegistrationAttachment[]
+
+  @@index([email])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("supplier_registrations")
+}
+
+model CompanyProfile {
+  id               String               @id @default(cuid())
+  registrationId   String               @unique @map("registration_id")
+  registration     SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+  legalName        String               @default("") @map("legal_name")
+  dbaName          String               @default("") @map("dba_name")
+  country          String               @default("")
+  taxIdentifiers   Json                 @default("{}") @map("tax_identifiers")
+  organizationType String               @default("") @map("organization_type")
+  supplierType     String               @default("") @map("supplier_type")
+  website          String               @default("")
+  yearEstablished  String               @default("") @map("year_established")
+  dunsNumber       String               @default("") @map("duns_number")
+  description      String               @default("")
+
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+  deletedAt        DateTime?            @map("deleted_at") // Soft Deletion
+
+  @@index([deletedAt])
+  @@map("company_profiles")
+}
+
+model SupplierContact {
+  id                 String               @id @default(cuid())
+  registrationId     String               @map("registration_id")
+  registration       SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+  firstName          String               @default("") @map("first_name")
+  lastName           String               @default("") @map("last_name")
+  email              String               @default("")
+  jobTitle           String               @default("") @map("job_title")
+  phone              String               @default("")
+  mobile             String               @default("")
+  isAdministrative   Boolean              @default(false) @map("is_administrative")
+  requestUserAccount Boolean              @default(false) @map("request_user_account")
+  sortOrder          Int                  @default(0) @map("sort_order")
+
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  deletedAt          DateTime?            @map("deleted_at") // Soft Deletion
+
+  @@index([registrationId])
+  @@index([deletedAt])
+  @@map("supplier_contacts")
+}
+
+model SupplierAddress {
+  id             String               @id @default(cuid())
+  registrationId String               @map("registration_id")
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+  label          String               @default("")
+  line1          String               @default("")
+  line2          String               @default("")
+  city           String               @default("")
+  region         String               @default("")
+  postalCode     String               @default("") @map("postal_code")
+  country        String               @default("")
+  phone          String               @default("")
+  email          String               @default("")
+  purposes       String[]             @default([])
+  sortOrder      Int                  @default(0) @map("sort_order")
+
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  deletedAt      DateTime?            @map("deleted_at") // Soft Deletion
+
+  @@index([registrationId])
+  @@index([deletedAt])
+  @@map("supplier_addresses")
+}
+
+model BusinessClassification {
+  id                String               @id @default(cuid())
+  registrationId    String               @map("registration_id")
+  registration      SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+  classification    String               @default("")
+  certificateNumber String               @default("") @map("certificate_number")
+  certifyingAgency  String               @default("") @map("certifying_agency")
+  effectiveDate     String               @default("") @map("effective_date")
+  expirationDate    String               @default("") @map("expiration_date")
+  sortOrder         Int                  @default(0) @map("sort_order")
+
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+  deletedAt         DateTime?            @map("deleted_at") // Soft Deletion
+
+  @@index([registrationId])
+  @@index([deletedAt])
+  @@map("business_classifications")
+}
+
+model BankAccount {
+  id             String               @id @default(cuid())
+  registrationId String               @map("registration_id")
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+  country        String               @default("")
+  bankName       String               @default("") @map("bank_name")
+  branchName     String               @default("") @map("branch_name")
+  accountName    String               @default("") @map("account_name")
+  accountNumber  String               @default("") @map("account_number")
+  iban           String               @default("")
+  routingNumber  String               @default("") @map("routing_number")
+  currency       Currency             @default(SAR)
+  sortOrder      Int                  @default(0) @map("sort_order")
+
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  deletedAt      DateTime?            @map("deleted_at") // Soft Deletion
+
+  @@index([registrationId])
+  @@index([deletedAt])
+  @@map("bank_accounts")
+}
+
+model QuestionnaireAnswer {
+  id             String               @id @default(cuid())
+  registrationId String               @map("registration_id")
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+  questionKey    String               @map("question_key")
+  answer         String               @default("")
+
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+
+  @@unique([registrationId, questionKey])
+  @@index([registrationId])
+  @@map("questionnaire_answers")
+}
+
+model RegistrationAttachment {
+  id             String               @id @default(cuid())
+  registrationId String               @map("registration_id")
+  registration   SupplierRegistration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+  section        String
+  fileName       String               @map("file_name")
+  fileUrl        String               @map("file_url")
+  mimeType       String               @default("") @map("mime_type")
+
+  createdAt      DateTime             @default(now()) @map("created_at")
+  deletedAt      DateTime?            @map("deleted_at") // Soft Deletion
+
+  @@index([registrationId])
+  @@index([deletedAt])
+  @@map("registration_attachments")
+}
+
+// =========================================================================
+// 5. SOURCING & RFQ DOMAIN (Strict Currency Enum & Non-Cascading Deletes)
+// =========================================================================
+
+model Requirement {
+  id               String            @id @default(cuid())
+  referenceNumber  String?           @unique @map("reference_number")
+  scopeOfWork      String            @map("scope_of_work")
+  project          String
+  sellingPrice     Decimal?          @map("selling_price") @db.Decimal(14, 2)
+  currency         Currency          @default(SAR) // Strict Currency Enum
+
+  closesAt         DateTime          @map("closes_at")
+  status           RequirementStatus @default(DRAFT)
+
+  createdByAdminId String            @map("created_by_admin_id")
+  createdByAdmin   AdminUser         @relation("RequirementAuthor", fields: [createdByAdminId], references: [id], onDelete: Restrict)
+
+  awardedQuoteId   String?           @unique @map("awarded_quote_id")
+  awardedQuote     Quote?            @relation("AwardedQuote", fields: [awardedQuoteId], references: [id], onDelete: SetNull)
+  awardedAt        DateTime?         @map("awarded_at")
+  awardedByAdminId String?           @map("awarded_by_admin_id")
+  awardedByAdmin   AdminUser?        @relation("RequirementAwarder", fields: [awardedByAdminId], references: [id], onDelete: SetNull)
+
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  deletedAt        DateTime?         @map("deleted_at") // Soft Deletion
+
+  invites          RequirementInvite[]
+  quotes           Quote[]
+
+  @@index([status, closesAt])
+  @@index([deletedAt])
+  @@map("requirements")
+}
+
+model RequirementInvite {
+  id            String      @id @default(cuid())
+  requirementId String      @map("requirement_id")
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Restrict)
+
+  vendorUserId  String      @map("vendor_user_id")
+  vendorUser    VendorUser  @relation(fields: [vendorUserId], references: [id], onDelete: Restrict)
+
+  emailStatus   String      @default("PENDING") @map("email_status")
+  emailError    String?     @map("email_error")
+  emailedAt     DateTime?   @map("emailed_at")
+
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  @@unique([requirementId, vendorUserId])
+  @@index([vendorUserId])
+  @@map("requirement_invites")
+}
+
+/// [SOFT-DELETE RESOLUTION NOTE]
+/// Quote is linked via onDelete: Restrict to protect historical bid pricing.
+/// Soft-deleting a Requirement must trigger a soft-delete cascade on associated Quotes
+/// through a Prisma Client Extension ($extends) or middleware.
+model Quote {
+  id            String      @id @default(cuid())
+  requirementId String      @map("requirement_id")
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Restrict)
+
+  vendorUserId  String      @map("vendor_user_id")
+  vendorUser    VendorUser  @relation(fields: [vendorUserId], references: [id], onDelete: Restrict)
+
+  // Multi-Currency Implementation
+  currency      Currency    @default(SAR) // Strict Currency Enum
+  exchangeRate  Decimal     @default(1.0) @map("exchange_rate") @db.Decimal(12, 6) // Multiplier relative to SAR base
+  newPrice      Decimal?    @map("new_price") @db.Decimal(14, 2)
+  amountSar     Decimal?    @map("amount_sar") @db.Decimal(14, 2) // Base currency equivalent for comparison
+
+  remarks       String      @default("")
+  status        QuoteStatus @default(DRAFT)
+  submittedAt   DateTime?   @map("submitted_at")
+
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  deletedAt     DateTime?   @map("deleted_at") // Soft Deletion
+
+  awardedFor    Requirement? @relation("AwardedQuote")
+
+  @@unique([requirementId, vendorUserId])
+  @@index([requirementId, status])
+  @@index([deletedAt])
+  @@map("quotes")
+}
+
+// =========================================================================
+// 6. PROCUREMENT DOMAIN (Multi-Currency & Safe Soft Deletion)
+// =========================================================================
+
+/// [SOFT-DELETE RESOLUTION NOTE]
+/// PurchaseRequest items and attachments use onDelete: Restrict to safeguard financial history.
+/// Use Prisma Client Extensions to propagate soft-deletions to items and attachments.
 model PurchaseRequest {
-  id              String             @id @default(cuid())
-  referenceNumber String             @unique
+  id              String              @id @default(cuid())
+  referenceNumber String              @unique @map("reference_number")
   title           String
-  description     String             @default("")
+  description     String              @default("")
   department      String
-  requesterName   String
-  requesterEmail  String?
+  requesterName   String              @map("requester_name")
+  requesterEmail  String?             @map("requester_email")
   priority        ProcurementPriority @default(MEDIUM)
-  status          ProcurementStatus   @default(SUBMITTED)
-  requiredByDate  DateTime
-  currency        String             @default("SAR")
-  estimatedAmount Decimal            @default(0) @db.Decimal(14, 2)
-  costCenter      String?
-  adminNotes      String?
+  status          ProcurementStatus   @default(DRAFT)
+  requiredByDate  DateTime            @map("required_by_date")
+  currency        Currency            @default(SAR) // Strict Currency Enum
+  estimatedAmount Decimal             @default(0) @map("estimated_amount") @db.Decimal(14, 2)
+  costCenter      String?             @map("cost_center")
+  adminNotes      String?             @map("admin_notes")
 
-  createdById     String?
-  createdBy       AdminUser?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdById     String?             @map("created_by_id")
+  createdBy       AdminUser?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+  deletedAt       DateTime?           @map("deleted_at") // Soft Deletion
 
   items           PurchaseRequestItem[]
   attachments     PurchaseRequestAttachment[]
 
   @@index([status, priority])
   @@index([department])
-  @@index([createdAt(sort: Desc)])
+  @@index([deletedAt])
+  @@map("purchase_requests")
 }
 
 model PurchaseRequestItem {
   id                 String          @id @default(cuid())
-  purchaseRequestId  String
-  purchaseRequest    PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
+  purchaseRequestId  String          @map("purchase_request_id")
+  purchaseRequest    PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Restrict)
 
   name               String
   category           String
   quantity           Decimal         @db.Decimal(12, 2)
   unit               String
-  estimatedUnitPrice Decimal         @db.Decimal(14, 2)
-  totalPrice         Decimal         @db.Decimal(14, 2)
-  preferredVendor    String?
-  notes              String?
-  sortOrder          Int             @default(0)
 
-  createdAt          DateTime        @default(now())
+  // Multi-Currency Fields
+  currency           Currency        @default(SAR) // Strict Currency Enum
+  exchangeRate       Decimal         @default(1.0) @map("exchange_rate") @db.Decimal(12, 6)
+  estimatedUnitPrice Decimal         @map("estimated_unit_price") @db.Decimal(14, 2)
+  totalPrice         Decimal         @map("total_price") @db.Decimal(14, 2)
+
+  preferredVendor    String?         @map("preferred_vendor")
+  notes              String?
+  sortOrder          Int             @default(0) @map("sort_order")
+
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+  deletedAt          DateTime?       @map("deleted_at") // Soft Deletion
 
   @@index([purchaseRequestId, sortOrder])
+  @@index([deletedAt])
+  @@map("purchase_request_items")
 }
 
 model PurchaseRequestAttachment {
   id                String          @id @default(cuid())
-  purchaseRequestId String
-  purchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
+  purchaseRequestId String          @map("purchase_request_id")
+  purchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Restrict)
 
   name              String
   url               String
-  sizeBytes         Int             @default(0)
-  mimeType          String          @default("application/pdf")
-  uploadedAt        DateTime        @default(now())
+  sizeBytes         Int             @default(0) @map("size_bytes")
+  mimeType          String          @default("application/pdf") @map("mime_type")
+
+  uploadedAt        DateTime        @default(now()) @map("uploaded_at")
+  deletedAt         DateTime?       @map("deleted_at") // Soft Deletion
 
   @@index([purchaseRequestId])
+  @@index([deletedAt])
+  @@map("purchase_request_attachments")
 }
 
-// PurchaseRequestAuditLog has been merged into the unified AuditLog above.
+// =========================================================================
+// 7. CROSS-CUTTING, MULTI-ACTOR AUDIT TRAIL & CMS
+// =========================================================================
+
+model Industry {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  slug      String       @unique
+  isActive  Boolean      @default(true) @map("is_active")
+
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  vendors   VendorUser[]
+
+  @@map("industries")
+}
+
+model Notification {
+  id           String      @id @default(cuid())
+  vendorUserId String?     @map("vendor_user_id")
+  vendorUser   VendorUser? @relation(fields: [vendorUserId], references: [id], onDelete: Cascade)
+
+  adminId      String?     @map("admin_id")
+  admin        AdminUser?  @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  type         String
+  title        String
+  body         String      @default("")
+  linkPath     String      @map("link_path")
+
+  readAt       DateTime?   @map("read_at")
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  @@index([vendorUserId, readAt])
+  @@index([adminId, readAt])
+  @@map("notifications")
+}
+
+/// Unified, multi-actor immutable system audit log
+model AuditLog {
+  id             String      @id @default(cuid())
+
+  // Multi-actor accountability
+  adminId        String?     @map("admin_id")
+  admin          AdminUser?  @relation(fields: [adminId], references: [id], onDelete: SetNull)
+
+  vendorId       String?     @map("vendor_id")
+  vendor         VendorUser? @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+
+  action         String
+  entityType     String      @map("entity_type")
+  entityId       String      @map("entity_id")
+  actorName      String      @default("") @map("actor_name")
+  actorRole      String      @default("") @map("actor_role") // "admin", "vendor", "system"
+  previousStatus String?     @map("previous_status")
+  newStatus      String?     @map("new_status")
+  note           String?
+  metadata       Json        @default("{}")
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([adminId])
+  @@index([vendorId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model JobPosting {
+  id             String           @id @default(cuid())
+  slug           String           @unique
+  title          String
+  department     String           @default("")
+  location       String           @default("")
+  employmentType String           @default("Full-time") @map("employment_type")
+  description    String           @default("")
+  requirements   String[]         @default([])
+  benefits       String[]         @default([])
+  isRemote       Boolean          @default(false) @map("is_remote")
+  isPublished    Boolean          @default(false) @map("is_published")
+  postedAt       DateTime         @default(now()) @map("posted_at")
+  sortOrder      Int              @default(0) @map("sort_order")
+
+  createdById    String?          @map("created_by_id")
+  createdBy      AdminUser?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  applications   JobApplication[]
+
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  deletedAt      DateTime?        @map("deleted_at") // Soft Deletion
+
+  @@index([isPublished, sortOrder])
+  @@index([deletedAt])
+  @@map("job_postings")
+}
+
+model JobApplication {
+  id           String     @id @default(cuid())
+  jobPostingId String     @map("job_posting_id")
+  jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Restrict)
+
+  fullName     String     @map("full_name")
+  email        String
+  phone        String     @default("")
+  cvFileName   String     @map("cv_file_name")
+  cvFileUrl    String     @map("cv_file_url")
+  cvMimeType   String     @default("application/pdf") @map("cv_mime_type")
+
+  createdAt    DateTime   @default(now()) @map("created_at")
+  deletedAt    DateTime?  @map("deleted_at") // Soft Deletion
+
+  @@index([jobPostingId])
+  @@index([deletedAt])
+  @@map("job_applications")
+}
