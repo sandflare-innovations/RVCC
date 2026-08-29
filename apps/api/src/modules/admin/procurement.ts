@@ -92,10 +92,10 @@ export async function loadPurchaseRequestDetail(sql: Sql, idOrRef: string) {
 
   const auditLogs = await sql`
     SELECT al.*, a.email as "actorEmail"
-    FROM "PurchaseRequestAuditLog" al
-    LEFT JOIN "AdminUser" a ON al."actorId" = a.id
-    WHERE al."purchaseRequestId" = ${req.id as string}
-    ORDER BY al."timestamp" ASC
+    FROM "AuditLog" al
+    LEFT JOIN "AdminUser" a ON al."adminId" = a.id
+    WHERE al."entityType" = 'PurchaseRequest' AND al."entityId" = ${req.id as string}
+    ORDER BY al."createdAt" ASC
   `;
 
   return {
@@ -139,7 +139,7 @@ export async function loadPurchaseRequestDetail(sql: Sql, idOrRef: string) {
       action: log.action as string,
       actorName: (log.actorName as string) || "Staff",
       actorRole: (log.actorRole as string) || "admin",
-      timestamp: new Date(log.timestamp as string).toISOString(),
+      timestamp: new Date(log.createdAt as string).toISOString(),
       note: (log.note as string) || null,
       previousStatus: log.previousStatus ? formatStatusToClient(log.previousStatus as string) : undefined,
       newStatus: log.newStatus ? formatStatusToClient(log.newStatus as string) : undefined,
@@ -384,22 +384,16 @@ export async function handleProcurementCreate(
   }
 
   // Insert Initial Audit Log
-  const logId = cuid();
-  await sql`
-    INSERT INTO "PurchaseRequestAuditLog" (
-      id, "purchaseRequestId", action, "actorName", "actorRole", "actorId",
-      "previousStatus", "newStatus", note, "timestamp"
-    ) VALUES (
-      ${logId}, ${reqId}, 'Requisition Submitted', ${requesterName}, 'requester', ${auth.admin.id},
-      'DRAFT', 'SUBMITTED', 'Initial purchase request submitted.', ${now}
-    )
-  `;
-
   await writeAudit(sql, {
     adminId: auth.admin.id,
-    action: "CREATE_PURCHASE_REQUEST",
-    entityType: "PurchaseRequest",
+    action: 'Requisition Submitted',
+    entityType: 'PurchaseRequest',
     entityId: reqId,
+    actorName: requesterName,
+    actorRole: 'requester',
+    previousStatus: 'DRAFT',
+    newStatus: 'SUBMITTED',
+    note: 'Initial purchase request submitted.',
     metadata: { ref: refNum, title, amount: calculatedTotal },
   });
 
@@ -478,23 +472,17 @@ export async function handleProcurementReview(
   `;
 
   // Append Audit Log
-  const logId = cuid();
-  await sql`
-    INSERT INTO "PurchaseRequestAuditLog" (
-      id, "purchaseRequestId", action, "actorName", "actorRole", "actorId",
-      "previousStatus", "newStatus", note, "timestamp"
-    ) VALUES (
-      ${logId}, ${existing.id as string}, ${actionTitle}, ${auth.admin.name || "Administrator"}, 'admin', ${auth.admin.id},
-      ${prevStatus}, ${status}, ${note}, ${now}
-    )
-  `;
-
   await writeAudit(sql, {
     adminId: auth.admin.id,
-    action: `PROCUREMENT_${status}`,
-    entityType: "PurchaseRequest",
+    action: actionTitle,
+    entityType: 'PurchaseRequest',
     entityId: existing.id as string,
-    metadata: { ref: existing.referenceNumber as string, previousStatus: prevStatus, newStatus: status, note: note || undefined },
+    actorName: auth.admin.name || "Administrator",
+    actorRole: 'admin',
+    previousStatus: prevStatus,
+    newStatus: status,
+    note: note,
+    metadata: { ref: existing.referenceNumber as string },
   });
 
   const detail = await loadPurchaseRequestDetail(sql, existing.id as string);
@@ -524,7 +512,8 @@ export async function handleProcurementDelete(
     return json(env, request, { error: "Purchase requisition not found" }, 404);
   }
 
-  // Delete will cascade delete items, attachments, and audit logs
+  // Delete will cascade-remove items and attachments; audit log entries
+  // in the unified AuditLog table persist for post-deletion traceability.
   await sql`
     DELETE FROM "PurchaseRequest"
     WHERE id = ${existing.id as string}
@@ -909,15 +898,17 @@ async function seedInitialProcurementData(sql: Sql, adminId?: string) {
     }
 
     for (const log of s.audit) {
-      await sql`
-        INSERT INTO "PurchaseRequestAuditLog" (
-          id, "purchaseRequestId", action, "actorName", "actorRole",
-          "previousStatus", "newStatus", note, "timestamp"
-        ) VALUES (
-          ${cuid()}, ${reqId}, ${log.action}, ${log.actorName}, ${log.role},
-          ${log.prev}, ${log.next}, ${log.note}, ${now}
-        )
-      `;
+      await writeAudit(sql, {
+        adminId: null,
+        action: log.action,
+        entityType: 'PurchaseRequest',
+        entityId: reqId,
+        actorName: log.actorName,
+        actorRole: log.role,
+        previousStatus: log.prev,
+        newStatus: log.next,
+        note: log.note,
+      });
     }
   }
 }

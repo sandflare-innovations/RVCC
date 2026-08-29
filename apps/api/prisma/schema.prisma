@@ -66,7 +66,6 @@ model AdminUser {
   awarded       Requirement[]  @relation("RequirementAwarder")
   notifications Notification[]
   procurementRequisitions PurchaseRequest[]
-  procurementAudits       PurchaseRequestAuditLog[]
 
   @@index([email])
 }
@@ -223,17 +222,22 @@ model VendorSession {
   @@index([vendorId])
 }
 
-/// Append-only trail of privileged actions. Approving a vendor is a commercial
-/// decision, so it needs to be attributable after the fact.
+/// Append-only trail of privileged actions. Unified audit log covering both
+/// general admin actions and procurement status transitions.
 model AuditLog {
-  id         String     @id @default(cuid())
-  adminId    String?
-  admin      AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
-  action     String // e.g. "registration.approved"
-  entityType String // e.g. "SupplierRegistration"
-  entityId   String
-  metadata   Json       @default("{}")
-  createdAt  DateTime   @default(now())
+  id             String     @id @default(cuid())
+  adminId        String?
+  admin          AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  action         String     // e.g. "registration.approved", "Requisition Submitted"
+  entityType     String     // e.g. "SupplierRegistration", "PurchaseRequest"
+  entityId       String
+  actorName      String     @default("")   // denormalized display name
+  actorRole      String     @default("")   // "admin", "requester", "system"
+  previousStatus String?                    // for status transitions
+  newStatus      String?                    // for status transitions
+  note           String?                    // reviewer/approver notes
+  metadata       Json       @default("{}")
+  createdAt      DateTime   @default(now())
 
   @@index([entityType, entityId])
   @@index([adminId])
@@ -553,7 +557,6 @@ model PurchaseRequest {
 
   items           PurchaseRequestItem[]
   attachments     PurchaseRequestAttachment[]
-  auditLogs       PurchaseRequestAuditLog[]
 
   @@index([status, priority])
   @@index([department])
@@ -594,22 +597,4 @@ model PurchaseRequestAttachment {
   @@index([purchaseRequestId])
 }
 
-model PurchaseRequestAuditLog {
-  id                String             @id @default(cuid())
-  purchaseRequestId String
-  purchaseRequest   PurchaseRequest    @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
-
-  action            String
-  actorName         String
-  actorRole         String             @default("admin")
-  actorId           String?
-  actor             AdminUser?         @relation(fields: [actorId], references: [id], onDelete: SetNull)
-
-  previousStatus    ProcurementStatus?
-  newStatus         ProcurementStatus?
-  note              String?
-  timestamp         DateTime           @default(now())
-
-  @@index([purchaseRequestId, timestamp(sort: Desc)])
-}
-
+// PurchaseRequestAuditLog has been merged into the unified AuditLog above.

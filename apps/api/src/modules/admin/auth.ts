@@ -216,18 +216,32 @@ export async function writeAudit(
     action: string;
     entityType: string;
     entityId: string;
+    actorName?: string;
+    actorRole?: string;
+    previousStatus?: string | null;
+    newStatus?: string | null;
+    note?: string | null;
     metadata?: Record<string, unknown>;
   }
 ): Promise<void> {
   try {
     await sql`
-      INSERT INTO "AuditLog" (id, "adminId", action, "entityType", "entityId", metadata, "createdAt")
+      INSERT INTO "AuditLog" (
+        id, "adminId", action, "entityType", "entityId",
+        "actorName", "actorRole", "previousStatus", "newStatus", note,
+        metadata, "createdAt"
+      )
       VALUES (
         ${cuid()},
         ${entry.adminId},
         ${entry.action},
         ${entry.entityType},
         ${entry.entityId},
+        ${entry.actorName ?? ""},
+        ${entry.actorRole ?? ""},
+        ${entry.previousStatus ?? null},
+        ${entry.newStatus ?? null},
+        ${entry.note ?? null},
         ${sql.json((entry.metadata ?? {}) as Parameters<Sql["json"]>[0])},
         NOW()
       )
