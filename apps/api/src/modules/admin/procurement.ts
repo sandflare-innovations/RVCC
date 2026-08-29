@@ -203,7 +203,7 @@ export async function handleProcurementList(sql: unknown, env: Env, request: Req
     updatedAt: r.updatedAt.toISOString(),
   }));
 
-  return json(env, request, { requests: list, total: list.length });
+  return json(env, request, list);
 }
 
 /**
