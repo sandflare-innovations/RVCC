@@ -149,6 +149,7 @@ export interface VendorAnonymizedBidItem {
   rank: number;
   price: string;
   currency: string;
+  amountSar?: string | null;
   submittedAt: string | null;
   isYou: boolean;
   maskedName: string; // e.g. "You" or "Bidder #1"
