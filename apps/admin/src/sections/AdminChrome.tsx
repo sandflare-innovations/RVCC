@@ -24,7 +24,9 @@ const VENDOR_NAV = [
   { href: "/vendors", label: "Vendor Accounts", icon: <Users className={ICON} /> },
   { href: "/requirements", label: "RFQs / Requirements", icon: <ClipboardList className={ICON} /> },
   { href: "/registrations", label: "Vendor Registrations", icon: <FileText className={ICON} /> },
+  { href: "/staff", label: "Staff & Admins", icon: <ShieldCheck className={ICON} /> },
 ];
+
 
 
 
@@ -59,9 +61,30 @@ function SidebarContents({
   const { open, animate } = useSidebar();
   const expanded = animate ? open : true;
 
-  const [dashboardMenuOpen, setDashboardMenuOpen] = useState(false);
+  const role = admin.role;
+  const allowVendors = role === "SUPER_ADMIN" || role === "ADMIN" || role === "VENDOR_ADMIN";
+  const allowWebsite = role === "SUPER_ADMIN" || role === "ADMIN" || role === "WEBSITE_ADMIN";
+  const allowProcurement = role === "SUPER_ADMIN" || role === "ADMIN" || role === "PROCUREMENT_ADMIN";
+  const allowStaff = role === "SUPER_ADMIN";
+
+  // Filter VENDOR_NAV according to permissions
+  const filteredVendorNav = VENDOR_NAV.filter((item) => {
+    if (item.href === "/procurement") return allowProcurement;
+    if (item.href === "/staff") return allowStaff;
+    if (item.href === "/" || item.href === "/vendors" || item.href === "/requirements" || item.href === "/registrations") {
+      return allowVendors;
+    }
+    return true;
+  });
+
   const isWebsiteDashboard = pathname.startsWith("/content");
-  const currentNav = isWebsiteDashboard ? WEBSITE_NAV : VENDOR_NAV;
+  // Default to Website nav if role is only WEBSITE_ADMIN
+  const effectiveIsWebsite = allowWebsite && (!allowVendors || isWebsiteDashboard);
+  const currentNav = effectiveIsWebsite ? WEBSITE_NAV : filteredVendorNav;
+
+  const [dashboardMenuOpen, setDashboardMenuOpen] = useState(false);
+  const canSwitchPortals = allowVendors && allowWebsite;
+
 
   const { showInstallButton, prompting, promptInstall } = useInstallPrompt();
 
@@ -69,9 +92,14 @@ function SidebarContents({
     <div className="flex h-full flex-col">
       <div className="mb-6 py-1 relative">
         <button
-          onClick={() => setDashboardMenuOpen(!dashboardMenuOpen)}
+          onClick={() => {
+            if (canSwitchPortals) setDashboardMenuOpen(!dashboardMenuOpen);
+          }}
+          disabled={!canSwitchPortals}
           onBlur={() => setTimeout(() => setDashboardMenuOpen(false), 200)}
-          className="flex items-center gap-2.5 w-full hover:bg-white/10 p-2 rounded-lg transition-colors text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          className={`flex items-center gap-2.5 w-full p-2 rounded-lg transition-colors text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+            canSwitchPortals ? "hover:bg-white/10 cursor-pointer" : "cursor-default"
+          }`}
         >
           <div className="bg-white flex h-10 w-10 shrink-0 items-center justify-center rounded-md p-1 shadow-sm">
             <img
@@ -87,44 +115,52 @@ function SidebarContents({
           >
             <div className="min-w-0 pr-2">
               <span className="block text-sm font-semibold text-white truncate">
-                {isWebsiteDashboard ? "Company Website" : "Vendor Management"}
+                {effectiveIsWebsite ? "Company Website" : role === "PROCUREMENT_ADMIN" ? "Procurement" : "Vendor Management"}
               </span>
-              <span className="block text-[11px] text-blue-200">Administration</span>
+              <span className="block text-[11px] text-blue-200">
+                {role === "SUPER_ADMIN" ? "Super Admin" : role === "WEBSITE_ADMIN" ? "Website CMS" : role === "PROCUREMENT_ADMIN" ? "Procurement Portal" : "Administration"}
+              </span>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`text-blue-200 transition-transform shrink-0 ${dashboardMenuOpen ? "rotate-180" : ""}`}>
-              <path d="m6 9 6 6 6-6" />
-            </svg>
+            {canSwitchPortals && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`text-blue-200 transition-transform shrink-0 ${dashboardMenuOpen ? "rotate-180" : ""}`}>
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            )}
           </motion.div>
         </button>
 
-        {dashboardMenuOpen && expanded && (
+        {dashboardMenuOpen && expanded && canSwitchPortals && (
           <div className="absolute left-0 top-full mt-1 w-full bg-white rounded-xl shadow-lg border border-zinc-200 py-2 z-50 overflow-hidden">
-            <button
-              type="button"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                setDashboardMenuOpen(false);
-                router.push("/");
-                onNavigate();
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-zinc-50 ${!isWebsiteDashboard ? "bg-blue-50/50 font-semibold text-brand-blue" : "text-zinc-700"}`}
-            >
-              <Users className="h-4 w-4" />
-              Vendor Management
-            </button>
-            <button
-              type="button"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                setDashboardMenuOpen(false);
-                router.push("/content");
-                onNavigate();
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-zinc-50 ${isWebsiteDashboard ? "bg-blue-50/50 font-semibold text-brand-blue" : "text-zinc-700"}`}
-            >
-              <Globe className="h-4 w-4" />
-              Company Website
-            </button>
+            {allowVendors && (
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setDashboardMenuOpen(false);
+                  router.push("/");
+                  onNavigate();
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-zinc-50 ${!isWebsiteDashboard ? "bg-blue-50/50 font-semibold text-brand-blue" : "text-zinc-700"}`}
+              >
+                <Users className="h-4 w-4" />
+                Vendor Management
+              </button>
+            )}
+            {allowWebsite && (
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setDashboardMenuOpen(false);
+                  router.push("/content");
+                  onNavigate();
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-zinc-50 ${isWebsiteDashboard ? "bg-blue-50/50 font-semibold text-brand-blue" : "text-zinc-700"}`}
+              >
+                <Globe className="h-4 w-4" />
+                Company Website
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -140,6 +176,7 @@ function SidebarContents({
           />
         ))}
       </nav>
+
 
       <div>
         <div
