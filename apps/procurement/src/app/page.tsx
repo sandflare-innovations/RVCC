@@ -25,11 +25,23 @@ export default function RequesterDashboard() {
 
   const loadData = async () => {
     setIsRefreshing(true);
-    setUser(getClientProcurementProfile());
+    const clientProfile = getClientProcurementProfile();
+    if (clientProfile) {
+      setUser(clientProfile);
+    }
     try {
-      const res = await fetch("/api/procurement", { cache: "no-store" });
-      if (res.ok) {
-        const data = await res.json();
+      const [reqRes, meRes] = await Promise.all([
+        fetch("/api/procurement", { cache: "no-store" }),
+        fetch("/api/me", { cache: "no-store" }).catch(() => null),
+      ]);
+
+      if (meRes && meRes.ok) {
+        const meData = await meRes.json();
+        if (meData?.user) setUser(meData.user);
+      }
+
+      if (reqRes.ok) {
+        const data = await reqRes.json();
         if (Array.isArray(data)) {
           setRequests(data);
         }

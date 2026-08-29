@@ -14,9 +14,11 @@ export function getClientProcurementProfile(): ProcurementProfile | null {
   const raw = match.split("=")[1];
   if (!raw) return null;
   try {
-    const jsonStr = decodeURIComponent(
-      atob(raw.replace(/-/g, "+").replace(/_/g, "/"))
-    );
+    const unescaped = decodeURIComponent(raw);
+    const base64 = unescaped.replace(/-/g, "+").replace(/_/g, "/");
+    const pad = base64.length % 4;
+    const padded = pad ? base64 + "=".repeat(4 - pad) : base64;
+    const jsonStr = atob(padded);
     return JSON.parse(jsonStr) as ProcurementProfile;
   } catch {
     return null;

@@ -34,9 +34,12 @@ export async function readProcurementProfile(): Promise<ProcurementUserProfile |
 }
 
 export function procurementProfileCookieOptions() {
-  return procurementCookieOptions();
+  return {
+    ...procurementCookieOptions(),
+    httpOnly: false,
+  };
 }
 
 export function expiredProcurementProfileCookieOptions() {
-  return { ...procurementCookieOptions(), maxAge: 0 };
+  return { ...procurementCookieOptions(), httpOnly: false, maxAge: 0 };
 }

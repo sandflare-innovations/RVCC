@@ -44,7 +44,16 @@ export default function RequisitionDetailPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
-    setUser(getClientProcurementProfile());
+    const clientProfile = getClientProcurementProfile();
+    if (clientProfile) setUser(clientProfile);
+
+    fetch("/api/me", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.user) setUser(data.user);
+      })
+      .catch(() => {});
+
     const fetchDetail = async () => {
       if (params?.id) {
         setIsLoading(true);
