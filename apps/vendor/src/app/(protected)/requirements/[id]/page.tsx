@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 
 import { describeDeadline } from "@/lib/rfq";
-import { QuoteForm, type QuoteFormRequirement } from "@/sections/requirements/QuoteForm";
+import { type QuoteFormRequirement } from "@/sections/requirements/QuoteForm";
+import { VendorRequirementInteractive } from "@/sections/requirements/VendorRequirementInteractive";
 import { BackButton } from "@/components/ui/back-button";
 
 import { VENDOR_COOKIE } from "@/lib/constants";
@@ -56,7 +57,7 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
       </div>
 
       <div
-        className={`rounded-lg border border-zinc-200 bg-white p-4 ${
+        className={`rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm ${
           deadline.urgent && !submitted && !closed ? "border-l-brand-blue border-l-4" : ""
         }`}
       >
@@ -65,28 +66,26 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
             <p className="text-xs font-semibold tracking-[0.12em] text-zinc-600 uppercase">
               {closed ? "Closed" : "Closes"}
             </p>
-            <p className="mt-1 text-lg font-semibold text-zinc-950 tabular-nums">
+            <p className="mt-1 text-lg font-bold text-zinc-950 tabular-nums">
               {closed ? "This requirement has closed" : deadline.label}
             </p>
           </div>
           <div className="text-left sm:text-right">
             <p className="text-xs font-semibold tracking-[0.12em] text-zinc-600 uppercase">
-              Your quote
+              Your Quote Status
             </p>
-            <p className="mt-1 text-sm font-semibold text-zinc-950">{quoteState}</p>
+            <p className="mt-1 text-sm font-bold text-zinc-950">{quoteState}</p>
           </div>
         </div>
         {deadline.urgent && !submitted && !closed ? (
-          <p className="mt-3 text-sm font-semibold text-zinc-950">
+          <p className="mt-3 text-sm font-semibold text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200">
             Closing soon. Submit your price before the deadline.
           </p>
         ) : null}
       </div>
 
-      {closed ? (
-        // Not a 404: a closed requirement is a normal outcome, and a missing
-        // page reads as a broken system.
-        <p className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
+      {closed && (
+        <p className="rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 text-sm text-zinc-600">
           This requirement closed on{" "}
           {new Date(detail.closesAt).toLocaleString("en-GB", {
             day: "numeric",
@@ -96,11 +95,14 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
           })}
           .
         </p>
-      ) : (
-        <div className="rounded-lg border border-zinc-200 bg-white p-5">
-          <QuoteForm requirement={detail} action={`/api/requirements/${detail.id}/quote`} />
-        </div>
       )}
+
+      {/* Live Bidding & Interactive Quote Form */}
+      <VendorRequirementInteractive
+        requirement={detail}
+        action={`/api/requirements/${detail.id}/quote`}
+        closed={closed}
+      />
     </div>
   );
 }
