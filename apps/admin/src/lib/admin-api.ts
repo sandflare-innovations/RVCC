@@ -14,6 +14,7 @@ export async function adminApiFetch(
   const { sessionToken, headers: initHeaders, ...rest } = init;
   const headers = new Headers(initHeaders);
   headers.set("Content-Type", headers.get("Content-Type") || "application/json");
+  if (!headers.has("User-Agent")) headers.set("User-Agent", "RVCC-Admin-SSR/1.0");
   if (sessionToken) headers.set("X-Admin-Session", sessionToken);
 
   return fetch(`${adminBaseUrl()}${path.startsWith("/") ? path : `/${path}`}`, {
