@@ -61,6 +61,7 @@ export default {
         headers: { "Content-Type": "application/json" },
       });
     }
+    process.env.DATABASE_URL = env.DATABASE_URL;
     const app = createApp(toAppEnv(env));
     return app.fetch(request);
   },
