@@ -137,12 +137,12 @@ export async function loadPurchaseRequestDetail(sql: Sql, idOrRef: string) {
     auditTrail: auditLogs.map((log) => ({
       id: log.id as string,
       action: log.action as string,
-      actorName: (log.actorName as string) || "Staff",
-      actorRole: (log.actorRole as string) || "admin",
-      timestamp: new Date(log.createdAt as string).toISOString(),
+      actorName: (log.actor_name || log.actorName || "Staff") as string,
+      actorRole: (log.actor_role || log.actorRole || "admin") as string,
+      timestamp: new Date((log.created_at || log.createdAt || log.timestamp) as string).toISOString(),
       note: (log.note as string) || null,
-      previousStatus: log.previousStatus ? formatStatusToClient(log.previousStatus as string) : undefined,
-      newStatus: log.newStatus ? formatStatusToClient(log.newStatus as string) : undefined,
+      previousStatus: (log.previous_status || log.previousStatus) ? formatStatusToClient((log.previous_status || log.previousStatus) as string) : undefined,
+      newStatus: (log.new_status || log.newStatus) ? formatStatusToClient((log.new_status || log.newStatus) as string) : undefined,
     })),
   };
 }
