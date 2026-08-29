@@ -7,17 +7,11 @@ import {
   ChevronLeft,
   Building,
   Calendar,
-  User,
   Clock,
   MessageSquare,
   FileText,
   AlertTriangle,
   History,
-  Tag,
-  DollarSign,
-  ArrowDownToLine,
-  Layers,
-  ArrowUpRight,
   Trash2,
   Loader2,
 } from "lucide-react";
@@ -429,7 +423,7 @@ export default function RequisitionDetailPage() {
             <div className="mt-4 space-y-2">
               <p className="text-sm text-zinc-600 leading-relaxed">
                 Are you sure you want to permanently delete{" "}
-                <strong className="text-zinc-950 font-semibold">"{request.title}"</strong>?
+                <strong className="text-zinc-950 font-semibold">&ldquo;{request.title}&rdquo;</strong>?
               </p>
               <p className="text-xs text-zinc-400">
                 This action cannot be undone. All associated line items, attachments, and history logs will be removed.

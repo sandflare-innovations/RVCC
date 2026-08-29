@@ -46,7 +46,7 @@ async function main() {
     const id = cuid();
 
     // Ensure role exists in Role table
-    let [roleRecord] = await sql`
+    const [roleRecord] = await sql`
       SELECT id FROM "Role" WHERE name = ${role} LIMIT 1
     `;
     let roleId = roleRecord?.id;
