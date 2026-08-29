@@ -44,9 +44,13 @@ function generateSessionToken(): string {
 export async function attemptAdminLogin(
   sql: Sql,
   email: string,
-  password: string
+  password: string,
+  meta?: { ipAddress?: string; userAgent?: string }
 ): Promise<LoginResult> {
   const normalized = email.trim().toLowerCase();
+  const ip = meta?.ipAddress || "127.0.0.1";
+  const userAgent = meta?.userAgent || "";
+
   const [admin] = await sql`
     SELECT * FROM "AdminUser" WHERE email = ${normalized} LIMIT 1
   `;
@@ -57,6 +61,11 @@ export async function attemptAdminLogin(
   }
 
   if (admin.lockedUntil && new Date(admin.lockedUntil as string | Date) > new Date()) {
+    void sql`
+      INSERT INTO "AdminLoginHistory" (id, "adminId", "ipAddress", "userAgent", status, "failureReason", "loginAt")
+      VALUES (${cuid()}, ${admin.id}, ${ip}, ${userAgent}, 'FAILED', 'ACCOUNT_LOCKED', NOW())
+    `.catch(() => {});
+
     return {
       ok: false,
       reason: "locked",
@@ -64,7 +73,14 @@ export async function attemptAdminLogin(
     };
   }
 
-  if (!admin.isActive) return { ok: false, reason: "disabled" };
+  if (!admin.isActive) {
+    void sql`
+      INSERT INTO "AdminLoginHistory" (id, "adminId", "ipAddress", "userAgent", status, "failureReason", "loginAt")
+      VALUES (${cuid()}, ${admin.id}, ${ip}, ${userAgent}, 'FAILED', 'ACCOUNT_DISABLED', NOW())
+    `.catch(() => {});
+
+    return { ok: false, reason: "disabled" };
+  }
 
   if (!(await verifyPassword(password, admin.passwordHash as string))) {
     const failedAttempts = Number(admin.failedAttempts) + 1;
@@ -76,6 +92,12 @@ export async function attemptAdminLogin(
           "updatedAt" = NOW()
       WHERE id = ${admin.id as string}
     `;
+
+    void sql`
+      INSERT INTO "AdminLoginHistory" (id, "adminId", "ipAddress", "userAgent", status, "failureReason", "loginAt")
+      VALUES (${cuid()}, ${admin.id}, ${ip}, ${userAgent}, 'FAILED', 'INVALID_PASSWORD', NOW())
+    `.catch(() => {});
+
     return lock
       ? { ok: false, reason: "locked", retryAfterMs: LOCKOUT_MS }
       : { ok: false, reason: "invalid" };
@@ -90,6 +112,11 @@ export async function attemptAdminLogin(
     WHERE id = ${admin.id as string}
   `;
 
+  void sql`
+    INSERT INTO "AdminLoginHistory" (id, "adminId", "ipAddress", "userAgent", status, "failureReason", "loginAt")
+    VALUES (${cuid()}, ${admin.id}, ${ip}, ${userAgent}, 'SUCCESS', NULL, NOW())
+  `.catch(() => {});
+
   return {
     ok: true,
     adminId: admin.id as string,
@@ -97,7 +124,7 @@ export async function attemptAdminLogin(
       id: admin.id as string,
       email: admin.email as string,
       name: admin.name as string,
-      role: admin.role as AdminRoleName,
+      role: (admin.role || "ADMIN") as AdminRoleName,
     },
   };
 }
@@ -168,7 +195,7 @@ export async function getAdminFromSession(
       id: row.id as string,
       email: row.email as string,
       name: row.name as string,
-      role: row.role as AdminRoleName,
+      role: (row.role || "ADMIN") as AdminRoleName,
     };
   }
 
@@ -180,11 +207,9 @@ export async function getAdminFromSession(
       try {
         return await lookup();
       } catch (retryErr) {
-        console.error("[admin session] lookup retry failed", retryErr);
         throw new AuthServiceError(retryErr);
       }
     }
-    console.error("[admin session] lookup failed", err);
     throw new AuthServiceError(err);
   }
 }
@@ -205,14 +230,15 @@ export async function revokeAdminSession(
 }
 
 export function hasRole(role: AdminRoleName, minimum: AdminRoleName): boolean {
-  return ROLE_RANK[role] >= ROLE_RANK[minimum];
+  return (ROLE_RANK[role] ?? 0) >= (ROLE_RANK[minimum] ?? 0);
 }
 
 /** Fire-and-forget is deliberate: an audit write must never block the action itself. */
 export async function writeAudit(
   sql: Sql,
   entry: {
-    adminId: string | null;
+    adminId?: string | null;
+    vendorId?: string | null;
     action: string;
     entityType: string;
     entityId: string;
@@ -227,13 +253,14 @@ export async function writeAudit(
   try {
     await sql`
       INSERT INTO "AuditLog" (
-        id, "adminId", action, "entityType", "entityId",
+        id, "adminId", "vendorId", action, "entityType", "entityId",
         "actorName", "actorRole", "previousStatus", "newStatus", note,
         metadata, "createdAt"
       )
       VALUES (
         ${cuid()},
-        ${entry.adminId},
+        ${entry.adminId ?? null},
+        ${entry.vendorId ?? null},
         ${entry.action},
         ${entry.entityType},
         ${entry.entityId},
