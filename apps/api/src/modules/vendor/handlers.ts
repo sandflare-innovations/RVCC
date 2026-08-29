@@ -10,6 +10,7 @@ import {
 import { cuid } from "./db";
 import { getOneForVendor, listOpenForVendor } from "./requirements";
 import { prisma } from "../../lib/prisma";
+import { broadcastBidUpdate } from "../bidding/live-bids";
 
 function vendorSessionFrom(request: Request): string | null {
   return request.headers.get("X-Vendor-Session");
@@ -343,6 +344,9 @@ export async function handleQuoteSave(
       submittedAt: true,
     },
   });
+
+  // Broadcast live ranking update to all connected Admin and Vendor SSE streams
+  void broadcastBidUpdate(requirementId);
 
   return json(env, request, {
     ok: true,

@@ -44,6 +44,7 @@ import {
   handleProcurementList,
   handleProcurementReview,
 } from "../modules/admin/procurement";
+import { handleAdminLiveBids } from "../modules/bidding/live-bids";
 import {
   handleStaffCreate,
   handleStaffDelete,
@@ -142,6 +143,11 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
     const reqAward = path.match(/^\/requirements\/([^/]+)\/award$/);
     if (reqAward && request.method === "POST") {
       return await handleRequirementAward(sql, env, request, decodeURIComponent(reqAward[1]!));
+    }
+
+    const reqLiveBids = path.match(/^\/requirements\/([^/]+)\/live-bids$/);
+    if (reqLiveBids && request.method === "GET") {
+      return await handleAdminLiveBids(sql, env, request, decodeURIComponent(reqLiveBids[1]!));
     }
 
     const requirementOne = path.match(/^\/requirements\/([^/]+)$/);

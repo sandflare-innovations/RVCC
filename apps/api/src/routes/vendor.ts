@@ -16,6 +16,7 @@ import {
   handleVendorNotificationsGet,
   handleVendorNotificationsMarkRead,
 } from "../modules/vendor/notifications";
+import { handleVendorLiveBids } from "../modules/bidding/live-bids";
 
 /**
  * Vendor domain router. Paths are relative to `/vendor`.
@@ -65,6 +66,11 @@ export async function handleVendorRequest(request: Request, env: Env): Promise<R
     const quoteSave = path.match(/^\/requirements\/([^/]+)\/quote$/);
     if (quoteSave && request.method === "PUT") {
       return await handleQuoteSave(sql, env, request, decodeURIComponent(quoteSave[1]!));
+    }
+
+    const reqLiveBids = path.match(/^\/requirements\/([^/]+)\/live-bids$/);
+    if (reqLiveBids && request.method === "GET") {
+      return await handleVendorLiveBids(sql, env, request, decodeURIComponent(reqLiveBids[1]!));
     }
 
     const reqOne = path.match(/^\/requirements\/([^/]+)$/);
