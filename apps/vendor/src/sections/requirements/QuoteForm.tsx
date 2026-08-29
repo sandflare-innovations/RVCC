@@ -28,6 +28,7 @@ export function QuoteForm({
   const [isSubmitted, setIsSubmitted] = useState(requirement.quoteStatus === "SUBMITTED");
   const [isRevising, setIsRevising] = useState(false);
   const [price, setPrice] = useState(requirement.newPrice ?? "");
+  const [currency, setCurrency] = useState(requirement.currency ?? "SAR");
   const [remarks, setRemarks] = useState(requirement.remarks ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +43,7 @@ export function QuoteForm({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ newPrice: price, remarks, submit }),
+        body: JSON.stringify({ newPrice: price, currency, remarks, submit }),
       });
       if (!res.ok) {
         setError(await readApiError(res, submit ? "Submit failed." : "Save failed."));
@@ -79,7 +80,7 @@ export function QuoteForm({
       <label className="block space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold tracking-[0.14em] text-zinc-600 uppercase">
-            {isRevising ? "Your Revised Bid Price" : "Your Price"} ({requirement.currency})
+            {isRevising ? "Your Revised Bid Price" : "Your Price"}
           </span>
           {isSubmitted && !isRevising && (
             <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
@@ -87,19 +88,36 @@ export function QuoteForm({
             </span>
           )}
         </div>
-        <input
-          type="text"
-          inputMode="decimal"
-          className={`w-full rounded-xl border px-3.5 py-2.5 text-base font-semibold transition-all ${
-            isFormLocked
-              ? "border-zinc-200 bg-zinc-50 text-zinc-600"
-              : "border-zinc-300 bg-white text-zinc-950 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue"
-          }`}
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          disabled={isFormLocked || busy}
-          placeholder="0.00"
-        />
+        <div className="flex w-full overflow-hidden rounded-xl border border-zinc-300 bg-white transition-all focus-within:border-brand-blue focus-within:ring-1 focus-within:ring-brand-blue">
+          <select
+            className={`bg-zinc-50 border-r border-zinc-300 px-3 py-2.5 text-sm font-bold text-zinc-600 focus:outline-none ${isFormLocked ? "opacity-70" : ""}`}
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            disabled={isFormLocked || busy}
+          >
+            <option value="SAR">SAR</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+            <option value="INR">INR</option>
+            <option value="AED">AED</option>
+          </select>
+          <input
+            type="text"
+            inputMode="decimal"
+            className={`w-full px-3.5 py-2.5 text-base font-semibold focus:outline-none transition-all ${
+              isFormLocked ? "bg-zinc-50 text-zinc-600" : "bg-white text-zinc-950"
+            }`}
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            disabled={isFormLocked || busy}
+            placeholder="0.00"
+          />
+        </div>
+        {currency !== "SAR" && (
+          <p className="text-[11px] text-zinc-500 font-medium">
+            * Bids are normalized to SAR at today's exchange rate for fair evaluation.
+          </p>
+        )}
       </label>
 
       <label className="block space-y-2">

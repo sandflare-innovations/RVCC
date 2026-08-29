@@ -178,9 +178,16 @@ export function LiveBiddingCockpit({
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <span className="font-bold tabular-nums">
-                    {item.price} {item.currency}
-                  </span>
+                  <div className="flex flex-col text-right">
+                    <span className="font-bold tabular-nums">
+                      {item.price} {item.currency}
+                    </span>
+                    {item.currency !== "SAR" && item.amountSar && (
+                      <span className="text-[10px] text-zinc-500 font-medium tabular-nums">
+                        ≈ {item.amountSar} SAR
+                      </span>
+                    )}
+                  </div>
                   {item.rank === 1 && (
                     <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
                       L1 Offer
