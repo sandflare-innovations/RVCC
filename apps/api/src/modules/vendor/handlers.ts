@@ -1,19 +1,21 @@
 import { hashPassword, verifyPassword } from "../../lib/password";
-
 import type { Env } from "../../config/env";
 import { json } from "../../lib/http";
 import {
   attemptVendorLogin,
   createVendorSession,
   getVendorFromSession,
-  revokeAllVendorSessions,
   revokeVendorSession,
-  vendorSessionFrom,
 } from "./auth";
-import { type Sql, cuid } from "./db";
+import { cuid } from "./db";
 import { getOneForVendor, listOpenForVendor } from "./requirements";
+import { prisma } from "../../lib/prisma";
 
-export async function handleLogin(sql: Sql, env: Env, request: Request): Promise<Response> {
+function vendorSessionFrom(request: Request): string | null {
+  return request.headers.get("X-Vendor-Session");
+}
+
+export async function handleLogin(sql: unknown, env: Env, request: Request): Promise<Response> {
   let body: unknown;
   try {
     body = await request.json();
@@ -80,12 +82,12 @@ export async function handleLogin(sql: Sql, env: Env, request: Request): Promise
   });
 }
 
-export async function handleLogout(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handleLogout(sql: unknown, env: Env, request: Request): Promise<Response> {
   await revokeVendorSession(sql, vendorSessionFrom(request));
   return json(env, request, { ok: true });
 }
 
-export async function handleMe(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handleMe(sql: unknown, env: Env, request: Request): Promise<Response> {
   const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
   if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
   return json(env, request, {
@@ -99,7 +101,7 @@ export async function handleMe(sql: Sql, env: Env, request: Request): Promise<Re
   });
 }
 
-export async function handlePassword(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handlePassword(sql: unknown, env: Env, request: Request): Promise<Response> {
   const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
   if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
 
@@ -126,33 +128,40 @@ export async function handlePassword(sql: Sql, env: Env, request: Request): Prom
     return json(env, request, { error: "New password must be at least 12 characters." }, 400);
   }
 
-  const [record] = await sql`
-    SELECT id, "passwordHash" FROM "VendorUser" WHERE id = ${vendor.id} LIMIT 1
-  `;
+  const record = await prisma.vendorUser.findUnique({
+    where: { id: vendor.id },
+    select: { id: true, passwordHash: true },
+  });
   if (!record) return json(env, request, { error: "Account not found." }, 404);
 
-  if (!(await verifyPassword(currentPassword, String(record.passwordHash)))) {
+  if (!(await verifyPassword(currentPassword, record.passwordHash))) {
     return json(env, request, { error: "Current password is incorrect." }, 401);
   }
 
-  if (await verifyPassword(newPassword, String(record.passwordHash))) {
+  if (await verifyPassword(newPassword, record.passwordHash)) {
     return json(env, request, { error: "New password must differ from the current one." }, 400);
   }
 
   const passwordHash = await hashPassword(newPassword);
-  await sql`
-    UPDATE "VendorUser"
-    SET "passwordHash" = ${passwordHash},
-        "mustChangePassword" = false,
-        "updatedAt" = NOW()
-    WHERE id = ${vendor.id}
-  `;
+  await prisma.vendorUser.update({
+    where: { id: vendor.id },
+    data: {
+      passwordHash,
+      mustChangePassword: false,
+    },
+  });
 
-  /*
-   * Sign out every other device. If the temporary password leaked in transit,
-   * changing it must actually evict whoever else used it.
-   */
-  await revokeAllVendorSessions(sql, vendor.id, vendorSessionFrom(request));
+  const currentToken = vendorSessionFrom(request);
+  if (currentToken) {
+    await prisma.vendorSession.updateMany({
+      where: {
+        vendorId: vendor.id,
+        tokenHash: { not: currentToken },
+        revokedAt: null,
+      },
+      data: { revokedAt: new Date() },
+    });
+  }
 
   return json(env, request, { ok: true });
 }
@@ -161,7 +170,7 @@ export async function handlePassword(sql: Sql, env: Env, request: Request): Prom
  * Portal home payload: the vendor's SupplierRegistration with company summary
  * fields needed by the dashboard (no contacts/addresses dump).
  */
-export async function handleDashboard(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handleDashboard(sql: unknown, env: Env, request: Request): Promise<Response> {
   const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
   if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
 
@@ -179,74 +188,64 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
     return json(env, request, { vendor: vendorPayload, registration: null, requirements });
   }
 
-  const [registration] = await sql`
-    SELECT
-      r.id,
-      r.status,
-      r."referenceNumber",
-      r."reviewNote",
-      r."productCategories",
-      r."submittedAt",
-      r."reviewedAt",
-      r.email,
-      r."businessRelationship",
-      c.id AS "companyId",
-      c."legalName" AS "companyLegalName",
-      c."dbaName" AS "companyDbaName",
-      c.country AS "companyCountry",
-      c."organizationType" AS "companyOrganizationType",
-      c.website AS "companyWebsite"
-    FROM "SupplierRegistration" r
-    LEFT JOIN "CompanyProfile" c ON c."registrationId" = r.id
-    WHERE r.id = ${vendor.registrationId}
-    LIMIT 1
-  `;
+  const registration = await prisma.supplierRegistration.findUnique({
+    where: { id: vendor.registrationId },
+    include: { company: true },
+  });
 
-  if (!registration) {
-    return json(env, request, { vendor: vendorPayload, registration: null, requirements });
+  let companyData = null;
+  if (registration?.company) {
+    const tax = (registration.company.taxIdentifiers as Record<string, any>) || {};
+    companyData = {
+      id: registration.company.id,
+      legalName: registration.company.legalName,
+      dbaName: registration.company.dbaName,
+      country: registration.company.country,
+      website: registration.company.website,
+      taxIdNumber: String(tax.taxIdNumber || ""),
+      vatNumber: String(tax.vatNumber || ""),
+      crNumber: String(tax.crNumber || ""),
+      yearEstablished: registration.company.yearEstablished,
+      dunsNumber: registration.company.dunsNumber,
+    };
   }
+
+  const registrationPayload = registration
+    ? {
+        id: registration.id,
+        status: registration.status,
+        referenceNumber: registration.referenceNumber,
+        reviewNote: registration.reviewNote,
+        productCategories: registration.productCategories,
+        submittedAt: registration.submittedAt ? registration.submittedAt.toISOString() : null,
+        reviewedAt: registration.reviewedAt ? registration.reviewedAt.toISOString() : null,
+        email: registration.email,
+        businessRelationship: registration.businessRelationship,
+        company: companyData,
+      }
+    : null;
 
   return json(env, request, {
     vendor: vendorPayload,
-    registration: {
-      id: registration.id,
-      status: registration.status,
-      referenceNumber: registration.referenceNumber,
-      reviewNote: registration.reviewNote,
-      productCategories: registration.productCategories ?? [],
-      submittedAt: registration.submittedAt,
-      reviewedAt: registration.reviewedAt,
-      email: registration.email,
-      businessRelationship: registration.businessRelationship,
-      company: registration.companyId
-        ? {
-            legalName: String(registration.companyLegalName ?? ""),
-            dbaName: String(registration.companyDbaName ?? ""),
-            country: String(registration.companyCountry ?? ""),
-            organizationType: String(registration.companyOrganizationType ?? ""),
-            website: String(registration.companyWebsite ?? ""),
-          }
-        : null,
-    },
+    registration: registrationPayload,
     requirements,
   });
 }
 
-// ── Requirements and quotes ─────────────────────────────────────────────────
-
 export async function handleRequirementsList(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request
 ): Promise<Response> {
   const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
   if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
 
-  return json(env, request, await listOpenForVendor(sql, vendor.id));
+  const rows = await listOpenForVendor(sql, vendor.id);
+  return json(env, request, { requirements: rows });
 }
 
 export async function handleRequirementGet(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -255,15 +254,14 @@ export async function handleRequirementGet(
   if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
 
   const [row] = await getOneForVendor(sql, id, vendor.id);
-  // Not invited reads as not found: confirming a requirement exists would leak
-  // that RVCC is running one.
-  if (!row) return json(env, request, { error: "Requirement not found." }, 404);
-
-  return json(env, request, row);
+  if (!row) {
+    return json(env, request, { error: "Requirement not found." }, 404);
+  }
+  return json(env, request, { requirement: row });
 }
 
 export async function handleQuoteSave(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   requirementId: string
@@ -280,7 +278,6 @@ export async function handleQuoteSave(
 
   const submit = body.submit === true;
   const price = body.newPrice == null ? "" : String(body.newPrice).trim();
-  const fileUrl = body.quoteFileUrl || null;
 
   if (price && !/^\d+(\.\d{1,2})?$/.test(price)) {
     return json(
@@ -294,14 +291,19 @@ export async function handleQuoteSave(
     return json(env, request, { error: "Enter a price before submitting." }, 400);
   }
 
-  // Re-check the deadline in the same request that writes. The countdown on
-  // screen is display only; the browser clock is never trusted.
-  const [requirement] = await sql`
-    SELECT r.id FROM "Requirement" r
-    JOIN "RequirementInvite" i ON i."requirementId" = r.id AND i."vendorUserId" = ${vendor.id}
-    WHERE r.id = ${requirementId} AND r.status = 'OPEN' AND r."closesAt" > NOW()
-    LIMIT 1
-  `;
+  // Re-check the deadline
+  const requirement = await prisma.requirement.findFirst({
+    where: {
+      id: requirementId,
+      status: "OPEN",
+      closesAt: { gt: new Date() },
+      invites: {
+        some: { vendorUserId: vendor.id },
+      },
+    },
+    select: { id: true },
+  });
+
   if (!requirement) {
     return json(
       env,
@@ -311,23 +313,44 @@ export async function handleQuoteSave(
     );
   }
 
-  // The unique constraint makes this an upsert, so a double-clicked submit
-  // cannot create two quotes.
-  const [saved] = await sql`
-    INSERT INTO "Quote"
-      (id, "requirementId", "vendorUserId", "newPrice", remarks, "quoteFileUrl", status, "submittedAt", "createdAt", "updatedAt")
-    VALUES
-      (${cuid()}, ${requirementId}, ${vendor.id}, ${price || null}, ${String(body.remarks ?? "")}, ${fileUrl},
-       ${submit ? "SUBMITTED" : "DRAFT"}, ${submit ? new Date() : null}, NOW(), NOW())
-    ON CONFLICT ("requirementId", "vendorUserId") DO UPDATE SET
-      "newPrice"    = EXCLUDED."newPrice",
-      remarks       = EXCLUDED.remarks,
-      "quoteFileUrl" = EXCLUDED."quoteFileUrl",
-      status        = EXCLUDED.status,
-      "submittedAt" = COALESCE(EXCLUDED."submittedAt", "Quote"."submittedAt"),
-      "updatedAt"   = NOW()
-    RETURNING id, status, "newPrice", remarks, "quoteFileUrl", "submittedAt"
-  `;
+  const saved = await prisma.quote.upsert({
+    where: {
+      requirementId_vendorUserId: {
+        requirementId,
+        vendorUserId: vendor.id,
+      },
+    },
+    update: {
+      newPrice: price ? Number(price) : null,
+      remarks: String(body.remarks ?? ""),
+      status: submit ? "SUBMITTED" : "DRAFT",
+      submittedAt: submit ? new Date() : undefined,
+    },
+    create: {
+      id: cuid(),
+      requirementId,
+      vendorUserId: vendor.id,
+      newPrice: price ? Number(price) : null,
+      remarks: String(body.remarks ?? ""),
+      status: submit ? "SUBMITTED" : "DRAFT",
+      submittedAt: submit ? new Date() : null,
+    },
+    select: {
+      id: true,
+      status: true,
+      newPrice: true,
+      remarks: true,
+      submittedAt: true,
+    },
+  });
 
-  return json(env, request, { ok: true, quote: saved });
+  return json(env, request, {
+    ok: true,
+    quote: {
+      ...saved,
+      quoteFileUrl: null,
+      newPrice: saved.newPrice ? String(saved.newPrice) : null,
+      submittedAt: saved.submittedAt ? saved.submittedAt.toISOString() : null,
+    },
+  });
 }
