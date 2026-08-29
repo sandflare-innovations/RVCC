@@ -1,34 +1,33 @@
 import type { Env } from "../../config/env";
 import { corsHeaders, json } from "../../lib/http";
-import { type Sql, createSql, releaseSql } from "../../lib/sql";
 import { handleCareerApply } from "./career-apply";
+import { prisma } from "../../lib/prisma";
 
 /** Public published careers — no auth. */
 export async function handlePublicCareersList(
-  sql: Sql,
+  _sql: unknown,
   env: Env,
   request: Request
 ): Promise<Response> {
-  const rows = await sql`
-    SELECT
-      id, slug, title, department, location, "employmentType",
-      "postedAt", description, requirements, benefits, "isRemote"
-    FROM "JobPosting"
-    WHERE "isPublished" = true
-    ORDER BY "sortOrder" ASC, "postedAt" DESC
-  `;
+  const rows = await prisma.jobPosting.findMany({
+    where: { isPublished: true },
+    orderBy: [
+      { sortOrder: "asc" },
+      { postedAt: "desc" },
+    ],
+  });
 
   const jobs = rows.map((r) => ({
-    id: String(r.id),
-    slug: String(r.slug),
-    title: String(r.title),
-    department: String(r.department),
-    location: String(r.location),
-    type: String(r.employmentType),
-    postedAt: r.postedAt ? new Date(String(r.postedAt)).toISOString().slice(0, 10) : "",
-    description: String(r.description ?? ""),
-    requirements: Array.isArray(r.requirements) ? (r.requirements as string[]) : [],
-    benefits: Array.isArray(r.benefits) ? (r.benefits as string[]) : [],
+    id: r.id,
+    slug: r.slug,
+    title: r.title,
+    department: r.department,
+    location: r.location,
+    type: r.employmentType,
+    postedAt: r.postedAt ? r.postedAt.toISOString().slice(0, 10) : "",
+    description: r.description ?? "",
+    requirements: Array.isArray(r.requirements) ? r.requirements : [],
+    benefits: Array.isArray(r.benefits) ? r.benefits : [],
     isRemote: Boolean(r.isRemote),
   }));
 
@@ -42,29 +41,19 @@ export async function handlePublicCareersRequest(request: Request, env: Env): Pr
     return new Response(null, { status: 204, headers: corsHeaders(request, env) });
   }
 
-  let sql;
-  try {
-    sql = createSql(env);
-  } catch (err) {
-    console.error(err);
-    return json(env, request, { error: "Service unavailable" }, 503);
-  }
-
   try {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
 
     if (request.method === "POST" && path.endsWith("/apply")) {
-      return await handleCareerApply(sql, env, request);
+      return await handleCareerApply(null, env, request);
     }
     if (request.method === "GET") {
-      return await handlePublicCareersList(sql, env, request);
+      return await handlePublicCareersList(null, env, request);
     }
     return json(env, request, { error: "Method not allowed" }, 405);
   } catch (err) {
     console.error("[careers]", err);
     return json(env, request, { error: "Internal error" }, 500);
-  } finally {
-    await releaseSql(sql);
   }
 }

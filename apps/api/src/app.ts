@@ -2,7 +2,7 @@ import { Hono } from "hono";
 
 import type { Env } from "./config/env";
 import { corsHeaders, json } from "./lib/http";
-import { withDbRetry } from "./lib/sql";
+import { prisma } from "./lib/prisma";
 import { handlePublicCareersRequest } from "./modules/public/careers";
 import { handleAdminRequest } from "./routes/admin";
 import { handleEnquireRequest } from "./routes/enquire";
@@ -25,7 +25,7 @@ export function createApp(env: Env) {
   const checkHealth = async (c: any) => {
     let dbStatus = "connected";
     try {
-      await withDbRetry(env, async (sql) => sql`SELECT 1`);
+      await prisma.$queryRaw`SELECT 1`;
     } catch (e) {
       dbStatus = "error";
     }

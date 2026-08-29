@@ -8,11 +8,11 @@ import {
   uploadStorageConfigured,
   validateUploadFile,
 } from "../../lib/storage";
-import type { Sql } from "../../lib/sql";
 import { cuid } from "../../lib/sql";
+import { prisma } from "../../lib/prisma";
 
 export async function handleCareerApply(
-  sql: Sql,
+  _sql: unknown,
   env: Env,
   request: Request
 ): Promise<Response> {
@@ -46,11 +46,11 @@ export async function handleCareerApply(
   });
   if (fileError) return json(env, request, { error: fileError }, 400);
 
-  const [job] = await sql`
-    SELECT id FROM "JobPosting"
-    WHERE id = ${jobPostingId} AND "isPublished" = true
-    LIMIT 1
-  `;
+  const job = await prisma.jobPosting.findFirst({
+    where: { id: jobPostingId, isPublished: true },
+    select: { id: true },
+  });
+
   if (!job) return json(env, request, { error: "Job not found or not accepting applications" }, 404);
 
   const key = storageKeyForCareer(jobPostingId, cv.name);
@@ -67,15 +67,18 @@ export async function handleCareerApply(
   const fileUrl = publicUploadUrl(env, key);
   const mimeType = cv.type || "application/pdf";
 
-  await sql`
-    INSERT INTO "JobApplication" (
-      id, "jobPostingId", "fullName", email, phone,
-      "cvFileName", "cvFileUrl", "cvMimeType", "createdAt"
-    ) VALUES (
-      ${id}, ${jobPostingId}, ${fullName}, ${email}, ${phone},
-      ${cv.name}, ${fileUrl}, ${mimeType}, NOW()
-    )
-  `;
+  await prisma.jobApplication.create({
+    data: {
+      id,
+      jobPostingId,
+      fullName,
+      email,
+      phone,
+      cvFileName: cv.name,
+      cvFileUrl: fileUrl,
+      cvMimeType: mimeType,
+    },
+  });
 
   return json(env, request, { ok: true, applicationId: id });
 }

@@ -1,5 +1,4 @@
 import { generateTempPassword, hashPassword } from "../../lib/password";
-
 import type { Env } from "../../config/env";
 import { json } from "../../lib/http";
 import {
@@ -10,10 +9,7 @@ import {
   writeAudit,
 } from "./auth";
 import { describeAward } from "./award";
-import { getIsolateCache } from "../../lib/isolate-cache";
-import { createReadSql } from "../../lib/sql";
-import { type Sql, cuid, loadRegistration } from "./db";
-import { withDbRetry } from "../../lib/sql";
+import { cuid, loadRegistration } from "./db";
 import { notifyDecision, sendRequirementMail } from "./notify";
 import {
   type CreateRequirementInput,
@@ -21,6 +17,8 @@ import {
   normaliseRequirementInput,
 } from "./requirement-input";
 import { type CreateVendorInput, normaliseVendorInput } from "./vendor-input";
+import { prisma } from "../../lib/prisma";
+import type { Prisma, RegistrationStatus, RequirementStatus } from "@prisma/client";
 
 const REVIEWABLE = new Set(["SUBMITTED"]);
 const VALID_REG_STATUS = new Set(["SUBMITTED", "APPROVED", "REJECTED", "DRAFT", "ALL"]);
@@ -46,7 +44,7 @@ async function readJson(request: Request): Promise<unknown | null> {
 
 // ── Auth ────────────────────────────────────────────────────────────────────
 
-export async function handleLogin(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handleLogin(sql: unknown, env: Env, request: Request): Promise<Response> {
   const body = (await readJson(request)) as { email?: string; password?: string } | null;
   if (!body) return json(env, request, { error: "Invalid request" }, 400);
 
@@ -91,12 +89,12 @@ export async function handleLogin(sql: Sql, env: Env, request: Request): Promise
   return json(env, request, { ok: true, token, admin: result.admin });
 }
 
-export async function handleLogout(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handleLogout(sql: unknown, env: Env, request: Request): Promise<Response> {
   await revokeAdminSession(sql, request.headers.get("X-Admin-Session"));
   return json(env, request, { ok: true });
 }
 
-export async function handleMe(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handleMe(sql: unknown, env: Env, request: Request): Promise<Response> {
   const { admin, deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
   return json(env, request, {
@@ -110,7 +108,7 @@ export async function handleMe(sql: Sql, env: Env, request: Request): Promise<Re
 // ── Registrations ───────────────────────────────────────────────────────────
 
 export async function handleRegistrationsList(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request
 ): Promise<Response> {
@@ -124,74 +122,69 @@ export async function handleRegistrationsList(
     .replace(/[\0-\x1f\x7f]/g, "")
     .trim()
     .slice(0, 120);
-  const like = `%${q}%`;
 
-  let rows;
+  const where: Prisma.SupplierRegistrationWhereInput = {};
+  if (status !== "ALL") {
+    where.status = status as RegistrationStatus;
+  }
+  if (q) {
+    where.OR = [
+      { email: { contains: q, mode: "insensitive" } },
+      { referenceNumber: { contains: q, mode: "insensitive" } },
+      { company: { legalName: { contains: q, mode: "insensitive" } } },
+    ];
+  }
+
   try {
-    rows = await withDbRetry(env, (db) => {
-      // Never bind 'ALL' against enum column — Postgres rejects non-enum values.
-      const statusClause = status === "ALL" ? db`TRUE` : db`r.status = ${status}`;
-      return db`
-    SELECT
-      r.id,
-      r.email,
-      r.status,
-      r."referenceNumber",
-      r."submittedAt",
-      r."createdAt",
-      r."updatedAt",
-      r."reviewedAt",
-      r."reviewNote",
-      r."productCategories",
-      c."legalName" AS "companyLegalName",
-      c.country AS "companyCountry",
-      c."dbaName" AS "companyDbaName"
-    FROM "SupplierRegistration" r
-    LEFT JOIN "CompanyProfile" c ON c."registrationId" = r.id
-    WHERE
-      ${statusClause}
-      AND (
-        ${q} = ''
-        OR r.email ILIKE ${like}
-        OR COALESCE(r."referenceNumber", '') ILIKE ${like}
-        OR COALESCE(c."legalName", '') ILIKE ${like}
-      )
-    ORDER BY r."submittedAt" DESC NULLS LAST, r."updatedAt" DESC
-    LIMIT 500
-  `;
+    const rows = await prisma.supplierRegistration.findMany({
+      where,
+      include: {
+        company: {
+          select: {
+            legalName: true,
+            country: true,
+            dbaName: true,
+          },
+        },
+      },
+      orderBy: [
+        { submittedAt: { sort: "desc", nulls: "last" } },
+        { updatedAt: "desc" },
+      ],
+      take: 500,
     });
+
+    return json(
+      env,
+      request,
+      rows.map((r) => ({
+        id: r.id,
+        email: r.email,
+        status: r.status,
+        referenceNumber: r.referenceNumber,
+        submittedAt: r.submittedAt ? r.submittedAt.toISOString() : null,
+        createdAt: r.createdAt.toISOString(),
+        updatedAt: r.updatedAt.toISOString(),
+        reviewedAt: r.reviewedAt ? r.reviewedAt.toISOString() : null,
+        reviewNote: r.reviewNote,
+        productCategories: r.productCategories,
+        company: r.company
+          ? {
+              legalName: r.company.legalName,
+              dbaName: r.company.dbaName,
+              country: r.company.country,
+            }
+          : null,
+      }))
+    );
   } catch (err) {
     console.error("[admin registrations] list failed", err);
     return json(env, request, { error: "Database unavailable." }, 503);
   }
-
-  return json(
-    env,
-    request,
-    rows.map((r) => ({
-      id: r.id,
-      email: r.email,
-      status: r.status,
-      referenceNumber: r.referenceNumber,
-      submittedAt: r.submittedAt,
-      createdAt: r.createdAt,
-      updatedAt: r.updatedAt,
-      reviewedAt: r.reviewedAt,
-      reviewNote: r.reviewNote,
-      productCategories: r.productCategories,
-      company: r.companyLegalName
-        ? {
-            legalName: r.companyLegalName,
-            dbaName: r.companyDbaName,
-            country: r.companyCountry,
-          }
-        : null,
-    }))
-  );
 }
 
 export async function handleRegistrationGet(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -205,7 +198,7 @@ export async function handleRegistrationGet(
 }
 
 export async function handleRegistrationReview(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -245,7 +238,7 @@ export async function handleRegistrationReview(
     (registration.company as { legalName?: string } | null)?.legalName ?? ""
   );
   const reference = registration.referenceNumber ?? "";
-  const contacts = registration.contacts.map((c) => ({
+  const contacts = registration.contacts.map((c: any) => ({
     email: String(c.email ?? ""),
     firstName: String(c.firstName ?? ""),
     lastName: String(c.lastName ?? ""),
@@ -253,15 +246,16 @@ export async function handleRegistrationReview(
   }));
 
   if (action === "REJECT") {
-    await sql`
-      UPDATE "SupplierRegistration"
-      SET status = 'REJECTED',
-          "reviewedAt" = ${now},
-          "reviewedById" = ${admin.id},
-          "reviewNote" = ${note},
-          "updatedAt" = NOW()
-      WHERE id = ${id}
-    `;
+    await prisma.supplierRegistration.update({
+      where: { id },
+      data: {
+        status: "REJECTED",
+        reviewedAt: now,
+        reviewedById: admin.id,
+        reviewNote: note,
+      },
+    });
+
     await writeAudit(sql, {
       adminId: admin.id,
       action: "registration.rejected",
@@ -281,9 +275,9 @@ export async function handleRegistrationReview(
     return json(env, request, { ok: true, status: "REJECTED", notified });
   }
 
-  const requested = contacts.filter((c) => c.requestUserAccount && c.email);
+  const requested = contacts.filter((c: any) => c.requestUserAccount && c.email);
   const targets = requested.length
-    ? requested.map((c) => ({
+    ? requested.map((c: any) => ({
         email: c.email,
         name: `${c.firstName} ${c.lastName}`.trim(),
       }))
@@ -295,32 +289,41 @@ export async function handleRegistrationReview(
     const email = t.email.trim().toLowerCase();
     if (!email) continue;
 
-    const [existing] = await sql`SELECT id FROM "VendorUser" WHERE email = ${email} LIMIT 1`;
+    const existing = await prisma.vendorUser.findUnique({
+      where: { email },
+      select: { id: true },
+    });
     if (existing) continue;
 
     const tempPassword = generateTempPassword();
     const passwordHash = await hashPassword(tempPassword);
-    await sql`
-      INSERT INTO "VendorUser"
-        (id, email, name, "passwordHash", "mustChangePassword", "isActive", "portalAccess", "registrationId",
-         "failedAttempts", "createdAt", "updatedAt")
-      VALUES
-        (${cuid()}, ${email}, ${t.name}, ${passwordHash}, true, true, 'HELD', ${id},
-         0, NOW(), NOW())
-    `;
+
+    await prisma.vendorUser.create({
+      data: {
+        id: cuid(),
+        email,
+        name: t.name,
+        passwordHash,
+        mustChangePassword: true,
+        isActive: true,
+        portalAccess: "HELD",
+        registrationId: id,
+        failedAttempts: 0,
+      },
+    });
     created.push({ email, tempPassword });
   }
 
-  await sql`
-    UPDATE "SupplierRegistration"
-    SET status = 'APPROVED',
-        "businessRelationship" = 'SPEND_AUTHORIZED',
-        "reviewedAt" = ${now},
-        "reviewedById" = ${admin.id},
-        "reviewNote" = ${note},
-        "updatedAt" = NOW()
-    WHERE id = ${id}
-  `;
+  await prisma.supplierRegistration.update({
+    where: { id },
+    data: {
+      status: "APPROVED",
+      businessRelationship: "SPEND_AUTHORIZED",
+      reviewedAt: now,
+      reviewedById: admin.id,
+      reviewNote: note,
+    },
+  });
 
   await writeAudit(sql, {
     adminId: admin.id,
@@ -330,12 +333,23 @@ export async function handleRegistrationReview(
     metadata: { note, accountsCreated: created.map((c) => c.email) },
   });
 
+  const portalBase = (env.VENDOR_PORTAL_URL || "").replace(/\/$/, "");
+  const portalUrl = `${portalBase || "https://portal.rvcc.local"}/login`;
+
   const notified = await notifyDecision(env, {
     decision: "APPROVED",
     legalName,
     referenceNumber: reference,
+    reason: note ?? "",
     recipients: created.length
-      ? created.map((c) => ({ to: c.email, loginEmail: c.email, tempPassword: c.tempPassword }))
+      ? created.map((c) => ({
+          to: c.email,
+          credentials: {
+            portalUrl,
+            loginEmail: c.email,
+            tempPassword: c.tempPassword,
+          },
+        }))
       : [{ to: registration.email }],
   });
 
@@ -348,7 +362,7 @@ export async function handleRegistrationReview(
 }
 
 export async function handleRegistrationDelete(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -356,22 +370,20 @@ export async function handleRegistrationDelete(
   const { admin, deny } = await requireAdmin(sql, env, request, "SUPER_ADMIN");
   if (deny) return deny;
 
-  const [registration] = await sql`
-    SELECT
-      r.id,
-      r.email,
-      r.status,
-      r."referenceNumber",
-      c."legalName" AS "legalName",
-      (SELECT COUNT(*)::int FROM "SupplierContact" WHERE "registrationId" = r.id) AS "contacts",
-      (SELECT COUNT(*)::int FROM "SupplierAddress" WHERE "registrationId" = r.id) AS "addresses",
-      (SELECT COUNT(*)::int FROM "BankAccount" WHERE "registrationId" = r.id) AS "bankAccounts",
-      (SELECT COUNT(*)::int FROM "VendorUser" WHERE "registrationId" = r.id) AS "vendorUsers"
-    FROM "SupplierRegistration" r
-    LEFT JOIN "CompanyProfile" c ON c."registrationId" = r.id
-    WHERE r.id = ${id}
-    LIMIT 1
-  `;
+  const registration = await prisma.supplierRegistration.findUnique({
+    where: { id },
+    include: {
+      company: { select: { legalName: true } },
+      _count: {
+        select: {
+          contacts: true,
+          addresses: true,
+          bankAccounts: true,
+          vendorUsers: true,
+        },
+      },
+    },
+  });
 
   if (!registration) return json(env, request, { error: "Registration not found." }, 404);
 
@@ -383,18 +395,25 @@ export async function handleRegistrationDelete(
     metadata: {
       email: registration.email,
       referenceNumber: registration.referenceNumber,
-      legalName: registration.legalName ?? null,
+      legalName: registration.company?.legalName ?? null,
       status: registration.status,
       cascaded: {
-        contacts: registration.contacts,
-        addresses: registration.addresses,
-        bankAccounts: registration.bankAccounts,
-        vendorUsers: registration.vendorUsers,
+        contacts: registration._count.contacts,
+        addresses: registration._count.addresses,
+        bankAccounts: registration._count.bankAccounts,
+        vendorUsers: registration._count.vendorUsers,
       },
     },
   });
 
-  await sql`DELETE FROM "SupplierRegistration" WHERE id = ${id}`;
+  await prisma.companyProfile.deleteMany({ where: { registrationId: id } });
+  await prisma.supplierContact.deleteMany({ where: { registrationId: id } });
+  await prisma.supplierAddress.deleteMany({ where: { registrationId: id } });
+  await prisma.businessClassification.deleteMany({ where: { registrationId: id } });
+  await prisma.bankAccount.deleteMany({ where: { registrationId: id } });
+  await prisma.questionnaireAnswer.deleteMany({ where: { registrationId: id } });
+  await prisma.supplierRegistration.delete({ where: { id } });
+
   return json(env, request, { ok: true });
 }
 
@@ -409,7 +428,7 @@ const VALID_VENDOR_FILTER = new Set([
 
 // ── Vendors ─────────────────────────────────────────────────────────────────
 
-export async function handleVendorsList(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handleVendorsList(sql: unknown, env: Env, request: Request): Promise<Response> {
   const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
 
@@ -420,90 +439,101 @@ export async function handleVendorsList(sql: Sql, env: Env, request: Request): P
     .replace(/[\0-\x1f\x7f]/g, "")
     .trim()
     .slice(0, 120);
-  const like = `%${q}%`;
 
-  let rows;
+  const where: Prisma.VendorUserWhereInput = {};
+
+  if (filter === "ACTIVE") {
+    where.isActive = true;
+    where.portalAccess = "RELEASED";
+  } else if (filter === "DISABLED") {
+    where.OR = [{ isActive: false }, { portalAccess: "HELD" }];
+  } else if (filter === "HELD") {
+    where.portalAccess = "HELD";
+  } else if (filter === "RELEASED") {
+    where.portalAccess = "RELEASED";
+  } else if (filter === "PENDING") {
+    where.mustChangePassword = true;
+  }
+
+  if (q) {
+    where.AND = [
+      {
+        OR: [
+          { email: { contains: q, mode: "insensitive" } },
+          { name: { contains: q, mode: "insensitive" } },
+          { registration: { company: { legalName: { contains: q, mode: "insensitive" } } } },
+        ],
+      },
+    ];
+  }
+
   try {
-    rows = await withDbRetry(env, (db) => db`
-    SELECT
-      v.id,
-      v.email,
-      v.name,
-      v."isActive",
-      v."portalAccess",
-      v."mustChangePassword",
-      v."lastLoginAt",
-      v."createdAt",
-      v."lockedUntil",
-      v."registrationId",
-      r."referenceNumber",
-      r.status AS "registrationStatus",
-      r."registrationComplete",
-      c."legalName" AS "companyLegalName",
-      (
-        SELECT COUNT(*)::int FROM "VendorSession" s
-        WHERE s."vendorId" = v.id
-          AND s."revokedAt" IS NULL
-          AND s."expiresAt" > NOW()
-      ) AS "activeSessions"
-    FROM "VendorUser" v
-    LEFT JOIN "SupplierRegistration" r ON r.id = v."registrationId"
-    LEFT JOIN "CompanyProfile" c ON c."registrationId" = r.id
-    WHERE
-      (${filter} = 'ALL'
-        OR (${filter} = 'ACTIVE' AND v."isActive" = true AND v."portalAccess" = 'RELEASED')
-        OR (${filter} = 'DISABLED' AND (v."isActive" = false OR v."portalAccess" = 'HELD'))
-        OR (${filter} = 'HELD' AND v."portalAccess" = 'HELD')
-        OR (${filter} = 'RELEASED' AND v."portalAccess" = 'RELEASED')
-        OR (${filter} = 'PENDING' AND v."mustChangePassword" = true))
-      AND (
-        ${q} = ''
-        OR v.email ILIKE ${like}
-        OR COALESCE(v.name, '') ILIKE ${like}
-        OR COALESCE(c."legalName", '') ILIKE ${like}
-      )
-    ORDER BY v."createdAt" DESC
-    LIMIT 500
-  `);
+    const rows = await prisma.vendorUser.findMany({
+      where,
+      include: {
+        registration: {
+          include: {
+            company: {
+              select: { legalName: true },
+            },
+          },
+        },
+        sessions: {
+          where: {
+            revokedAt: null,
+            expiresAt: { gt: new Date() },
+          },
+          select: { id: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+
+    return json(
+      env,
+      request,
+      rows.map((v) => {
+        const compName = v.registration?.company?.legalName || "—";
+        const regStatus = v.registration?.status;
+        const regRef = v.registration?.referenceNumber;
+        const isRegComplete = Boolean(v.registration?.registrationComplete) || v.registrationId == null;
+
+        return {
+          id: v.id,
+          email: v.email,
+          name: v.name,
+          isActive: v.isActive,
+          portalAccess: v.portalAccess,
+          mustChangePassword: v.mustChangePassword,
+          lastLoginAt: v.lastLoginAt ? v.lastLoginAt.toISOString() : null,
+          createdAt: v.createdAt.toISOString(),
+          lockedUntil: v.lockedUntil ? v.lockedUntil.toISOString() : null,
+          activeSessions: v.sessions.length,
+          registrationId: v.registrationId,
+          companyName: compName,
+          referenceNumber: regRef,
+          registrationStatus: regStatus,
+          registrationComplete: isRegComplete,
+          registration: v.registrationId
+            ? {
+                id: v.registrationId,
+                referenceNumber: regRef,
+                status: regStatus,
+                company: compName !== "—" ? { legalName: compName } : null,
+              }
+            : null,
+        };
+      })
+    );
   } catch (err) {
     console.error("[admin vendors] list failed", err);
     return json(env, request, { error: "Database unavailable." }, 503);
   }
-
-  return json(
-    env,
-    request,
-    rows.map((v) => ({
-      id: v.id,
-      email: v.email,
-      name: v.name,
-      isActive: v.isActive,
-      portalAccess: v.portalAccess === "RELEASED" ? "RELEASED" : "HELD",
-      mustChangePassword: v.mustChangePassword,
-      lastLoginAt: v.lastLoginAt,
-      createdAt: v.createdAt,
-      lockedUntil: v.lockedUntil,
-      activeSessions: v.activeSessions,
-      registrationId: v.registrationId,
-      companyName: v.companyLegalName || "—",
-      referenceNumber: v.referenceNumber,
-      registrationStatus: v.registrationStatus,
-      registrationComplete: Boolean(v.registrationComplete) || v.registrationId == null,
-      // Null for admin-created vendors; consumers must not assume an object.
-      registration: v.registrationId
-        ? {
-            id: v.registrationId,
-            referenceNumber: v.referenceNumber,
-            status: v.registrationStatus,
-            company: v.companyLegalName ? { legalName: v.companyLegalName } : null,
-          }
-        : null,
-    }))
-  );
 }
 
 export async function handleVendorGet(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -511,102 +541,96 @@ export async function handleVendorGet(
   const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
 
-  let vendor;
-  let quotes;
-  let invites;
   try {
-    const rows = await withDbRetry(env, (db) => db`
-      SELECT
-        v.id,
-        v.email,
-        v.name,
-        v."isActive",
-        v."portalAccess",
-        v."mustChangePassword",
-        v."lastLoginAt",
-        v."createdAt",
-        v."lockedUntil",
-        v."registrationId",
-        r."referenceNumber",
-        r.status AS "registrationStatus",
-        r."registrationComplete",
-        c."legalName" AS "companyLegalName",
-        (
-          SELECT COUNT(*)::int FROM "VendorSession" s
-          WHERE s."vendorId" = v.id
-            AND s."revokedAt" IS NULL
-            AND s."expiresAt" > NOW()
-        ) AS "activeSessions"
-      FROM "VendorUser" v
-      LEFT JOIN "SupplierRegistration" r ON r.id = v."registrationId"
-      LEFT JOIN "CompanyProfile" c ON c."registrationId" = r.id
-      WHERE v.id = ${id}
-    `);
-    
-    vendor = rows[0];
+    const vendor = await prisma.vendorUser.findUnique({
+      where: { id },
+      include: {
+        registration: {
+          include: {
+            company: { select: { legalName: true } },
+          },
+        },
+        sessions: {
+          where: { revokedAt: null, expiresAt: { gt: new Date() } },
+          select: { id: true },
+        },
+        quotes: {
+          include: {
+            requirement: {
+              select: { id: true, project: true, referenceNumber: true },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+        invites: {
+          include: {
+            requirement: {
+              select: { id: true, project: true, referenceNumber: true },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
 
     if (!vendor) return json(env, request, { error: "Not Found" }, 404);
 
-    quotes = await withDbRetry(env, (db) => db`
-      SELECT q.id, q."newPrice", q.status, q."submittedAt",
-             r.project AS "requirementProject",
-             r."referenceNumber" AS "requirementRef",
-             r.id AS "requirementId"
-      FROM "Quote" q
-      JOIN "Requirement" r ON r.id = q."requirementId"
-      WHERE q."vendorUserId" = ${id}
-      ORDER BY q."createdAt" DESC
-    `);
+    const compName = vendor.registration?.company?.legalName || "—";
+    const regStatus = vendor.registration?.status;
+    const regRef = vendor.registration?.referenceNumber;
 
-    invites = await withDbRetry(env, (db) => db`
-      SELECT i.id, i."emailStatus", i."emailedAt",
-             r.project AS "requirementProject",
-             r."referenceNumber" AS "requirementRef",
-             r.id AS "requirementId"
-      FROM "RequirementInvite" i
-      JOIN "Requirement" r ON r.id = i."requirementId"
-      WHERE i."vendorUserId" = ${id}
-      ORDER BY i."createdAt" DESC
-    `);
-
+    return json(env, request, {
+      vendor: {
+        id: vendor.id,
+        email: vendor.email,
+        name: vendor.name,
+        isActive: vendor.isActive,
+        portalAccess: vendor.portalAccess,
+        mustChangePassword: vendor.mustChangePassword,
+        lastLoginAt: vendor.lastLoginAt ? vendor.lastLoginAt.toISOString() : null,
+        createdAt: vendor.createdAt.toISOString(),
+        lockedUntil: vendor.lockedUntil ? vendor.lockedUntil.toISOString() : null,
+        activeSessions: vendor.sessions.length,
+        registrationId: vendor.registrationId,
+        companyName: compName,
+        referenceNumber: regRef,
+        registrationStatus: regStatus,
+        registrationComplete: Boolean(vendor.registration?.registrationComplete) || vendor.registrationId == null,
+        registration: vendor.registrationId
+          ? {
+              id: vendor.registrationId,
+              referenceNumber: regRef,
+              status: regStatus,
+              company: compName !== "—" ? { legalName: compName } : null,
+            }
+          : null,
+      },
+      quotes: vendor.quotes.map((q) => ({
+        id: q.id,
+        newPrice: q.newPrice ? String(q.newPrice) : null,
+        status: q.status,
+        submittedAt: q.submittedAt ? q.submittedAt.toISOString() : null,
+        requirementProject: q.requirement.project,
+        requirementRef: q.requirement.referenceNumber,
+        requirementId: q.requirement.id,
+      })),
+      invites: vendor.invites.map((i) => ({
+        id: i.id,
+        emailStatus: i.emailStatus,
+        emailedAt: i.emailedAt ? i.emailedAt.toISOString() : null,
+        requirementProject: i.requirement.project,
+        requirementRef: i.requirement.referenceNumber,
+        requirementId: i.requirement.id,
+      })),
+    });
   } catch (err) {
     console.error("[admin vendor get failed]", err);
     return json(env, request, { error: "Database unavailable." }, 503);
   }
-
-  return json(env, request, {
-    vendor: {
-      id: vendor.id,
-      email: vendor.email,
-      name: vendor.name,
-      isActive: vendor.isActive,
-      portalAccess: vendor.portalAccess === "RELEASED" ? "RELEASED" : "HELD",
-      mustChangePassword: vendor.mustChangePassword,
-      lastLoginAt: vendor.lastLoginAt,
-      createdAt: vendor.createdAt,
-      lockedUntil: vendor.lockedUntil,
-      activeSessions: vendor.activeSessions,
-      registrationId: vendor.registrationId,
-      companyName: vendor.companyLegalName || "—",
-      referenceNumber: vendor.referenceNumber,
-      registrationStatus: vendor.registrationStatus,
-      registrationComplete: Boolean(vendor.registrationComplete) || vendor.registrationId == null,
-      registration: vendor.registrationId
-        ? {
-            id: vendor.registrationId,
-            referenceNumber: vendor.referenceNumber,
-            status: vendor.registrationStatus,
-            company: vendor.companyLegalName ? { legalName: vendor.companyLegalName } : null,
-          }
-        : null,
-    },
-    quotes,
-    invites,
-  });
 }
 
 export async function handleVendorPatch(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -615,42 +639,40 @@ export async function handleVendorPatch(
   if (deny) return deny;
 
   const body = (await readJson(request)) as {
-    isActive?: unknown;
     portalAccess?: unknown;
+    isActive?: unknown;
     notifyEmail?: unknown;
   } | null;
   if (!body) return json(env, request, { error: "Invalid body" }, 400);
 
-  const [vendor] = await sql`
-    SELECT v.id, v.email, v.name, v."mustChangePassword", v."portalAccess",
-           c."legalName" AS "legalName"
-    FROM "VendorUser" v
-    LEFT JOIN "SupplierRegistration" r ON r.id = v."registrationId"
-    LEFT JOIN "CompanyProfile" c ON c."registrationId" = r.id
-    WHERE v.id = ${id}
-    LIMIT 1
-  `;
+  const vendor = await prisma.vendorUser.findUnique({
+    where: { id },
+    include: {
+      registration: {
+        include: { company: { select: { legalName: true } } },
+      },
+    },
+  });
+
   if (!vendor) return json(env, request, { error: "Account not found." }, 404);
 
-  // Portal Hold / Release (preferred path for User Management).
   if (body.portalAccess === "HELD" || body.portalAccess === "RELEASED") {
     const portalAccess = body.portalAccess as "HELD" | "RELEASED";
     const notifyEmail = Boolean(body.notifyEmail);
 
-    await sql`
-      UPDATE "VendorUser"
-      SET "portalAccess" = ${portalAccess},
-          "isActive" = true,
-          "updatedAt" = NOW()
-      WHERE id = ${id}
-    `;
+    await prisma.vendorUser.update({
+      where: { id },
+      data: {
+        portalAccess,
+        isActive: true,
+      },
+    });
 
     if (portalAccess === "HELD") {
-      await sql`
-        UPDATE "VendorSession"
-        SET "revokedAt" = NOW()
-        WHERE "vendorId" = ${id} AND "revokedAt" IS NULL
-      `;
+      await prisma.vendorSession.updateMany({
+        where: { vendorId: id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
     }
 
     let notified = false;
@@ -661,23 +683,24 @@ export async function handleVendorPatch(
       if (vendor.mustChangePassword) {
         tempPassword = generateTempPassword();
         const passwordHash = await hashPassword(tempPassword);
-        await sql`
-          UPDATE "VendorUser"
-          SET "passwordHash" = ${passwordHash}, "mustChangePassword" = true, "updatedAt" = NOW()
-          WHERE id = ${id}
-        `;
-        await sql`
-          UPDATE "VendorSession"
-          SET "revokedAt" = NOW()
-          WHERE "vendorId" = ${id} AND "revokedAt" IS NULL
-        `;
+        await prisma.vendorUser.update({
+          where: { id },
+          data: {
+            passwordHash,
+            mustChangePassword: true,
+          },
+        });
+        await prisma.vendorSession.updateMany({
+          where: { vendorId: id, revokedAt: null },
+          data: { revokedAt: new Date() },
+        });
       }
       try {
         const { sendAccessReleasedEmail } = await import("../mail/mail");
-        await sendAccessReleasedEmail(env, String(vendor.email), {
-          legalName: String(vendor.legalName || vendor.name || ""),
+        await sendAccessReleasedEmail(env, vendor.email, {
+          legalName: vendor.registration?.company?.legalName || vendor.name || "",
           portalUrl,
-          loginEmail: String(vendor.email),
+          loginEmail: vendor.email,
           tempPassword,
         });
         notified = true;
@@ -702,26 +725,24 @@ export async function handleVendorPatch(
     });
   }
 
-  // Legacy enable/disable — maps onto isActive and also forces HELD when disabled.
   if (typeof body.isActive !== "boolean") {
     return json(env, request, { error: "portalAccess or isActive is required" }, 400);
   }
 
   const { isActive } = body;
-  await sql`
-    UPDATE "VendorUser"
-    SET "isActive" = ${isActive},
-        "portalAccess" = ${isActive ? "RELEASED" : "HELD"},
-        "updatedAt" = NOW()
-    WHERE id = ${id}
-  `;
+  await prisma.vendorUser.update({
+    where: { id },
+    data: {
+      isActive,
+      portalAccess: isActive ? "RELEASED" : "HELD",
+    },
+  });
 
   if (!isActive) {
-    await sql`
-      UPDATE "VendorSession"
-      SET "revokedAt" = NOW()
-      WHERE "vendorId" = ${id} AND "revokedAt" IS NULL
-    `;
+    await prisma.vendorSession.updateMany({
+      where: { vendorId: id, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
   }
 
   await writeAudit(sql, {
@@ -729,45 +750,57 @@ export async function handleVendorPatch(
     action: isActive ? "vendor.enabled" : "vendor.disabled",
     entityType: "VendorUser",
     entityId: id,
-    metadata: { email: vendor.email },
+    metadata: { email: vendor.email, isActive },
   });
 
   return json(env, request, { ok: true, isActive });
 }
 
+// ── Requirements ────────────────────────────────────────────────────────────
+
 export async function handleRequirementsList(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request
 ): Promise<Response> {
   const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
 
-  let rows;
-  try {
-    rows = await withDbRetry(env, (db) => db`
-    SELECT
-      r.id, r."referenceNumber", r."scopeOfWork", r.project, r."sellingPrice",
-      r.currency, r."closesAt", r.status, r."createdAt",
-      (SELECT COUNT(*)::int FROM "RequirementInvite" i WHERE i."requirementId" = r.id) AS invited,
-      (SELECT COUNT(*)::int FROM "Quote" q
-        WHERE q."requirementId" = r.id AND q.status = 'SUBMITTED') AS submitted
-    FROM "Requirement" r
-    ORDER BY
-      CASE WHEN r.status = 'OPEN' AND r."closesAt" > NOW() THEN 0 ELSE 1 END,
-      r."closesAt" ASC
-    LIMIT 500
-  `);
-  } catch (err) {
-    console.error("[admin requirements] list failed", err);
-    return json(env, request, { error: "Database unavailable." }, 503);
-  }
+  const requirements = await prisma.requirement.findMany({
+    include: {
+      _count: { select: { invites: true, quotes: true } },
+      quotes: {
+        select: {
+          id: true,
+          newPrice: true,
+          status: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
-  return json(env, request, rows);
+  return json(
+    env,
+    request,
+    requirements.map((r) => ({
+      id: r.id,
+      project: r.project,
+      referenceNumber: r.referenceNumber,
+      scopeOfWork: r.scopeOfWork,
+      currency: r.currency,
+      closesAt: r.closesAt.toISOString(),
+      status: r.status,
+      awardedQuoteId: r.awardedQuoteId,
+      awardedAt: r.awardedAt ? r.awardedAt.toISOString() : null,
+      invitedCount: r._count.invites,
+      quotesCount: r._count.quotes,
+    }))
+  );
 }
 
 export async function handleRequirementAward(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -776,32 +809,31 @@ export async function handleRequirementAward(
   if (deny) return deny;
 
   const body = (await readJson(request)) as { quoteId?: string } | null;
-  const quoteId = String(body?.quoteId ?? "");
+  const quoteId = typeof body?.quoteId === "string" ? body.quoteId.trim() : "";
   if (!quoteId) return json(env, request, { error: "Choose a quote to award." }, 400);
 
-  const [requirement] = await sql`
-    SELECT id, project, "referenceNumber", currency, status
-    FROM "Requirement" WHERE id = ${id} LIMIT 1
-  `;
+  const requirement = await prisma.requirement.findUnique({
+    where: { id },
+    include: {
+      quotes: {
+        where: { status: "SUBMITTED" },
+        include: { vendorUser: { select: { id: true, email: true } } },
+      },
+    },
+  });
+
   if (!requirement) return json(env, request, { error: "Requirement not found." }, 404);
   if (requirement.status === "CANCELLED") {
     return json(env, request, { error: "This requirement was cancelled." }, 409);
   }
 
-  const quotes = await sql`
-    SELECT q.id, q."newPrice", q."vendorUserId", v.email AS "vendorEmail"
-    FROM "Quote" q
-    JOIN "VendorUser" v ON v.id = q."vendorUserId"
-    WHERE q."requirementId" = ${id} AND q.status = 'SUBMITTED'
-  `;
-
   let described;
   try {
     described = describeAward(
-      quotes.map((q) => ({
-        id: String(q.id),
-        newPrice: String(q.newPrice),
-        vendorEmail: String(q.vendorEmail),
+      requirement.quotes.map((q) => ({
+        id: q.id,
+        newPrice: q.newPrice ? String(q.newPrice) : "",
+        vendorEmail: q.vendorUser.email,
       })),
       quoteId
     );
@@ -809,57 +841,52 @@ export async function handleRequirementAward(
     return json(env, request, { error: (err as Error).message }, 400);
   }
 
-  const winnerRow = quotes.find((q) => String(q.id) === quoteId)!;
+  const winnerRow = requirement.quotes.find((q) => q.id === quoteId)!;
 
-  await sql.begin(async (tx) => {
-    // Awarding closes the requirement early if it was still open. AWARDED is a
-    // stored decision the clock cannot express, unlike "closed".
-    await tx`
-      UPDATE "Requirement"
-      SET "awardedQuoteId" = ${quoteId},
-          "awardedAt" = NOW(),
-          "awardedByAdminId" = ${admin.id},
-          status = 'AWARDED',
-          "updatedAt" = NOW()
-      WHERE id = ${id}
-    `;
-
-    // The winner is told. Losing suppliers are deliberately not notified —
-    // that is a commercial decision for RVCC, not one this code should make.
-    await tx`
-      INSERT INTO "Notification" (id, "vendorUserId", type, title, body, "linkPath", "createdAt")
-      VALUES (
-        ${cuid()}, ${winnerRow.vendorUserId}, 'QUOTE_AWARDED',
-        ${"You won " + String(requirement.project)},
-        ${"RVCC awarded this work to your quote."},
-        ${"/requirements/" + id},
-        NOW()
-      )
-    `;
-
-    // Every admin sees the decision, including staff who did not make it.
-    const admins = await tx`SELECT id FROM "AdminUser" WHERE "isActive" = true`;
-    for (const a of admins) {
-      await tx`
-        INSERT INTO "Notification" (id, "adminId", type, title, body, "linkPath", "createdAt")
-        VALUES (
-          ${cuid()}, ${a.id}, 'QUOTE_AWARDED',
-          ${String(requirement.project) + " awarded"},
-          ${"Awarded to " + described.winner.vendorEmail + " at " + described.winningPrice + " " + String(requirement.currency)},
-          ${"/requirements/" + id},
-          NOW()
-        )
-      `;
-    }
+  await prisma.requirement.update({
+    where: { id },
+    data: {
+      awardedQuoteId: quoteId,
+      awardedAt: new Date(),
+      awardedByAdminId: admin.id,
+      status: "AWARDED",
+    },
   });
 
-  // Same ordering as posting: the award is already committed, so mail failure
-  // is reported, never fatal.
+  await prisma.notification.create({
+    data: {
+      id: cuid(),
+      vendorUserId: winnerRow.vendorUser.id,
+      type: "QUOTE_AWARDED",
+      title: "You won " + requirement.project,
+      body: "RVCC awarded this work to your quote.",
+      linkPath: "/requirements/" + id,
+    },
+  });
+
+  const admins = await prisma.adminUser.findMany({
+    where: { isActive: true },
+    select: { id: true },
+  });
+
+  if (admins.length) {
+    await prisma.notification.createMany({
+      data: admins.map((a) => ({
+        id: cuid(),
+        adminId: a.id,
+        type: "QUOTE_AWARDED",
+        title: requirement.project + " awarded",
+        body: "Awarded to " + described.winner.vendorEmail + " at " + described.winningPrice + " " + requirement.currency,
+        linkPath: "/requirements/" + id,
+      })),
+    });
+  }
+
   await sendRequirementMail(env, {
     kind: "AWARDED",
     recipients: [described.winner.vendorEmail],
-    project: String(requirement.project),
-    referenceNumber: String(requirement.referenceNumber ?? ""),
+    project: requirement.project,
+    referenceNumber: requirement.referenceNumber ?? "",
     portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/requirements/${id}`,
   });
 
@@ -880,7 +907,7 @@ export async function handleRequirementAward(
 }
 
 export async function handleRequirementGet(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -888,42 +915,29 @@ export async function handleRequirementGet(
   const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
 
-  const [requirement] = await sql`
-    SELECT
-      r.id, r."referenceNumber", r."scopeOfWork", r.project, r."sellingPrice", r.currency,
-      r."closesAt", r.status, r."createdAt", r."awardedAt", r."awardedQuoteId",
-      a.email AS "awardedByEmail"
-    FROM "Requirement" r
-    LEFT JOIN "AdminUser" a ON a.id = r."awardedByAdminId"
-    WHERE r.id = ${id}
-    LIMIT 1
-  `;
+  const requirement = await prisma.requirement.findUnique({
+    where: { id },
+    include: {
+      awardedByAdmin: { select: { email: true } },
+      quotes: {
+        include: {
+          vendorUser: { select: { email: true, name: true } },
+        },
+        orderBy: [
+          { submittedAt: { sort: "desc", nulls: "last" } },
+          { updatedAt: "desc" },
+        ],
+      },
+      invites: {
+        include: {
+          vendorUser: { select: { email: true } },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+
   if (!requirement) return json(env, request, { error: "Requirement not found." }, 404);
-
-  const quotes = await sql`
-    SELECT
-      q.id, q."newPrice", q.remarks, q."quoteFileUrl", q.status, q."submittedAt", q."updatedAt",
-      v.email AS "participantEmail",
-      v.name AS "participantName"
-    FROM "Quote" q
-    JOIN "VendorUser" v ON v.id = q."vendorUserId"
-    WHERE q."requirementId" = ${id}
-    ORDER BY
-      CASE WHEN q.status = 'SUBMITTED' THEN 0 ELSE 1 END,
-      q."submittedAt" DESC NULLS LAST,
-      q."updatedAt" DESC
-  `;
-
-  const invites = await sql`
-    SELECT
-      i.id,
-      v.email,
-      i."emailStatus"
-    FROM "RequirementInvite" i
-    JOIN "VendorUser" v ON v.id = i."vendorUserId"
-    WHERE i."requirementId" = ${id}
-    ORDER BY i."createdAt" ASC
-  `;
 
   return json(env, request, {
     requirement: {
@@ -931,121 +945,101 @@ export async function handleRequirementGet(
       referenceNumber: requirement.referenceNumber,
       scopeOfWork: requirement.scopeOfWork,
       project: requirement.project,
-      sellingPrice: requirement.sellingPrice,
+      sellingPrice: requirement.sellingPrice ? String(requirement.sellingPrice) : null,
       currency: requirement.currency,
-      closesAt: requirement.closesAt,
+      closesAt: requirement.closesAt.toISOString(),
       status: requirement.status,
-      createdAt: requirement.createdAt,
-      awardedAt: requirement.awardedAt,
+      createdAt: requirement.createdAt.toISOString(),
+      awardedAt: requirement.awardedAt ? requirement.awardedAt.toISOString() : null,
       awardedQuoteId: requirement.awardedQuoteId,
-      awardedByAdmin: requirement.awardedByEmail
-        ? { email: String(requirement.awardedByEmail) }
-        : null,
+      awardedByEmail: requirement.awardedByAdmin?.email ?? null,
     },
-    quotes: quotes.map((q) => ({
+    quotes: requirement.quotes.map((q) => ({
       id: q.id,
-      newPrice: q.newPrice,
+      newPrice: q.newPrice ? String(q.newPrice) : null,
       remarks: q.remarks,
-      quoteFileUrl: q.quoteFileUrl,
       status: q.status,
-      submittedAt: q.submittedAt,
-      vendorUser: {
-        email: String(q.participantEmail),
-        name: q.participantName == null ? null : String(q.participantName),
-      },
+      submittedAt: q.submittedAt ? q.submittedAt.toISOString() : null,
+      updatedAt: q.updatedAt.toISOString(),
+      participantEmail: q.vendorUser.email,
+      participantName: q.vendorUser.name,
     })),
-    invites: invites.map((i) => ({
+    invites: requirement.invites.map((i) => ({
       id: i.id,
+      email: i.vendorUser.email,
       emailStatus: i.emailStatus,
-      vendorUser: { email: String(i.email) },
     })),
   });
 }
 
 export async function handleRequirementCreate(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request
 ): Promise<Response> {
   const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
   if (deny) return deny;
 
-  // readJson consumes the body, so it is called once and both the validated
-  // fields and the post flag come out of the same parsed object.
-  const body = (await readJson(request)) as CreateRequirementInput & { post?: boolean };
-
   let input;
   try {
-    input = normaliseRequirementInput(body);
+    input = normaliseRequirementInput((await readJson(request)) as CreateRequirementInput);
   } catch (err) {
     return json(env, request, { error: (err as Error).message }, 400);
   }
 
-  /** Defaults to posting; { post: false } saves a draft instead. */
-  const post = body?.post !== false;
+  const url = new URL(request.url);
+  const post = url.searchParams.get("post") === "true";
   const id = cuid();
-  let referenceNumber: string | null = null;
+  const count = await prisma.requirement.count();
+  const referenceNumber = makeReferenceNumber(new Date(), count + 1);
 
-  await sql.begin(async (tx) => {
-    if (post) {
-      // Sequence is per UTC day, matching the REQ-YYYYMMDD-NNNN format.
-      const [{ count }] = await tx`
-        SELECT COUNT(*)::int AS count FROM "Requirement"
-        WHERE "referenceNumber" IS NOT NULL
-          AND "createdAt" >= date_trunc('day', NOW() AT TIME ZONE 'UTC')
-      `;
-      referenceNumber = makeReferenceNumber(new Date(), Number(count) + 1);
-    }
-
-    await tx`
-      INSERT INTO "Requirement"
-        (id, "referenceNumber", "scopeOfWork", project, "sellingPrice", currency,
-         "closesAt", status, "createdByAdminId", "createdAt", "updatedAt")
-      VALUES
-        (${id}, ${referenceNumber}, ${input.scopeOfWork}, ${input.project},
-         ${input.sellingPrice}, ${input.currency}, ${input.closesAt},
-         ${post ? "OPEN" : "DRAFT"}, ${admin.id}, NOW(), NOW())
-    `;
-
-    for (const vendorUserId of input.vendorUserIds) {
-      await tx`
-        INSERT INTO "RequirementInvite" (id, "requirementId", "vendorUserId", "createdAt")
-        VALUES (${cuid()}, ${id}, ${vendorUserId}, NOW())
-        ON CONFLICT DO NOTHING
-      `;
-    }
+  await prisma.requirement.create({
+    data: {
+      id,
+      referenceNumber,
+      project: input.project,
+      scopeOfWork: input.scopeOfWork,
+      currency: input.currency as any,
+      sellingPrice: input.sellingPrice ? Number(input.sellingPrice) : null,
+      status: (post ? "OPEN" : "DRAFT") as RequirementStatus,
+      closesAt: new Date(input.closesAt),
+      createdByAdminId: admin.id,
+      invites: {
+        create: input.vendorUserIds.map((vId) => ({
+          id: cuid(),
+          vendorUserId: vId,
+        })),
+      },
+    },
   });
 
-  // Mail only after the requirement is committed. A slow or failing SMTP
-  // server must never roll back a saved requirement, and one bad address must
-  // not stop the others — each invite records its own outcome.
   if (post && input.vendorUserIds.length > 0) {
-    const invited = await sql`
-      SELECT v.id, v.email FROM "VendorUser" v
-      WHERE v.id = ANY(${sql.array(input.vendorUserIds)})
-    `;
+    const invited = await prisma.vendorUser.findMany({
+      where: { id: { in: input.vendorUserIds } },
+      select: { id: true, email: true },
+    });
 
     const outcome = await sendRequirementMail(env, {
       kind: "POSTED",
-      recipients: invited.map((v) => String(v.email)),
+      recipients: invited.map((v) => v.email),
       project: input.project,
       scopeOfWork: input.scopeOfWork,
       referenceNumber: referenceNumber ?? "",
-      closesAt: input.closesAt.toISOString(),
+      closesAt: new Date(input.closesAt).toISOString(),
       portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/requirements/${id}`,
     });
 
     if (outcome.attempted) {
       for (const v of invited) {
-        const email = String(v.email);
-        const failure = outcome.failed.find((f) => f.to === email);
-        await sql`
-          UPDATE "RequirementInvite"
-          SET "emailStatus" = ${failure ? "FAILED" : "SENT"},
-              "emailError" = ${failure ? failure.error : null},
-              "emailedAt" = ${failure ? null : new Date()}
-          WHERE "requirementId" = ${id} AND "vendorUserId" = ${String(v.id)}
-        `;
+        const failure = outcome.failed.find((f) => f.to === v.email);
+        await prisma.requirementInvite.updateMany({
+          where: { requirementId: id, vendorUserId: v.id },
+          data: {
+            emailStatus: failure ? "FAILED" : "SENT",
+            emailError: failure ? failure.error : null,
+            emailedAt: failure ? null : new Date(),
+          },
+        });
       }
     }
   }
@@ -1057,7 +1051,7 @@ export async function handleRequirementCreate(
     entityId: id,
     metadata: {
       project: input.project,
-      closesAt: input.closesAt.toISOString(),
+      closesAt: new Date(input.closesAt).toISOString(),
       invited: input.vendorUserIds.length,
     },
   });
@@ -1065,14 +1059,11 @@ export async function handleRequirementCreate(
   return json(env, request, { ok: true, requirement: { id, referenceNumber } }, 201);
 }
 
-/**
- * Creates a supplier login directly, for companies RVCC already works with and
- * who never used the public registration wizard.
- *
- * The temporary password is returned once, in this response, and is never
- * stored in plaintext, emailed, or written to the audit metadata.
- */
-export async function handleVendorCreate(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handleVendorCreate(
+  sql: unknown,
+  env: Env,
+  request: Request
+): Promise<Response> {
   const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
   if (deny) return deny;
 
@@ -1083,9 +1074,11 @@ export async function handleVendorCreate(sql: Sql, env: Env, request: Request): 
     return json(env, request, { error: (err as Error).message }, 400);
   }
 
-  const [existing] = await sql`
-    SELECT id FROM "VendorUser" WHERE email = ${input.email} LIMIT 1
-  `;
+  const existing = await prisma.vendorUser.findUnique({
+    where: { email: input.email },
+    select: { id: true },
+  });
+
   if (existing) {
     return json(env, request, { error: "An account already exists for that email." }, 409);
   }
@@ -1094,26 +1087,20 @@ export async function handleVendorCreate(sql: Sql, env: Env, request: Request): 
   const passwordHash = await hashPassword(tempPassword);
   const id = cuid();
 
-  // registrationId is left NULL: this supplier never used the public wizard.
-  await sql.begin(async (tx) => {
-    await tx`
-      INSERT INTO "VendorUser"
-        (id, email, name, "passwordHash", "mustChangePassword", "isActive", "portalAccess",
-         "failedAttempts", "createdAt", "updatedAt")
-      VALUES
-        (${id}, ${input.email}, ${input.name}, ${passwordHash}, true, true, 'RELEASED',
-         0, NOW(), NOW())
-    `;
-
-    for (const industryId of input.industryIds) {
-      // Implicit m-n join table Prisma generates for Industry <-> VendorUser:
-      // "A" is Industry (alphabetically first), "B" is VendorUser.
-      await tx`
-        INSERT INTO "_IndustryToVendorUser" ("A", "B")
-        VALUES (${industryId}, ${id})
-        ON CONFLICT DO NOTHING
-      `;
-    }
+  await prisma.vendorUser.create({
+    data: {
+      id,
+      email: input.email,
+      name: input.name,
+      passwordHash,
+      mustChangePassword: true,
+      isActive: true,
+      portalAccess: "RELEASED",
+      failedAttempts: 0,
+      industries: {
+        connect: input.industryIds.map((indId) => ({ id: indId })),
+      },
+    },
   });
 
   await writeAudit(sql, {
@@ -1121,7 +1108,6 @@ export async function handleVendorCreate(sql: Sql, env: Env, request: Request): 
     action: "vendor.created",
     entityType: "VendorUser",
     entityId: id,
-    // Never the password.
     metadata: { email: input.email, industryIds: input.industryIds },
   });
 
@@ -1134,7 +1120,7 @@ export async function handleVendorCreate(sql: Sql, env: Env, request: Request): 
 }
 
 export async function handleVendorResetPassword(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -1142,27 +1128,29 @@ export async function handleVendorResetPassword(
   const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
   if (deny) return deny;
 
-  const [vendor] = await sql`SELECT id, email FROM "VendorUser" WHERE id = ${id} LIMIT 1`;
+  const vendor = await prisma.vendorUser.findUnique({
+    where: { id },
+    select: { id: true, email: true },
+  });
   if (!vendor) return json(env, request, { error: "Account not found." }, 404);
 
   const tempPassword = generateTempPassword();
   const passwordHash = await hashPassword(tempPassword);
 
-  await sql`
-    UPDATE "VendorUser"
-    SET "passwordHash" = ${passwordHash},
-        "mustChangePassword" = true,
-        "failedAttempts" = 0,
-        "lockedUntil" = NULL,
-        "updatedAt" = NOW()
-    WHERE id = ${id}
-  `;
+  await prisma.vendorUser.update({
+    where: { id },
+    data: {
+      passwordHash,
+      mustChangePassword: true,
+      failedAttempts: 0,
+      lockedUntil: null,
+    },
+  });
 
-  await sql`
-    UPDATE "VendorSession"
-    SET "revokedAt" = NOW()
-    WHERE "vendorId" = ${id} AND "revokedAt" IS NULL
-  `;
+  await prisma.vendorSession.updateMany({
+    where: { vendorId: id, revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
 
   await writeAudit(sql, {
     adminId: admin.id,
@@ -1178,38 +1166,36 @@ export async function handleVendorResetPassword(
 // ── Careers ─────────────────────────────────────────────────────────────────
 
 type JobBody = {
-  title?: string;
-  slug?: string;
-  department?: string;
-  location?: string;
-  employmentType?: string;
-  description?: string;
-  requirements?: string[];
-  benefits?: string[];
-  isRemote?: boolean;
-  isPublished?: boolean;
-  sortOrder?: number;
+  slug?: unknown;
+  title?: unknown;
+  department?: unknown;
+  location?: unknown;
+  employmentType?: unknown;
+  description?: unknown;
+  requirements?: unknown;
+  benefits?: unknown;
+  isRemote?: unknown;
+  isPublished?: unknown;
+  sortOrder?: unknown;
 };
 
-function parseJobCreate(
-  body: JobBody
-): { ok: true; data: Required<JobBody> } | { ok: false; error: string } {
+function parseJobCreate(body: JobBody) {
   const title = typeof body.title === "string" ? body.title.trim() : "";
-  if (title.length < 2) return { ok: false, error: "Title is required." };
   const department = typeof body.department === "string" ? body.department.trim() : "";
-  if (!department) return { ok: false, error: "Department is required." };
-  const location = typeof body.location === "string" ? body.location.trim() : "";
-  if (!location) return { ok: false, error: "Location is required." };
-  const employmentType = typeof body.employmentType === "string" ? body.employmentType.trim() : "";
-  if (!employmentType) return { ok: false, error: "Employment type is required." };
+  const location = typeof body.location === "string" ? body.location.trim() : "Riyadh, Saudi Arabia";
+  const employmentType =
+    typeof body.employmentType === "string" ? body.employmentType.trim() : "Full-time";
   const description = typeof body.description === "string" ? body.description.trim() : "";
-  if (!description) return { ok: false, error: "Description is required." };
+
+  if (!title) return { ok: false as const, error: "Title is required" };
+  if (!department) return { ok: false as const, error: "Department is required" };
+  if (!description) return { ok: false as const, error: "Description is required" };
 
   return {
-    ok: true,
+    ok: true as const,
     data: {
-      title,
       slug: typeof body.slug === "string" ? body.slug.trim() : "",
+      title,
       department,
       location,
       employmentType,
@@ -1227,19 +1213,21 @@ function parseJobCreate(
   };
 }
 
-export async function handleCareersList(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handleCareersList(sql: unknown, env: Env, request: Request): Promise<Response> {
   const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
 
-  const rows = await sql`
-    SELECT * FROM "JobPosting"
-    ORDER BY "sortOrder" ASC, "postedAt" DESC
-  `;
+  const rows = await prisma.jobPosting.findMany({
+    orderBy: [
+      { sortOrder: "asc" },
+      { postedAt: "desc" },
+    ],
+  });
   return json(env, request, rows);
 }
 
 export async function handleCareerGet(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -1247,13 +1235,13 @@ export async function handleCareerGet(
   const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
 
-  const [job] = await sql`SELECT * FROM "JobPosting" WHERE id = ${id} LIMIT 1`;
+  const job = await prisma.jobPosting.findUnique({ where: { id } });
   if (!job) return json(env, request, { error: "Posting not found." }, 404);
   return json(env, request, job);
 }
 
 export async function handleCareerApplicationsList(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   jobPostingId: string
@@ -1261,33 +1249,32 @@ export async function handleCareerApplicationsList(
   const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
 
-  const [job] = await sql`SELECT id FROM "JobPosting" WHERE id = ${jobPostingId} LIMIT 1`;
+  const job = await prisma.jobPosting.findUnique({
+    where: { id: jobPostingId },
+    select: { id: true },
+  });
   if (!job) return json(env, request, { error: "Posting not found." }, 404);
 
-  const rows = await sql`
-    SELECT
-      id, "fullName", email, phone,
-      "cvFileName", "cvFileUrl", "cvMimeType", "createdAt"
-    FROM "JobApplication"
-    WHERE "jobPostingId" = ${jobPostingId}
-    ORDER BY "createdAt" DESC
-  `;
+  const rows = await prisma.jobApplication.findMany({
+    where: { jobPostingId },
+    orderBy: { createdAt: "desc" },
+  });
 
   const applications = rows.map((r) => ({
-    id: String(r.id),
-    fullName: String(r.fullName),
-    email: String(r.email),
-    phone: String(r.phone ?? ""),
-    cvFileName: String(r.cvFileName),
-    cvFileUrl: String(r.cvFileUrl),
-    cvMimeType: String(r.cvMimeType ?? "application/pdf"),
-    createdAt: r.createdAt ? new Date(String(r.createdAt)).toISOString() : "",
+    id: r.id,
+    fullName: r.fullName,
+    email: r.email,
+    phone: r.phone ?? "",
+    cvFileName: r.cvFileName,
+    cvFileUrl: r.cvFileUrl,
+    cvMimeType: r.cvMimeType ?? "application/pdf",
+    createdAt: r.createdAt.toISOString(),
   }));
 
   return json(env, request, { applications });
 }
 
-export async function handleCareerCreate(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handleCareerCreate(sql: unknown, env: Env, request: Request): Promise<Response> {
   const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
   if (deny) return deny;
 
@@ -1301,24 +1288,32 @@ export async function handleCareerCreate(sql: Sql, env: Env, request: Request): 
   const slug = slugify(data.slug || data.title);
   if (!slug) return json(env, request, { error: "Could not derive a slug." }, 400);
 
-  const [clash] = await sql`SELECT id FROM "JobPosting" WHERE slug = ${slug} LIMIT 1`;
+  const clash = await prisma.jobPosting.findUnique({
+    where: { slug },
+    select: { id: true },
+  });
   if (clash) {
     return json(env, request, { error: `The slug “${slug}” is already in use.` }, 409);
   }
 
   const id = cuid();
-  await sql`
-    INSERT INTO "JobPosting"
-      (id, slug, title, department, location, "employmentType", description,
-       requirements, benefits, "isRemote", "isPublished", "sortOrder",
-       "createdById", "postedAt", "createdAt", "updatedAt")
-    VALUES
-      (${id}, ${slug}, ${data.title}, ${data.department}, ${data.location},
-       ${data.employmentType}, ${data.description},
-       ${sql.array(data.requirements)}, ${sql.array(data.benefits)},
-       ${data.isRemote}, ${data.isPublished}, ${data.sortOrder},
-       ${admin.id}, NOW(), NOW(), NOW())
-  `;
+  await prisma.jobPosting.create({
+    data: {
+      id,
+      slug,
+      title: data.title,
+      department: data.department,
+      location: data.location,
+      employmentType: data.employmentType,
+      description: data.description,
+      requirements: data.requirements,
+      benefits: data.benefits,
+      isRemote: data.isRemote,
+      isPublished: data.isPublished,
+      sortOrder: data.sortOrder,
+      createdById: admin.id,
+    },
+  });
 
   await writeAudit(sql, {
     adminId: admin.id,
@@ -1332,7 +1327,7 @@ export async function handleCareerCreate(sql: Sql, env: Env, request: Request): 
 }
 
 export async function handleCareerPatch(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -1345,68 +1340,65 @@ export async function handleCareerPatch(
     return json(env, request, { error: "Invalid request" }, 400);
   }
 
-  const [existing] = await sql`SELECT * FROM "JobPosting" WHERE id = ${id} LIMIT 1`;
+  const existing = await prisma.jobPosting.findUnique({ where: { id } });
   if (!existing) return json(env, request, { error: "Posting not found." }, 404);
 
-  const title = body.title !== undefined ? String(body.title).trim() : (existing.title as string);
+  const title = body.title !== undefined ? String(body.title).trim() : existing.title;
   const department =
-    body.department !== undefined
-      ? String(body.department).trim()
-      : (existing.department as string);
+    body.department !== undefined ? String(body.department).trim() : existing.department;
   const location =
-    body.location !== undefined ? String(body.location).trim() : (existing.location as string);
+    body.location !== undefined ? String(body.location).trim() : existing.location;
   const employmentType =
-    body.employmentType !== undefined
-      ? String(body.employmentType).trim()
-      : (existing.employmentType as string);
+    body.employmentType !== undefined ? String(body.employmentType).trim() : existing.employmentType;
   const description =
-    body.description !== undefined
-      ? String(body.description).trim()
-      : (existing.description as string);
+    body.description !== undefined ? String(body.description).trim() : existing.description;
   const requirements =
     body.requirements !== undefined
-      ? body.requirements.map((s) => String(s).trim()).filter(Boolean)
-      : (existing.requirements as string[]);
+      ? (body.requirements as string[]).map((s) => String(s).trim()).filter(Boolean)
+      : existing.requirements;
   const benefits =
     body.benefits !== undefined
-      ? body.benefits.map((s) => String(s).trim()).filter(Boolean)
-      : (existing.benefits as string[]);
+      ? (body.benefits as string[]).map((s) => String(s).trim()).filter(Boolean)
+      : existing.benefits;
   const isRemote =
-    body.isRemote !== undefined ? Boolean(body.isRemote) : Boolean(existing.isRemote);
+    body.isRemote !== undefined ? Boolean(body.isRemote) : existing.isRemote;
   const isPublished =
-    body.isPublished !== undefined ? Boolean(body.isPublished) : Boolean(existing.isPublished);
+    body.isPublished !== undefined ? Boolean(body.isPublished) : existing.isPublished;
   const sortOrder =
     body.sortOrder !== undefined && Number.isFinite(body.sortOrder)
-      ? Math.trunc(body.sortOrder)
-      : Number(existing.sortOrder);
+      ? Math.trunc(body.sortOrder as number)
+      : existing.sortOrder;
 
-  let slug = existing.slug as string;
+  let slug = existing.slug;
   if (body.slug !== undefined || body.title !== undefined) {
     const next = slugify((typeof body.slug === "string" ? body.slug.trim() : "") || title);
     if (!next) return json(env, request, { error: "Could not derive a slug." }, 400);
-    const [clash] = await sql`SELECT id FROM "JobPosting" WHERE slug = ${next} LIMIT 1`;
+    const clash = await prisma.jobPosting.findUnique({
+      where: { slug: next },
+      select: { id: true },
+    });
     if (clash && clash.id !== id) {
       return json(env, request, { error: `The slug “${next}” is already in use.` }, 409);
     }
     slug = next;
   }
 
-  await sql`
-    UPDATE "JobPosting"
-    SET slug = ${slug},
-        title = ${title},
-        department = ${department},
-        location = ${location},
-        "employmentType" = ${employmentType},
-        description = ${description},
-        requirements = ${sql.array(requirements)},
-        benefits = ${sql.array(benefits)},
-        "isRemote" = ${isRemote},
-        "isPublished" = ${isPublished},
-        "sortOrder" = ${sortOrder},
-        "updatedAt" = NOW()
-    WHERE id = ${id}
-  `;
+  await prisma.jobPosting.update({
+    where: { id },
+    data: {
+      slug,
+      title,
+      department,
+      location,
+      employmentType,
+      description,
+      requirements,
+      benefits,
+      isRemote,
+      isPublished,
+      sortOrder,
+    },
+  });
 
   await writeAudit(sql, {
     adminId: admin.id,
@@ -1420,7 +1412,7 @@ export async function handleCareerPatch(
 }
 
 export async function handleCareerDelete(
-  sql: Sql,
+  sql: unknown,
   env: Env,
   request: Request,
   id: string
@@ -1428,9 +1420,10 @@ export async function handleCareerDelete(
   const { admin, deny } = await requireAdmin(sql, env, request, "SUPER_ADMIN");
   if (deny) return deny;
 
-  const [existing] = await sql`
-    SELECT id, slug, title FROM "JobPosting" WHERE id = ${id} LIMIT 1
-  `;
+  const existing = await prisma.jobPosting.findUnique({
+    where: { id },
+    select: { id: true, slug: true, title: true },
+  });
   if (!existing) return json(env, request, { error: "Posting not found." }, 404);
 
   await writeAudit(sql, {
@@ -1441,148 +1434,111 @@ export async function handleCareerDelete(
     metadata: { slug: existing.slug, title: existing.title },
   });
 
-  await sql`DELETE FROM "JobPosting" WHERE id = ${id}`;
+  await prisma.jobApplication.deleteMany({ where: { jobPostingId: id } });
+  await prisma.jobPosting.delete({ where: { id } });
   return json(env, request, { ok: true });
 }
 
 // ── Dashboard ───────────────────────────────────────────────────────────────
 
-export async function handleDashboard(sql: Sql, env: Env, request: Request): Promise<Response> {
+export async function handleDashboard(sql: unknown, env: Env, request: Request): Promise<Response> {
   const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
 
-  const payload = await getIsolateCache("admin:dashboard", 15_000, async () => {
-    const readSql = createReadSql(env);
-    const statusRows = await readSql`
-    SELECT status, COUNT(*)::int AS count
-    FROM "SupplierRegistration"
-    GROUP BY status
-  `;
-  const byStatus: Record<string, number> = {};
-  for (const row of statusRows) {
-    byStatus[row.status as string] = Number(row.count);
-  }
-
-    const [{ vendors }] = await readSql`
-    SELECT COUNT(*)::int AS vendors FROM "VendorUser" WHERE "isActive" = true
-  `;
-    const [{ publishedJobs }] = await readSql`
-    SELECT COUNT(*)::int AS "publishedJobs" FROM "JobPosting" WHERE "isPublished" = true
-  `;
-    const [{ totalJobs }] = await readSql`
-    SELECT COUNT(*)::int AS "totalJobs" FROM "JobPosting"
-  `;
-
-  let openCount = 0;
-  let closingSoon = 0;
-  let awaitingAward = 0;
-  let performance: { email: string; invited: number; submitted: number; won: number }[] = [];
-  let recentQuotes: {
-    id: string;
-    newPrice: number;
-    submittedAt: string | null;
-    vendorName: string;
-    vendorEmail: string;
-    requirementId: string;
-    requirementTitle: string;
-  }[] = [];
-
   try {
-    const [openRow] = await readSql`
-      SELECT COUNT(*)::int AS "openCount"
-      FROM "Requirement"
-      WHERE status = 'OPEN' AND "closesAt" > NOW()
-    `;
-    const [soonRow] = await readSql`
-      SELECT COUNT(*)::int AS "closingSoon"
-      FROM "Requirement"
-      WHERE status = 'OPEN'
-        AND "closesAt" > NOW()
-        AND "closesAt" <= NOW() + INTERVAL '48 hours'
-    `;
-    const [awardRow] = await readSql`
-      SELECT COUNT(*)::int AS "awaitingAward"
-      FROM "Requirement"
-      WHERE status = 'OPEN' AND "closesAt" <= NOW()
-    `;
-    openCount = Number(openRow?.openCount ?? 0);
-    closingSoon = Number(soonRow?.closingSoon ?? 0);
-    awaitingAward = Number(awardRow?.awaitingAward ?? 0);
+    const statusGroups = await prisma.supplierRegistration.groupBy({
+      by: ["status"],
+      _count: { status: true },
+    });
 
-    // Ninety-day supplier performance window (same as former Prisma dashboard).
-    const performanceRows = await readSql`
-      SELECT
-        v.email,
-        (
-          SELECT COUNT(*)::int FROM "RequirementInvite" i
-          WHERE i."vendorUserId" = v.id AND i."createdAt" >= NOW() - INTERVAL '90 days'
-        ) AS invited,
-        (
-          SELECT COUNT(*)::int FROM "Quote" q
-          WHERE q."vendorUserId" = v.id
-            AND q.status = 'SUBMITTED'
-            AND q."submittedAt" >= NOW() - INTERVAL '90 days'
-        ) AS submitted,
-        (
-          SELECT COUNT(*)::int FROM "Quote" q
-          JOIN "Requirement" r ON r."awardedQuoteId" = q.id
-          WHERE q."vendorUserId" = v.id AND q.status = 'SUBMITTED'
-        ) AS won
-      FROM "VendorUser" v
-      WHERE v."isActive" = true
-      ORDER BY v.email ASC
-      LIMIT 100
-    `;
-    performance = performanceRows.map((p) => ({
-      email: String(p.email),
-      invited: Number(p.invited),
-      submitted: Number(p.submitted),
-      won: Number(p.won),
+    const byStatus: Record<string, number> = {};
+    for (const group of statusGroups) {
+      byStatus[group.status] = group._count.status;
+    }
+
+    const vendorsCount = await prisma.vendorUser.count({ where: { isActive: true } });
+    const publishedJobs = await prisma.jobPosting.count({ where: { isPublished: true } });
+    const totalJobs = await prisma.jobPosting.count();
+
+    const now = new Date();
+    const in48Hours = new Date(Date.now() + 48 * 60 * 60 * 1000);
+
+    const openCount = await prisma.requirement.count({
+      where: { status: "OPEN", closesAt: { gt: now } },
+    });
+    const closingSoon = await prisma.requirement.count({
+      where: {
+        status: "OPEN",
+        closesAt: { gt: now, lte: in48Hours },
+      },
+    });
+    const awaitingAward = await prisma.requirement.count({
+      where: { status: "OPEN", closesAt: { lte: now } },
+    });
+
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    const activeVendors = await prisma.vendorUser.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        email: true,
+        invites: {
+          where: { createdAt: { gte: ninetyDaysAgo } },
+          select: { id: true },
+        },
+        quotes: {
+          where: { status: "SUBMITTED" },
+          select: {
+            id: true,
+            submittedAt: true,
+            awardedFor: { select: { id: true } },
+          },
+        },
+      },
+      orderBy: { email: "asc" },
+      take: 100,
+    });
+
+    const performance = activeVendors.map((v) => {
+      const invited = v.invites.length;
+      const submitted = v.quotes.filter(
+        (q) => q.submittedAt && q.submittedAt >= ninetyDaysAgo
+      ).length;
+      const won = v.quotes.filter((q) => q.awardedFor != null).length;
+      return {
+        email: v.email,
+        invited,
+        submitted,
+        won,
+      };
+    });
+
+    const recentQuotesRows = await prisma.quote.findMany({
+      where: { status: "SUBMITTED" },
+      include: {
+        vendorUser: { select: { name: true, email: true } },
+        requirement: { select: { id: true, project: true } },
+      },
+      orderBy: { submittedAt: { sort: "desc", nulls: "last" } },
+      take: 5,
+    });
+
+    const recentQuotes = recentQuotesRows.map((q) => ({
+      id: q.id,
+      newPrice: Number(q.newPrice) || 0,
+      submittedAt: q.submittedAt ? q.submittedAt.toISOString() : null,
+      vendorName: q.vendorUser?.name || "Unknown Vendor",
+      vendorEmail: q.vendorUser?.email || "",
+      requirementId: q.requirement.id,
+      requirementTitle: q.requirement.project,
     }));
 
-    const recentQuotesRows = await readSql`
-      SELECT 
-        q.id,
-        q."newPrice",
-        q."submittedAt",
-        v.name AS "vendorName",
-        v.email AS "vendorEmail",
-        r.id AS "requirementId",
-        r.title AS "requirementTitle"
-      FROM "Quote" q
-      JOIN "VendorUser" v ON q."vendorUserId" = v.id
-      JOIN "Requirement" r ON q."requirementId" = r.id
-      WHERE q.status = 'SUBMITTED'
-      ORDER BY q."submittedAt" DESC NULLS LAST
-      LIMIT 5
-    `;
-
-    recentQuotes = recentQuotesRows.map((r) => ({
-      id: String(r.id),
-      newPrice: Number(r.newPrice),
-      submittedAt: r.submittedAt ? new Date(r.submittedAt as string).toISOString() : null,
-      vendorName: String(r.vendorName || "Unknown Vendor"),
-      vendorEmail: String(r.vendorEmail),
-      requirementId: String(r.requirementId),
-      requirementTitle: String(r.requirementTitle),
-    }));
-  } catch (err) {
-    const e = err as { code?: string; message?: string };
-    const msg = (e.message || "").toLowerCase();
-    const missing =
-      e.code === "42P01" ||
-      e.code === "42703" ||
-      (msg.includes("does not exist") && (msg.includes("relation") || msg.includes("column")));
-    if (!missing) throw err;
-    console.error("[admin] dashboard sourcing schema missing", err);
-  }
-
-    return {
+    const payload = {
       pendingRegistrations: byStatus.SUBMITTED ?? 0,
-      activeVendors: Number(vendors),
-      vendors: Number(vendors),
-      publishedJobs: Number(publishedJobs),
-      totalJobs: Number(totalJobs),
+      activeVendors: vendorsCount,
+      vendors: vendorsCount,
+      publishedJobs,
+      totalJobs,
       openCount,
       closingSoon,
       awaitingAward,
@@ -1590,29 +1546,33 @@ export async function handleDashboard(sql: Sql, env: Env, request: Request): Pro
       performance,
       recentQuotes,
     };
-  });
 
-  return json(env, request, payload, 200, {
-    "Cache-Control": "private, max-age=15",
-  });
+    return json(env, request, payload, 200, {
+      "Cache-Control": "private, max-age=15",
+    });
+  } catch (err) {
+    console.error("[admin dashboard failed]", err);
+    return json(env, request, { error: "Database unavailable." }, 503);
+  }
 }
 
 export async function handleIndustriesList(
-  sql: Sql,
+  _sql: unknown,
   env: Env,
   request: Request
 ): Promise<Response> {
-  const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
+  const { deny } = await requireAdmin(null, env, request, "REVIEWER");
   if (deny) return deny;
 
-  const rows = await sql`
-    SELECT id, name FROM "Industry"
-    WHERE "isActive" = true
-    ORDER BY name ASC
-  `;
+  const rows = await prisma.industry.findMany({
+    where: { isActive: true },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
+
   return json(
     env,
     request,
-    rows.map((r) => ({ id: String(r.id), name: String(r.name) }))
+    rows.map((r) => ({ id: r.id, name: r.name }))
   );
 }
