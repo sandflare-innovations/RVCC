@@ -85,18 +85,18 @@ export async function getRequirementRankings(
     return timeA - timeB;
   });
 
-  const lowestNum = validQuotes.length > 0 ? Number(validQuotes[0]!.newPrice) : null;
+  const lowestNum = validQuotes.length > 0 ? Number(validQuotes[0]!.amountSar ?? validQuotes[0]!.newPrice) : null;
   const lowestPrice = lowestNum !== null ? lowestNum.toFixed(2) : null;
 
   const totalQuotes = validQuotes.length;
-  const totalPrice = validQuotes.reduce((sum, q) => sum + Number(q.newPrice), 0);
+  const totalPrice = validQuotes.reduce((sum, q) => sum + Number(q.amountSar ?? q.newPrice), 0);
   const averagePrice = totalQuotes > 0 ? (totalPrice / totalQuotes).toFixed(2) : null;
 
   let lastPrice: number | null = null;
   let lastRank = 0;
 
   const adminQuotes: AdminQuoteRankingItem[] = validQuotes.map((q, index) => {
-    const p = Number(q.newPrice);
+    const p = Number(q.amountSar ?? q.newPrice);
     // Dense ranking: identical price shares the same rank
     const rank = lastPrice !== null && p === lastPrice ? lastRank : index + 1;
     lastPrice = p;
@@ -214,6 +214,7 @@ export async function buildVendorLiveBidsPayload(
       rank: q.rank,
       price: q.newPrice,
       currency: q.currency,
+      amountSar: q.amountSar,
       submittedAt: q.submittedAt,
       isYou,
       maskedName: isYou ? "You" : `Bidder #${q.rank}`,

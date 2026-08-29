@@ -272,6 +272,7 @@ export async function handleQuoteSave(
 
   const body = (await request.json().catch(() => ({}))) as {
     newPrice?: string | null;
+    currency?: string;
     remarks?: string;
     quoteFileUrl?: string;
     submit?: boolean;
@@ -279,6 +280,7 @@ export async function handleQuoteSave(
 
   const submit = body.submit === true;
   const price = body.newPrice == null ? "" : String(body.newPrice).trim();
+  const selectedCurrency = body.currency || "SAR";
 
   if (price && !/^\d+(\.\d{1,2})?$/.test(price)) {
     return json(
@@ -314,6 +316,24 @@ export async function handleQuoteSave(
     );
   }
 
+  const numericPrice = price ? Number(price) : null;
+  let amountSar = numericPrice;
+  let exchangeRate = 1.0;
+
+  if (numericPrice && selectedCurrency !== "SAR") {
+    // Fetch latest exchange rate
+    const fx = await prisma.exchangeRate.findUnique({
+      where: { currency: selectedCurrency as any }
+    });
+    
+    if (fx && fx.rateToSar) {
+      exchangeRate = Number(fx.rateToSar);
+      amountSar = numericPrice * exchangeRate;
+    } else {
+      return json(env, request, { error: `Exchange rate for ${selectedCurrency} is currently unavailable.` }, 400);
+    }
+  }
+
   const saved = await prisma.quote.upsert({
     where: {
       requirementId_vendorUserId: {
@@ -322,7 +342,10 @@ export async function handleQuoteSave(
       },
     },
     update: {
-      newPrice: price ? Number(price) : null,
+      newPrice: numericPrice,
+      currency: selectedCurrency as any,
+      exchangeRate,
+      amountSar,
       remarks: String(body.remarks ?? ""),
       status: submit ? "SUBMITTED" : "DRAFT",
       submittedAt: submit ? new Date() : undefined,
@@ -331,7 +354,10 @@ export async function handleQuoteSave(
       id: cuid(),
       requirementId,
       vendorUserId: vendor.id,
-      newPrice: price ? Number(price) : null,
+      newPrice: numericPrice,
+      currency: selectedCurrency as any,
+      exchangeRate,
+      amountSar,
       remarks: String(body.remarks ?? ""),
       status: submit ? "SUBMITTED" : "DRAFT",
       submittedAt: submit ? new Date() : null,
@@ -340,6 +366,9 @@ export async function handleQuoteSave(
       id: true,
       status: true,
       newPrice: true,
+      currency: true,
+      exchangeRate: true,
+      amountSar: true,
       remarks: true,
       submittedAt: true,
     },
@@ -354,6 +383,7 @@ export async function handleQuoteSave(
       ...saved,
       quoteFileUrl: null,
       newPrice: saved.newPrice ? String(saved.newPrice) : null,
+      amountSar: saved.amountSar ? String(saved.amountSar) : null,
       submittedAt: saved.submittedAt ? saved.submittedAt.toISOString() : null,
     },
   });
