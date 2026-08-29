@@ -11,15 +11,15 @@ import {
   uploadStorageConfigured,
   validateUploadFile,
 } from "../../lib/storage";
-import type { Sql } from "../../lib/sql";
 import { cuid } from "../../lib/sql";
 import { loadRegistration } from "./db";
+import { prisma } from "../../lib/prisma";
 
-type ResolveRegistration = (sql: Sql, env: Env, request: Request) => Promise<Awaited<ReturnType<typeof loadRegistration>>>;
+type ResolveRegistration = (sql: unknown, env: Env, request: Request) => Promise<Awaited<ReturnType<typeof loadRegistration>>>;
 
 export function createAttachmentHandlers(resolveRegistration: ResolveRegistration) {
   return {
-    async handleAttachmentUpload(sql: Sql, env: Env, request: Request): Promise<Response> {
+    async handleAttachmentUpload(sql: unknown, env: Env, request: Request): Promise<Response> {
       if (!uploadStorageConfigured(env)) {
         return json(env, request, { error: "Upload storage not configured" }, 503);
       }
@@ -66,20 +66,23 @@ export function createAttachmentHandlers(resolveRegistration: ResolveRegistratio
       const id = cuid();
       const fileUrl = publicUploadUrl(env, key);
 
-      await sql`
-        INSERT INTO "RegistrationAttachment" (
-          id, "registrationId", section, "fileName", "fileUrl", "mimeType", "createdAt"
-        ) VALUES (
-          ${id}, ${registration.id}, ${section}, ${file.name}, ${fileUrl}, ${mimeType}, NOW()
-        )
-      `;
+      await prisma.registrationAttachment.create({
+        data: {
+          id,
+          registrationId: registration.id,
+          section,
+          fileName: file.name,
+          fileUrl,
+          mimeType,
+        },
+      });
 
       const updated = await loadRegistration(sql, registration.id);
       return json(env, request, { ok: true, attachmentId: id, registration: updated });
     },
 
     async handleAttachmentDelete(
-      sql: Sql,
+      sql: unknown,
       env: Env,
       request: Request,
       attachmentId: string
@@ -92,14 +95,14 @@ export function createAttachmentHandlers(resolveRegistration: ResolveRegistratio
         return json(env, request, { error: "Attachments cannot be changed after submission." }, 403);
       }
 
-      const [row] = await sql`
-        SELECT id, "fileUrl" FROM "RegistrationAttachment"
-        WHERE id = ${attachmentId} AND "registrationId" = ${registration.id}
-        LIMIT 1
-      `;
+      const row = await prisma.registrationAttachment.findFirst({
+        where: { id: attachmentId, registrationId: registration.id },
+        select: { id: true, fileUrl: true },
+      });
+
       if (!row) return json(env, request, { error: "Attachment not found" }, 404);
 
-      const key = extractStorageKeyFromUrl(env, String(row.fileUrl));
+      const key = extractStorageKeyFromUrl(env, row.fileUrl);
       if (key) {
         try {
           await deleteUpload(env, key);
@@ -108,7 +111,7 @@ export function createAttachmentHandlers(resolveRegistration: ResolveRegistratio
         }
       }
 
-      await sql`DELETE FROM "RegistrationAttachment" WHERE id = ${attachmentId}`;
+      await prisma.registrationAttachment.delete({ where: { id: attachmentId } });
 
       const updated = await loadRegistration(sql, registration.id);
       return json(env, request, { ok: true, registration: updated });
