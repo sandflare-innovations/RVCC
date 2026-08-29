@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-async function runMigration() {
+async function runMigration(): Promise<void> {
   console.log("🚀 Starting Enterprise Data Migration...\n");
 
   await prisma.$transaction(
@@ -60,10 +60,10 @@ async function runMigration() {
         });
       }
 
-      // Link any orphaned/legacy AdminUsers to SUPER_ADMIN
+      // Link any unassigned AdminUsers to SUPER_ADMIN
       const unassignedAdmins = await tx.adminUser.findMany({
         where: {
-          OR: [{ roleId: "" }],
+          roleId: "",
         },
       });
 
