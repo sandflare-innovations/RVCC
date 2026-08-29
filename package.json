@@ -4,6 +4,7 @@
   "packageManager": "pnpm@11.15.1",
   "scripts": {
     "dev": "turbo dev",
+    "db:studio": "pnpm --filter api db:studio",
     "build": "turbo build",
     "lint": "turbo lint",
     "test": "turbo test"
