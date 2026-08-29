@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 
-import { AdminLoginForm } from "@/sections/AdminLoginForm";
+import { AdminLoginForm } from "@/sections/auth/AdminLoginForm";
 
 export const metadata: Metadata = {
   title: "Sign in | RVCC Admin",

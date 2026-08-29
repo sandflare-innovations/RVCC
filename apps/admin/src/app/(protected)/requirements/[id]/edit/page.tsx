@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { adminSessionJson } from "@/lib/admin-data";
-import { PostRequirementForm } from "@/sections/PostRequirementForm";
+import { PostRequirementForm } from "@/sections/requirements/PostRequirementForm";
 import type { CachedVendorRow } from "@/lib/vendor-cache";
 
 export const dynamic = "force-dynamic";

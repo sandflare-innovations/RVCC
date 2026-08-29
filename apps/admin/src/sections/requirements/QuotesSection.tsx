@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Trophy, FileText, LayoutGrid, List, ArrowUpDown, ChevronDown, Calendar, Calculator, Sigma, Medal } from "lucide-react";
-import { AwardButton } from "@/sections/AwardButton";
+import { AwardButton } from "./AwardButton";
 
 function formatDateTime(d: string | null) {
   if (!d) return "—";

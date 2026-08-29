@@ -1,5 +1,5 @@
 import { adminSessionJson } from "@/lib/admin-data";
-import { PostRequirementForm } from "@/sections/PostRequirementForm";
+import { PostRequirementForm } from "@/sections/requirements/PostRequirementForm";
 import type { CachedVendorRow } from "@/lib/vendor-cache";
 import { SmoothScroll } from "@/components/ui";
 

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { AdminProcurementDetailView } from "@/sections/AdminProcurementDetailView";
+import { AdminProcurementDetailView } from "@/sections/procurement/AdminProcurementDetailView";
 
 export const metadata: Metadata = {
   title: "Requisition Details | RVCC Admin",

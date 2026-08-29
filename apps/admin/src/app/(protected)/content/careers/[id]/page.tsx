@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 
 import { adminSessionJson } from "@/lib/admin-data";
 import { DEPARTMENTS, EMPLOYMENT_TYPES } from "@/lib/careers";
-import { CareerEditor } from "@/sections/CareerEditor";
-import { CareerApplicationsPanel } from "@/sections/CareerApplicationsPanel";
+import { CareerEditor } from "@/sections/careers/CareerEditor";
+import { CareerApplicationsPanel } from "@/sections/careers/CareerApplicationsPanel";
 
 export const dynamic = "force-dynamic";
 

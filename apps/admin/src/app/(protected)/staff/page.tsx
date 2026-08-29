@@ -1,5 +1,5 @@
-import { Metadata } from "next";
-import { StaffPanel } from "@/sections/StaffPanel";
+import type { Metadata } from "next";
+import { StaffPanel } from "@/sections/staff/StaffPanel";
 
 export const metadata: Metadata = {
   title: "Staff & Administrators | RVCC Admin",

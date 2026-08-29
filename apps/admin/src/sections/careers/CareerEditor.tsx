@@ -13,7 +13,7 @@ import {
   enquireInputClass,
   enquireSelectClass,
   enquireTextareaClass,
-} from "@/sections/enquire/EnquireField";
+} from "@/sections/registrations/enquire/EnquireField";
 
 export type CareerDraft = {
   id: string | null;

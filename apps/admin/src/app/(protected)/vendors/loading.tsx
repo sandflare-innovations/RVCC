@@ -1,4 +1,4 @@
-import { VendorAccountsSkeleton } from "@/sections/VendorAccountsPanel";
+import { VendorAccountsSkeleton } from "@/sections/vendors/VendorAccountsPanel";
 
 export default function VendorAccountsLoading() {
   return <VendorAccountsSkeleton />;

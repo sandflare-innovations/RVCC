@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { DEPARTMENTS, EMPLOYMENT_TYPES } from "@/lib/careers";
-import { CareerEditor } from "@/sections/CareerEditor";
+import { CareerEditor } from "@/sections/careers/CareerEditor";
 
 export default function NewCareerPage() {
   return (

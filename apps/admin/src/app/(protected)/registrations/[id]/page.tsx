@@ -29,7 +29,7 @@ import { registrationAttachmentLabel } from "@/data/registration-attachments";
 import { adminSessionJson } from "@/lib/admin-data";
 import { hasRole } from "@/lib/constants";
 import { getAdminFromSession } from "@/lib/session";
-import { ReviewPanel } from "@/sections/ReviewPanel";
+import { ReviewPanel } from "@/sections/registrations/ReviewPanel";
 
 export const dynamic = "force-dynamic";
 

@@ -4,36 +4,30 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import countries from "world-countries";
 
-import { RefreshCw, Search, ChevronDown, Users, CheckCircle, Lock, ShieldAlert, Clock } from "lucide-react";
+import { RefreshCw, Search, ChevronDown, FileText, CheckCircle, Clock, XCircle, FileCheck, Loader, ChevronUp } from "lucide-react";
 
 import { StatusBadge, AnimatedSearchInput } from "@/lib/ui";
 import { fetchTableJson } from "@/lib/table-fetch";
-import { readVendorCache, writeVendorCache, type CachedVendorRow } from "@/lib/vendor-cache";
 import {
-  VENDOR_FILTERS,
-  filterVendorRows,
-  parseVendorFilter,
-  parseVendorSearch,
-  type VendorFilterValue,
-} from "@/lib/vendor-filters";
-import { CreateVendorForm, type IndustryOption } from "@/sections/CreateVendorForm";
-import { VendorRowActions, type VendorSummary } from "@/sections/VendorRowActions";
+  readRegistrationCache,
+  writeRegistrationCache,
+  type CachedRegistrationRow,
+} from "@/lib/registration-cache";
+import {
+  REGISTRATION_FILTERS,
+  filterRegistrationRows,
+  parseRegistrationFilter,
+  parseRegistrationSearch,
+  type RegistrationFilterValue,
+} from "@/lib/registration-filters";
+import {
+  RegistrationRowActions,
+  type RegistrationSummary,
+} from "./RegistrationRowActions";
 
-type VendorRow = CachedVendorRow;
-
-function formatDateTime(d: string | null) {
-  if (!d) return null;
-  const date = new Date(d);
-  if (isNaN(date.getTime())) return null;
-  return date.toLocaleString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+type RegistrationRow = CachedRegistrationRow;
 
 function formatDate(d: string | null) {
   if (!d) return "—";
@@ -46,112 +40,133 @@ function formatDate(d: string | null) {
   });
 }
 
-function toSummary(v: VendorRow): VendorSummary {
-  return {
-    id: v.id,
-    email: v.email,
-    name: v.name ?? "",
-    isActive: v.isActive,
-    portalAccess: v.portalAccess === "RELEASED" ? "RELEASED" : "HELD",
-    mustChangePassword: v.mustChangePassword,
-    lastLoginAt: formatDateTime(v.lastLoginAt),
-    createdAt: formatDate(v.createdAt),
-    lockedUntil:
-      v.lockedUntil && new Date(v.lockedUntil) > new Date() ? formatDateTime(v.lockedUntil) : null,
-    activeSessions: v.activeSessions,
-    registrationId: v.registrationId,
-    companyName: v.companyName || "—",
-    referenceNumber: v.referenceNumber,
-    registrationStatus: v.registrationStatus,
-    registrationComplete: v.registrationComplete,
-  };
-}
-
-function syncUrl(filter: VendorFilterValue, search: string) {
+function syncUrl(status: RegistrationFilterValue, search: string) {
   const url = new URL(window.location.href);
-  url.searchParams.set("filter", filter);
+  url.searchParams.set("status", status);
   if (search) url.searchParams.set("q", search);
   else url.searchParams.delete("q");
   window.history.replaceState(null, "", url);
 }
 
+function getCountryData(countryString: string | null) {
+  if (!countryString) return null;
+
+  // Try to find by name first (what the web app saves)
+  const byName = countries.find(c => c.name.common.toLowerCase() === countryString.toLowerCase());
+  if (byName) return byName;
+
+  // Try by cca2
+  if (countryString.length === 2) {
+    const byCode = countries.find(c => c.cca2.toLowerCase() === countryString.toLowerCase());
+    if (byCode) return byCode;
+  }
+
+  return null;
+}
+
+function getCountryFlag(country: string | null) {
+  const data = getCountryData(country);
+  if (data) {
+    return <span className={`fi fi-${data.cca2.toLowerCase()} rounded-[2px] shadow-sm text-base`}></span>;
+  }
+  return <span className="text-base text-zinc-400 leading-none">🌍</span>;
+}
+
+function getCountryName(country: string | null) {
+  const data = getCountryData(country);
+  return data ? data.name.common : country;
+}
+
+function toSummary(r: RegistrationRow): RegistrationSummary {
+  return {
+    id: r.id,
+    email: r.email,
+    status: r.status,
+    referenceNumber: r.referenceNumber,
+    companyName: r.company?.legalName ?? null,
+  };
+}
+
 const SEARCH_PLACEHOLDERS = [
+  "company name",
   "email ID",
-  "vendor name",
-  "company name"
+  "country name",
+  "reference ID"
 ];
-export function VendorAccountsPanel({
-  industries,
-}: {
-  industries: IndustryOption[];
-}) {
+
+export function RegistrationsPanel({ canDelete }: { canDelete: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [filter, setFilter] = useState<VendorFilterValue>(() =>
-    parseVendorFilter(searchParams.get("filter"))
+  const [filter, setFilter] = useState<RegistrationFilterValue>(() =>
+    parseRegistrationFilter(searchParams.get("status"))
   );
-  const [search, setSearch] = useState(() => parseVendorSearch(searchParams.get("q")));
-  const [allVendors, setAllVendors] = useState<VendorRow[]>(() => readVendorCache() ?? []);
+  const [search, setSearch] = useState(() => parseRegistrationSearch(searchParams.get("q")));
+  const [allRows, setAllRows] = useState<RegistrationRow[]>(() => readRegistrationCache() ?? []);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [initialLoad, setInitialLoad] = useState(() => !readVendorCache());
+  const [initialLoad, setInitialLoad] = useState(() => !readRegistrationCache());
   const [refreshing, setRefreshing] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
   const [activeDropdownRow, setActiveDropdownRow] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const requestId = useRef(0);
 
-  const displayed = useMemo(
-    () => filterVendorRows(allVendors, filter, search),
-    [allVendors, filter, search]
-  );
+  const displayed = useMemo(() => {
+    const filtered = filterRegistrationRows(allRows, filter, search);
+    return filtered.sort((a, b) => {
+      const aDate = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+      const bDate = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+      return sortDir === "desc" ? bDate - aDate : aDate - bDate;
+    });
+  }, [allRows, filter, search, sortDir]);
 
   const metrics = useMemo(() => {
-    let released = 0;
-    let pending = 0;
-    let held = 0;
-    for (const v of allVendors) {
-      if (v.portalAccess === "RELEASED") released++;
-      if (v.portalAccess === "HELD") held++;
-      if (v.mustChangePassword) pending++;
+    let approved = 0;
+    let underReview = 0;
+    let rejected = 0;
+    for (const r of allRows) {
+      if (r.status === "APPROVED") approved++;
+      if (r.status === "SUBMITTED") underReview++;
+      if (r.status === "REJECTED") rejected++;
     }
-    return { total: allVendors.length, released, pending, held };
-  }, [allVendors]);
+    return { total: allRows.length, approved, underReview, rejected };
+  }, [allRows]);
 
   const fetchAll = useCallback(async (opts?: { background?: boolean }) => {
     const id = ++requestId.current;
     const background = opts?.background ?? false;
 
     if (!background) setRefreshing(true);
-    if (!background && allVendors.length === 0) setInitialLoad(true);
+    if (!background && allRows.length === 0) setInitialLoad(true);
     setLoadError(null);
 
     try {
-      const result = await fetchTableJson<VendorRow>("/api/vendors");
+      const result = await fetchTableJson<RegistrationRow>("/api/registrations");
 
       if (id !== requestId.current) return;
 
       if (!result.ok) {
-        if (allVendors.length === 0) setLoadError(result.error);
+        if (allRows.length === 0) setLoadError(result.error);
         return;
       }
 
-      setAllVendors(result.data);
-      writeVendorCache(result.data);
+      setAllRows(result.data);
+      writeRegistrationCache(result.data);
     } catch {
       if (id !== requestId.current) return;
-      if (allVendors.length === 0) setLoadError("Network error — please try again.");
+      if (allRows.length === 0) setLoadError("Network error — please try again.");
     } finally {
       if (id === requestId.current) {
         setRefreshing(false);
         setInitialLoad(false);
       }
     }
-  }, [allVendors.length]);
+  }, [allRows.length]);
 
   useEffect(() => {
-    const cached = readVendorCache();
+    const cached = readRegistrationCache();
     if (cached?.length) {
-      setAllVendors(cached);
+      setAllRows(cached);
       setInitialLoad(false);
       void fetchAll({ background: true });
     } else {
@@ -160,7 +175,7 @@ export function VendorAccountsPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only
   }, []);
 
-  const applyFilter = (next: VendorFilterValue) => {
+  const applyFilter = (next: RegistrationFilterValue) => {
     if (next === filter) return;
     startTransition(() => {
       setFilter(next);
@@ -169,27 +184,31 @@ export function VendorAccountsPanel({
   };
 
   const onSearchChange = (value: string) => {
-    const next = parseVendorSearch(value);
+    const next = parseRegistrationSearch(value);
     setSearch(next);
     syncUrl(filter, next);
   };
 
-  const refreshTable = () => {
-    void fetchAll();
-  };
-
-  const updateRowInCache = useCallback(() => {
+  const updateTable = useCallback(() => {
     void fetchAll({ background: true });
   }, [fetchAll]);
+
+  const removeRow = useCallback((id: string) => {
+    setAllRows((prev) => {
+      const next = prev.filter((r) => r.id !== id);
+      writeRegistrationCache(next);
+      return next;
+    });
+  }, []);
 
   return (
     <div className="flex flex-1 flex-col min-h-0 w-full">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0 mb-6">
         {([
-          { label: "Total Vendors", value: metrics.total, filterVal: "ALL" as const, icon: <Users className="h-4 w-4" /> },
-          { label: "Access Released", value: metrics.released, filterVal: "RELEASED" as const, icon: <CheckCircle className="h-4 w-4" /> },
-          { label: "Pending Setup", value: metrics.pending, filterVal: "PENDING" as const, icon: <Clock className="h-4 w-4" /> },
-          { label: "Access Held", value: metrics.held, filterVal: "HELD" as const, icon: <ShieldAlert className="h-4 w-4" /> },
+          { label: "Total Registrations", value: metrics.total, filterVal: "ALL" as const, icon: <FileText className="h-4 w-4" /> },
+          { label: "Approved", value: metrics.approved, filterVal: "APPROVED" as const, icon: <CheckCircle className="h-4 w-4" /> },
+          { label: "Under Review", value: metrics.underReview, filterVal: "SUBMITTED" as const, icon: <FileCheck className="h-4 w-4" /> },
+          { label: "Rejected Applications", value: metrics.rejected, filterVal: "REJECTED" as const, icon: <XCircle className="h-4 w-4" /> },
         ]).map((card) => (
           <button
             key={card.filterVal}
@@ -215,20 +234,20 @@ export function VendorAccountsPanel({
         <div className="flex items-center gap-3 w-full max-w-sm">
           <button
             type="button"
-            onClick={refreshTable}
+            onClick={() => void fetchAll()}
             disabled={refreshing}
             title="Refresh table data"
-            aria-label="Refresh vendor table"
+            aria-label="Refresh registrations table"
             className="inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full border border-brand-blue bg-white text-brand-blue transition-colors hover:bg-brand-blue/5 disabled:opacity-50 focus-visible:ring-[3px] focus-visible:ring-brand-blue/25 focus-visible:outline-none"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-brand-blue" : ""}`} aria-hidden />
           </button>
-          
+
           <AnimatedSearchInput
             value={search}
             onChange={onSearchChange}
             placeholders={SEARCH_PLACEHOLDERS}
-            ariaLabel="Search vendor accounts"
+            ariaLabel="Search registrations"
           />
         </div>
 
@@ -240,13 +259,13 @@ export function VendorAccountsPanel({
               onBlur={() => setTimeout(() => setFilterOpen(false), 200)}
               className="focus-visible:ring-brand-blue/25 flex items-center justify-between gap-3 rounded-full border border-brand-blue bg-white py-2.5 pl-5 pr-4 text-sm font-semibold text-brand-blue outline-none focus-visible:ring-[3px] transition-shadow min-w-[160px]"
             >
-              <span>{VENDOR_FILTERS.find((f) => f.value === filter)?.label || "All"}</span>
+              <span>{REGISTRATION_FILTERS.find((f) => f.value === filter)?.label || "All"}</span>
               <ChevronDown className="h-4 w-4 text-brand-blue" />
             </button>
-            
+
             {filterOpen && (
               <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-zinc-200 bg-white py-2 shadow-lg z-50">
-                {VENDOR_FILTERS.map((f) => (
+                {REGISTRATION_FILTERS.map((f) => (
                   <button
                     key={f.value}
                     onMouseDown={(e) => {
@@ -254,18 +273,26 @@ export function VendorAccountsPanel({
                       applyFilter(f.value);
                       setFilterOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                      f.value === filter ? "bg-zinc-50 font-semibold text-brand-blue" : "text-zinc-700 hover:bg-zinc-50"
-                    }`}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-2.5 ${f.value === filter ? "bg-zinc-50 font-semibold text-brand-blue" : "text-zinc-700 hover:bg-zinc-50"
+                      }`}
                   >
+                    {f.value === "APPROVED" ? (
+                      <CheckCircle className={`w-4 h-4 ${f.value === filter ? "text-emerald-500" : "text-emerald-500/70"}`} />
+                    ) : f.value === "SUBMITTED" ? (
+                      <FileCheck className={`w-4 h-4 ${f.value === filter ? "text-brand-blue" : "text-brand-blue/70"}`} />
+                    ) : f.value === "REJECTED" ? (
+                      <XCircle className={`w-4 h-4 ${f.value === filter ? "text-rose-500" : "text-rose-500/70"}`} />
+                    ) : f.value === "DRAFT" ? (
+                      <Loader className={`w-4 h-4 ${f.value === filter ? "text-amber-500" : "text-amber-500/70"}`} />
+                    ) : (
+                      <span className="w-4 h-4" />
+                    )}
                     {f.label}
                   </button>
                 ))}
               </div>
             )}
           </div>
-
-          <CreateVendorForm industries={industries} onCreated={updateRowInCache} />
         </div>
       </div>
 
@@ -276,11 +303,18 @@ export function VendorAccountsPanel({
         {/* Fixed Top Header */}
         <div className="shrink-0 bg-brand-blue text-white rounded-2xl px-6 py-3.5 shadow-xs mb-2">
           <div className="grid grid-cols-12 gap-3 items-center text-xs font-semibold">
-            <div className="col-span-3 min-w-0">Name</div>
-            <div className="col-span-3 min-w-0">Email</div>
-            <div className="col-span-2 min-w-0">Company</div>
-            <div className="col-span-2 min-w-0">Reg ID</div>
-            <div className="col-span-1 min-w-0">Last sign-in</div>
+            <div className="col-span-3 min-w-0">Company</div>
+            <div
+              className="col-span-2 min-w-0 flex items-center gap-1.5 cursor-pointer select-none hover:text-white/80 transition-colors"
+              onClick={() => setSortDir(d => d === "desc" ? "asc" : "desc")}
+              title="Toggle sort by date"
+            >
+              <span>Submitted</span>
+              {sortDir === "desc" ? <ChevronDown className="w-3.5 h-3.5 shrink-0" /> : <ChevronUp className="w-3.5 h-3.5 shrink-0" />}
+            </div>
+            <div className="col-span-2 min-w-0">Country</div>
+            <div className="col-span-2 min-w-0">Contact email</div>
+            <div className="col-span-2 min-w-0">Reference</div>
             <div className="col-span-1 min-w-0 text-right">Actions</div>
           </div>
         </div>
@@ -289,7 +323,7 @@ export function VendorAccountsPanel({
         <div data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden space-y-2 pr-1">
           {initialLoad && displayed.length === 0 && (
             <div className="px-6 py-10 text-center text-zinc-600">
-              Loading vendor accounts…
+              Loading registrations…
             </div>
           )}
           {loadError && displayed.length === 0 && !initialLoad && (
@@ -299,56 +333,79 @@ export function VendorAccountsPanel({
           )}
           {!loadError && !initialLoad && displayed.length === 0 && (
             <div className="px-6 py-10 text-center text-zinc-600">
-              {`No vendor accounts${search ? ` matching “${search}”` : ""} in this view.`}
+              {`No registrations${search ? ` matching “${search}”` : ""} in this view.`}
             </div>
           )}
-          {displayed.map((v) => (
+          {displayed.map((r) => (
             <div
-              key={v.id}
-              className={`grid grid-cols-12 gap-3 items-center group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl p-4 transition-all hover:ring-brand-blue/40 text-sm ${activeDropdownRow === v.id ? 'relative z-[60]' : ''}`}
+              key={r.id}
+              className={`grid grid-cols-12 gap-3 items-center group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl p-4 transition-all hover:ring-brand-blue/40 text-sm ${activeDropdownRow === r.id ? 'relative z-[60]' : ''}`}
               onClick={(e) => {
                 if ((e.target as HTMLElement).closest('button, a')) return;
-                router.push(`/vendors/${v.id}`);
+                router.push(`/registrations/${r.id}`);
               }}
             >
               <div className="col-span-3 min-w-0">
                 <div className="flex items-center gap-3">
-                  {v.portalAccess === "RELEASED" ? (
-                    <CheckCircle className="h-5 w-5 shrink-0 text-emerald-500" />
+                  {r.status === "APPROVED" ? (
+                    <span title="Approved"><CheckCircle className="h-5 w-5 shrink-0 text-emerald-500" /></span>
+                  ) : r.status === "SUBMITTED" ? (
+                    <span title="Awaiting Review"><FileCheck className="h-5 w-5 shrink-0 text-brand-blue" /></span>
+                  ) : r.status === "REJECTED" ? (
+                    <span title="Rejected"><XCircle className="h-5 w-5 shrink-0 text-rose-500" /></span>
                   ) : (
-                    <Lock className="h-5 w-5 shrink-0 text-amber-500" />
+                    <span title="In Progress"><Loader className="h-5 w-5 shrink-0 text-amber-500" /></span>
                   )}
-                  <p className="font-medium text-zinc-950 truncate">{v.name || "—"}</p>
+                  <Link
+                    href={`/registrations/${r.id}`}
+                    className="hover:text-brand-blue font-medium text-zinc-950 underline-offset-2 hover:underline truncate"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {r.company?.legalName || <span className="text-zinc-500">Unnamed</span>}
+                  </Link>
                 </div>
               </div>
-              <div className="col-span-3 min-w-0 text-zinc-700 text-xs truncate">{v.email}</div>
+              <div className="col-span-2 min-w-0 text-zinc-600 tabular-nums text-xs truncate">
+                {formatDate(r.submittedAt)}
+              </div>
               <div className="col-span-2 min-w-0 text-zinc-700 truncate">
-                {v.registration ? (
-                  <span className="font-medium truncate block">
-                    {v.registration.company?.legalName || "—"}
-                  </span>
+                {r.company?.country ? (
+                  <div className="flex items-center gap-2 truncate">
+                    {getCountryFlag(r.company.country)}
+                    <span className="truncate">{getCountryName(r.company.country)}</span>
+                  </div>
                 ) : (
-                  <span className="text-zinc-500">Added by RVCC</span>
+                  <span className="text-zinc-400">—</span>
                 )}
               </div>
+              <div className="col-span-2 min-w-0 text-zinc-700 text-xs truncate">{r.email}</div>
               <div className="col-span-2 min-w-0 font-mono text-xs text-zinc-600 tabular-nums truncate">
-                {v.registration?.referenceNumber || "—"}
-              </div>
-              <div className="col-span-1 min-w-0 text-zinc-600 tabular-nums text-xs truncate">
-                {formatDateTime(v.lastLoginAt) ?? "Never"}
+                {r.referenceNumber || "—"}
               </div>
               <div className="col-span-1 min-w-0 text-right">
-                <VendorRowActions vendor={toSummary(v)} onUpdated={updateRowInCache} onDropdownOpen={(open) => setActiveDropdownRow(open ? v.id : null)} />
+                <RegistrationRowActions
+                  registration={toSummary(r)}
+                  canDelete={canDelete}
+                  onDeleted={() => removeRow(r.id)}
+                  onUpdated={updateTable}
+                  onDropdownOpen={(open) => setActiveDropdownRow(open ? r.id : null)}
+                />
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {displayed.length === 500 && (
+        <p className="text-xs text-zinc-500 shrink-0">
+          Showing the first 500 results — narrow the search to see more.
+        </p>
+      )}
     </div>
   );
 }
 
-export function VendorAccountsSkeleton() {
+export function RegistrationsSkeleton() {
   return (
     <div className="flex flex-1 flex-col min-h-0 w-full animate-pulse">
       {/* KPI Cards */}
@@ -378,7 +435,6 @@ export function VendorAccountsSkeleton() {
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <div className="h-10 w-40 rounded-full border border-zinc-200 bg-white" />
-          <div className="h-10 w-10 rounded-full bg-zinc-100" />
         </div>
       </div>
 
@@ -388,12 +444,12 @@ export function VendorAccountsSkeleton() {
           <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
             <thead>
               <tr className="text-white">
-                {['Name', 'Email', 'Company', 'Reg ID', 'Last sign-in', 'Actions'].map((h, i) => (
+                {['Company', 'Submitted', 'Country', 'Contact email', 'Reference', 'Actions'].map((h, i) => (
                   <th
                     key={h}
                     className={`whitespace-nowrap bg-zinc-100 px-8 py-3.5 font-semibold ${i === 0 ? 'rounded-l-2xl' : ''} ${i === 5 ? 'rounded-r-2xl text-right' : ''}`}
                   >
-                    <div className="h-3 rounded bg-zinc-200" style={{ width: h === 'Name' ? '60px' : h === 'Actions' ? '48px' : '80px' }} />
+                    <div className="h-3 rounded bg-zinc-200" style={{ width: h === 'Company' ? '80px' : h === 'Actions' ? '48px' : '72px' }} />
                   </th>
                 ))}
               </tr>
@@ -408,16 +464,16 @@ export function VendorAccountsSkeleton() {
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-8 py-4">
+                    <div className="h-4 w-24 rounded bg-zinc-100" />
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4">
+                    <div className="h-4 w-24 rounded bg-zinc-100" />
+                  </td>
+                  <td className="whitespace-nowrap px-8 py-4">
                     <div className="h-4 w-36 rounded bg-zinc-100" />
                   </td>
                   <td className="whitespace-nowrap px-8 py-4">
-                    <div className="h-4 w-28 rounded bg-zinc-100" />
-                  </td>
-                  <td className="whitespace-nowrap px-8 py-4">
                     <div className="h-4 w-20 rounded bg-zinc-100" />
-                  </td>
-                  <td className="whitespace-nowrap px-8 py-4">
-                    <div className="h-4 w-28 rounded bg-zinc-100" />
                   </td>
                   <td className="sticky right-0 z-10 whitespace-nowrap rounded-r-2xl bg-white px-8 py-4 ring-1 ring-inset ring-zinc-100">
                     <div className="h-8 w-8 ml-auto rounded-full bg-zinc-100" />

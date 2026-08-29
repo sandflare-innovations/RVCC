@@ -8,7 +8,7 @@ import { AlertCircle } from "lucide-react";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { readApiError } from "@/lib/read-error";
-import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
+import { EnquireField, enquireInputClass } from "@/sections/registrations/enquire/EnquireField";
 
 export function AdminLoginForm() {
   const router = useRouter();

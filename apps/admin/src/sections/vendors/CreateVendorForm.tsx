@@ -6,7 +6,7 @@ import { AlertCircle, CheckCircle2, Copy, UserPlus } from "lucide-react";
 
 import { Modal, SubmitLoader } from "@/components/ui";
 
-import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
+import { EnquireField, enquireInputClass } from "@/sections/registrations/enquire/EnquireField";
 
 export type IndustryOption = { id: string; name: string };
 

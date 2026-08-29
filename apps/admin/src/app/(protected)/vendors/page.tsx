@@ -4,7 +4,7 @@ import { getAdminIndustries } from "@/lib/admin-cache";
 import {
   VendorAccountsPanel,
   VendorAccountsSkeleton,
-} from "@/sections/VendorAccountsPanel";
+} from "@/sections/vendors/VendorAccountsPanel";
 
 /** Shell is static; vendor rows load client-side for instant filter switching. */
 export default async function VendorAccountsPage() {

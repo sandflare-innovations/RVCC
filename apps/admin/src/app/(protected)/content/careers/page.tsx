@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { adminSessionJson } from "@/lib/admin-data";
 import { hasRole } from "@/lib/constants";
 import { getAdminFromSession } from "@/lib/session";
-import { CareerRowActions } from "@/sections/CareerRowActions";
+import { CareerRowActions } from "@/sections/careers/CareerRowActions";
 
 export const dynamic = "force-dynamic";
 

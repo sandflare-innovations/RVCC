@@ -5,7 +5,7 @@ import { Lock, CircleDashed, Trophy, XCircle, Clock, Edit2, FileText, ChevronLef
 
 import { rankQuotes } from "@/lib/rfq";
 import { adminSessionJson } from "@/lib/admin-data";
-import { QuotesSection } from "@/sections/QuotesSection";
+import { QuotesSection } from "@/sections/requirements/QuotesSection";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const dynamic = "force-dynamic";

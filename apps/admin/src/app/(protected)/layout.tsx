@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 import { ADMIN_COOKIE, ADMIN_LOGIN_EXPIRED_PATH } from "@/lib/constants";
 import { getAdminFromSession } from "@/lib/session";
-import { AdminChrome } from "@/sections/AdminChrome";
+import { AdminChrome } from "@/sections/layout/AdminChrome";
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const jar = await cookies();
