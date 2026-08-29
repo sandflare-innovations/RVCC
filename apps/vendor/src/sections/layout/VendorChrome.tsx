@@ -8,7 +8,7 @@ import { Menu, X, LayoutDashboard, Bell, ClipboardList } from "lucide-react";
 
 import type { VendorIdentity } from "@/lib/session";
 import { SmoothScroll } from "@/components/ui";
-import { NotificationBell } from "@/sections/NotificationBell";
+import { NotificationBell } from "./NotificationBell";
 import { cn } from "@/lib/utils";
 
 const NAV = [

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 
 import { describeDeadline } from "@/lib/rfq";
-import { QuoteForm, type QuoteFormRequirement } from "@/components/QuoteForm";
+import { QuoteForm, type QuoteFormRequirement } from "@/sections/requirements/QuoteForm";
 import { BackButton } from "@/components/ui/back-button";
 
 import { VENDOR_COOKIE } from "@/lib/constants";

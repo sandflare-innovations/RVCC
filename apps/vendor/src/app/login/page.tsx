@@ -1,6 +1,5 @@
 import { Suspense } from "react";
-
-import { VendorLoginForm } from "@/sections/VendorLoginForm";
+import { VendorLoginForm } from "@/sections/auth/VendorLoginForm";
 
 export default function VendorLoginPage() {
   return (

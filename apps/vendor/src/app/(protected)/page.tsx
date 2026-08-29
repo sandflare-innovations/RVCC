@@ -10,8 +10,8 @@ import { KpiCard, StatusBadge } from "@/components/ui";
 import { VENDOR_COOKIE } from "@/lib/constants";
 import { getVendorFromSession } from "@/lib/session";
 import { vendorApiFetch } from "@/lib/vendor-api";
-import { OverviewNextActions } from "@/sections/OverviewNextActions";
-import { VendorHeroSearch } from "@/sections/VendorHeroSearch";
+import { OverviewNextActions } from "@/sections/dashboard/OverviewNextActions";
+import { VendorHeroSearch } from "@/sections/dashboard/VendorHeroSearch";
 
 export const dynamic = "force-dynamic";
 

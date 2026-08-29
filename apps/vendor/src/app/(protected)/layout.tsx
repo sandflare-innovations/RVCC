@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { VENDOR_COOKIE, VENDOR_LOGIN_EXPIRED_PATH } from "@/lib/constants";
 import { readVendorProfile } from "@/lib/profile-cookie";
 import { getVendorFromSession } from "@/lib/session";
-import { VendorChrome } from "@/sections/VendorChrome";
+import { VendorChrome } from "@/sections/layout/VendorChrome";
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const jar = await cookies();

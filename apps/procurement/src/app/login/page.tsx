@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
-import { ProcurementLoginForm } from "@/sections/ProcurementLoginForm";
+import { ProcurementLoginForm } from "@/sections/auth/ProcurementLoginForm";
 
 export const metadata: Metadata = {
   title: "Sign in | RVCC Procurement",

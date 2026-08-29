@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { getVendorFromSession } from "@/lib/session";
-import { VendorPasswordForm } from "@/sections/VendorPasswordForm";
+import { VendorPasswordForm } from "@/sections/auth/VendorPasswordForm";
 
 export const dynamic = "force-dynamic";
 
