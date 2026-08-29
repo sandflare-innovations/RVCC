@@ -303,85 +303,89 @@ export function QuotesSection({
           })}
         </div>
       ) : (
-        <div className="overflow-x-auto min-h-0 w-full rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
-          <table className="w-full text-left text-sm border-separate border-spacing-y-2">
-            <thead className="sticky top-0 z-10">
-              <tr className="bg-brand-blue text-white">
-                <th className="px-6 py-3.5 font-semibold rounded-l-2xl">Rank</th>
-                <th className="px-6 py-3.5 font-semibold">Vendor</th>
-                <th className="px-6 py-3.5 font-semibold">Price</th>
-                <th className="px-6 py-3.5 font-semibold">Submitted Date</th>
-                <th className="px-6 py-3.5 font-semibold rounded-r-2xl text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedQuotes.map((q) => {
-                const isWinner = req.awardedQuoteId === q.id;
-                return (
-                  <tr key={q.id} className={`bg-white ring-1 ring-inset rounded-2xl transition-all hover:ring-brand-blue/40 hover:shadow-[0_8px_24px_-16px_rgba(0,115,188,0.45)] ${isWinner ? 'ring-brand-blue/40 bg-brand-blue/[0.04]' : 'ring-zinc-100'}`}>
-                    <td className="px-6 py-4 rounded-l-2xl whitespace-nowrap">
-                      <div className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${isWinner ? 'bg-brand-blue text-white' : 'bg-brand-blue/10 text-brand-blue'}`}>
-                        {q.rank === 1 ? (
-                          <Medal className="h-4 w-4 text-yellow-500 drop-shadow-sm" />
-                        ) : q.rank === 2 ? (
-                          <Medal className="h-4 w-4 text-slate-400 drop-shadow-sm" />
-                        ) : q.rank === 3 ? (
-                          <Medal className="h-4 w-4 text-amber-700 drop-shadow-sm" />
-                        ) : (
-                          `#${q.rank}`
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-semibold text-zinc-900 flex items-center gap-2">
-                        {q.who}
-                        {isWinner && (
-                          <span className="flex items-center gap-1 bg-brand-blue text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0">
-                            <Trophy className="h-2.5 w-2.5" />
-                            Winner
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-zinc-500">{q.vendorEmail}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="font-bold text-zinc-900 tabular-nums">{q.newPrice}</span>
-                      <span className="text-xs font-semibold text-zinc-500 ml-1">{req.currency}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-zinc-500">
-                      {q.submittedAt ? formatDateTime(q.submittedAt.toISOString()) : "—"}
-                    </td>
-                    <td className="px-6 py-4 rounded-r-2xl whitespace-nowrap text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {q.quoteFileUrl && (
-                          <a 
-                            href={q.quoteFileUrl} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/20"
-                          >
-                            <FileText className="h-3.5 w-3.5" />
-                            View PDF
-                          </a>
-                        )}
-                        {!req.awardedQuoteId && (
-                          <AwardButton
-                            requirementId={req.id}
-                            quoteId={q.id}
-                            vendorLabel={q.vendorEmail}
-                            price={q.newPrice}
-                            currency={req.currency}
-                            project={req.project}
-                            closesAt={req.closesAt}
-                          />
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="flex flex-col min-h-0 w-full rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
+          {/* Fixed Top Header */}
+          <div className="shrink-0 bg-brand-blue text-white rounded-2xl px-6 py-3.5 shadow-xs mb-2">
+            <div className="grid grid-cols-12 gap-3 items-center text-xs font-semibold">
+              <div className="col-span-1 min-w-0">Rank</div>
+              <div className="col-span-4 min-w-0">Vendor</div>
+              <div className="col-span-3 min-w-0">Price</div>
+              <div className="col-span-2 min-w-0">Submitted Date</div>
+              <div className="col-span-2 min-w-0 text-right">Actions</div>
+            </div>
+          </div>
+
+          {/* Scrollable Rows */}
+          <div data-lenis-prevent className="min-h-0 overflow-y-auto max-h-[500px] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden space-y-2 pr-1">
+            {sortedQuotes.map((q) => {
+              const isWinner = req.awardedQuoteId === q.id;
+              return (
+                <div
+                  key={q.id}
+                  className={`grid grid-cols-12 gap-3 items-center bg-white ring-1 ring-inset rounded-2xl p-4 transition-all hover:ring-brand-blue/40 hover:shadow-[0_8px_24px_-16px_rgba(0,115,188,0.45)] text-sm ${isWinner ? 'ring-brand-blue/40 bg-brand-blue/[0.04]' : 'ring-zinc-100'}`}
+                >
+                  <div className="col-span-1 min-w-0">
+                    <div className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${isWinner ? 'bg-brand-blue text-white' : 'bg-brand-blue/10 text-brand-blue'}`}>
+                      {q.rank === 1 ? (
+                        <Medal className="h-4 w-4 text-yellow-500 drop-shadow-sm" />
+                      ) : q.rank === 2 ? (
+                        <Medal className="h-4 w-4 text-slate-400 drop-shadow-sm" />
+                      ) : q.rank === 3 ? (
+                        <Medal className="h-4 w-4 text-amber-700 drop-shadow-sm" />
+                      ) : (
+                        `#${q.rank}`
+                      )}
+                    </div>
+                  </div>
+                  <div className="col-span-4 min-w-0">
+                    <div className="font-semibold text-zinc-900 flex items-center gap-2 truncate">
+                      <span className="truncate">{q.who}</span>
+                      {isWinner && (
+                        <span className="flex items-center gap-1 bg-brand-blue text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0">
+                          <Trophy className="h-2.5 w-2.5" />
+                          Winner
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-zinc-500 truncate">{q.vendorEmail}</div>
+                  </div>
+                  <div className="col-span-3 min-w-0 truncate">
+                    <span className="font-bold text-zinc-900 tabular-nums">{q.newPrice}</span>
+                    <span className="text-xs font-semibold text-zinc-500 ml-1">{req.currency}</span>
+                  </div>
+                  <div className="col-span-2 min-w-0 text-zinc-500 text-xs truncate">
+                    {q.submittedAt ? formatDateTime(q.submittedAt.toISOString()) : "—"}
+                  </div>
+                  <div className="col-span-2 min-w-0 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      {q.quoteFileUrl && (
+                        <a 
+                          href={q.quoteFileUrl} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/20"
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                          View PDF
+                        </a>
+                      )}
+                      {!req.awardedQuoteId && (
+                        <AwardButton
+                          requirementId={req.id}
+                          quoteId={q.id}
+                          vendorLabel={q.vendorEmail}
+                          price={q.newPrice}
+                          currency={req.currency}
+                          project={req.project}
+                          closesAt={req.closesAt}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </section>
