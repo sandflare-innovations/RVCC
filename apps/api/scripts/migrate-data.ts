@@ -1,3 +1,4 @@
+import process from "node:process";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -62,7 +63,7 @@ async function runMigration() {
       // Link any orphaned/legacy AdminUsers to SUPER_ADMIN
       const unassignedAdmins = await tx.adminUser.findMany({
         where: {
-          OR: [{ roleId: "" }, { roleId: null as any }],
+          OR: [{ roleId: "" }],
         },
       });
 
@@ -109,7 +110,6 @@ async function runMigration() {
       // =========================================================================
       console.log("👉 [3/4] Migrating active OTP verification challenges...");
 
-      // Check if old polymorphic table exists before reading
       const hasOldOtpTable = await tx.$queryRaw<Array<{ exists: boolean }>>`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 

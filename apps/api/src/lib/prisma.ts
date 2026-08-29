@@ -13,8 +13,8 @@ export const prisma = basePrisma.$extends({
   name: "soft-delete-extension",
   query: {
     $allModels: {
-      async delete({ model, args, query }) {
-        if ("deletedAt" in (basePrisma as any)[model]?.fields) {
+      async delete({ model, args, query }: { model: string; args: any; query: (args: any) => Promise<any> }) {
+        if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
           return ((basePrisma as any)[model] as any).update({
             where: args.where,
             data: { deletedAt: new Date() },
@@ -23,8 +23,8 @@ export const prisma = basePrisma.$extends({
         return query(args);
       },
 
-      async deleteMany({ model, args, query }) {
-        if ("deletedAt" in (basePrisma as any)[model]?.fields) {
+      async deleteMany({ model, args, query }: { model: string; args: any; query: (args: any) => Promise<any> }) {
+        if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
           return ((basePrisma as any)[model] as any).updateMany({
             where: args?.where,
             data: { deletedAt: new Date() },
@@ -33,8 +33,8 @@ export const prisma = basePrisma.$extends({
         return query(args);
       },
 
-      async findUnique({ model, args, query }) {
-        if ("deletedAt" in (basePrisma as any)[model]?.fields) {
+      async findUnique({ model, args, query }: { model: string; args: any; query: (args: any) => Promise<any> }) {
+        if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
           const result = await query(args);
           if (result && (result as any).deletedAt !== null) {
             return null;
@@ -44,16 +44,16 @@ export const prisma = basePrisma.$extends({
         return query(args);
       },
 
-      async findFirst({ model, args, query }) {
-        if ("deletedAt" in (basePrisma as any)[model]?.fields) {
-          args.where = { ...args.where, deletedAt: null };
+      async findFirst({ model, args, query }: { model: string; args: any; query: (args: any) => Promise<any> }) {
+        if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
+          args.where = { ...(args.where || {}), deletedAt: null };
         }
         return query(args);
       },
 
-      async findMany({ model, args, query }) {
-        if ("deletedAt" in (basePrisma as any)[model]?.fields) {
-          args.where = { ...args.where, deletedAt: null };
+      async findMany({ model, args, query }: { model: string; args: any; query: (args: any) => Promise<any> }) {
+        if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
+          args.where = { ...(args.where || {}), deletedAt: null };
         }
         return query(args);
       },
