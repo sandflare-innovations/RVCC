@@ -14,8 +14,22 @@ import {
  * Cheap cookie-presence gate. Real auth is /auth/me via apps/api.
  * Also slides the browser cookie maxAge forward on every page navigation.
  */
+function isPublicPwaAsset(pathname: string) {
+  return (
+    pathname === "/manifest.json" ||
+    pathname === "/manifest.webmanifest" ||
+    pathname === "/sw.js" ||
+    pathname === "/offline.html" ||
+    pathname.startsWith("/icons/")
+  );
+}
+
 export default function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+
+  if (isPublicPwaAsset(pathname)) {
+    return NextResponse.next();
+  }
 
   if (pathname === VENDOR_LOGIN_PATH) {
     if (request.nextUrl.searchParams.has(VENDOR_SESSION_EXPIRED_PARAM)) {
@@ -52,5 +66,7 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|images/|fonts/).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|manifest.webmanifest|sw.js|offline.html|icons/|images/|fonts/).*)",
+  ],
 };
