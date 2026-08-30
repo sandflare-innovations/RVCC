@@ -48,7 +48,7 @@ function Row({ label, value }: { label: string; value: string | null }) {
 export default async function VendorDashboard() {
   const vendor = await getVendorFromSession();
   if (!vendor) return null;
-  if (vendor.mustChangePassword) redirect("/portal/password");
+  if (vendor.mustChangePassword) redirect("/password");
 
   const token = (await cookies()).get(VENDOR_COOKIE)?.value;
   let payload: DashboardPayload = { registration: null, requirements: [] };
