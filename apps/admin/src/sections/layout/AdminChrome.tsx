@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { motion } from "framer-motion";
-import { ClipboardList, FileText, FolderOpen, LayoutDashboard, LogOut, Users, Globe, Image as ImageIcon, Briefcase, Wrench, Info, UserCheck, FileArchive, ShieldCheck, Download, ShoppingBag } from "lucide-react";
+import { ClipboardList, FileText, FolderOpen, LayoutDashboard, LogOut, Users, Globe, Image as ImageIcon, Briefcase, Wrench, Info, UserCheck, FileArchive, ShieldCheck, Download, ShoppingBag, TrendingUp } from "lucide-react";
 
 import { useInstallPrompt } from "@/lib/pwa/install-prompt";
 
@@ -23,6 +23,7 @@ const VENDOR_NAV = [
   { href: "/procurement", label: "Procurements", icon: <ShoppingBag className={ICON} /> },
   { href: "/vendors", label: "Vendor Accounts", icon: <Users className={ICON} /> },
   { href: "/requirements", label: "RFQs / Requirements", icon: <ClipboardList className={ICON} /> },
+  { href: "/live-market", label: "Live Market", icon: <TrendingUp className={ICON} /> },
   { href: "/registrations", label: "Vendor Registrations", icon: <FileText className={ICON} /> },
   { href: "/staff", label: "Staff & Admins", icon: <ShieldCheck className={ICON} /> },
 ];
@@ -71,7 +72,7 @@ function SidebarContents({
   const filteredVendorNav = VENDOR_NAV.filter((item) => {
     if (item.href === "/procurement") return allowProcurement;
     if (item.href === "/staff") return allowStaff;
-    if (item.href === "/" || item.href === "/vendors" || item.href === "/requirements" || item.href === "/registrations") {
+    if (item.href === "/" || item.href === "/vendors" || item.href === "/requirements" || item.href === "/registrations" || item.href === "/live-market") {
       return allowVendors;
     }
     return true;
