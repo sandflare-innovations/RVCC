@@ -224,13 +224,13 @@ export function LiveBiddingGraph({ data, compact = false, showMetrics = false }:
             {targetPrice && (
               <ReferenceLine
                 y={targetPrice}
-                stroke="#ef4444"
+                stroke="#9ca3af"
                 strokeDasharray="4 4"
                 strokeWidth={1.5}
                 label={{
                   position: "insideTopRight",
-                  value: `Admin Target: ${targetPrice.toLocaleString()} ${data.currency}`,
-                  fill: "#dc2626",
+                  value: `Budget: ${targetPrice.toLocaleString()} ${data.currency}`,
+                  fill: "#6b7280",
                   fontSize: 11,
                   fontWeight: 700,
                 }}
@@ -324,8 +324,8 @@ export function LiveBiddingGraph({ data, compact = false, showMetrics = false }:
             </span>
             {targetPrice && (
               <span className="flex items-center gap-1.5">
-                <span className="h-0.5 w-3 bg-red-500" />
-                <span>Admin Target Line</span>
+                <span className="h-0.5 w-3 bg-gray-400" />
+                <span>Budget</span>
               </span>
             )}
           </div>
