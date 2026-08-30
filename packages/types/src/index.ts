@@ -136,6 +136,7 @@ export interface AdminLiveBidsPayload {
   project: string;
   currency: string;
   status: string;
+  sellingPrice: string | null;
   closesAt: string;
   awardedQuoteId: string | null;
   totalQuotes: number;
