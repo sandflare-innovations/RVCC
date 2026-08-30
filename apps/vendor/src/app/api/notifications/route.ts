@@ -15,7 +15,13 @@ export async function GET() {
       method: "GET",
       sessionToken: token,
     });
-    const data = await res.json().catch(() => ({}));
+    const text = await res.text().catch(() => "{}");
+    let data = {};
+    try {
+      data = JSON.parse(text);
+    } catch {
+      // Ignored
+    }
     return NextResponse.json(data, { status: res.status });
   } catch (err) {
     console.error("[vendor/notifications]", err);
@@ -33,7 +39,13 @@ export async function POST() {
       method: "POST",
       sessionToken: token,
     });
-    const data = await res.json().catch(() => ({}));
+    const text = await res.text().catch(() => "{}");
+    let data = {};
+    try {
+      data = JSON.parse(text);
+    } catch {
+      // Ignored
+    }
     return NextResponse.json(data, { status: res.status });
   } catch (err) {
     console.error("[vendor/notifications]", err);
