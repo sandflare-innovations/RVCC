@@ -43,7 +43,7 @@ export const prisma = basePrisma.$extends({
       async findUnique({ model, args, query }: { model: string; args: any; query: (args: any) => Promise<any> }) {
         if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
           const result = await query(args);
-          if (result && (result as any).deletedAt !== null) {
+          if (result && Boolean((result as any).deletedAt)) {
             return null;
           }
           return result;

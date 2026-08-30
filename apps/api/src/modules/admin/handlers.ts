@@ -963,11 +963,18 @@ export async function handleRequirementGet(
       updatedAt: q.updatedAt.toISOString(),
       participantEmail: q.vendorUser.email,
       participantName: q.vendorUser.name,
+      vendorUser: {
+        email: q.vendorUser.email,
+        name: q.vendorUser.name,
+      },
     })),
     invites: requirement.invites.map((i) => ({
       id: i.id,
       email: i.vendorUser.email,
       emailStatus: i.emailStatus,
+      vendorUser: {
+        email: i.vendorUser.email,
+      },
     })),
   });
 }

@@ -18,6 +18,7 @@ export async function getRequirementRankings(
     project: string;
     currency: string;
     status: string;
+    sellingPrice: any; // Prisma Decimal
     closesAt: Date;
     awardedQuoteId: string | null;
   } | null;
@@ -33,6 +34,7 @@ export async function getRequirementRankings(
       project: true,
       currency: true,
       status: true,
+      sellingPrice: true,
       closesAt: true,
       awardedQuoteId: true,
       quotes: {
@@ -135,6 +137,7 @@ export async function getRequirementRankings(
       project: req.project,
       currency: req.currency,
       status: req.status,
+      sellingPrice: req.sellingPrice,
       closesAt: req.closesAt,
       awardedQuoteId: req.awardedQuoteId,
     },
@@ -159,6 +162,7 @@ export async function buildAdminLiveBidsPayload(
     project: data.requirement.project,
     currency: data.requirement.currency,
     status: data.requirement.status,
+    sellingPrice: data.requirement.sellingPrice ? String(data.requirement.sellingPrice) : null,
     closesAt: data.requirement.closesAt.toISOString(),
     awardedQuoteId: data.requirement.awardedQuoteId,
     totalQuotes: data.totalQuotes,

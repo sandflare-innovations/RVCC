@@ -68,7 +68,7 @@ export default {
     return app.fetch(request);
   },
 
-  async scheduled(event: any, env: WorkerEnv, ctx: any) {
+  async scheduled(_event: any, env: WorkerEnv, ctx: any) {
     if (env.DATABASE_URL) {
       process.env.DATABASE_URL = env.DATABASE_URL;
       ctx.waitUntil(syncExchangeRates());
