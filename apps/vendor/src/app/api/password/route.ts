@@ -29,7 +29,9 @@ export async function POST(request: Request) {
       sessionToken: token,
       body: JSON.stringify(body),
     });
-    const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+    const text = await res.text().catch(() => "{}");
+    let data: { ok?: boolean; error?: string } = {};
+    try { data = JSON.parse(text); } catch {}
     if (!res.ok) {
       return NextResponse.json(
         { error: data.error || "Could not change your password." },
