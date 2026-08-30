@@ -55,15 +55,17 @@ export async function attemptVendorLogin(
   }
 
   if (vendor.lockedUntil && new Date(vendor.lockedUntil) > new Date()) {
-    void prisma.vendorLoginHistory.create({
-      data: {
-        vendorId: vendor.id,
-        ipAddress: ip,
-        userAgent,
-        status: "FAILED",
-        failureReason: "ACCOUNT_LOCKED",
-      },
-    }).catch(() => {});
+    try {
+      await prisma.vendorLoginHistory.create({
+        data: {
+          vendorId: vendor.id,
+          ipAddress: ip,
+          userAgent,
+          status: "FAILED",
+          failureReason: "ACCOUNT_LOCKED",
+        },
+      });
+    } catch {}
 
     return {
       ok: false,
@@ -73,15 +75,17 @@ export async function attemptVendorLogin(
   }
 
   if (!vendor.isActive) {
-    void prisma.vendorLoginHistory.create({
-      data: {
-        vendorId: vendor.id,
-        ipAddress: ip,
-        userAgent,
-        status: "FAILED",
-        failureReason: "ACCOUNT_DISABLED",
-      },
-    }).catch(() => {});
+    try {
+      await prisma.vendorLoginHistory.create({
+        data: {
+          vendorId: vendor.id,
+          ipAddress: ip,
+          userAgent,
+          status: "FAILED",
+          failureReason: "ACCOUNT_DISABLED",
+        },
+      });
+    } catch {}
 
     return { ok: false, reason: "disabled" };
   }
@@ -98,15 +102,17 @@ export async function attemptVendorLogin(
       },
     });
 
-    void prisma.vendorLoginHistory.create({
-      data: {
-        vendorId: vendor.id,
-        ipAddress: ip,
-        userAgent,
-        status: "FAILED",
-        failureReason: "INVALID_PASSWORD",
-      },
-    }).catch(() => {});
+    try {
+      await prisma.vendorLoginHistory.create({
+        data: {
+          vendorId: vendor.id,
+          ipAddress: ip,
+          userAgent,
+          status: "FAILED",
+          failureReason: "INVALID_PASSWORD",
+        },
+      });
+    } catch {}
 
     return lock
       ? { ok: false, reason: "locked", retryAfterMs: LOCKOUT_MS }
@@ -127,15 +133,17 @@ export async function attemptVendorLogin(
     },
   });
 
-  void prisma.vendorLoginHistory.create({
-    data: {
-      vendorId: vendor.id,
-      ipAddress: ip,
-      userAgent,
-      status: "SUCCESS",
-      failureReason: null,
-    },
-  }).catch(() => {});
+  try {
+    await prisma.vendorLoginHistory.create({
+      data: {
+        vendorId: vendor.id,
+        ipAddress: ip,
+        userAgent,
+        status: "SUCCESS",
+        failureReason: null,
+      },
+    });
+  } catch {}
 
   return {
     ok: true,
@@ -192,16 +200,6 @@ export async function getVendorFromSession(
     if (session.revokedAt) return null;
     if (new Date(session.expiresAt) < new Date()) return null;
     if (!session.vendor || !session.vendor.isActive) return null;
-
-    const expiresAtMs = new Date(session.expiresAt).getTime();
-    if (expiresAtMs - Date.now() < VENDOR_SESSION_TTL_MS / 2) {
-      void prisma.vendorSession.update({
-        where: { id: session.id },
-        data: {
-          expiresAt: new Date(Date.now() + VENDOR_SESSION_TTL_MS),
-        },
-      }).catch(() => {});
-    }
 
     const regComplete = session.vendor.registration
       ? Boolean(session.vendor.registration.registrationComplete)
