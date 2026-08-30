@@ -224,15 +224,19 @@ async function RequirementData({ id }: { id: string }) {
   const ranked = rankQuotes(
     quotes
       .filter((q) => q.status === "SUBMITTED")
-      .map((q) => ({
-        id: q.id,
-        newPrice: String(q.newPrice),
-        remarks: q.remarks,
-        submittedAt: q.submittedAt ? new Date(q.submittedAt) : null,
-        who: q.vendorUser.name || q.vendorUser.email,
-        vendorEmail: q.vendorUser.email,
-        quoteFileUrl: q.quoteFileUrl,
-      }))
+      .map((q) => {
+        const email = q.vendorUser?.email || (q as any).participantEmail || "vendor@example.com";
+        const name = q.vendorUser?.name || (q as any).participantName || email;
+        return {
+          id: q.id,
+          newPrice: String(q.newPrice),
+          remarks: q.remarks,
+          submittedAt: q.submittedAt ? new Date(q.submittedAt) : null,
+          who: name,
+          vendorEmail: email,
+          quoteFileUrl: q.quoteFileUrl,
+        };
+      })
   );
   
   const drafts = quotes.filter((q) => q.status !== "SUBMITTED");
@@ -312,7 +316,9 @@ async function RequirementData({ id }: { id: string }) {
                   {invites.map((i) => (
                     <li key={i.id} className="flex flex-col gap-1.5 pb-4 border-b border-zinc-100 last:border-0 last:pb-0">
                       <div className="flex items-start justify-between gap-2">
-                        <span className="text-sm font-bold text-zinc-800 line-clamp-1">{i.vendorUser.email}</span>
+                        <span className="text-sm font-bold text-zinc-800 line-clamp-1">
+                          {i.vendorUser?.email || (i as any).email || "—"}
+                        </span>
                         <span
                           className={`shrink-0 text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full ${
                             i.emailStatus === "FAILED"
