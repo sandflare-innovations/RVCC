@@ -12,7 +12,15 @@ function rewritePath(request: Request, stripPrefix: string): Request {
   const url = new URL(request.url);
   const rest = url.pathname.slice(stripPrefix.length) || "/";
   url.pathname = rest.startsWith("/") ? rest : `/${rest}`;
-  return new Request(url, request);
+  const init: RequestInit = {
+    method: request.method,
+    headers: request.headers,
+  };
+  if (request.method !== "GET" && request.method !== "HEAD" && request.body) {
+    init.body = request.body;
+    (init as any).duplex = "half";
+  }
+  return new Request(url, init);
 }
 
 export function createApp(env: Env) {

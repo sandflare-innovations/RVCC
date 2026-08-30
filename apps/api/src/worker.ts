@@ -64,8 +64,23 @@ export default {
       });
     }
     process.env.DATABASE_URL = env.DATABASE_URL;
-    const app = createApp(toAppEnv(env));
-    return app.fetch(request);
+    try {
+      const app = createApp(toAppEnv(env));
+      return await app.fetch(request);
+    } catch (err: any) {
+      console.error("[worker uncaught]", err);
+      return new Response(
+        JSON.stringify({
+          error: "Worker exception",
+          message: String(err?.message || err),
+          stack: String(err?.stack || ""),
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
   },
 
   async scheduled(_event: any, env: WorkerEnv, ctx: any) {
