@@ -183,16 +183,26 @@ export async function handleDashboard(sql: unknown, env: Env, request: Request):
     registrationId: vendor.registrationId,
   };
 
-  const requirements = await listOpenForVendor(sql, vendor.id);
+  let requirements: any[] = [];
+  try {
+    requirements = await listOpenForVendor(sql, vendor.id);
+  } catch (err) {
+    console.error("[vendor/dashboard] requirements list error", err);
+  }
 
   if (!vendor.registrationId) {
     return json(env, request, { vendor: vendorPayload, registration: null, requirements });
   }
 
-  const registration = await prisma.supplierRegistration.findUnique({
-    where: { id: vendor.registrationId },
-    include: { company: true },
-  });
+  let registration: any = null;
+  try {
+    registration = await prisma.supplierRegistration.findUnique({
+      where: { id: vendor.registrationId },
+      include: { company: true },
+    });
+  } catch (err) {
+    console.error("[vendor/dashboard] registration error", err);
+  }
 
   let companyData = null;
   if (registration?.company) {
