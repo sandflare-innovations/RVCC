@@ -52,29 +52,13 @@ export default async function VendorDashboard() {
 
   const token = (await cookies()).get(VENDOR_COOKIE)?.value;
   let payload: DashboardPayload = { registration: null, requirements: [] };
-  let loadError: number | null = null;
-
   try {
     const res = await vendorApiFetch("/dashboard", { method: "GET", sessionToken: token });
     if (res.ok) {
       payload = (await res.json()) as DashboardPayload;
-    } else {
-      loadError = res.status;
     }
   } catch (err) {
     console.error("[vendor] dashboard fetch failed", err);
-    loadError = 503;
-  }
-
-  if (loadError) {
-    return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-        <div className="flex items-center gap-3 text-red-700">
-          <AlertCircle className="h-5 w-5" />
-          <p className="text-sm font-semibold">Could not load dashboard ({loadError}).</p>
-        </div>
-      </div>
-    );
   }
 
   const { counts, nextActions } = summariseVendorDashboard({ requirements: payload.requirements });

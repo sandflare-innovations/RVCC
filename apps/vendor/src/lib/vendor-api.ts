@@ -15,11 +15,27 @@ export async function vendorApiFetch(
   headers.set("Content-Type", headers.get("Content-Type") || "application/json");
   if (sessionToken) headers.set("X-Vendor-Session", sessionToken);
 
-  return fetch(`${vendorBaseUrl()}${path.startsWith("/") ? path : `/${path}`}`, {
-    ...rest,
-    headers,
-    cache: "no-store",
-  });
+  const url = `${vendorBaseUrl()}${path.startsWith("/") ? path : `/${path}`}`;
+
+  let res: Response;
+  try {
+    res = await fetch(url, { ...rest, headers, cache: "no-store" });
+  } catch {
+    // Retry once on network connection error (e.g. server restarting or sleep)
+    await new Promise((r) => setTimeout(r, 200));
+    res = await fetch(url, { ...rest, headers, cache: "no-store" });
+  }
+
+  // Retry once on transient 500/502/503 error
+  if (!res.ok && (res.status === 500 || res.status === 502 || res.status === 503) && init.method !== "POST") {
+    await new Promise((r) => setTimeout(r, 200));
+    try {
+      const retryRes = await fetch(url, { ...rest, headers, cache: "no-store" });
+      if (retryRes.ok) return retryRes;
+    } catch {}
+  }
+
+  return res;
 }
 
 export function apiConfigured(): boolean {
