@@ -35,15 +35,14 @@ export async function POST(request: Request) {
       body: JSON.stringify(parsed.data),
       headers: { "User-Agent": request.headers.get("user-agent") ?? "" },
     });
-    const data = (await res.json().catch(() => ({}))) as {
-      ok?: boolean;
-      token?: string;
-      mustChangePassword?: boolean;
-      vendor?: any;
-      error?: string;
-    };
+    const text = await res.text().catch(() => "{}");
+    let data: any = {};
+    try {
+      data = JSON.parse(text);
+    } catch {}
 
     if (!res.ok || !data.token) {
+      console.log('API LOGIN RETURNED STATUS:', res.status, 'BODY:', data);
       return NextResponse.json(
         { error: data.error || "Incorrect email or password." },
         { status: res.status }
