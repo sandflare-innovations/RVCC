@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 
 import { describeDeadline } from "@/lib/rfq";
+import { LiveRankBadge } from "@/sections/requirements/LiveRankBadge";
 
 import { VENDOR_COOKIE } from "@/lib/constants";
 import { vendorWorkerFetch } from "@/lib/vendor-api";
@@ -67,6 +68,11 @@ export default async function RequirementsPage() {
                     {row.referenceNumber ?? "No reference"} · {quoteLabel(row.quoteStatus)} ·{" "}
                     {deadline.label}
                   </p>
+                  {row.quoteStatus === "SUBMITTED" && (
+                    <div className="mt-3">
+                      <LiveRankBadge requirementId={row.id} />
+                    </div>
+                  )}
                   <Link
                     href={`/requirements/${row.id}`}
                     className="bg-brand-blue focus-visible:ring-brand-blue mt-3 inline-flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
@@ -105,7 +111,14 @@ export default async function RequirementsPage() {
                       <td className="px-6 py-4 font-mono text-xs text-zinc-600 tabular-nums">
                         {row.referenceNumber ?? "—"}
                       </td>
-                      <td className="px-6 py-4 text-zinc-700">{quoteLabel(row.quoteStatus)}</td>
+                      <td className="px-6 py-4 text-zinc-700">
+                        <div className="flex flex-col items-start gap-1.5">
+                          <span>{quoteLabel(row.quoteStatus)}</span>
+                          {row.quoteStatus === "SUBMITTED" && (
+                            <LiveRankBadge requirementId={row.id} />
+                          )}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 tabular-nums">
                         <span
                           className={

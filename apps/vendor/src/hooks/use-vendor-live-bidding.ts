@@ -22,6 +22,7 @@ export function useVendorLiveBidding(
         const json = (await res.json()) as VendorLiveBidsPayload;
         setData(json);
         setLastUpdated(new Date());
+        setStatus(prev => prev === "connecting" ? "live" : prev);
       }
     } catch {
       // Ignored in background polling
@@ -31,6 +32,11 @@ export function useVendorLiveBidding(
   useEffect(() => {
     let unmounted = false;
     setStatus("connecting");
+
+    // Immediately fetch initial payload while SSE connects
+    if (!data) {
+      fetchFallback();
+    }
 
     const url = `/api/requirements/${encodeURIComponent(requirementId)}/live`;
     const es = new EventSource(url);
