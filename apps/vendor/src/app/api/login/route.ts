@@ -60,8 +60,8 @@ export async function POST(request: Request) {
     }
 
     return out;
-  } catch (err) {
+  } catch (err: any) {
     console.error("[vendor/login]", err);
-    return NextResponse.json({ error: "Could not sign in." }, { status: 503 });
+    return NextResponse.json({ error: "Could not sign in.", message: String(err?.message || err), stack: String(err?.stack || "") }, { status: 503 });
   }
 }

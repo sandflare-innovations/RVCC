@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { VENDOR_COOKIE } from "@/lib/constants";
 import { vendorApiFetch } from "@/lib/vendor-api";
 
+export const dynamic = "force-dynamic";
+
 /** This vendor's own notifications — proxied to the unified API. */
 export async function GET() {
   const jar = await cookies();
@@ -15,11 +17,16 @@ export async function GET() {
       method: "GET",
       sessionToken: token,
     });
-    const data = await res.json().catch(() => ({}));
-    return NextResponse.json(data, { status: res.status });
-  } catch (err) {
-    console.error("[vendor/notifications]", err);
-    return NextResponse.json({ error: "Could not load notifications." }, { status: 503 });
+    const text = await res.text();
+    return new Response(text, {
+      status: res.status,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err: any) {
+    return new Response(JSON.stringify({ error: "Catch triggered", message: String(err?.message || err) }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
 
