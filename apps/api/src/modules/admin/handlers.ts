@@ -756,6 +756,62 @@ export async function handleVendorPatch(
   return json(env, request, { ok: true, isActive });
 }
 
+export async function handleVendorResetPassword(
+  sql: unknown,
+  env: Env,
+  request: Request,
+  id: string
+): Promise<Response> {
+  const { admin, deny } = await requireAdmin(sql, env, request, "REVIEWER");
+  if (deny) return deny;
+
+  const vendor = await prisma.vendorUser.findUnique({
+    where: { id },
+    include: {
+      registration: {
+        include: { company: { select: { legalName: true } } },
+      },
+    },
+  });
+
+  if (!vendor) return json(env, request, { error: "Vendor not found." }, 404);
+
+  const tempPassword = generateTempPassword();
+  const passwordHash = await hashPassword(tempPassword);
+
+  await prisma.vendorUser.update({
+    where: { id },
+    data: {
+      passwordHash,
+      mustChangePassword: true,
+      failedAttempts: 0,
+      lockedUntil: null,
+      isActive: true,
+      portalAccess: "RELEASED",
+    },
+  });
+
+  await prisma.vendorSession.updateMany({
+    where: { vendorId: id, revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
+
+  await writeAudit(sql, {
+    adminId: admin.id,
+    action: "vendor.password_reset",
+    entityType: "VendorUser",
+    entityId: id,
+    metadata: { email: vendor.email },
+  });
+
+  return json(env, request, {
+    ok: true,
+    email: vendor.email,
+    tempPassword,
+    message: "Password reset successfully.",
+  });
+}
+
 // ── Requirements ────────────────────────────────────────────────────────────
 
 export async function handleRequirementsList(
@@ -1126,49 +1182,6 @@ export async function handleVendorCreate(
   );
 }
 
-export async function handleVendorResetPassword(
-  sql: unknown,
-  env: Env,
-  request: Request,
-  id: string
-): Promise<Response> {
-  const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
-  if (deny) return deny;
-
-  const vendor = await prisma.vendorUser.findUnique({
-    where: { id },
-    select: { id: true, email: true },
-  });
-  if (!vendor) return json(env, request, { error: "Account not found." }, 404);
-
-  const tempPassword = generateTempPassword();
-  const passwordHash = await hashPassword(tempPassword);
-
-  await prisma.vendorUser.update({
-    where: { id },
-    data: {
-      passwordHash,
-      mustChangePassword: true,
-      failedAttempts: 0,
-      lockedUntil: null,
-    },
-  });
-
-  await prisma.vendorSession.updateMany({
-    where: { vendorId: id, revokedAt: null },
-    data: { revokedAt: new Date() },
-  });
-
-  await writeAudit(sql, {
-    adminId: admin.id,
-    action: "vendor.password_reset",
-    entityType: "VendorUser",
-    entityId: id,
-    metadata: { email: vendor.email },
-  });
-
-  return json(env, request, { ok: true, email: vendor.email, tempPassword });
-}
 
 // ── Careers ─────────────────────────────────────────────────────────────────
 
