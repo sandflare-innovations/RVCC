@@ -2,24 +2,19 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-let currentClient: any = null;
-let currentUrl: string | null = null;
-
-function getPrismaInstance() {
+function createBaseClient() {
   const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/rvcc";
-  if (currentClient && currentUrl === connectionString) {
-    return currentClient;
-  }
-  currentUrl = connectionString;
   const pool = new Pool({ connectionString });
   const adapter = new PrismaPg(pool);
 
-  const basePrisma = new PrismaClient({
+  return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
+}
 
-  currentClient = basePrisma.$extends({
+function buildExtendedClient(basePrisma: ReturnType<typeof createBaseClient>) {
+  return basePrisma.$extends({
     name: "soft-delete-extension",
     query: {
       $allModels: {
@@ -70,17 +65,32 @@ function getPrismaInstance() {
       },
     },
   });
+}
 
+type ExtendedClient = ReturnType<typeof buildExtendedClient>;
+
+let currentClient: ExtendedClient | null = null;
+let currentUrl: string | null = null;
+
+function getPrismaInstance(): ExtendedClient {
+  const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/rvcc";
+  if (currentClient && currentUrl === connectionString) {
+    return currentClient;
+  }
+  currentUrl = connectionString;
+  const basePrisma = createBaseClient();
+  currentClient = buildExtendedClient(basePrisma);
   return currentClient;
 }
 
-export const prisma: any = new Proxy({} as any, {
+export const prisma: ExtendedClient = new Proxy({} as any, {
   get(_target, prop) {
     const instance = getPrismaInstance();
-    const val = instance[prop];
+    const val = (instance as any)[prop];
     return typeof val === "function" ? val.bind(instance) : val;
   },
-});
+}) as ExtendedClient;
 
-export type ExtendedPrismaClient = typeof prisma;
+export type ExtendedPrismaClient = ExtendedClient;
+
 
