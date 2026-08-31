@@ -20,7 +20,9 @@ import {
   handleRegistrationsList,
   handleRequirementAward,
   handleRequirementCreate,
+  handleRequirementDelete,
   handleRequirementGet,
+  handleRequirementUpdate,
   handleRequirementsList,
   handleVendorCreate,
   handleVendorGet,
@@ -156,6 +158,12 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
     const requirementOne = path.match(/^\/requirements\/([^/]+)$/);
     if (requirementOne && request.method === "GET") {
       return await handleRequirementGet(sql, env, request, decodeURIComponent(requirementOne[1]!));
+    }
+    if (requirementOne && request.method === "PUT") {
+      return await handleRequirementUpdate(sql, env, request, decodeURIComponent(requirementOne[1]!));
+    }
+    if (requirementOne && request.method === "DELETE") {
+      return await handleRequirementDelete(sql, env, request, decodeURIComponent(requirementOne[1]!));
     }
 
     const vendorReset = path.match(/^\/vendors\/([^/]+)\/reset-password$/);

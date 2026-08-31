@@ -985,7 +985,7 @@ export async function handleRequirementGet(
       },
       invites: {
         include: {
-          vendorUser: { select: { email: true } },
+          vendorUser: { select: { id: true, email: true } },
         },
         orderBy: { createdAt: "asc" },
       },
@@ -1034,6 +1034,117 @@ export async function handleRequirementGet(
   });
 }
 
+export async function handleRequirementDelete(
+  sql: unknown,
+  env: Env,
+  request: Request,
+  id: string
+): Promise<Response> {
+  const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
+  if (deny) return deny;
+
+  const requirement = await prisma.requirement.findUnique({
+    where: { id },
+  });
+  if (!requirement) {
+    return json(env, request, { error: "Requirement not found" }, 404);
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.requirementInvite.deleteMany({ where: { requirementId: id } });
+    await tx.quote.deleteMany({ where: { requirementId: id } });
+    await tx.requirement.delete({ where: { id } });
+  });
+
+  await writeAudit(sql, {
+    adminId: admin.id,
+    action: "requirement.delete",
+    entityType: "Requirement",
+    entityId: id,
+    metadata: { referenceNumber: requirement.referenceNumber, project: requirement.project },
+  });
+
+  return json(env, request, { ok: true, message: "Requirement deleted successfully." });
+}
+
+export async function handleRequirementUpdate(
+  sql: unknown,
+  env: Env,
+  request: Request,
+  id: string
+): Promise<Response> {
+  const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
+  if (deny) return deny;
+
+  const existing = await prisma.requirement.findUnique({
+    where: { id },
+    include: { invites: true },
+  });
+  if (!existing) {
+    return json(env, request, { error: "Requirement not found" }, 404);
+  }
+
+  let rawJson: any = {};
+  try {
+    rawJson = await readJson(request);
+  } catch (err) {
+    return json(env, request, { error: "Invalid JSON" }, 400);
+  }
+
+  let input;
+  try {
+    input = normaliseRequirementInput(rawJson as CreateRequirementInput);
+  } catch (err) {
+    return json(env, request, { error: (err as Error).message }, 400);
+  }
+
+  const url = new URL(request.url);
+  const post = url.searchParams.get("post") === "true" || rawJson.post === true;
+
+  let nextStatus = existing.status;
+  if (post && existing.status === "DRAFT") {
+    nextStatus = "OPEN";
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.requirement.update({
+      where: { id },
+      data: {
+        project: input.project,
+        scopeOfWork: input.scopeOfWork,
+        currency: input.currency as any,
+        sellingPrice: input.sellingPrice ? Number(input.sellingPrice) : null,
+        closesAt: new Date(input.closesAt),
+        status: nextStatus,
+      },
+    });
+
+    if (input.vendorUserIds.length > 0) {
+      const existingVendorIds = new Set(existing.invites.map((i) => i.vendorUserId));
+      const newVendorIds = input.vendorUserIds.filter((vId) => !existingVendorIds.has(vId));
+      if (newVendorIds.length > 0) {
+        await tx.requirementInvite.createMany({
+          data: newVendorIds.map((vId) => ({
+            id: cuid(),
+            requirementId: id,
+            vendorUserId: vId,
+          })),
+        });
+      }
+    }
+  });
+
+  await writeAudit(sql, {
+    adminId: admin.id,
+    action: "requirement.update",
+    entityType: "Requirement",
+    entityId: id,
+    metadata: { project: input.project, closesAt: input.closesAt, status: nextStatus },
+  });
+
+  return json(env, request, { ok: true, message: "Requirement updated successfully." });
+}
+
 export async function handleRequirementCreate(
   sql: unknown,
   env: Env,
@@ -1042,15 +1153,22 @@ export async function handleRequirementCreate(
   const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
   if (deny) return deny;
 
+  let rawJson: any = {};
+  try {
+    rawJson = await readJson(request);
+  } catch (err) {
+    return json(env, request, { error: "Invalid JSON" }, 400);
+  }
+
   let input;
   try {
-    input = normaliseRequirementInput((await readJson(request)) as CreateRequirementInput);
+    input = normaliseRequirementInput(rawJson as CreateRequirementInput);
   } catch (err) {
     return json(env, request, { error: (err as Error).message }, 400);
   }
 
   const url = new URL(request.url);
-  const post = url.searchParams.get("post") === "true";
+  const post = url.searchParams.get("post") === "true" || rawJson.post === true;
   const id = cuid();
   const count = await prisma.requirement.count();
   const referenceNumber = makeReferenceNumber(new Date(), count + 1);

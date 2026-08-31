@@ -45,3 +45,26 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
     return NextResponse.json({ error: "Upstream unavailable." }, { status: 503 });
   }
 }
+
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const jar = await cookies();
+  const token = jar.get(ADMIN_COOKIE)?.value;
+  if (!token) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+
+  try {
+    const { adminWorkerFetch } = await import("@/lib/admin-api");
+    const res = await adminWorkerFetch(`/requirements/${params.id}`, {
+      method: "DELETE",
+      sessionToken: token,
+    });
+    const text = await res.text();
+    return new NextResponse(text, {
+      status: res.status,
+      headers: { "Content-Type": res.headers.get("Content-Type") || "application/json" },
+    });
+  } catch (err) {
+    console.error("[admin BFF delete requirement]", err);
+    return NextResponse.json({ error: "Upstream unavailable." }, { status: 503 });
+  }
+}
