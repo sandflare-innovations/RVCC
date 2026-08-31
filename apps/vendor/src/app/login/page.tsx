@@ -28,15 +28,15 @@ export default function VendorLoginPage() {
         <div className="relative z-10 max-w-lg space-y-4">
           <div className="space-y-1">
             <p className="text-brand-blue mb-4 w-fit rounded-sm bg-white px-3 py-1 text-xs font-black tracking-[0.2em] uppercase shadow-sm">
-              Supplier Portal
+              Vendor Portal
             </p>
             <h1 className="font-heading text-6xl leading-[0.6] tracking-tight text-white uppercase xl:text-8xl">
               Shape Reality With Us
             </h1>
           </div>
           <p className="text-xl leading-relaxed font-medium text-zinc-200">
-            Join our network of premium suppliers and partners. Securely access the RVCC procurement
-            portal to manage your company profile and track pre-qualifications.
+            Join our network of premium vendors and partners. Securely access the RVCC vendor
+            portal to manage your company profile, submit quotes, and track live bids.
           </p>
         </div>
 

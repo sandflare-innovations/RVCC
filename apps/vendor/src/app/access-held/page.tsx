@@ -6,13 +6,13 @@ export default function AccessHeldPage() {
       <div className="w-full max-w-lg space-y-8">
         <div>
           <p className="text-brand-blue text-xs font-bold tracking-[0.24em] uppercase">
-            RVCC Supplier Portal
+            RVCC Vendor Portal
           </p>
           <h1 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950">
             Account Registered Successfully
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-            Your supplier registration is complete. Thank you for submitting your details to RVCC
+            Your vendor registration is complete. Thank you for submitting your details to RVCC
             procurement.
           </p>
         </div>

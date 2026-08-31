@@ -1,7 +1,7 @@
 {
-  "name": "RVCC Supplier Portal",
-  "short_name": "Supplier Portal",
-  "description": "RVCC Enterprise Vendor & Supplier Portal",
+  "name": "RVCC Vendor Portal",
+  "short_name": "Vendor Portal",
+  "description": "RVCC Enterprise Vendor Portal",
   "start_url": "/",
   "scope": "/",
   "id": "/",

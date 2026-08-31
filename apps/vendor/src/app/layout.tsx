@@ -16,14 +16,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "RVCC Supplier Portal",
-  description: "RVCC Enterprise Vendor & Supplier Portal",
+  title: "RVCC Vendor Portal",
+  description: "RVCC Enterprise Vendor Portal",
   manifest: "/manifest.webmanifest",
   robots: { index: false, follow: false },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "RVCC Supplier",
+    title: "RVCC Vendor",
   },
   icons: {
     icon: [

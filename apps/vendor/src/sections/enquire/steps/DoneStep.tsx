@@ -47,7 +47,7 @@ export function DoneStep() {
               className="text-brand-blue underline underline-offset-2"
               rel="noopener noreferrer"
             >
-              supplier portal
+              vendor portal
             </a>
             .
           </>
