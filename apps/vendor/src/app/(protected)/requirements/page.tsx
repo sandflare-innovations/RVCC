@@ -30,7 +30,14 @@ export default async function RequirementsPage() {
   let rows: Row[] = [];
   try {
     const res = await vendorWorkerFetch("/requirements", { method: "GET", sessionToken: token });
-    if (res.ok) rows = (await res.json()) as Row[];
+    if (res.ok) {
+      const data = await res.json();
+      rows = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.requirements)
+          ? data.requirements
+          : [];
+    }
   } catch (err) {
     console.error("[vendor] requirements list failed", err);
   }

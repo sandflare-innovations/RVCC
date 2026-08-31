@@ -22,7 +22,10 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
       method: "GET",
       sessionToken: token,
     });
-    if (res.ok) detail = (await res.json()) as Detail;
+    if (res.ok) {
+      const data = await res.json();
+      detail = (data?.requirement ?? data) as Detail;
+    }
   } catch (err) {
     console.error("[vendor] requirement fetch failed", err);
   }

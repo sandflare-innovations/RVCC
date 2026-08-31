@@ -33,7 +33,7 @@ export function describeDeadline(closesAt: string) {
 }
 
 export function summariseVendorDashboard(input: { requirements: VendorRequirementRow[] }) {
-  const rows = input.requirements;
+  const rows = Array.isArray(input?.requirements) ? input.requirements : [];
   const counts = {
     open: rows.length,
     dueSoon: rows.filter(
