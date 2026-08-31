@@ -198,7 +198,7 @@ export async function handleDashboard(sql: unknown, env: Env, request: Request):
   try {
     registration = await prisma.supplierRegistration.findUnique({
       where: { id: vendor.registrationId },
-      include: { company: true },
+      include: { company: true, attachments: true, contacts: true },
     });
   } catch (err) {
     console.error("[vendor/dashboard] registration error", err);
@@ -233,6 +233,20 @@ export async function handleDashboard(sql: unknown, env: Env, request: Request):
         email: registration.email,
         businessRelationship: registration.businessRelationship,
         company: companyData,
+        attachments: (registration.attachments || []).map((a: any) => ({
+          id: a.id,
+          fileName: a.fileName,
+          documentType: a.documentType,
+          fileSize: a.fileSize,
+          uploadedAt: a.uploadedAt ? a.uploadedAt.toISOString() : null,
+        })),
+        contacts: (registration.contacts || []).map((c: any) => ({
+          id: c.id,
+          fullName: c.fullName,
+          jobTitle: c.jobTitle,
+          email: c.email,
+          phone: c.phone,
+        })),
       }
     : null;
 

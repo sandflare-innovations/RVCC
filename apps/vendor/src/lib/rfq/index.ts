@@ -4,6 +4,8 @@ export type VendorRequirementRow = {
   project: string;
   scopeOfWork: string;
   closesAt: string;
+  currency?: string;
+  newPrice?: string | null;
   quoteStatus: "DRAFT" | "SUBMITTED" | null;
 };
 

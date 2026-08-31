@@ -1,11 +1,13 @@
 "use client";
 
 import { Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const SEARCH_TERMS = ["RFQ ID", "Project Name", "Reference Number", "Category"];
 
 export function VendorHeroSearch() {
+  const router = useRouter();
   const [value, setValue] = useState("");
   const [termIndex, setTermIndex] = useState(0);
 
@@ -18,8 +20,17 @@ export function VendorHeroSearch() {
     return () => clearInterval(interval);
   }, [terms.length]);
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (value.trim()) {
+      router.push(`/requirements?search=${encodeURIComponent(value.trim())}`);
+    } else {
+      router.push("/requirements");
+    }
+  };
+
   return (
-    <div className="relative h-14 w-full">
+    <form onSubmit={handleSubmit} className="relative h-14 w-full">
       <Search
         className="absolute top-1/2 left-5 z-10 h-5 w-5 -translate-y-1/2 text-zinc-400"
         aria-hidden="true"
@@ -65,6 +76,6 @@ export function VendorHeroSearch() {
         aria-label="Search vendor portal"
         className="h-14 w-full rounded-full border-none bg-white pr-5 pl-12 text-lg text-zinc-900 shadow-lg transition-all outline-none focus:ring-2 focus:ring-white"
       />
-    </div>
+    </form>
   );
 }
