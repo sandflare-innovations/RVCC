@@ -7,7 +7,7 @@
  * - Navigation → Network-first with offline.html fallback
  */
 
-const CACHE_VERSION = 'build-1788146540339';
+const CACHE_VERSION = 'build-1788173904275';
 const SHELL_CACHE = `rvcc-web-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `rvcc-web-runtime-${CACHE_VERSION}`;
 const FONT_CACHE = `rvcc-web-fonts-${CACHE_VERSION}`;

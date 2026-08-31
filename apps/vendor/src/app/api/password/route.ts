@@ -2,8 +2,12 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { VENDOR_COOKIE, VENDOR_PROFILE_COOKIE } from "@/lib/constants";
-import { encodeVendorProfile, vendorProfileCookieOptions } from "@/lib/profile-cookie";
-import { resolveVendorIdentity } from "@/lib/session";
+import {
+  encodeVendorProfile,
+  readVendorProfile,
+  vendorProfileCookieOptions,
+} from "@/lib/profile-cookie";
+import { clearVendorSessionCache, resolveVendorIdentity } from "@/lib/session";
 import { vendorWorkerFetch } from "@/lib/vendor-api";
 
 export async function POST(request: Request) {
@@ -38,8 +42,11 @@ export async function POST(request: Request) {
       );
     }
 
+    await clearVendorSessionCache(token);
+    const existing = await readVendorProfile();
+    const vendor = (await resolveVendorIdentity(token)) || existing;
+
     const out = NextResponse.json({ ok: true });
-    const vendor = await resolveVendorIdentity(token);
     if (vendor) {
       out.cookies.set(
         VENDOR_PROFILE_COOKIE,

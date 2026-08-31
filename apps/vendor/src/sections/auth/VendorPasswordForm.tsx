@@ -64,9 +64,11 @@ export function VendorPasswordForm({ mustChange }: { mustChange: boolean }) {
       setCurrent("");
       setNext("");
       setConfirm("");
-      // The layout reads mustChangePassword server-side, so refresh before moving on.
-      router.refresh();
-      if (mustChange) router.replace("/");
+      if (mustChange) {
+        window.location.href = "/";
+      } else {
+        router.refresh();
+      }
     } catch {
       setError("Network error — please try again.");
     } finally {
