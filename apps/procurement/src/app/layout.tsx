@@ -1,8 +1,10 @@
+import "./globals.css";
+
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
-import { ServiceWorkerRegistrar } from "@/components/pwa/sw-registrar";
+
 import { PwaUpdateBanner } from "@/components/pwa/pwa-update-banner";
+import { ServiceWorkerRegistrar } from "@/components/pwa/sw-registrar";
 
 const adminSans = Inter({
   subsets: ["latin"],

@@ -1,20 +1,20 @@
 "use client";
 
-import React, { useState, useRef } from "react";
 import {
-  X,
+  AlertCircle,
+  CheckCircle2,
+  Paperclip,
   Plus,
   Trash2,
-  Paperclip,
   Upload,
-  AlertCircle,
-  Calendar,
-  CheckCircle2,
+  X,
 } from "lucide-react";
-import { PriorityLevel, RequestItem, Attachment } from "@/types/procurement";
-import { formatCurrency } from "@/lib/formatters";
-import { CustomDropdown, DropdownOption } from "@/components/ui/custom-dropdown";
+import React, { useRef,useState } from "react";
+
 import { CustomDatePicker } from "@/components/ui/custom-date-picker";
+import { CustomDropdown, DropdownOption } from "@/components/ui/custom-dropdown";
+import { formatCurrency } from "@/lib/formatters";
+import { Attachment,PriorityLevel, RequestItem } from "@/types/procurement";
 
 interface NewRequestModalProps {
   isOpen: boolean;

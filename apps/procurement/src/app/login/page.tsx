@@ -1,6 +1,7 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
+import { Suspense } from "react";
+
 import { ProcurementLoginForm } from "@/sections/auth/ProcurementLoginForm";
 
 export const metadata: Metadata = {

@@ -1,10 +1,11 @@
 "use client";
 
+import { CheckCircle2, DollarSign,FileClock, FileText } from "lucide-react";
 import React from "react";
-import { FileText, FileClock, CheckCircle2, DollarSign } from "lucide-react";
-import { ProcurementStats } from "@/types/procurement";
-import { formatCurrency } from "@/lib/formatters";
+
 import { KpiCard } from "@/components/ui/kpi-card";
+import { formatCurrency } from "@/lib/formatters";
+import { ProcurementStats } from "@/types/procurement";
 
 interface MetricsOverviewProps {
   stats: ProcurementStats;

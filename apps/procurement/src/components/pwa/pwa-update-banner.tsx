@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { applyUpdate, onUpdateAvailable } from "@/lib/pwa/register-sw";
 

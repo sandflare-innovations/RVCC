@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { procurementApiFetch } from "@/lib/procurement-api";
 import { PROCUREMENT_COOKIE } from "@/lib/constants";
+import { procurementApiFetch } from "@/lib/procurement-api";
 
 /** GET list of purchase requests from backend API for procurement portal */
 export async function GET(request: Request) {

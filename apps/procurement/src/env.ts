@@ -1,4 +1,4 @@
-import { validateEnv, procurementEnvSchema, type ProcurementEnv } from "@rvcc/schemas";
+import { type ProcurementEnv,procurementEnvSchema, validateEnv } from "@rvcc/schemas";
 
 export const env: ProcurementEnv = validateEnv(procurementEnvSchema, {
   NODE_ENV: process.env.NODE_ENV,

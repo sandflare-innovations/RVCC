@@ -1,14 +1,15 @@
 "use client";
 
+import { Inbox,Paperclip } from "lucide-react";
 import React from "react";
-import { Paperclip, Inbox } from "lucide-react";
-import { PurchaseRequest } from "@/types/procurement";
+
 import {
   formatCurrency,
   formatDate,
-  getStatusBadgeInfo,
   getPriorityBadgeInfo,
+  getStatusBadgeInfo,
 } from "@/lib/formatters";
+import { PurchaseRequest } from "@/types/procurement";
 
 interface RequisitionsTableProps {
   requests: PurchaseRequest[];

@@ -4,8 +4,6 @@ export {
   PROCUREMENT_SESSION_TTL_MS,
 } from "@rvcc/utils";
 import {
-  PROCUREMENT_COOKIE,
-  PROCUREMENT_PROFILE_COOKIE,
   PROCUREMENT_SESSION_TTL_MS,
 } from "@rvcc/utils";
 

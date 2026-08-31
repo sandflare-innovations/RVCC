@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Navbar } from "@/sections/layout/navbar";
-import { MetricsOverview } from "@/sections/dashboard/metrics-overview";
-import { DashboardToolbar } from "@/sections/dashboard/dashboard-toolbar";
-import { RequisitionsTable } from "@/sections/requests/requisitions-table";
-import { RequisitionsGrid } from "@/sections/requests/requisitions-grid";
-import { NewRequestModal } from "@/sections/requests/new-request-modal";
-import type { ProcurementStats } from "@/types/procurement";
+import React, { useEffect } from "react";
 
 import { useProcurementStore } from "@/lib/store";
+import { DashboardToolbar } from "@/sections/dashboard/dashboard-toolbar";
+import { MetricsOverview } from "@/sections/dashboard/metrics-overview";
+import { Navbar } from "@/sections/layout/navbar";
+import { NewRequestModal } from "@/sections/requests/new-request-modal";
+import { RequisitionsGrid } from "@/sections/requests/requisitions-grid";
+import { RequisitionsTable } from "@/sections/requests/requisitions-table";
+import type { ProcurementStats } from "@/types/procurement";
 
 export default function RequesterDashboard() {
   const router = useRouter();

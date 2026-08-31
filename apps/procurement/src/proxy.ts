@@ -1,11 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import {
+  expiredCookieOptions,
   PROCUREMENT_COOKIE,
   PROCUREMENT_LOGIN_PATH,
   PROCUREMENT_PROFILE_COOKIE,
   PROCUREMENT_SESSION_EXPIRED_PARAM,
-  expiredCookieOptions,
   procurementCookieOptions,
 } from "@/lib/constants";
 

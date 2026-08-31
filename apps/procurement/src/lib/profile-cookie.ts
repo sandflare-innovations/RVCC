@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cookies } from "next/headers";
+
 import { PROCUREMENT_PROFILE_COOKIE, procurementCookieOptions } from "@/lib/constants";
 
 export type ProcurementUserProfile = {

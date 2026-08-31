@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { LogOut, Shield, Mail } from "lucide-react";
+import { LogOut, Mail,Shield } from "lucide-react";
+import React, { useEffect,useRef, useState } from "react";
+
 import { PROCUREMENT_LOGIN_EXPIRED_PATH } from "@/lib/constants";
 import { signOutInstant } from "@/lib/sign-out-client";
 

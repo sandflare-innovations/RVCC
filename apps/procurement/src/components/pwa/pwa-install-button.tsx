@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import { Download } from "lucide-react";
+import React, { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
