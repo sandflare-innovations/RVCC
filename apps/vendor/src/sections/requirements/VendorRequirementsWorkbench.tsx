@@ -3,66 +3,148 @@
 import {
   AlertCircle,
   ArrowRight,
+  Award,
   CheckCircle2,
   Clock,
   ExternalLink,
   FileText,
   Flame,
+  History,
   Inbox,
   Layers,
   Search,
   Sparkles,
+  Trophy,
+  XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { describeDeadline } from "@/lib/rfq";
+import { describeDeadline, type VendorRequirementRow } from "@/lib/rfq";
 import { cn } from "@/lib/utils";
 import { LiveRankBadge } from "@/sections/requirements/LiveRankBadge";
 
-export type RequirementRow = {
-  id: string;
-  referenceNumber: string | null;
-  project: string;
-  scopeOfWork: string;
-  closesAt: string;
-  currency?: string;
-  newPrice?: string | null;
-  quoteStatus: "DRAFT" | "SUBMITTED" | null;
-  submittedAt?: string | null;
-};
+export type RequirementRow = VendorRequirementRow;
 
-type TabType = "all" | "running" | "invited" | "submitted" | "drafts";
+type TabType = "all" | "running" | "invited" | "submitted" | "ended" | "drafts";
+
+export function EndedStatusBadge({ row }: { row: RequirementRow }) {
+  if (!row.isEnded && row.status === "OPEN") return null;
+
+  if (row.isAwardedToMe || row.endedStatus === "WON") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-800 shadow-xs">
+        <Trophy className="h-3.5 w-3.5 text-yellow-500" />
+        Won / Awarded
+      </span>
+    );
+  }
+
+  if (row.endedStatus === "UNDER_EVALUATION") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+        <Clock className="h-3.5 w-3.5 text-amber-600" />
+        Under Evaluation
+      </span>
+    );
+  }
+
+  if (row.endedStatus === "LOST") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-100 px-2.5 py-0.5 text-xs font-semibold text-zinc-600">
+        Not Awarded
+      </span>
+    );
+  }
+
+  if (row.endedStatus === "CANCELLED" || row.status === "CANCELLED") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700">
+        <XCircle className="h-3.5 w-3.5 text-red-500" />
+        Cancelled
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
+      Closed
+    </span>
+  );
+}
 
 export function VendorRequirementsWorkbench({ initialRows }: { initialRows: RequirementRow[] }) {
   const searchParams = useSearchParams();
-  const initialTab = (searchParams.get("tab") as TabType) || "all";
+  const tabParam = searchParams.get("tab") as TabType | null;
+  const initialTab = tabParam || "all";
   const initialSearch = searchParams.get("search") || "";
 
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [rows, setRows] = useState<RequirementRow[]>(initialRows || []);
 
-  const rows = initialRows || [];
+  useEffect(() => {
+    if (tabParam) setActiveTab(tabParam);
+  }, [tabParam]);
+
+  useEffect(() => {
+    if (initialRows?.length) {
+      setRows(initialRows);
+    }
+  }, [initialRows]);
+
+  // Sync workbench on mount and when user switches back to tab
+  useEffect(() => {
+    const fetchLatest = () => {
+      fetch("/api/requirements", { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          const list = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.requirements)
+              ? data.requirements
+              : [];
+          if (list.length > 0) {
+            setRows(list);
+          }
+        })
+        .catch(() => {});
+    };
+
+    fetchLatest();
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchLatest();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
 
   // Categorize rows
   const runningRows = useMemo(() => {
     return rows.filter((r) => {
       const isPast = new Date(r.closesAt).getTime() <= Date.now();
-      return !isPast && r.quoteStatus !== "SUBMITTED";
+      return !isPast && !r.isEnded && r.status === "OPEN";
     });
   }, [rows]);
 
   const invitedRows = useMemo(() => {
-    return rows.filter((r) => !r.quoteStatus || r.quoteStatus === null);
+    return rows.filter((r) => (!r.quoteStatus || r.quoteStatus === null) && !r.isEnded && r.status === "OPEN");
   }, [rows]);
 
   const submittedRows = useMemo(() => {
     return rows.filter((r) => r.quoteStatus === "SUBMITTED");
   }, [rows]);
 
+  const endedRows = useMemo(() => {
+    return rows.filter((r) => r.isEnded || r.status === "AWARDED" || r.status === "CLOSED");
+  }, [rows]);
+
   const draftRows = useMemo(() => {
-    return rows.filter((r) => r.quoteStatus === "DRAFT");
+    return rows.filter((r) => r.quoteStatus === "DRAFT" && !r.isEnded);
   }, [rows]);
 
   // Active filter tab selection
@@ -74,13 +156,15 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
         return invitedRows;
       case "submitted":
         return submittedRows;
+      case "ended":
+        return endedRows;
       case "drafts":
         return draftRows;
       case "all":
       default:
         return rows;
     }
-  }, [activeTab, rows, runningRows, invitedRows, submittedRows, draftRows]);
+  }, [activeTab, rows, runningRows, invitedRows, submittedRows, endedRows, draftRows]);
 
   // Search filter
   const displayedRows = useMemo(() => {
@@ -100,6 +184,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
     running: runningRows.length,
     invited: invitedRows.length,
     submitted: submittedRows.length,
+    ended: endedRows.length,
     drafts: draftRows.length,
   };
 
@@ -112,14 +197,13 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
             Sourcing & Bids Workbench
           </h1>
           <p className="mt-1 text-sm text-zinc-500">
-            View all invited RFQs, participate in live blind bidding, submit commercial quotes, and
-            track L1 evaluations.
+            View all invited RFQs, participate in live blind bidding, monitor L1 ranks, and track ended bid outcomes.
           </p>
         </div>
       </div>
 
       {/* KPI Cards Row */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-6">
         {[
           {
             id: "all",
@@ -130,14 +214,14 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
           },
           {
             id: "running",
-            label: "Running / Urgent",
+            label: "Running / Live",
             count: counts.running,
             icon: <Flame className="h-4 w-4 text-amber-500" />,
             bg: "bg-amber-50/60 border-amber-100",
           },
           {
             id: "invited",
-            label: "Invited (New)",
+            label: "Action Required",
             count: counts.invited,
             icon: <Inbox className="h-4 w-4 text-blue-500" />,
             bg: "bg-sky-50/60 border-sky-100",
@@ -148,6 +232,13 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
             count: counts.submitted,
             icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
             bg: "bg-emerald-50/60 border-emerald-100",
+          },
+          {
+            id: "ended",
+            label: "Ended Bids",
+            count: counts.ended,
+            icon: <History className="h-4 w-4 text-indigo-500" />,
+            bg: "bg-indigo-50/60 border-indigo-100",
           },
           {
             id: "drafts",
@@ -189,6 +280,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
             { id: "running", label: "Running Bids", count: counts.running },
             { id: "invited", label: "Action Required", count: counts.invited },
             { id: "submitted", label: "Submitted", count: counts.submitted },
+            { id: "ended", label: "Ended Bids", count: counts.ended },
             { id: "drafts", label: "Drafts", count: counts.drafts },
           ].map((tab) => (
             <button
@@ -237,12 +329,12 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
             <Inbox className="h-7 w-7" />
           </div>
           <h3 className="text-base font-bold text-zinc-900">
-            {searchQuery ? "No matching tenders found" : "No open tenders in this category"}
+            {searchQuery ? "No matching tenders found" : "No tenders in this category"}
           </h3>
           <p className="mt-1.5 max-w-md text-xs text-zinc-500">
             {searchQuery
               ? `No RFQs matching "${searchQuery}". Try searching with a different keyword or project title.`
-              : "When RVCC procurement officers invite your company to quote or start a live tender, it will automatically appear in this workbench."}
+              : "When RFQs are published, invited, or concluded, they will appear in this workbench."}
           </p>
           {searchQuery && (
             <button
@@ -268,9 +360,11 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                   key={row.id}
                   className={cn(
                     "rounded-2xl border bg-white p-5 shadow-sm transition-all",
-                    deadline.urgent && !isSubmitted
-                      ? "border-amber-300 ring-1 ring-amber-300"
-                      : "border-zinc-200"
+                    row.isEnded
+                      ? "border-zinc-200 bg-zinc-50/40"
+                      : deadline.urgent && !isSubmitted
+                        ? "border-amber-300 ring-1 ring-amber-300"
+                        : "border-zinc-200"
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -280,7 +374,9 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                       </span>
                       <h3 className="mt-0.5 text-base font-bold text-zinc-900">{row.project}</h3>
                     </div>
-                    {isSubmitted ? (
+                    {row.isEnded ? (
+                      <EndedStatusBadge row={row} />
+                    ) : isSubmitted ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
                         <CheckCircle2 className="h-3.5 w-3.5" /> Submitted
                       </span>
@@ -302,17 +398,17 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-3 text-xs">
                     <div className="flex items-center gap-1 text-zinc-500">
                       <Clock className="h-3.5 w-3.5" />
-                      <span className={deadline.urgent ? "font-bold text-amber-600" : ""}>
-                        {deadline.label}
+                      <span className={deadline.urgent && !row.isEnded ? "font-bold text-amber-600" : ""}>
+                        {row.isEnded ? "Bidding Concluded" : deadline.label}
                       </span>
                     </div>
 
-                    {isSubmitted && (
+                    {row.newPrice && (
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-zinc-900">
-                          {row.newPrice ? `${Number(row.newPrice).toLocaleString()} ${row.currency || "SAR"}` : ""}
+                          {Number(row.newPrice).toLocaleString()} {row.currency || "SAR"}
                         </span>
-                        <LiveRankBadge requirementId={row.id} />
+                        {!row.isEnded && <LiveRankBadge requirementId={row.id} />}
                       </div>
                     )}
                   </div>
@@ -322,12 +418,14 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                       href={`/requirements/${row.id}`}
                       className={cn(
                         "flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all",
-                        isSubmitted
-                          ? "border border-zinc-200 bg-zinc-50 text-zinc-800 hover:bg-zinc-100"
-                          : "bg-brand-blue text-white hover:bg-brand-blue/90 shadow-sm"
+                        row.isEnded
+                          ? "border border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50"
+                          : isSubmitted
+                            ? "border border-zinc-200 bg-zinc-50 text-zinc-800 hover:bg-zinc-100"
+                            : "bg-brand-blue text-white hover:bg-brand-blue/90 shadow-sm"
                       )}
                     >
-                      <span>{isSubmitted ? "View / Revise Bid" : isDraft ? "Resume Quote" : "Enter Bid Cockpit"}</span>
+                      <span>{row.isEnded ? "View Outcome & Details" : isSubmitted ? "View / Revise Bid" : isDraft ? "Resume Quote" : "Enter Bid Cockpit"}</span>
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
@@ -343,8 +441,8 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                 <tr>
                   <th className="px-6 py-4">Tender / Project</th>
                   <th className="px-6 py-4">Reference #</th>
-                  <th className="px-6 py-4">Closing Deadline</th>
-                  <th className="px-6 py-4">Your Quote / L1 Status</th>
+                  <th className="px-6 py-4">Status / Deadline</th>
+                  <th className="px-6 py-4">Your Quote & Ranking</th>
                   <th className="px-6 py-4 text-right">Action</th>
                 </tr>
               </thead>
@@ -357,7 +455,10 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                   return (
                     <tr
                       key={row.id}
-                      className="group transition-colors hover:bg-blue-50/30"
+                      className={cn(
+                        "group transition-colors hover:bg-blue-50/30",
+                        row.isEnded && "bg-zinc-50/30"
+                      )}
                     >
                       {/* Project & Scope */}
                       <td className="px-6 py-4 max-w-sm">
@@ -378,24 +479,34 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                         {row.referenceNumber ?? "—"}
                       </td>
 
-                      {/* Deadline */}
+                      {/* Status / Deadline */}
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className={cn("h-3.5 w-3.5", deadline.urgent ? "text-amber-500" : "text-zinc-400")} />
-                          <span
-                            className={cn(
-                              "text-xs font-medium",
-                              deadline.urgent ? "font-bold text-amber-600" : "text-zinc-700"
-                            )}
-                          >
-                            {deadline.label}
-                          </span>
-                        </div>
+                        {row.isEnded ? (
+                          <EndedStatusBadge row={row} />
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <Clock className={cn("h-3.5 w-3.5", deadline.urgent ? "text-amber-500" : "text-zinc-400")} />
+                            <span
+                              className={cn(
+                                "text-xs font-medium",
+                                deadline.urgent ? "font-bold text-amber-600" : "text-zinc-700"
+                              )}
+                            >
+                              {deadline.label}
+                            </span>
+                          </div>
+                        )}
                       </td>
 
-                      {/* Your Quote / L1 Status */}
+                      {/* Your Quote & Ranking */}
                       <td className="px-6 py-4">
-                        {isSubmitted ? (
+                        {row.isEnded ? (
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-zinc-950">
+                              {row.newPrice ? `${Number(row.newPrice).toLocaleString()} ${row.currency || "SAR"}` : "No Quote Submitted"}
+                            </span>
+                          </div>
+                        ) : isSubmitted ? (
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-zinc-950">
                               {row.newPrice ? `${Number(row.newPrice).toLocaleString()} ${row.currency || "SAR"}` : "Submitted"}
@@ -419,12 +530,14 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                           href={`/requirements/${row.id}`}
                           className={cn(
                             "inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition-all",
-                            isSubmitted
-                              ? "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300"
-                              : "bg-brand-blue text-white hover:bg-brand-blue/90 shadow-sm"
+                            row.isEnded
+                              ? "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
+                              : isSubmitted
+                                ? "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300"
+                                : "bg-brand-blue text-white hover:bg-brand-blue/90 shadow-sm"
                           )}
                         >
-                          <span>{isSubmitted ? "View / Revise" : isDraft ? "Resume" : "Bid Now"}</span>
+                          <span>{row.isEnded ? "View Details" : isSubmitted ? "View / Revise" : isDraft ? "Resume" : "Bid Now"}</span>
                           <ArrowRight className="h-3.5 w-3.5" />
                         </Link>
                       </td>

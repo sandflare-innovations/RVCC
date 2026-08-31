@@ -87,16 +87,44 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
       </div>
 
       {closed && (
-        <p className="rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 text-sm text-zinc-600">
-          This requirement closed on{" "}
-          {new Date(detail.closesAt).toLocaleString("en-GB", {
-            day: "numeric",
-            month: "long",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-          .
-        </p>
+        <div className="space-y-3">
+          {(detail as any).isAwardedToMe || (detail as any).endedStatus === "WON" ? (
+            <div className="flex items-center gap-3 rounded-2xl border border-emerald-300 bg-emerald-50/80 p-5 text-emerald-900 shadow-sm">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white font-bold">
+                🏆
+              </div>
+              <div>
+                <p className="text-base font-bold">Congratulations! Tender Awarded to You</p>
+                <p className="mt-0.5 text-xs text-emerald-800">
+                  RVCC Procurement has selected and awarded your commercial quote for this project.
+                </p>
+              </div>
+            </div>
+          ) : (detail as any).endedStatus === "UNDER_EVALUATION" ? (
+            <div className="flex items-center gap-3 rounded-2xl border border-amber-300 bg-amber-50/80 p-5 text-amber-900 shadow-sm">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white font-bold">
+                ⏳
+              </div>
+              <div>
+                <p className="text-base font-bold">Sourcing Ended · Under Evaluation</p>
+                <p className="mt-0.5 text-xs text-amber-800">
+                  Bidding has concluded. Procurement officers are currently evaluating the submitted commercial quotes.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 text-sm text-zinc-600">
+              This requirement concluded on{" "}
+              {new Date(detail.closesAt).toLocaleString("en-GB", {
+                day: "numeric",
+                month: "long",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+              .
+            </p>
+          )}
+        </div>
       )}
 
       {/* Live Bidding & Interactive Quote Form */}

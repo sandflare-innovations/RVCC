@@ -4,9 +4,15 @@ export type VendorRequirementRow = {
   project: string;
   scopeOfWork: string;
   closesAt: string;
+  status?: string;
+  isEnded?: boolean;
+  endedStatus?: "WON" | "LOST" | "UNDER_EVALUATION" | "CANCELLED" | "EXPIRED" | null;
+  isAwardedToMe?: boolean;
+  awardedAt?: string | null;
   currency?: string;
   newPrice?: string | null;
   quoteStatus: "DRAFT" | "SUBMITTED" | null;
+  submittedAt?: string | null;
 };
 
 export type VendorNextAction = {
