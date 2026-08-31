@@ -99,7 +99,10 @@ export function QuoteForm({
           <select
             className={`border-r border-zinc-300 bg-zinc-50 px-3 py-2.5 text-sm font-bold text-zinc-600 focus:outline-none ${isFormLocked ? "opacity-70" : ""}`}
             value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
+            onChange={(e) => {
+              if (error) setError(null);
+              setCurrency(e.target.value);
+            }}
             disabled={isFormLocked || busy}
           >
             <option value="SAR">SAR</option>
@@ -115,7 +118,10 @@ export function QuoteForm({
               isFormLocked ? "bg-zinc-50 text-zinc-600" : "bg-white text-zinc-950"
             }`}
             value={price}
-            onChange={(e) => setPrice(e.target.value)}
+            onChange={(e) => {
+              if (error) setError(null);
+              setPrice(e.target.value);
+            }}
             disabled={isFormLocked || busy}
             placeholder="0.00"
           />
@@ -138,7 +144,10 @@ export function QuoteForm({
               : "focus:border-brand-blue focus:ring-brand-blue border-zinc-300 bg-white text-zinc-950 focus:ring-1"
           }`}
           value={remarks}
-          onChange={(e) => setRemarks(e.target.value)}
+          onChange={(e) => {
+            if (error) setError(null);
+            setRemarks(e.target.value);
+          }}
           disabled={isFormLocked || busy}
           placeholder="Add any details, delivery schedules, or warranty terms..."
         />

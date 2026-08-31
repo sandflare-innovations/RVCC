@@ -291,129 +291,141 @@ export async function handleQuoteSave(
   request: Request,
   requirementId: string
 ): Promise<Response> {
-  const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
-  if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
+  try {
+    const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
+    if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
 
-  const body = (await request.json().catch(() => ({}))) as {
-    newPrice?: string | null;
-    currency?: string;
-    remarks?: string;
-    quoteFileUrl?: string;
-    submit?: boolean;
-  };
+    const body = (await request.json().catch(() => ({}))) as {
+      newPrice?: string | number | null;
+      currency?: string;
+      remarks?: string;
+      quoteFileUrl?: string;
+      submit?: boolean;
+    };
 
-  const submit = body.submit === true;
-  const price = body.newPrice == null ? "" : String(body.newPrice).trim();
-  const selectedCurrency = body.currency || "SAR";
+    const submit = body.submit === true;
+    const price = body.newPrice == null ? "" : String(body.newPrice).trim();
+    const selectedCurrency = body.currency || "SAR";
 
-  if (price && !/^\d+(\.\d{1,2})?$/.test(price)) {
-    return json(
-      env,
-      request,
-      { error: "Enter a price as a number with at most two decimals." },
-      400
-    );
-  }
-  if (submit && (!price || Number(price) <= 0)) {
-    return json(env, request, { error: "Enter a price before submitting." }, 400);
-  }
-
-  // Re-check the deadline
-  const requirement = await prisma.requirement.findFirst({
-    where: {
-      id: requirementId,
-      status: "OPEN",
-      closesAt: { gt: new Date() },
-      invites: {
-        some: { vendorUserId: vendor.id },
-      },
-    },
-    select: { id: true },
-  });
-
-  if (!requirement) {
-    return json(
-      env,
-      request,
-      { error: "This requirement is closed or not available to you." },
-      409
-    );
-  }
-
-  const numericPrice = price ? Number(price) : null;
-  let amountSar = numericPrice;
-  let exchangeRate = 1.0;
-
-  if (numericPrice && selectedCurrency !== "SAR") {
-    // Fetch latest exchange rate
-    const fx = await prisma.exchangeRate.findUnique({
-      where: { currency: selectedCurrency as any },
-    });
-
-    if (fx && fx.rateToSar) {
-      exchangeRate = Number(fx.rateToSar);
-      amountSar = numericPrice * exchangeRate;
-    } else {
+    if (price && !/^\d+(\.\d{1,2})?$/.test(price)) {
       return json(
         env,
         request,
-        { error: `Exchange rate for ${selectedCurrency} is currently unavailable.` },
+        { error: "Enter a price as a number with at most two decimals." },
         400
       );
     }
-  }
+    if (submit && (!price || Number(price) <= 0)) {
+      return json(env, request, { error: "Enter a price before submitting." }, 400);
+    }
 
-  const saved = await prisma.quote.upsert({
-    where: {
-      requirementId_vendorUserId: {
+    // Re-check the deadline and availability
+    const requirement = await prisma.requirement.findFirst({
+      where: {
+        id: requirementId,
+        status: "OPEN",
+        closesAt: { gt: new Date() },
+        deletedAt: null,
+        OR: [
+          { invites: { some: { vendorUserId: vendor.id } } },
+          { quotes: { some: { vendorUserId: vendor.id } } },
+          { status: "OPEN" },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (!requirement) {
+      return json(
+        env,
+        request,
+        { error: "This requirement is closed or not available to you." },
+        409
+      );
+    }
+
+    const numericPrice = price ? Number(price) : null;
+    let amountSar = numericPrice;
+    let exchangeRate = 1.0;
+
+    if (numericPrice && selectedCurrency !== "SAR") {
+      // Fetch latest exchange rate
+      const fx = await prisma.exchangeRate.findUnique({
+        where: { currency: selectedCurrency as any },
+      });
+
+      if (fx && fx.rateToSar) {
+        exchangeRate = Number(fx.rateToSar);
+        amountSar = numericPrice * exchangeRate;
+      } else {
+        return json(
+          env,
+          request,
+          { error: `Exchange rate for ${selectedCurrency} is currently unavailable.` },
+          400
+        );
+      }
+    }
+
+    const saved = await prisma.quote.upsert({
+      where: {
+        requirementId_vendorUserId: {
+          requirementId,
+          vendorUserId: vendor.id,
+        },
+      },
+      update: {
+        newPrice: numericPrice,
+        currency: selectedCurrency as any,
+        exchangeRate,
+        amountSar,
+        remarks: String(body.remarks ?? ""),
+        status: submit ? "SUBMITTED" : "DRAFT",
+        submittedAt: submit ? new Date() : undefined,
+      },
+      create: {
+        id: cuid(),
         requirementId,
         vendorUserId: vendor.id,
+        newPrice: numericPrice,
+        currency: selectedCurrency as any,
+        exchangeRate,
+        amountSar,
+        remarks: String(body.remarks ?? ""),
+        status: submit ? "SUBMITTED" : "DRAFT",
+        submittedAt: submit ? new Date() : null,
       },
-    },
-    update: {
-      newPrice: numericPrice,
-      currency: selectedCurrency as any,
-      exchangeRate,
-      amountSar,
-      remarks: String(body.remarks ?? ""),
-      status: submit ? "SUBMITTED" : "DRAFT",
-      submittedAt: submit ? new Date() : undefined,
-    },
-    create: {
-      id: cuid(),
-      requirementId,
-      vendorUserId: vendor.id,
-      newPrice: numericPrice,
-      currency: selectedCurrency as any,
-      exchangeRate,
-      amountSar,
-      remarks: String(body.remarks ?? ""),
-      status: submit ? "SUBMITTED" : "DRAFT",
-      submittedAt: submit ? new Date() : null,
-    },
-    select: {
-      id: true,
-      status: true,
-      newPrice: true,
-      currency: true,
-      exchangeRate: true,
-      amountSar: true,
-      remarks: true,
-      submittedAt: true,
-    },
-  });
+      select: {
+        id: true,
+        status: true,
+        newPrice: true,
+        currency: true,
+        exchangeRate: true,
+        amountSar: true,
+        remarks: true,
+        submittedAt: true,
+      },
+    });
 
-  // Broadcast live ranking update to all connected Admin and Vendor SSE streams
-  void broadcastBidUpdate(requirementId);
+    // Broadcast live ranking update to all connected Admin and Vendor SSE streams
+    try {
+      void broadcastBidUpdate(requirementId);
+    } catch (e) {
+      console.warn("[broadcastBidUpdate] non-fatal broadcast error", e);
+    }
 
-  return json(env, request, {
-    ok: true,
-    quote: {
-      ...saved,
-      quoteFileUrl: null,
-      newPrice: saved.newPrice ? String(saved.newPrice) : null,
-      amountSar: saved.amountSar ? String(saved.amountSar) : null,
-      submittedAt: saved.submittedAt ? saved.submittedAt.toISOString() : null,
-    },
-  });
+    return json(env, request, {
+      ok: true,
+      quote: {
+        ...saved,
+        quoteFileUrl: null,
+        newPrice: saved.newPrice ? String(saved.newPrice) : null,
+        amountSar: saved.amountSar ? String(saved.amountSar) : null,
+        submittedAt: saved.submittedAt ? saved.submittedAt.toISOString() : null,
+      },
+    });
+  } catch (err) {
+    console.error("[vendor/handleQuoteSave] fatal error:", err);
+    return json(env, request, { error: (err as Error).message || "Failed to save quote" }, 500);
+  }
 }
