@@ -57,7 +57,6 @@ export default function RequesterDashboard() {
     }
   };
 
-
   // Calculate metrics
   const stats: ProcurementStats = {
     totalRequests: requests.length,
@@ -79,16 +78,15 @@ export default function RequesterDashboard() {
       req.description.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus = statusFilter === "all" || req.status === statusFilter;
-    const matchesDept =
-      departmentFilter === "all" || req.department === departmentFilter;
+    const matchesDept = departmentFilter === "all" || req.department === departmentFilter;
 
     return matchesSearch && matchesStatus && matchesDept;
   });
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-zinc-50 font-enquire text-zinc-900">
+    <div className="font-enquire flex h-screen flex-col overflow-hidden bg-zinc-50 text-zinc-900">
       {/* Sticky Header / Navbar */}
-      <div className="shrink-0 z-30">
+      <div className="z-30 shrink-0">
         <Navbar
           onOpenNewRequest={() => setIsModalOpen(true)}
           onRefreshData={loadData}
@@ -97,7 +95,7 @@ export default function RequesterDashboard() {
       </div>
 
       {/* Main Container: Centered Layout with Balanced 100vh */}
-      <main className="mx-auto max-w-8xl w-full px-4 sm:px-6 lg:px-8 pt-4 pb-4 flex-1 flex flex-col min-h-0 gap-3">
+      <main className="max-w-8xl mx-auto flex min-h-0 w-full flex-1 flex-col gap-3 px-4 pt-4 pb-4 sm:px-6 lg:px-8">
         {/* Compact KPI Metrics Overview */}
         <div className="shrink-0">
           <MetricsOverview stats={stats} />
@@ -119,7 +117,7 @@ export default function RequesterDashboard() {
         />
 
         {/* Content View: Table or Grid (Fills remaining 100vh height with fluid width & internal scrolling) */}
-        <div className="flex-1 min-h-0 flex flex-col rounded-3xl border border-zinc-100/80 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
           {viewMode === "table" ? (
             <RequisitionsTable
               requests={filteredRequests}

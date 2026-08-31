@@ -51,9 +51,10 @@ export function loadEnv(): AppEnv {
     ALLOWED_ORIGINS:
       process.env.ALLOWED_ORIGINS?.trim() ||
       "https://rvcc-enquiry.vercel.app,https://rvcc-vendor.vercel.app,https://rvcc-admin.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002",
-    VENDOR_PORTAL_URL: (
-      process.env.VENDOR_PORTAL_URL || "https://rvcc-vendor.vercel.app"
-    ).replace(/\/$/, ""),
+    VENDOR_PORTAL_URL: (process.env.VENDOR_PORTAL_URL || "https://rvcc-vendor.vercel.app").replace(
+      /\/$/,
+      ""
+    ),
     SMTP_HOST: process.env.SMTP_HOST,
     SMTP_PORT: process.env.SMTP_PORT,
     SMTP_SECURE: process.env.SMTP_SECURE,

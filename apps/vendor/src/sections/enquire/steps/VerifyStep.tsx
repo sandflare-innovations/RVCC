@@ -1,20 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-
-import { useRouter } from "next/navigation";
-
 import { CheckCircle2, Clock, ShieldCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { revokeSession } from "@/lib/sign-out-client";
-import { EnquireActions } from "@/sections/enquire/EnquireActions";
-import {
-  type DraftRegistration,
-  useEnquire,
-} from "@/sections/enquire/EnquireContext";
-import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
 import { enquireMutedClass } from "@/sections/enquire/enquire-typography";
+import { EnquireActions } from "@/sections/enquire/EnquireActions";
+import { type DraftRegistration, useEnquire } from "@/sections/enquire/EnquireContext";
+import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
 import { ReviewDocument } from "@/sections/enquire/steps/ReviewStep";
 
 const STEP_LABELS: Record<string, string> = {
@@ -33,7 +28,12 @@ const STEP_LABELS: Record<string, string> = {
 
 type VerifyOutcome =
   | { kind: "vendor"; redirectUrl: string }
-  | { kind: "held"; registration: DraftRegistration | null; referenceNumber: string | null; status: string }
+  | {
+      kind: "held";
+      registration: DraftRegistration | null;
+      referenceNumber: string | null;
+      status: string;
+    }
   | { kind: "rejected"; message: string; referenceNumber: string | null }
   | { kind: "register" }
   | null;
@@ -69,7 +69,7 @@ function RedirectCountdown({ url }: { url: string }) {
         <Clock className="h-4 w-4" aria-hidden="true" />
         <span>
           Redirecting to vendor portal in{" "}
-          <span className="font-semibold tabular-nums text-zinc-950">{seconds}s</span>
+          <span className="font-semibold text-zinc-950 tabular-nums">{seconds}s</span>
         </span>
       </div>
 
@@ -123,9 +123,7 @@ function HeldView({
       {registration ? (
         <ReviewDocument registration={registration} />
       ) : (
-        <p className="text-sm text-zinc-600">
-          Registration data is not available at this time.
-        </p>
+        <p className="text-sm text-zinc-600">Registration data is not available at this time.</p>
       )}
 
       <button

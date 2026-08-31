@@ -2,17 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-
 import countries from "world-countries";
+
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { ORG_TYPES, SUPPLIER_TYPES } from "@/data/enquire-questionnaire";
-import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
 import {
   EnquireField,
   enquireInputClass,
-  enquireSelectClass,
   enquireTextareaClass,
 } from "@/sections/enquire/EnquireField";
 
@@ -115,7 +113,7 @@ export function CompanyStep() {
       setErrors(newErrors);
       return;
     }
-    
+
     setErrors({});
     advanceTo("contacts", companyPayload());
   };
@@ -127,7 +125,7 @@ export function CompanyStep() {
       <InteractiveHoverButton
         type="button"
         variant="outline"
-        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        className="h-10 min-w-[120px] px-6 text-xs sm:w-auto sm:text-xs"
         disabled={saving}
         pending={pendingAction === "save"}
         onClick={() => void saveLater()}
@@ -137,7 +135,7 @@ export function CompanyStep() {
       <InteractiveHoverButton
         type="button"
         variant="solid"
-        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        className="h-10 min-w-[120px] px-6 text-xs sm:w-auto sm:text-xs"
         onClick={goNext}
       >
         Next
@@ -182,7 +180,11 @@ export function CompanyStep() {
               if (errors.country) setErrors((p) => ({ ...p, country: false }));
             }}
             placeholder="Search country..."
-            className={errors.country ? "[&>button]:border-red-500 [&>button]:ring-1 [&>button]:ring-red-500" : ""}
+            className={
+              errors.country
+                ? "[&>button]:border-red-500 [&>button]:ring-1 [&>button]:ring-red-500"
+                : ""
+            }
           />
         </EnquireField>
         <EnquireField label="Organization type" required>
@@ -194,7 +196,11 @@ export function CompanyStep() {
               if (errors.organizationType) setErrors((p) => ({ ...p, organizationType: false }));
             }}
             placeholder="Select organization type..."
-            className={errors.organizationType ? "[&>button]:border-red-500 [&>button]:ring-1 [&>button]:ring-red-500" : ""}
+            className={
+              errors.organizationType
+                ? "[&>button]:border-red-500 [&>button]:ring-1 [&>button]:ring-red-500"
+                : ""
+            }
           />
         </EnquireField>
         <EnquireField label="Supplier type" required>
@@ -206,7 +212,11 @@ export function CompanyStep() {
               if (errors.supplierType) setErrors((p) => ({ ...p, supplierType: false }));
             }}
             placeholder="Select supplier type..."
-            className={errors.supplierType ? "[&>button]:border-red-500 [&>button]:ring-1 [&>button]:ring-red-500" : ""}
+            className={
+              errors.supplierType
+                ? "[&>button]:border-red-500 [&>button]:ring-1 [&>button]:ring-red-500"
+                : ""
+            }
           />
         </EnquireField>
         <EnquireField label="Year established" required>
@@ -294,7 +304,6 @@ export function CompanyStep() {
           />
         </EnquireField>
       </div>
-
     </div>
   );
 }

@@ -1,8 +1,9 @@
 "use client";
 
+import { ArrowDownCircle,CheckCircle2, Edit3 } from "lucide-react";
 import { useState } from "react";
+
 import { readApiError } from "@/lib/read-error";
-import { Edit3, CheckCircle2, ArrowDownCircle } from "lucide-react";
 
 export type QuoteFormRequirement = {
   id: string;
@@ -67,12 +68,18 @@ export function QuoteForm({
   return (
     <div className="space-y-5">
       {error ? (
-        <p role="alert" className="text-sm font-medium text-red-700 bg-red-50 p-3 rounded-xl border border-red-200">
+        <p
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700"
+        >
           {error}
         </p>
       ) : null}
       {saved && !isSubmitted ? (
-        <p role="status" className="text-sm font-medium text-zinc-700 bg-zinc-50 p-3 rounded-xl border border-zinc-200">
+        <p
+          role="status"
+          className="rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-sm font-medium text-zinc-700"
+        >
           Draft saved.
         </p>
       ) : null}
@@ -83,14 +90,14 @@ export function QuoteForm({
             {isRevising ? "Your Revised Bid Price" : "Your Price"}
           </span>
           {isSubmitted && !isRevising && (
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
               <CheckCircle2 className="h-3 w-3" /> Submitted
             </span>
           )}
         </div>
-        <div className="flex w-full overflow-hidden rounded-xl border border-zinc-300 bg-white transition-all focus-within:border-brand-blue focus-within:ring-1 focus-within:ring-brand-blue">
+        <div className="focus-within:border-brand-blue focus-within:ring-brand-blue flex w-full overflow-hidden rounded-xl border border-zinc-300 bg-white transition-all focus-within:ring-1">
           <select
-            className={`bg-zinc-50 border-r border-zinc-300 px-3 py-2.5 text-sm font-bold text-zinc-600 focus:outline-none ${isFormLocked ? "opacity-70" : ""}`}
+            className={`border-r border-zinc-300 bg-zinc-50 px-3 py-2.5 text-sm font-bold text-zinc-600 focus:outline-none ${isFormLocked ? "opacity-70" : ""}`}
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
             disabled={isFormLocked || busy}
@@ -104,7 +111,7 @@ export function QuoteForm({
           <input
             type="text"
             inputMode="decimal"
-            className={`w-full px-3.5 py-2.5 text-base font-semibold focus:outline-none transition-all ${
+            className={`w-full px-3.5 py-2.5 text-base font-semibold transition-all focus:outline-none ${
               isFormLocked ? "bg-zinc-50 text-zinc-600" : "bg-white text-zinc-950"
             }`}
             value={price}
@@ -114,7 +121,7 @@ export function QuoteForm({
           />
         </div>
         {currency !== "SAR" && (
-          <p className="text-[11px] text-zinc-500 font-medium">
+          <p className="text-[11px] font-medium text-zinc-500">
             * Bids are normalized to SAR at today's exchange rate for fair evaluation.
           </p>
         )}
@@ -128,7 +135,7 @@ export function QuoteForm({
           className={`min-h-[90px] w-full rounded-xl border px-3.5 py-2.5 text-sm transition-all ${
             isFormLocked
               ? "border-zinc-200 bg-zinc-50 text-zinc-600"
-              : "border-zinc-300 bg-white text-zinc-950 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue"
+              : "focus:border-brand-blue focus:ring-brand-blue border-zinc-300 bg-white text-zinc-950 focus:ring-1"
           }`}
           value={remarks}
           onChange={(e) => setRemarks(e.target.value)}
@@ -145,7 +152,7 @@ export function QuoteForm({
           <button
             type="button"
             onClick={() => setIsRevising(true)}
-            className="inline-flex items-center gap-2 rounded-xl border border-brand-blue/30 bg-brand-blue/5 px-4 py-2.5 text-sm font-bold text-brand-blue hover:bg-brand-blue/10 transition-colors"
+            className="border-brand-blue/30 bg-brand-blue/5 text-brand-blue hover:bg-brand-blue/10 inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition-colors"
           >
             <Edit3 className="h-4 w-4" /> Revise Price / Lower Bid
           </button>
@@ -181,15 +188,17 @@ export function QuoteForm({
             type="button"
             disabled={busy || !price.trim()}
             onClick={() => void save(true)}
-            className="bg-brand-blue inline-flex min-h-11 items-center gap-2 rounded-xl px-6 text-sm font-bold text-white hover:opacity-90 disabled:opacity-55 shadow-sm"
+            className="bg-brand-blue inline-flex min-h-11 items-center gap-2 rounded-xl px-6 text-sm font-bold text-white shadow-sm hover:opacity-90 disabled:opacity-55"
           >
             {isRevising ? (
               <>
                 <ArrowDownCircle className="h-4 w-4" />
                 {busy ? "Submitting Revision…" : "Submit Revised Bid"}
               </>
+            ) : busy ? (
+              "Submitting…"
             ) : (
-              busy ? "Submitting…" : "Submit Quote"
+              "Submit Quote"
             )}
           </button>
         </div>
@@ -197,4 +206,3 @@ export function QuoteForm({
     </div>
   );
 }
-

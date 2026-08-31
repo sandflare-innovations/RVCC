@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function ProcurementLoginPage() {
   return (
-    <div className="flex min-h-[100dvh] w-full flex-col bg-white md:flex-row md:p-4 gap-4">
+    <div className="flex min-h-[100dvh] w-full flex-col gap-4 bg-white md:flex-row md:p-4">
       {/* Left Panel — Branding (hidden on mobile) */}
       <div className="relative hidden w-full flex-col justify-between overflow-hidden rounded-[2rem] bg-zinc-950 p-12 md:flex md:w-5/12 lg:w-3/7 xl:p-16">
         {/* Background image */}
@@ -35,7 +35,7 @@ export default function ProcurementLoginPage() {
         {/* Brand narrative */}
         <div className="relative z-10 max-w-lg space-y-4">
           <div className="space-y-2">
-            <p className="text-[#0073bc] w-fit rounded-md bg-white px-3 py-1 text-xs font-black tracking-[0.2em] uppercase shadow-xs">
+            <p className="w-fit rounded-md bg-white px-3 py-1 text-xs font-black tracking-[0.2em] text-[#0073bc] uppercase shadow-xs">
               Procurement & Sourcing
             </p>
             <h1 className="text-4xl leading-tight font-extrabold tracking-tight text-white uppercase xl:text-5xl">
@@ -43,7 +43,8 @@ export default function ProcurementLoginPage() {
             </h1>
           </div>
           <p className="text-base leading-relaxed font-normal text-zinc-300">
-            Access the RVCC internal procurement platform to track requisitions, manage purchase orders, and coordinate project material delivery.
+            Access the RVCC internal procurement platform to track requisitions, manage purchase
+            orders, and coordinate project material delivery.
           </p>
         </div>
 
@@ -64,7 +65,7 @@ export default function ProcurementLoginPage() {
             height={36}
             className="h-8 w-auto"
           />
-          <span className="text-xs font-bold uppercase tracking-wider text-[#0073bc]">
+          <span className="text-xs font-bold tracking-wider text-[#0073bc] uppercase">
             Procurement
           </span>
         </div>

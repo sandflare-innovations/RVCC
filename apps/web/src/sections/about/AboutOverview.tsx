@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-
+import { motion } from "framer-motion";
 import Image from "next/image";
-
-import { AnimatePresence, motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
 
 const IMAGES = [
   "/images/projects/1.webp",

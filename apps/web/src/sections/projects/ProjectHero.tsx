@@ -1,12 +1,11 @@
 "use client";
 
+import { cn } from "@lib/utils";
 import { motion } from "framer-motion";
 
 import { LogoMarquee } from "@/components/common/LogoMarquee";
 import { AngledSlider } from "@/components/ui/angled-slider";
 import { PROJECTS } from "@/data/projects/detailed";
-
-import { cn } from "@lib/utils";
 
 export const ProjectHero = () => {
   const sliderItems = PROJECTS.map((p) => ({

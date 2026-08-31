@@ -7,10 +7,7 @@ import {
   procurementCookieOptions,
 } from "@/lib/constants";
 import { procurementApiFetch } from "@/lib/procurement-api";
-import {
-  encodeProcurementProfile,
-  procurementProfileCookieOptions,
-} from "@/lib/profile-cookie";
+import { encodeProcurementProfile, procurementProfileCookieOptions } from "@/lib/profile-cookie";
 import { resolveProcurementIdentity } from "@/lib/session";
 
 const schema = z.object({

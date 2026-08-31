@@ -1,13 +1,11 @@
-import { Suspense } from "react";
-
+import { Footer } from "@layout/Footer";
 import { Metadata } from "next";
+import { Suspense } from "react";
 
 import { FloatingContact } from "@/components/common/FloatingContact";
 import { getPublishedJobs } from "@/lib/content/careers";
 import { CareerHero } from "@/sections/careers/CareerHero";
 import { CareerList } from "@/sections/careers/CareerList";
-
-import { Footer } from "@layout/Footer";
 
 export const metadata: Metadata = {
   title: "Careers | RVCC - Join Our Visionary Team",

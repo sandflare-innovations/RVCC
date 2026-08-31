@@ -1,13 +1,10 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
-import { AnimatePresence, motion } from "framer-motion";
-
 import { Icons } from "@/lib/icons";
-
-import { cn } from "@lib/utils";
 
 import { useProjectFilters } from "../../hooks/useProjectFilters";
 import { ProjectFilters } from "./ProjectFilters";

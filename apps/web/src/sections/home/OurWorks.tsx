@@ -1,20 +1,18 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-
-import Image from "next/image";
-
-import { type WorkItem, works } from "@data/projects/works";
+import { works } from "@data/projects/works";
 import {
   AnimatePresence,
-  MotionValue,
-  Variants,
   motion,
+  MotionValue,
   useMotionValue,
   useScroll,
   useSpring,
   useTransform,
+  Variants,
 } from "framer-motion";
+import Image from "next/image";
+import React, { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 

@@ -1,31 +1,25 @@
 "use client";
 
+import { cn } from "@lib/utils";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-
-import { useRouter } from "next/navigation";
 import { LuPlus as Plus } from "react-icons/lu";
 import countries from "world-countries";
 
-import { SearchableSelect } from "@/components/ui/searchable-select";
-
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
-import { ADDRESS_PURPOSES, COUNTRIES } from "@/data/enquire-questionnaire";
-import { EnquireActions } from "@/sections/enquire/EnquireActions";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { ADDRESS_PURPOSES } from "@/data/enquire-questionnaire";
+import {
+  enquireActionLinkClass,
+  enquireOptionLabelClass,
+  enquireSectionTitleClass,
+} from "@/sections/enquire/enquire-typography";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
 import {
   EnquireField,
   enquireInputClass,
-  enquireSelectClass,
 } from "@/sections/enquire/EnquireField";
-import {
-  enquireActionLinkClass,
-  enquireMutedClass,
-  enquireOptionLabelClass,
-  enquireSectionTitleClass,
-} from "@/sections/enquire/enquire-typography";
-
-import { cn } from "@lib/utils";
 
 const COUNTRY_OPTIONS = countries
   .map((c) => ({
@@ -69,7 +63,7 @@ export function AddressesStep() {
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [addresses, setAddresses] = useState<AddressForm[]>([empty()]);
   const [errors, setErrors] = useState<Record<string, boolean>[]>([]);
-  
+
   const [headerNode, setHeaderNode] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -146,7 +140,7 @@ export function AddressesStep() {
       <InteractiveHoverButton
         type="button"
         variant="outline"
-        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        className="h-10 min-w-[120px] px-6 text-xs sm:w-auto sm:text-xs"
         disabled={saving}
         pending={pendingAction === "save"}
         onClick={() => void saveLater()}
@@ -156,7 +150,7 @@ export function AddressesStep() {
       <InteractiveHoverButton
         type="button"
         variant="solid"
-        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        className="h-10 min-w-[120px] px-6 text-xs sm:w-auto sm:text-xs"
         onClick={goNext}
       >
         Next
@@ -172,7 +166,7 @@ export function AddressesStep() {
       {addresses.map((a, i) => {
         const err = errors[i] || {};
         return (
-          <div key={i} className="space-y-6 border-b border-zinc-100 pb-8 animate-fade-in">
+          <div key={i} className="animate-fade-in space-y-6 border-b border-zinc-100 pb-8">
             <div className="flex items-center justify-between">
               <h3 className={enquireSectionTitleClass}>Address {String(i + 1).padStart(2, "0")}</h3>
               {addresses.length > 1 && (
@@ -193,7 +187,9 @@ export function AddressesStep() {
                   onChange={(e) => {
                     update(i, "label", e.target.value);
                     if (err.label) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, label: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, label: false } : e))
+                      );
                     }
                   }}
                   placeholder=" "
@@ -207,11 +203,17 @@ export function AddressesStep() {
                   onChange={(val) => {
                     update(i, "country", val);
                     if (err.country) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, country: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, country: false } : e))
+                      );
                     }
                   }}
                   placeholder="Select a country..."
-                  className={err.country ? "[&>button]:border-red-500 [&>button]:ring-1 [&>button]:ring-red-500" : ""}
+                  className={
+                    err.country
+                      ? "[&>button]:border-red-500 [&>button]:ring-1 [&>button]:ring-red-500"
+                      : ""
+                  }
                 />
               </EnquireField>
               <EnquireField label="Address line 1" required className="md:col-span-2">
@@ -221,7 +223,9 @@ export function AddressesStep() {
                   onChange={(e) => {
                     update(i, "line1", e.target.value);
                     if (err.line1) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, line1: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, line1: false } : e))
+                      );
                     }
                   }}
                   placeholder=" "
@@ -235,7 +239,9 @@ export function AddressesStep() {
                   onChange={(e) => {
                     update(i, "line2", e.target.value);
                     if (err.line2) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, line2: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, line2: false } : e))
+                      );
                     }
                   }}
                   placeholder=" "
@@ -249,7 +255,9 @@ export function AddressesStep() {
                   onChange={(e) => {
                     update(i, "city", e.target.value);
                     if (err.city) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, city: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, city: false } : e))
+                      );
                     }
                   }}
                   placeholder=" "
@@ -263,7 +271,9 @@ export function AddressesStep() {
                   onChange={(e) => {
                     update(i, "region", e.target.value);
                     if (err.region) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, region: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, region: false } : e))
+                      );
                     }
                   }}
                   placeholder=" "
@@ -277,7 +287,9 @@ export function AddressesStep() {
                   onChange={(e) => {
                     update(i, "postalCode", e.target.value);
                     if (err.postalCode) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, postalCode: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, postalCode: false } : e))
+                      );
                     }
                   }}
                   placeholder=" "
@@ -291,7 +303,9 @@ export function AddressesStep() {
                   onChange={(e) => {
                     update(i, "phone", e.target.value);
                     if (err.phone) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, phone: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, phone: false } : e))
+                      );
                     }
                   }}
                   placeholder=" "
@@ -299,37 +313,41 @@ export function AddressesStep() {
                 />
               </EnquireField>
             </div>
-          <div className={cn("mt-6", err.purposes && "border border-red-500 rounded p-2")}>
-            <p className={cn("mb-3", enquireSectionTitleClass)}>Address purpose <span className="text-red-500">*</span></p>
-            <div className={cn("flex flex-wrap gap-8 py-4", enquireOptionLabelClass)}>
-              {ADDRESS_PURPOSES.map((p) => (
-                <label key={p} className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="appearance-none h-5 w-5 rounded-full border-2 border-zinc-300 bg-white checked:bg-brand-blue checked:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 cursor-pointer relative checked:after:content-[''] checked:after:absolute checked:after:w-1.5 checked:after:h-2.5 checked:after:border-r-2 checked:after:border-b-2 checked:after:border-white checked:after:rotate-45 checked:after:left-[6px] checked:after:top-[2px] transition-all"
-                    checked={a.purposes.includes(p)}
-                    onChange={() => {
-                      togglePurpose(i, p);
-                      if (err.purposes) {
-                        setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, purposes: false } : e)));
-                      }
-                    }}
-                  />
-                  {p}
-                </label>
-              ))}
+            <div className={cn("mt-6", err.purposes && "rounded border border-red-500 p-2")}>
+              <p className={cn("mb-3", enquireSectionTitleClass)}>
+                Address purpose <span className="text-red-500">*</span>
+              </p>
+              <div className={cn("flex flex-wrap gap-8 py-4", enquireOptionLabelClass)}>
+                {ADDRESS_PURPOSES.map((p) => (
+                  <label key={p} className="flex cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      className="checked:bg-brand-blue checked:border-brand-blue focus:ring-brand-blue relative h-5 w-5 cursor-pointer appearance-none rounded-full border-2 border-zinc-300 bg-white transition-all checked:after:absolute checked:after:top-[2px] checked:after:left-[6px] checked:after:h-2.5 checked:after:w-1.5 checked:after:rotate-45 checked:after:border-r-2 checked:after:border-b-2 checked:after:border-white checked:after:content-[''] focus:ring-2 focus:ring-offset-2 focus:outline-none"
+                      checked={a.purposes.includes(p)}
+                      onChange={() => {
+                        togglePurpose(i, p);
+                        if (err.purposes) {
+                          setErrors((prev) =>
+                            prev.map((e, idx) => (idx === i ? { ...e, purposes: false } : e))
+                          );
+                        }
+                      }}
+                    />
+                    {p}
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
         );
       })}
 
-      <div className="flex justify-center pb-8 pt-4">
+      <div className="flex justify-center pt-4 pb-8">
         <button
           type="button"
           onClick={() => setAddresses((prev) => [...prev, empty()])}
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-6 py-2.5 text-sm font-bold tracking-wide text-zinc-700 transition-all hover:bg-zinc-50 hover:text-brand-blue hover:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 disabled:opacity-50"
+          className="hover:text-brand-blue hover:border-brand-blue focus:ring-brand-blue inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-6 py-2.5 text-sm font-bold tracking-wide text-zinc-700 transition-all hover:bg-zinc-50 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
         >
           <Plus className="h-4 w-4 stroke-[3]" />
           ADD ADDRESS

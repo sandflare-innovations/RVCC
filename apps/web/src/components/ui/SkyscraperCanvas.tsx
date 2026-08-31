@@ -1,10 +1,9 @@
 "use client";
 
-import React, { Suspense, useRef } from "react";
-
 import { Center, ContactShadows, Environment, OrbitControls, useGLTF } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { MotionValue } from "framer-motion";
+import React, { Suspense, useRef } from "react";
 import * as THREE from "three";
 
 function Model({

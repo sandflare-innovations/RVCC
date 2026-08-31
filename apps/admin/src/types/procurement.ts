@@ -1,10 +1,5 @@
 export type RequestStatus =
-  | "draft"
-  | "submitted"
-  | "under_review"
-  | "approved"
-  | "rejected"
-  | "revision_requested";
+  "draft" | "submitted" | "under_review" | "approved" | "rejected" | "revision_requested";
 
 export type PriorityLevel = "low" | "medium" | "high" | "urgent";
 
@@ -65,4 +60,3 @@ export interface PurchaseRequest {
   updatedAt: string;
   auditTrail?: AuditLogEntry[];
 }
-

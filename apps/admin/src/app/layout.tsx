@@ -1,15 +1,14 @@
-import { Inter } from "next/font/google";
-
-import type { Metadata, Viewport } from "next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-
 import "./globals.css";
 import "flag-icons/css/flag-icons.min.css";
 
-import { ServiceWorkerRegistrar } from "./sw-registrar";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
+
 import { PwaBootstrap } from "./pwa-bootstrap";
 import { PwaSplash } from "./pwa-splash";
 import { PwaUpdateBanner } from "./pwa-update-banner";
+import { ServiceWorkerRegistrar } from "./sw-registrar";
 
 const adminSans = Inter({ subsets: ["latin"], display: "swap", variable: "--font-enquire-sans" });
 

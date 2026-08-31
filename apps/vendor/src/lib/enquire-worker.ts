@@ -1,5 +1,6 @@
-import { cookies } from "next/headers";
 import "server-only";
+
+import { cookies } from "next/headers";
 
 import { ENQUIRE_COOKIE } from "@/lib/enquire-constants";
 
@@ -15,8 +16,7 @@ export async function enquireWorkerFetch(
 ): Promise<Response> {
   const { sessionToken, headers: initHeaders, ...rest } = init;
   const headers = new Headers(initHeaders);
-  const isFormData =
-    typeof FormData !== "undefined" && rest.body instanceof FormData;
+  const isFormData = typeof FormData !== "undefined" && rest.body instanceof FormData;
   if (!isFormData && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }

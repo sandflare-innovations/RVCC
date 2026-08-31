@@ -97,8 +97,6 @@ export function getStatusBadgeInfo(status: RequestStatus): {
   }
 }
 
-
-
 export function getPriorityBadgeInfo(priority: PriorityLevel): {
   label: string;
   bgClass: string;

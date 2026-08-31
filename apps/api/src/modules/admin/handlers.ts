@@ -147,10 +147,7 @@ export async function handleRegistrationsList(
           },
         },
       },
-      orderBy: [
-        { submittedAt: { sort: "desc", nulls: "last" } },
-        { updatedAt: "desc" },
-      ],
+      orderBy: [{ submittedAt: { sort: "desc", nulls: "last" } }, { updatedAt: "desc" }],
       take: 500,
     });
 
@@ -417,18 +414,15 @@ export async function handleRegistrationDelete(
   return json(env, request, { ok: true });
 }
 
-const VALID_VENDOR_FILTER = new Set([
-  "ALL",
-  "ACTIVE",
-  "DISABLED",
-  "HELD",
-  "RELEASED",
-  "PENDING",
-]);
+const VALID_VENDOR_FILTER = new Set(["ALL", "ACTIVE", "DISABLED", "HELD", "RELEASED", "PENDING"]);
 
 // ── Vendors ─────────────────────────────────────────────────────────────────
 
-export async function handleVendorsList(sql: unknown, env: Env, request: Request): Promise<Response> {
+export async function handleVendorsList(
+  sql: unknown,
+  env: Env,
+  request: Request
+): Promise<Response> {
   const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
 
@@ -497,7 +491,8 @@ export async function handleVendorsList(sql: unknown, env: Env, request: Request
         const compName = v.registration?.company?.legalName || "—";
         const regStatus = v.registration?.status;
         const regRef = v.registration?.referenceNumber;
-        const isRegComplete = Boolean(v.registration?.registrationComplete) || v.registrationId == null;
+        const isRegComplete =
+          Boolean(v.registration?.registrationComplete) || v.registrationId == null;
 
         return {
           id: v.id,
@@ -595,7 +590,8 @@ export async function handleVendorGet(
         companyName: compName,
         referenceNumber: regRef,
         registrationStatus: regStatus,
-        registrationComplete: Boolean(vendor.registration?.registrationComplete) || vendor.registrationId == null,
+        registrationComplete:
+          Boolean(vendor.registration?.registrationComplete) || vendor.registrationId == null,
         registration: vendor.registrationId
           ? {
               id: vendor.registrationId,
@@ -932,7 +928,13 @@ export async function handleRequirementAward(
         adminId: a.id,
         type: "QUOTE_AWARDED",
         title: requirement.project + " awarded",
-        body: "Awarded to " + described.winner.vendorEmail + " at " + described.winningPrice + " " + requirement.currency,
+        body:
+          "Awarded to " +
+          described.winner.vendorEmail +
+          " at " +
+          described.winningPrice +
+          " " +
+          requirement.currency,
         linkPath: "/requirements/" + id,
       })),
     });
@@ -979,10 +981,7 @@ export async function handleRequirementGet(
         include: {
           vendorUser: { select: { email: true, name: true } },
         },
-        orderBy: [
-          { submittedAt: { sort: "desc", nulls: "last" } },
-          { updatedAt: "desc" },
-        ],
+        orderBy: [{ submittedAt: { sort: "desc", nulls: "last" } }, { updatedAt: "desc" }],
       },
       invites: {
         include: {
@@ -1182,7 +1181,6 @@ export async function handleVendorCreate(
   );
 }
 
-
 // ── Careers ─────────────────────────────────────────────────────────────────
 
 type JobBody = {
@@ -1202,7 +1200,8 @@ type JobBody = {
 function parseJobCreate(body: JobBody) {
   const title = typeof body.title === "string" ? body.title.trim() : "";
   const department = typeof body.department === "string" ? body.department.trim() : "";
-  const location = typeof body.location === "string" ? body.location.trim() : "Riyadh, Saudi Arabia";
+  const location =
+    typeof body.location === "string" ? body.location.trim() : "Riyadh, Saudi Arabia";
   const employmentType =
     typeof body.employmentType === "string" ? body.employmentType.trim() : "Full-time";
   const description = typeof body.description === "string" ? body.description.trim() : "";
@@ -1233,15 +1232,16 @@ function parseJobCreate(body: JobBody) {
   };
 }
 
-export async function handleCareersList(sql: unknown, env: Env, request: Request): Promise<Response> {
+export async function handleCareersList(
+  sql: unknown,
+  env: Env,
+  request: Request
+): Promise<Response> {
   const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
   if (deny) return deny;
 
   const rows = await prisma.jobPosting.findMany({
-    orderBy: [
-      { sortOrder: "asc" },
-      { postedAt: "desc" },
-    ],
+    orderBy: [{ sortOrder: "asc" }, { postedAt: "desc" }],
   });
   return json(env, request, rows);
 }
@@ -1294,7 +1294,11 @@ export async function handleCareerApplicationsList(
   return json(env, request, { applications });
 }
 
-export async function handleCareerCreate(sql: unknown, env: Env, request: Request): Promise<Response> {
+export async function handleCareerCreate(
+  sql: unknown,
+  env: Env,
+  request: Request
+): Promise<Response> {
   const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
   if (deny) return deny;
 
@@ -1366,10 +1370,11 @@ export async function handleCareerPatch(
   const title = body.title !== undefined ? String(body.title).trim() : existing.title;
   const department =
     body.department !== undefined ? String(body.department).trim() : existing.department;
-  const location =
-    body.location !== undefined ? String(body.location).trim() : existing.location;
+  const location = body.location !== undefined ? String(body.location).trim() : existing.location;
   const employmentType =
-    body.employmentType !== undefined ? String(body.employmentType).trim() : existing.employmentType;
+    body.employmentType !== undefined
+      ? String(body.employmentType).trim()
+      : existing.employmentType;
   const description =
     body.description !== undefined ? String(body.description).trim() : existing.description;
   const requirements =
@@ -1380,8 +1385,7 @@ export async function handleCareerPatch(
     body.benefits !== undefined
       ? (body.benefits as string[]).map((s) => String(s).trim()).filter(Boolean)
       : existing.benefits;
-  const isRemote =
-    body.isRemote !== undefined ? Boolean(body.isRemote) : existing.isRemote;
+  const isRemote = body.isRemote !== undefined ? Boolean(body.isRemote) : existing.isRemote;
   const isPublished =
     body.isPublished !== undefined ? Boolean(body.isPublished) : existing.isPublished;
   const sortOrder =

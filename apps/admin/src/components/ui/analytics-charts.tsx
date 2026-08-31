@@ -2,17 +2,18 @@
 
 import * as React from "react";
 import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart as RechartsBarChart,
   Bar,
+  BarChart as RechartsBarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
 } from "recharts";
+
 import { cn } from "@/lib/utils";
 
 const cardClass =
@@ -43,12 +44,7 @@ export function DonutChart({ data, title, height = 320, className, ...props }: D
       {title && (
         <p className="mb-2 text-[15px] font-semibold tracking-tight text-zinc-900">{title}</p>
       )}
-      <div
-        ref={containerRef}
-        className="relative"
-        style={{ height }}
-        onMouseMove={handleMouseMove}
-      >
+      <div ref={containerRef} className="relative" style={{ height }} onMouseMove={handleMouseMove}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -79,11 +75,14 @@ export function DonutChart({ data, title, height = 320, className, ...props }: D
                 return (
                   <div className={tooltipClass}>
                     <p className="flex items-center gap-2 font-medium text-zinc-900">
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{ backgroundColor: item.color }}
+                      />
                       {item.name}
                     </p>
                     <p className="mt-1 text-xs text-zinc-500">
-                      <span className="font-semibold tabular-nums text-zinc-900">{item.value}</span>
+                      <span className="font-semibold text-zinc-900 tabular-nums">{item.value}</span>
                       {" · "}
                       {pct}%
                     </p>
@@ -94,8 +93,12 @@ export function DonutChart({ data, title, height = 320, className, ...props }: D
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[11px] font-medium tracking-[0.14em] text-zinc-400 uppercase">Total</span>
-          <span className="text-3xl font-bold tracking-tight text-zinc-900 tabular-nums">{total}</span>
+          <span className="text-[11px] font-medium tracking-[0.14em] text-zinc-400 uppercase">
+            Total
+          </span>
+          <span className="text-3xl font-bold tracking-tight text-zinc-900 tabular-nums">
+            {total}
+          </span>
         </div>
       </div>
       <div className="mt-1 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
@@ -103,7 +106,7 @@ export function DonutChart({ data, title, height = 320, className, ...props }: D
           <div key={item.name} className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
             <span className="text-xs font-medium text-zinc-500">{item.name}</span>
-            <span className="text-xs font-semibold tabular-nums text-zinc-800">{item.value}</span>
+            <span className="text-xs font-semibold text-zinc-800 tabular-nums">{item.value}</span>
           </div>
         ))}
       </div>
@@ -119,7 +122,15 @@ interface BarChartProps extends React.HTMLAttributes<HTMLDivElement> {
   bars: { dataKey: string; color: string; name?: string }[];
 }
 
-export function BarChart({ data, title, height = 280, xAxisKey, bars, className, ...props }: BarChartProps) {
+export function BarChart({
+  data,
+  title,
+  height = 280,
+  xAxisKey,
+  bars,
+  className,
+  ...props
+}: BarChartProps) {
   const gradientId = React.useId().replace(/:/g, "");
 
   return (
@@ -132,7 +143,14 @@ export function BarChart({ data, title, height = 280, xAxisKey, bars, className,
           <RechartsBarChart data={data} margin={{ top: 12, right: 8, left: -18, bottom: 8 }}>
             <defs>
               {bars.map((bar, index) => (
-                <linearGradient key={index} id={`${gradientId}-${index}`} x1="0" y1="0" x2="0" y2="1">
+                <linearGradient
+                  key={index}
+                  id={`${gradientId}-${index}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop offset="0%" stopColor={bar.color} stopOpacity={1} />
                   <stop offset="100%" stopColor={bar.color} stopOpacity={0.72} />
                 </linearGradient>
@@ -164,9 +182,14 @@ export function BarChart({ data, title, height = 280, xAxisKey, bars, className,
                     <p className="mb-1.5 font-medium text-zinc-900">{label}</p>
                     {payload.map((item: any, i: number) => (
                       <div key={i} className="flex items-center gap-2 text-zinc-500">
-                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                        <span
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{ backgroundColor: item.color }}
+                        />
                         <span>{item.name}</span>
-                        <span className="font-semibold tabular-nums text-zinc-900">{item.value}</span>
+                        <span className="font-semibold text-zinc-900 tabular-nums">
+                          {item.value}
+                        </span>
                       </div>
                     ))}
                   </div>

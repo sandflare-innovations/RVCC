@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Star } from "lucide-react"
+import { Star } from "lucide-react";
+import * as React from "react";
 import {
   CartesianGrid,
   Line,
@@ -11,61 +11,53 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "recharts"
+} from "recharts";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 interface PointsChartDataPoint {
-  date: string
-  total: number
-  change: number
+  date: string;
+  total: number;
+  change: number;
 }
 
 interface PointsChartLevel {
-  value: number
-  color: string
+  value: number;
+  color: string;
 }
 
 interface PointsChartProps extends React.HTMLAttributes<HTMLDivElement> {
-  data: PointsChartDataPoint[]
-  height?: number
-  title?: string
-  headerRight?: React.ReactNode
-  yAxisLabel?: string
-  levels?: PointsChartLevel[]
+  data: PointsChartDataPoint[];
+  height?: number;
+  title?: string;
+  headerRight?: React.ReactNode;
+  yAxisLabel?: string;
+  levels?: PointsChartLevel[];
 }
 
 function formatValue(value: number) {
-  return Math.round(value).toLocaleString()
+  return Math.round(value).toLocaleString();
 }
 
 function LevelReferenceStarLabel({
   viewBox,
   color,
 }: {
-  viewBox?: { x?: number; y?: number } | null
-  color: string
+  viewBox?: { x?: number; y?: number } | null;
+  color: string;
 }) {
-  const x = viewBox?.x
-  const y = viewBox?.y
+  const x = viewBox?.x;
+  const y = viewBox?.y;
 
   if (typeof x !== "number" || typeof y !== "number") {
-    return null
+    return null;
   }
 
   return (
     <g transform={`translate(${x - 14},${y})`}>
-      <Star
-        x={-5}
-        y={-5}
-        width={10}
-        height={10}
-        fill={color}
-        stroke={color}
-        strokeWidth={1.75}
-      />
+      <Star x={-5} y={-5} width={10} height={10} fill={color} stroke={color} strokeWidth={1.75} />
     </g>
-  )
+  );
 }
 
 function PointsChart({
@@ -82,35 +74,35 @@ function PointsChart({
     const values = [
       ...data.map((item) => item.total),
       ...(levels?.map((level) => level.value) ?? []),
-    ]
+    ];
 
-    if (values.length === 0) return [0, 100]
+    if (values.length === 0) return [0, 100];
 
-    const minValue = Math.min(...values)
-    const maxValue = Math.max(...values)
-    const range = maxValue - minValue
+    const minValue = Math.min(...values);
+    const maxValue = Math.max(...values);
+    const range = maxValue - minValue;
 
     if (range === 0) {
-      const padding = Math.max(maxValue * 0.15, 10)
-      return [Math.max(0, minValue - padding), maxValue + padding]
+      const padding = Math.max(maxValue * 0.15, 10);
+      return [Math.max(0, minValue - padding), maxValue + padding];
     }
 
-    const padding = Math.max(range * 0.12, 10)
-    return [Math.max(0, minValue - padding), maxValue + padding]
-  }, [data, levels])
+    const padding = Math.max(range * 0.12, 10);
+    return [Math.max(0, minValue - padding), maxValue + padding];
+  }, [data, levels]);
 
   return (
-    <div className={cn("bg-white rounded-2xl border border-zinc-200 p-4 shadow-sm", className)} {...props}>
+    <div
+      className={cn("rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm", className)}
+      {...props}
+    >
       <div className="mb-3 flex items-center justify-between gap-3">
-        <p className="text-md text-zinc-950 font-semibold">{title}</p>
+        <p className="text-md font-semibold text-zinc-950">{title}</p>
         {headerRight ? <div className="shrink-0">{headerRight}</div> : null}
       </div>
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
-            margin={{ top: 12, right: 12, left: 0, bottom: 4 }}
-          >
+          <LineChart data={data} margin={{ top: 12, right: 12, left: 0, bottom: 4 }}>
             <CartesianGrid stroke="var(--zinc-200)" strokeDasharray="3 3" />
             <XAxis
               dataKey="date"
@@ -151,8 +143,8 @@ function PointsChart({
                     <LevelReferenceStarLabel
                       viewBox={
                         (labelProps.viewBox as {
-                          x?: number
-                          y?: number
+                          x?: number;
+                          y?: number;
                         } | null) ?? null
                       }
                       color={level.color}
@@ -164,23 +156,19 @@ function PointsChart({
             <Tooltip
               cursor={{ stroke: "#0073bc", strokeDasharray: "4 4" }}
               content={({ active, payload, label }) => {
-                if (!active || !payload?.length) return null
-                const row = payload[0].payload as PointsChartDataPoint
-                const changePrefix = row.change > 0 ? "+" : ""
+                if (!active || !payload?.length) return null;
+                const row = payload[0].payload as PointsChartDataPoint;
+                const changePrefix = row.change > 0 ? "+" : "";
                 return (
-                  <div
-                    className="bg-white text-zinc-950 rounded-lg border border-zinc-200 px-3 py-2 text-sm shadow-md"
-                  >
-                    <p className="text-zinc-500 mb-1">{label}</p>
-                    <p className="font-medium tabular-nums">
-                      Total {formatValue(row.total)}
-                    </p>
-                    <p className="text-zinc-500 text-xs tabular-nums">
+                  <div className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 shadow-md">
+                    <p className="mb-1 text-zinc-500">{label}</p>
+                    <p className="font-medium tabular-nums">Total {formatValue(row.total)}</p>
+                    <p className="text-xs text-zinc-500 tabular-nums">
                       {changePrefix}
                       {formatValue(row.change)}
                     </p>
                   </div>
-                )
+                );
               }}
             />
             <Line
@@ -196,8 +184,8 @@ function PointsChart({
         </ResponsiveContainer>
       </div>
     </div>
-  )
+  );
 }
 
-export { PointsChart }
-export type { PointsChartDataPoint, PointsChartProps }
+export { PointsChart };
+export type { PointsChartDataPoint, PointsChartProps };

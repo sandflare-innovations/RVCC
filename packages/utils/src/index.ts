@@ -21,4 +21,3 @@ export const PROCUREMENT_PROFILE_COOKIE = "rvcc_procurement_profile";
 export const ADMIN_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 14; // 14d
 export const VENDOR_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30d
 export const PROCUREMENT_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 14; // 14d
-

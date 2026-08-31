@@ -1,4 +1,5 @@
 import Script from "next/script";
+
 import { PWA_BOOTSTRAP_SCRIPT } from "@/lib/pwa/bootstrap-script";
 
 /** Runs before React so beforeinstallprompt is captured in time. */

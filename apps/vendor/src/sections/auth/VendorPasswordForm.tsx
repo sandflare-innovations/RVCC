@@ -1,17 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
-
+import { AlertCircle, ArrowRight, CheckCircle2, Eye, EyeOff, Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-import {
-  AlertCircle,
-  CheckCircle2,
-  Eye,
-  EyeOff,
-  ArrowRight,
-  Shield,
-} from "lucide-react";
+import { useMemo,useState } from "react";
 
 import { SubmitLoader } from "@/components/ui/loader";
 import { readApiError } from "@/lib/read-error";
@@ -128,7 +119,7 @@ export function VendorPasswordForm({ mustChange }: { mustChange: boolean }) {
           <button
             type="button"
             onClick={() => setShowCurrent((s) => !s)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 transition-colors hover:text-zinc-600"
+            className="absolute top-1/2 right-3 -translate-y-1/2 text-zinc-400 transition-colors hover:text-zinc-600"
             tabIndex={-1}
             aria-label={showCurrent ? "Hide password" : "Show password"}
           >
@@ -157,7 +148,7 @@ export function VendorPasswordForm({ mustChange }: { mustChange: boolean }) {
           <button
             type="button"
             onClick={() => setShowNext((s) => !s)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 transition-colors hover:text-zinc-600"
+            className="absolute top-1/2 right-3 -translate-y-1/2 text-zinc-400 transition-colors hover:text-zinc-600"
             tabIndex={-1}
             aria-label={showNext ? "Hide password" : "Show password"}
           >
@@ -179,12 +170,14 @@ export function VendorPasswordForm({ mustChange }: { mustChange: boolean }) {
                 />
               ))}
             </div>
-            <p className={cn("text-xs font-medium", {
-              "text-red-500": strength.label === "Weak",
-              "text-amber-500": strength.label === "Fair",
-              "text-brand-blue": strength.label === "Good",
-              "text-emerald-500": strength.label === "Strong",
-            })}>
+            <p
+              className={cn("text-xs font-medium", {
+                "text-red-500": strength.label === "Weak",
+                "text-amber-500": strength.label === "Fair",
+                "text-brand-blue": strength.label === "Good",
+                "text-emerald-500": strength.label === "Strong",
+              })}
+            >
               {strength.label}
             </p>
           </div>
@@ -218,7 +211,7 @@ export function VendorPasswordForm({ mustChange }: { mustChange: boolean }) {
             required
           />
           {confirm.length > 0 && !mismatch && (
-            <CheckCircle2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-500" />
+            <CheckCircle2 className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-emerald-500" />
           )}
         </div>
         {mismatch && (
@@ -234,7 +227,7 @@ export function VendorPasswordForm({ mustChange }: { mustChange: boolean }) {
         type="submit"
         disabled={busy || !ready}
         className={cn(
-          "group relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl border-2 border-brand-blue bg-brand-blue px-8 text-sm font-bold tracking-[0.1em] uppercase text-white transition-all duration-200",
+          "group border-brand-blue bg-brand-blue relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl border-2 px-8 text-sm font-bold tracking-[0.1em] text-white uppercase transition-all duration-200",
           "hover:bg-brand-blue/90 active:scale-[0.98]",
           "focus-visible:ring-brand-blue focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
           "disabled:pointer-events-none disabled:opacity-55 disabled:active:scale-100",

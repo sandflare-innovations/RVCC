@@ -40,7 +40,7 @@ export function PwaSplash() {
   return (
     <div
       className={`fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity duration-600 ${
-        fadeOut ? "opacity-0 pointer-events-none" : "opacity-100"
+        fadeOut ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
       aria-hidden="true"
     >
@@ -107,12 +107,8 @@ export function PwaSplash() {
 
         {/* Branding */}
         <div className="text-center">
-          <h1 className="text-lg font-bold tracking-tight text-zinc-900">
-            RVCC Admin
-          </h1>
-          <p className="mt-1 text-xs font-medium text-zinc-400">
-            Vendor Management Portal
-          </p>
+          <h1 className="text-lg font-bold tracking-tight text-zinc-900">RVCC Admin</h1>
+          <p className="mt-1 text-xs font-medium text-zinc-400">Vendor Management Portal</p>
         </div>
 
         {/* Progress bar */}

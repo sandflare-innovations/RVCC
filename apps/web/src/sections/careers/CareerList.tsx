@@ -1,15 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
-
+import { cn } from "@lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
 import { Icons } from "@/lib/icons";
-
 import type { JobPosition } from "@/types/careers";
-
-import { cn } from "@lib/utils";
 
 /** Postings come from the database via the careers page (server component). */
 export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
@@ -94,7 +91,9 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setSubmitError((data as { error?: string }).error || "Application failed. Please try again.");
+        setSubmitError(
+          (data as { error?: string }).error || "Application failed. Please try again."
+        );
         return;
       }
 
@@ -348,7 +347,7 @@ export const CareerList = ({ positions }: { positions: JobPosition[] }) => {
                               {submitError ? (
                                 <p
                                   role="alert"
-                                  className="md:col-span-2 text-sm font-medium text-red-600"
+                                  className="text-sm font-medium text-red-600 md:col-span-2"
                                 >
                                   {submitError}
                                 </p>

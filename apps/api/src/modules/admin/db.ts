@@ -19,7 +19,10 @@ export type RegistrationDetail = Record<string, unknown> & {
 };
 
 /** Full registration graph used by GET /registrations/:id and review. */
-export async function loadRegistration(_sql: unknown, id: string): Promise<RegistrationDetail | null> {
+export async function loadRegistration(
+  _sql: unknown,
+  id: string
+): Promise<RegistrationDetail | null> {
   const reg = await prisma.supplierRegistration.findUnique({
     where: { id },
     include: {

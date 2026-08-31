@@ -8,7 +8,8 @@ export async function GET() {
     return NextResponse.json(
       {
         ok: false,
-        error: "API_URL is not set on this deployment. Add it in Vercel → Settings → Environment Variables.",
+        error:
+          "API_URL is not set on this deployment. Add it in Vercel → Settings → Environment Variables.",
       },
       { status: 503 }
     );

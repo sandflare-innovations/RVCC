@@ -37,9 +37,7 @@ const draftPatchSchema = z.object({
   classifications: z.array(z.record(z.unknown())).optional(),
   bankAccounts: z.array(z.record(z.unknown())).optional(),
   productCategories: z.array(z.string()).optional(),
-  questionnaire: z
-    .array(z.object({ questionKey: z.string(), answer: z.string() }))
-    .optional(),
+  questionnaire: z.array(z.object({ questionKey: z.string(), answer: z.string() })).optional(),
 });
 
 function sessionFrom(request: Request): string | null {
@@ -63,7 +61,11 @@ export async function resolveEnquireRegistration(
   return ensureDraftForEmail(sql, email);
 }
 
-export async function handleOtpRequest(_sql: unknown, env: Env, request: Request): Promise<Response> {
+export async function handleOtpRequest(
+  _sql: unknown,
+  env: Env,
+  request: Request
+): Promise<Response> {
   const raw = await request.json().catch(() => ({}));
   const parsed = otpRequestSchema.safeParse(raw);
   if (!parsed.success) {
@@ -192,14 +194,21 @@ export async function handleOtpVerify(sql: unknown, env: Env, request: Request):
   const latest = await prisma.supplierRegistration.findFirst({
     where: { email: { equals: email, mode: "insensitive" } },
     orderBy: { updatedAt: "desc" },
-    select: { id: true, status: true, referenceNumber: true, currentStep: true, registrationComplete: true },
+    select: {
+      id: true,
+      status: true,
+      referenceNumber: true,
+      currentStep: true,
+      registrationComplete: true,
+    },
   });
 
   if (latest?.status === "REJECTED") {
     return json(env, request, {
       ok: true,
       outcome: "rejected",
-      message: "A previous registration with this email was rejected. Contact RVCC support for assistance.",
+      message:
+        "A previous registration with this email was rejected. Contact RVCC support for assistance.",
     });
   }
 
@@ -213,7 +222,11 @@ export async function handleOtpVerify(sql: unknown, env: Env, request: Request):
     });
   }
 
-  if (latest && (latest.status === "PENDING" || (latest.status as string) === "SUBMITTED") && latest.registrationComplete) {
+  if (
+    latest &&
+    (latest.status === "PENDING" || (latest.status as string) === "SUBMITTED") &&
+    latest.registrationComplete
+  ) {
     return json(env, request, {
       ok: true,
       outcome: "submitted",
@@ -238,7 +251,11 @@ export async function handleDraftGet(sql: unknown, env: Env, request: Request): 
   return json(env, request, { registration });
 }
 
-export async function handleDraftPatch(sql: unknown, env: Env, request: Request): Promise<Response> {
+export async function handleDraftPatch(
+  sql: unknown,
+  env: Env,
+  request: Request
+): Promise<Response> {
   const existing = await resolveEnquireRegistration(sql, env, request);
   if (!existing) return json(env, request, { error: "Not authenticated" }, 401);
   if (existing.status !== "DRAFT") {
@@ -431,7 +448,9 @@ export async function handleSubmit(_sql: unknown, env: Env, request: Request): P
 
   const company = (body.company as Record<string, unknown>) || {};
   const contacts = Array.isArray(body.contacts) ? (body.contacts as Record<string, unknown>[]) : [];
-  const addresses = Array.isArray(body.addresses) ? (body.addresses as Record<string, unknown>[]) : [];
+  const addresses = Array.isArray(body.addresses)
+    ? (body.addresses as Record<string, unknown>[])
+    : [];
   const classifications = Array.isArray(body.classifications)
     ? (body.classifications as Record<string, unknown>[])
     : [];
@@ -557,7 +576,9 @@ export async function handleSubmit(_sql: unknown, env: Env, request: Request): P
     });
   }
 
-  const validClassifications = classifications.filter((raw) => String(raw.classification ?? "").trim());
+  const validClassifications = classifications.filter((raw) =>
+    String(raw.classification ?? "").trim()
+  );
   if (validClassifications.length) {
     await prisma.businessClassification.createMany({
       data: validClassifications.map((raw, i) => ({

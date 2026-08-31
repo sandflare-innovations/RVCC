@@ -1,18 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
+import { cn } from "@lib/utils";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { LuCircleCheck as CheckCircle2, LuCircle as Circle } from "react-icons/lu";
+import { LuCircle as Circle,LuCircleCheck as CheckCircle2 } from "react-icons/lu";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
-import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
-import { enquireMutedClass } from "@/sections/enquire/enquire-typography";
-
-import { cn } from "@lib/utils";
 
 export function ProductsStep() {
   useRequireSession("products");
@@ -21,7 +17,9 @@ export function ProductsStep() {
   // Which action is in flight, so only that button shows a spinner.
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
-  const [customFields, setCustomFields] = useState<{ id: string; value: string; active: boolean }[]>([]);
+  const [customFields, setCustomFields] = useState<
+    { id: string; value: string; active: boolean }[]
+  >([]);
   const [error, setError] = useState(false);
   const [headerNode, setHeaderNode] = useState<HTMLElement | null>(null);
 
@@ -31,18 +29,27 @@ export function ProductsStep() {
 
   useEffect(() => {
     if (registration?.productCategories) {
-      const standardIds = ENQUIRE_CATEGORIES.map((c) => c.id).filter(id => id !== "other") as string[];
-      const standardSelected = registration.productCategories.filter((c) => standardIds.includes(c));
-      const customStrings = registration.productCategories.filter((c) => !standardIds.includes(c) && c !== "other" && c !== "Other Goods & Services");
-      
+      const standardIds = ENQUIRE_CATEGORIES.map((c) => c.id).filter(
+        (id) => id !== "other"
+      ) as string[];
+      const standardSelected = registration.productCategories.filter((c) =>
+        standardIds.includes(c)
+      );
+      const customStrings = registration.productCategories.filter(
+        (c) => !standardIds.includes(c) && c !== "other" && c !== "Other Goods & Services"
+      );
+
       setSelected(standardSelected);
-      
+
       const initialCustoms = customStrings.map((val, i) => ({
         id: `custom-init-${i}`,
         value: val,
-        active: true
+        active: true,
       }));
-      setCustomFields([...initialCustoms, { id: `custom-new-${Date.now()}`, value: "", active: false }]);
+      setCustomFields([
+        ...initialCustoms,
+        { id: `custom-new-${Date.now()}`, value: "", active: false },
+      ]);
     } else {
       setCustomFields([{ id: `custom-new-${Date.now()}`, value: "", active: false }]);
     }
@@ -51,14 +58,17 @@ export function ProductsStep() {
   const toggle = (id: string) => {
     setSelected((prev) => {
       const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
-      if (next.length > 0 || customFields.some(f => f.active && f.value.trim() !== "")) setError(false);
+      if (next.length > 0 || customFields.some((f) => f.active && f.value.trim() !== ""))
+        setError(false);
       return next;
     });
   };
 
   const getFinalCategories = () => {
     const final = selected.filter((x) => x !== "other");
-    const validCustoms = customFields.filter(f => f.active && f.value.trim() !== "").map(f => f.value.trim());
+    const validCustoms = customFields
+      .filter((f) => f.active && f.value.trim() !== "")
+      .map((f) => f.value.trim());
     return [...final, ...validCustoms];
   };
 
@@ -83,7 +93,7 @@ export function ProductsStep() {
       <InteractiveHoverButton
         type="button"
         variant="outline"
-        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        className="h-10 min-w-[120px] px-6 text-xs sm:w-auto sm:text-xs"
         disabled={saving}
         pending={pendingAction === "save"}
         onClick={() => void saveLater()}
@@ -93,7 +103,7 @@ export function ProductsStep() {
       <InteractiveHoverButton
         type="button"
         variant="solid"
-        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        className="h-10 min-w-[120px] px-6 text-xs sm:w-auto sm:text-xs"
         onClick={goNext}
       >
         Next
@@ -107,9 +117,8 @@ export function ProductsStep() {
     <div className="space-y-8">
       {headerNode && createPortal(actions, headerNode)}
 
-
-      <div className="grid gap-3 sm:grid-cols-2 animate-fade-in">
-        {ENQUIRE_CATEGORIES.filter(c => c.id !== "other").map((cat) => {
+      <div className="animate-fade-in grid gap-3 sm:grid-cols-2">
+        {ENQUIRE_CATEGORIES.filter((c) => c.id !== "other").map((cat) => {
           const on = selected.includes(cat.id);
           return (
             <button
@@ -117,18 +126,24 @@ export function ProductsStep() {
               type="button"
               onClick={() => toggle(cat.id)}
               className={cn(
-                "group relative flex items-center justify-between border rounded-2xl px-5 py-4 text-left transition-all duration-200",
+                "group relative flex items-center justify-between rounded-2xl border px-5 py-4 text-left transition-all duration-200",
                 on
-                  ? "border-brand-blue bg-brand-blue text-white shadow-md ring-1 ring-brand-blue"
-                  : "border-zinc-200 bg-white text-zinc-700 hover:border-brand-blue/40 hover:bg-zinc-50 hover:shadow-sm",
-                error && !on && selected.length === 0 && !customFields.some(f => f.active && f.value.trim() !== "") && "border-red-500 ring-1 ring-red-500 hover:border-red-500"
+                  ? "border-brand-blue bg-brand-blue ring-brand-blue text-white shadow-md ring-1"
+                  : "hover:border-brand-blue/40 border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 hover:shadow-sm",
+                error &&
+                  !on &&
+                  selected.length === 0 &&
+                  !customFields.some((f) => f.active && f.value.trim() !== "") &&
+                  "border-red-500 ring-1 ring-red-500 hover:border-red-500"
               )}
             >
-              <div className="font-medium text-[15px] pr-4">{cat.label}</div>
-              <div className={cn(
-                "flex-shrink-0 transition-all duration-200",
-                on ? "text-white scale-110" : "text-zinc-300 group-hover:text-brand-blue/40"
-              )}>
+              <div className="pr-4 text-[15px] font-medium">{cat.label}</div>
+              <div
+                className={cn(
+                  "flex-shrink-0 transition-all duration-200",
+                  on ? "scale-110 text-white" : "group-hover:text-brand-blue/40 text-zinc-300"
+                )}
+              >
                 {on ? (
                   <CheckCircle2 className="h-6 w-6 text-white" strokeWidth={2} />
                 ) : (
@@ -156,18 +171,22 @@ export function ProductsStep() {
                 }
               }}
               className={cn(
-                "group relative flex items-center justify-between border rounded-2xl px-5 py-4 text-left transition-all duration-200",
+                "group relative flex items-center justify-between rounded-2xl border px-5 py-4 text-left transition-all duration-200",
                 on
-                  ? "border-brand-blue bg-brand-blue text-white shadow-md ring-1 ring-brand-blue"
-                  : "border-zinc-200 bg-white text-zinc-700 hover:border-brand-blue/40 hover:bg-zinc-50 hover:shadow-sm",
-                error && !on && selected.length === 0 && !customFields.some(f => f.active && f.value.trim() !== "") && "border-red-500 ring-1 ring-red-500 hover:border-red-500"
+                  ? "border-brand-blue bg-brand-blue ring-brand-blue text-white shadow-md ring-1"
+                  : "hover:border-brand-blue/40 border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 hover:shadow-sm",
+                error &&
+                  !on &&
+                  selected.length === 0 &&
+                  !customFields.some((f) => f.active && f.value.trim() !== "") &&
+                  "border-red-500 ring-1 ring-red-500 hover:border-red-500"
               )}
             >
-              <div className="font-medium text-[15px] pr-4 w-full flex-1">
+              <div className="w-full flex-1 pr-4 text-[15px] font-medium">
                 {on ? (
-                  <div className="flex items-center gap-2 pr-4 relative z-10 w-full">
-                    <input 
-                      type="text" 
+                  <div className="relative z-10 flex w-full items-center gap-2 pr-4">
+                    <input
+                      type="text"
                       value={field.value}
                       onChange={(e) => {
                         const newFields = [...customFields];
@@ -186,7 +205,11 @@ export function ProductsStep() {
                         } else {
                           if (isLast) {
                             const newFields = [...customFields];
-                            newFields.push({ id: `custom-new-${Date.now()}`, value: "", active: false });
+                            newFields.push({
+                              id: `custom-new-${Date.now()}`,
+                              value: "",
+                              active: false,
+                            });
                             setCustomFields(newFields);
                           }
                         }
@@ -199,7 +222,7 @@ export function ProductsStep() {
                       }}
                       placeholder="Type your service..."
                       autoFocus
-                      className="w-full bg-transparent border-b border-white/40 text-white placeholder:text-white/60 focus:outline-none focus:border-white py-1"
+                      className="w-full border-b border-white/40 bg-transparent py-1 text-white placeholder:text-white/60 focus:border-white focus:outline-none"
                       onClick={(e) => e.stopPropagation()}
                     />
                   </div>
@@ -222,8 +245,8 @@ export function ProductsStep() {
                   }
                 }}
                 className={cn(
-                  "flex-shrink-0 transition-all duration-200 cursor-pointer",
-                  on ? "text-white scale-110" : "text-zinc-300 group-hover:text-brand-blue/40"
+                  "flex-shrink-0 cursor-pointer transition-all duration-200",
+                  on ? "scale-110 text-white" : "group-hover:text-brand-blue/40 text-zinc-300"
                 )}
               >
                 {on ? (
@@ -237,11 +260,13 @@ export function ProductsStep() {
         })}
       </div>
 
-      {error && selected.length === 0 && !customFields.some(f => f.active && f.value.trim() !== "") && (
-        <p className="text-red-500 text-sm font-medium mt-4">
-          Please select at least one category to continue.
-        </p>
-      )}
+      {error &&
+        selected.length === 0 &&
+        !customFields.some((f) => f.active && f.value.trim() !== "") && (
+          <p className="mt-4 text-sm font-medium text-red-500">
+            Please select at least one category to continue.
+          </p>
+        )}
     </div>
   );
 }

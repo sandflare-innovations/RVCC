@@ -31,7 +31,12 @@ export async function handleAdminChangePasswordWithCurrent(
     return json(env, request, { error: "New password must be at least 8 characters." }, 400);
   }
   if (currentPassword === newPassword) {
-    return json(env, request, { error: "New password must be different from current password." }, 400);
+    return json(
+      env,
+      request,
+      { error: "New password must be different from current password." },
+      400
+    );
   }
 
   // Fetch the admin's password hash
@@ -210,7 +215,12 @@ export async function handleAdminChangePasswordVerify(
   });
 
   if (!otp) {
-    return json(env, request, { error: "No valid verification code found. Request a new one." }, 404);
+    return json(
+      env,
+      request,
+      { error: "No valid verification code found. Request a new one." },
+      404
+    );
   }
 
   // Timing-safe comparison
@@ -253,5 +263,8 @@ export async function handleAdminChangePasswordVerify(
     metadata: { method: "otp" },
   });
 
-  return json(env, request, { ok: true, message: "Password updated successfully. Please sign in again." });
+  return json(env, request, {
+    ok: true,
+    message: "Password updated successfully. Please sign in again.",
+  });
 }

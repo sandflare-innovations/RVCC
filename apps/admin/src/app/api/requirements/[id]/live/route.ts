@@ -14,10 +14,7 @@ export const dynamic = "force-dynamic";
  * proxy long-lived upstream SSE connections (causes "Failed to fetch").
  * The client polls this endpoint every 5 seconds instead.
  */
-export async function GET(
-  _request: Request,
-  props: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const jar = await cookies();
   const token = jar.get(ADMIN_COOKIE)?.value;
@@ -26,14 +23,11 @@ export async function GET(
   }
 
   try {
-    const res = await adminWorkerFetch(
-      `/requirements/${encodeURIComponent(params.id)}/live-bids`,
-      {
-        method: "GET",
-        sessionToken: token,
-        headers: { Accept: "application/json" },
-      }
-    );
+    const res = await adminWorkerFetch(`/requirements/${encodeURIComponent(params.id)}/live-bids`, {
+      method: "GET",
+      sessionToken: token,
+      headers: { Accept: "application/json" },
+    });
 
     const raw = await res.text();
 
@@ -43,18 +37,13 @@ export async function GET(
     } catch {
       return NextResponse.json(
         {
-          error: res.ok
-            ? "Invalid data received from API"
-            : `API returned HTTP ${res.status}`,
+          error: res.ok ? "Invalid data received from API" : `API returned HTTP ${res.status}`,
         },
         { status: res.ok ? 502 : res.status }
       );
     }
   } catch (err) {
     console.error("[admin live-bids proxy error]", err);
-    return NextResponse.json(
-      { error: "Live stream temporarily unavailable" },
-      { status: 503 }
-    );
+    return NextResponse.json({ error: "Live stream temporarily unavailable" }, { status: 503 });
   }
 }

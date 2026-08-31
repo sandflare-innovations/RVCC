@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Bell } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 type Item = {
   id: string;
@@ -67,7 +67,7 @@ export function NotificationBell() {
       >
         <Bell className="h-5 w-5" />
         {unread > 0 ? (
-          <span className="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white tabular-nums border-2 border-brand-blue">
+          <span className="border-brand-blue absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full border-2 bg-red-500 px-1.5 text-[11px] font-bold text-white tabular-nums">
             {unread}
           </span>
         ) : null}

@@ -1,13 +1,10 @@
 "use client";
 
+import { AlertCircle, KeyRound, Mail, Scale } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { useRouter } from "next/navigation";
-
-import { AlertCircle, Check, KeyRound, Mail, Scale, X } from "lucide-react";
-
 import { Modal, SubmitLoader } from "@/components/ui";
-
 import { readApiError } from "@/lib/read-error";
 
 type Credential = { email: string; tempPassword: string };
@@ -120,7 +117,7 @@ export function ReviewPanel({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-lg bg-brand-blue px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-blue/90"
+        className="bg-brand-blue hover:bg-brand-blue/90 inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors"
       >
         <Scale className="h-4 w-4" />
         Review Application

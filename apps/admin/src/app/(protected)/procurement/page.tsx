@@ -1,5 +1,6 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
+import { Suspense } from "react";
+
 import { ProcurementPanel, ProcurementSkeleton } from "@/sections/procurement/ProcurementPanel";
 
 export const metadata: Metadata = {

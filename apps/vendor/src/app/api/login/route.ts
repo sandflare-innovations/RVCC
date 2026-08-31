@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
-
 import { z } from "zod";
 
-import {
-  VENDOR_COOKIE,
-  VENDOR_PROFILE_COOKIE,
-  vendorCookieOptions,
-} from "@/lib/constants";
+import { VENDOR_COOKIE, VENDOR_PROFILE_COOKIE, vendorCookieOptions } from "@/lib/constants";
 import { encodeVendorProfile, vendorProfileCookieOptions } from "@/lib/profile-cookie";
 import { resolveVendorIdentity } from "@/lib/session";
 import { vendorWorkerFetch } from "@/lib/vendor-api";
@@ -62,6 +57,13 @@ export async function POST(request: Request) {
     return out;
   } catch (err: any) {
     console.error("[vendor/login]", err);
-    return NextResponse.json({ error: "Could not sign in.", message: String(err?.message || err), stack: String(err?.stack || "") }, { status: 503 });
+    return NextResponse.json(
+      {
+        error: "Could not sign in.",
+        message: String(err?.message || err),
+        stack: String(err?.stack || ""),
+      },
+      { status: 503 }
+    );
   }
 }

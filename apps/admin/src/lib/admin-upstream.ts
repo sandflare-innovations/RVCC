@@ -31,8 +31,7 @@ export async function adminUpstreamGet(path: string, sessionToken: string): Prom
 }
 
 export type AdminListResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; status: number; error: string };
+  { ok: true; data: T } | { ok: false; status: number; error: string };
 
 /** Proxy a JSON array list endpoint — never confuse failures with an empty list. */
 export async function proxyAdminList<T>(

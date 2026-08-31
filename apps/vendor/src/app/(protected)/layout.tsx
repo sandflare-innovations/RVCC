@@ -1,4 +1,4 @@
-import { headers, cookies } from "next/headers";
+import { cookies,headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { VENDOR_COOKIE, VENDOR_LOGIN_EXPIRED_PATH } from "@/lib/constants";

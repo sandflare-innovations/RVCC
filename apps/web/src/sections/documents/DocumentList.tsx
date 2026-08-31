@@ -1,16 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-
-import { AnimatePresence, motion } from "framer-motion";
-
-import { Icons } from "@/lib/icons";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
-import { DOCUMENTS, DocumentItem } from "@/data/documents";
+import { DocumentItem,DOCUMENTS } from "@/data/documents";
+import { Icons } from "@/lib/icons";
 import { prefetchDocumentReader } from "@/lib/pdf-prefetch";
 
 const PasswordModal = ({

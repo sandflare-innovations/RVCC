@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { AlertCircle, Check,Copy, KeyRound, Lock, Unlock } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { KeyRound, Lock, Unlock, AlertCircle, Copy, Check } from "lucide-react";
+import { useState } from "react";
+
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
 
@@ -92,7 +93,7 @@ export function VendorProfileActions({
             setError(null);
             setShowReset(true);
           }}
-          className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-zinc-700 shadow-sm ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-zinc-700 shadow-sm ring-1 ring-zinc-300 transition-colors ring-inset hover:bg-zinc-50"
         >
           <KeyRound className="h-4 w-4 text-zinc-500" />
           Reset Password
@@ -106,9 +107,7 @@ export function VendorProfileActions({
             setShowAccess(true);
           }}
           className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors ${
-            held 
-              ? "bg-brand-blue hover:bg-brand-blue/90" 
-              : "bg-red-600 hover:bg-red-700"
+            held ? "bg-brand-blue hover:bg-brand-blue/90" : "bg-red-600 hover:bg-red-700"
           }`}
         >
           {held ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
@@ -174,11 +173,13 @@ export function VendorProfileActions({
         {issued ? (
           <div className="flex flex-col items-center gap-4 py-2 text-center">
             <div className="bg-brand-blue/10 flex h-14 w-14 items-center justify-center rounded-full">
-              <KeyRound className="h-7 w-7 text-brand-blue" />
+              <KeyRound className="text-brand-blue h-7 w-7" />
             </div>
             <div className="space-y-1">
               <p className="text-base font-semibold text-zinc-900">New temporary password issued</p>
-              <p className="text-sm text-zinc-500">Share this with <strong>{vendor.email}</strong> securely.</p>
+              <p className="text-sm text-zinc-500">
+                Share this with <strong>{vendor.email}</strong> securely.
+              </p>
             </div>
             <div className="w-full">
               <div className="flex items-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
@@ -210,7 +211,8 @@ export function VendorProfileActions({
           </div>
         ) : (
           <p className="text-sm text-zinc-700">
-            Issues a new temporary password for <strong className="text-zinc-950">{vendor.email}</strong>.
+            Issues a new temporary password for{" "}
+            <strong className="text-zinc-950">{vendor.email}</strong>.
           </p>
         )}
       </Modal>
@@ -273,11 +275,13 @@ export function VendorProfileActions({
         {accessIssued ? (
           <div className="flex flex-col items-center gap-4 py-2 text-center">
             <div className="bg-brand-blue/10 flex h-14 w-14 items-center justify-center rounded-full">
-              <KeyRound className="h-7 w-7 text-brand-blue" />
+              <KeyRound className="text-brand-blue h-7 w-7" />
             </div>
             <div className="space-y-1">
               <p className="text-base font-semibold text-zinc-900">New temporary password issued</p>
-              <p className="text-sm text-zinc-500">Share this with <strong>{vendor.email}</strong> securely.</p>
+              <p className="text-sm text-zinc-500">
+                Share this with <strong>{vendor.email}</strong> securely.
+              </p>
             </div>
             <div className="w-full">
               <div className="flex items-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">

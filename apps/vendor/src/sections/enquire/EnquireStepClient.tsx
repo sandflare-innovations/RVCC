@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import type { EnquireStep } from "@/lib/enquire-constants";
 import { EnquireShell } from "@/sections/enquire/EnquireShell";
 import { AddressesStep } from "@/sections/enquire/steps/AddressesStep";
+import { AttachmentsStep } from "@/sections/enquire/steps/AttachmentsStep";
 import { BankStep } from "@/sections/enquire/steps/BankStep";
 import { ClassificationsStep } from "@/sections/enquire/steps/ClassificationsStep";
 import { CompanyStep } from "@/sections/enquire/steps/CompanyStep";
@@ -12,7 +13,6 @@ import { ContactsStep } from "@/sections/enquire/steps/ContactsStep";
 import { DoneStep } from "@/sections/enquire/steps/DoneStep";
 import { ProductsStep } from "@/sections/enquire/steps/ProductsStep";
 import { QuestionnaireStep } from "@/sections/enquire/steps/QuestionnaireStep";
-import { AttachmentsStep } from "@/sections/enquire/steps/AttachmentsStep";
 import { ReviewStep } from "@/sections/enquire/steps/ReviewStep";
 import { VerifyStep } from "@/sections/enquire/steps/VerifyStep";
 

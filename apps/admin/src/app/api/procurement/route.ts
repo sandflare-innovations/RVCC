@@ -14,7 +14,11 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const status = url.searchParams.get("status") || "ALL";
 
-  const result = await proxyAdminList(`/procurement?status=${encodeURIComponent(status)}`, token, "list procurement requisitions");
+  const result = await proxyAdminList(
+    `/procurement?status=${encodeURIComponent(status)}`,
+    token,
+    "list procurement requisitions"
+  );
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: result.status });
   }

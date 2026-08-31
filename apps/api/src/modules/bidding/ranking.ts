@@ -10,9 +10,7 @@ import type {
  * Calculates dense price rankings for all submitted quotes on a requirement.
  * Lowest price is Rank #1 (L1), with tie-breakers decided by earlier submission timestamp.
  */
-export async function getRequirementRankings(
-  requirementId: string
-): Promise<{
+export async function getRequirementRankings(requirementId: string): Promise<{
   requirement: {
     id: string;
     project: string;
@@ -73,9 +71,7 @@ export async function getRequirementRankings(
   }
 
   // Filter valid submitted quotes with positive price
-  const validQuotes = req.quotes.filter(
-    (q) => q.newPrice !== null && Number(q.newPrice) > 0
-  );
+  const validQuotes = req.quotes.filter((q) => q.newPrice !== null && Number(q.newPrice) > 0);
 
   // Sort ascending by price, then by submittedAt timestamp (tie breaker)
   validQuotes.sort((a, b) => {
@@ -87,7 +83,8 @@ export async function getRequirementRankings(
     return timeA - timeB;
   });
 
-  const lowestNum = validQuotes.length > 0 ? Number(validQuotes[0]!.amountSar ?? validQuotes[0]!.newPrice) : null;
+  const lowestNum =
+    validQuotes.length > 0 ? Number(validQuotes[0]!.amountSar ?? validQuotes[0]!.newPrice) : null;
   const lowestPrice = lowestNum !== null ? lowestNum.toFixed(2) : null;
 
   const totalQuotes = validQuotes.length;

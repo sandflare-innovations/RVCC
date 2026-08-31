@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
+import { cn } from "@/lib/utils";
+import { enquireMutedClass } from "@/sections/enquire/enquire-typography";
 import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
-import { enquireMutedClass } from "@/sections/enquire/enquire-typography";
-
-import { cn } from "@/lib/utils";
 
 export function ProductsStep() {
   useRequireSession("products");

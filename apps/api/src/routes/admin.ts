@@ -54,9 +54,6 @@ import {
   handleStaffUpdate,
 } from "../modules/admin/staff";
 
-
-
-
 /**
  * Admin domain router. Paths are relative to `/admin` (e.g. `/auth/login`).
  * Auth is session-based (`X-Admin-Session`); no shared API secret.
@@ -190,16 +187,31 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
 
     const procurementReview = path.match(/^\/procurement\/([^/]+)\/review$/);
     if (procurementReview && request.method === "POST") {
-      return await handleProcurementReview(sql, env, request, decodeURIComponent(procurementReview[1]!));
+      return await handleProcurementReview(
+        sql,
+        env,
+        request,
+        decodeURIComponent(procurementReview[1]!)
+      );
     }
 
     const procurementOne = path.match(/^\/procurement\/([^/]+)$/);
     if (procurementOne) {
       if (request.method === "GET") {
-        return await handleProcurementGet(sql, env, request, decodeURIComponent(procurementOne[1]!));
+        return await handleProcurementGet(
+          sql,
+          env,
+          request,
+          decodeURIComponent(procurementOne[1]!)
+        );
       }
       if (request.method === "DELETE") {
-        return await handleProcurementDelete(sql, env, request, decodeURIComponent(procurementOne[1]!));
+        return await handleProcurementDelete(
+          sql,
+          env,
+          request,
+          decodeURIComponent(procurementOne[1]!)
+        );
       }
     }
 
@@ -215,7 +227,12 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
     }
     const staffPassword = path.match(/^\/staff\/([^/]+)\/password$/);
     if (staffPassword && request.method === "POST") {
-      return await handleStaffPasswordReset(sql, env, request, decodeURIComponent(staffPassword[1]!));
+      return await handleStaffPasswordReset(
+        sql,
+        env,
+        request,
+        decodeURIComponent(staffPassword[1]!)
+      );
     }
     const staffOne = path.match(/^\/staff\/([^/]+)$/);
     if (staffOne) {
@@ -227,10 +244,7 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       }
     }
 
-
-
     if (path === "/careers" && request.method === "GET") {
-
       return await handleCareersList(sql, env, request);
     }
     if (path === "/careers" && request.method === "POST") {

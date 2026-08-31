@@ -1,10 +1,5 @@
 export type AdminRoleName =
-  | "SUPER_ADMIN"
-  | "ADMIN"
-  | "PROCUREMENT_ADMIN"
-  | "VENDOR_ADMIN"
-  | "WEBSITE_ADMIN"
-  | "REVIEWER";
+  "SUPER_ADMIN" | "ADMIN" | "PROCUREMENT_ADMIN" | "VENDOR_ADMIN" | "WEBSITE_ADMIN" | "REVIEWER";
 
 export const ROLE_RANK: Record<AdminRoleName, number> = {
   REVIEWER: 1,
@@ -34,7 +29,6 @@ export function canManageWebsite(role: AdminRoleName): boolean {
 export function hasRole(role: AdminRoleName, minimum: AdminRoleName): boolean {
   return ROLE_RANK[role] >= ROLE_RANK[minimum];
 }
-
 
 export type RegistrationStatus = "PENDING" | "UNDER_REVIEW" | "APPROVED" | "REJECTED";
 
@@ -171,4 +165,3 @@ export interface VendorLiveBidsPayload {
   leaderboard: VendorAnonymizedBidItem[];
   updatedAt: string;
 }
-

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import React, {
   createContext,
   useCallback,
@@ -9,8 +10,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-
-import { useRouter } from "next/navigation";
 
 import type { EnquireStep } from "@/lib/enquire-constants";
 

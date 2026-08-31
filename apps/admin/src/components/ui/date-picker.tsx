@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence,motion } from "framer-motion";
+import { Calendar as CalendarIcon,ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect,useRef, useState } from "react";
+
 import { cn } from "@/lib/utils";
 
 interface DatePickerProps {
@@ -15,8 +16,18 @@ interface DatePickerProps {
 
 const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function getDaysInMonth(year: number, month: number) {
@@ -29,7 +40,13 @@ function getFirstDayOfMonth(year: number, month: number) {
 
 // MiniSelect removed as per user request to simplify header
 
-export function DatePicker({ value, onChange, placeholder = "Select date...", className, minDate }: DatePickerProps) {
+export function DatePicker({
+  value,
+  onChange,
+  placeholder = "Select date...",
+  className,
+  minDate,
+}: DatePickerProps) {
   const [open, setOpen] = useState(false);
 
   const parsedDate = value ? new Date(value) : new Date();
@@ -77,7 +94,11 @@ export function DatePicker({ value, onChange, placeholder = "Select date...", cl
   const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
 
   const displayValue = value
-    ? new Date(value).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+    ? new Date(value).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
     : "";
 
   let minDateObj: Date | null = null;
@@ -103,12 +124,12 @@ export function DatePicker({ value, onChange, placeholder = "Select date...", cl
   }
 
   return (
-    <div className={cn("relative w-full peer", className)} ref={ref}>
+    <div className={cn("peer relative w-full", className)} ref={ref}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex h-[52px] w-full items-center justify-between rounded-xl border border-zinc-200 bg-transparent px-4 py-2 text-sm transition-colors hover:bg-zinc-50 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue",
+          "focus:border-brand-blue focus:ring-brand-blue flex h-[52px] w-full items-center justify-between rounded-xl border border-zinc-200 bg-transparent px-4 py-2 text-sm transition-colors hover:bg-zinc-50 focus:ring-1 focus:outline-none",
           displayValue ? "text-zinc-900" : "text-transparent"
         )}
       >
@@ -123,16 +144,18 @@ export function DatePicker({ value, onChange, placeholder = "Select date...", cl
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 mt-1 w-full min-w-[280px] p-3 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg"
+            className="absolute z-50 mt-1 w-full min-w-[280px] overflow-hidden rounded-xl border border-zinc-200 bg-white p-3 shadow-lg"
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <button
                 type="button"
                 onClick={() => !prevDisabled && handlePrevMonth()}
                 disabled={prevDisabled}
                 className={cn(
-                  "p-1 rounded transition-colors",
-                  prevDisabled ? "text-zinc-300 cursor-not-allowed" : "hover:bg-zinc-100 text-zinc-600"
+                  "rounded p-1 transition-colors",
+                  prevDisabled
+                    ? "cursor-not-allowed text-zinc-300"
+                    : "text-zinc-600 hover:bg-zinc-100"
                 )}
               >
                 <ChevronLeft className="h-5 w-5" />
@@ -143,15 +166,15 @@ export function DatePicker({ value, onChange, placeholder = "Select date...", cl
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="p-1 rounded hover:bg-zinc-100 text-zinc-600 transition-colors"
+                className="rounded p-1 text-zinc-600 transition-colors hover:bg-zinc-100"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-7 mb-2">
+            <div className="mb-2 grid grid-cols-7">
               {DAYS.map((d) => (
-                <div key={d} className="text-center text-xs font-medium text-zinc-500 py-1">
+                <div key={d} className="py-1 text-center text-xs font-medium text-zinc-500">
                   {d}
                 </div>
               ))}
@@ -167,7 +190,7 @@ export function DatePicker({ value, onChange, placeholder = "Select date...", cl
                 const formattedDay = String(day).padStart(2, "0");
                 const thisDateStr = `${currentYear}-${formattedMonth}-${formattedDay}`;
                 const isSelected = value === thisDateStr;
-                
+
                 let disabled = false;
                 if (minDateObj) {
                   const thisDateObj = new Date(currentYear, currentMonth, day);
@@ -185,9 +208,9 @@ export function DatePicker({ value, onChange, placeholder = "Select date...", cl
                     className={cn(
                       "flex h-8 items-center justify-center rounded-md text-sm transition-colors",
                       isSelected
-                        ? "bg-brand-blue text-white font-semibold"
+                        ? "bg-brand-blue font-semibold text-white"
                         : disabled
-                          ? "text-zinc-300 cursor-not-allowed"
+                          ? "cursor-not-allowed text-zinc-300"
                           : "text-zinc-700 hover:bg-zinc-100"
                     )}
                   >

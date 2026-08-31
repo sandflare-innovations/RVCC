@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useRef } from "react";
-
 import { motion, useInView, useScroll, useSpring } from "framer-motion";
+import React, { useRef } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa6";
 
 interface Milestone {

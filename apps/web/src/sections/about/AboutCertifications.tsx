@@ -1,11 +1,9 @@
 "use client";
 
-import React from "react";
-
-import Image from "next/image";
-
 import { type Certificate, certificates } from "@data/home/csr";
 import { motion } from "framer-motion";
+import Image from "next/image";
+import React from "react";
 
 const CertificateCard = ({ cert }: { cert: Certificate }) => {
   return (
@@ -41,7 +39,7 @@ const CertificateCard = ({ cert }: { cert: Certificate }) => {
 
 export const AboutCertifications = () => {
   return (
-    <section className="bg-background py-24 relative overflow-hidden">
+    <section className="bg-background relative overflow-hidden py-24">
       <div className="container mx-auto">
         <div className="mb-20 text-center">
           <span className="text-brand-blue mb-4 block text-[10px] font-bold tracking-[0.4em] uppercase">
@@ -51,29 +49,29 @@ export const AboutCertifications = () => {
             Quality <span className="text-brand-blue serif">Certificates</span>
           </h3>
           <p className="mx-auto mt-4 max-w-2xl font-light text-zinc-500">
-            Our commitment to excellence is reinforced by international certifications and 
-            adherence to the highest industry standards.
+            Our commitment to excellence is reinforced by international certifications and adherence
+            to the highest industry standards.
           </p>
         </div>
 
-          <div className="scroll-hide flex snap-x snap-mandatory flex-row items-stretch justify-start gap-4 overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 md:overflow-visible lg:grid-cols-4">
-            {certificates.map((cert: Certificate, index: number) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{
-                  duration: 0.8,
-                  ease: [0.19, 1, 0.22, 1],
-                  delay: (index % 4) * 0.1,
-                }}
-                className="w-[80vw] flex-shrink-0 snap-center md:w-auto md:flex-shrink"
-              >
-                <CertificateCard cert={cert} />
-              </motion.div>
-            ))}
-          </div>
+        <div className="scroll-hide flex snap-x snap-mandatory flex-row items-stretch justify-start gap-4 overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 md:overflow-visible lg:grid-cols-4">
+          {certificates.map((cert: Certificate, index: number) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{
+                duration: 0.8,
+                ease: [0.19, 1, 0.22, 1],
+                delay: (index % 4) * 0.1,
+              }}
+              className="w-[80vw] flex-shrink-0 snap-center md:w-auto md:flex-shrink"
+            >
+              <CertificateCard cert={cert} />
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );

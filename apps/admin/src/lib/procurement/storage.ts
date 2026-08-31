@@ -1,4 +1,5 @@
 import { PurchaseRequest, RequestStatus } from "@/types/procurement";
+
 import { INITIAL_PURCHASE_REQUESTS } from "./initial-data";
 
 const STORAGE_KEY = "procurement_requests_construction_v2";
@@ -23,9 +24,8 @@ export class AdminProcurementStore {
   static getRequestById(id: string): PurchaseRequest | null {
     const requests = this.getRequests();
     return (
-      requests.find(
-        (r) => r.id === id || r.referenceNumber.toLowerCase() === id.toLowerCase()
-      ) || null
+      requests.find((r) => r.id === id || r.referenceNumber.toLowerCase() === id.toLowerCase()) ||
+      null
     );
   }
 

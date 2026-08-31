@@ -1,9 +1,8 @@
 "use client";
 
-import React from "react";
-
 import { motion } from "framer-motion";
-import { FaGlobe, FaHelmetSafety, FaLeaf, FaShieldHalved } from "react-icons/fa6";
+import React from "react";
+import { FaGlobe, FaShieldHalved } from "react-icons/fa6";
 
 export const AboutSafetySustainability = () => {
   return (
@@ -17,8 +16,8 @@ export const AboutSafetySustainability = () => {
             Safety & <span className="text-brand-blue serif">Sustainability</span>
           </h3>
           <p className="mx-auto mt-4 max-w-2xl font-light text-zinc-500">
-            Embedding energy-efficient and environmentally responsible construction practices 
-            across all operations.
+            Embedding energy-efficient and environmentally responsible construction practices across
+            all operations.
           </p>
         </div>
         <div className="flex flex-col gap-16 lg:flex-row">

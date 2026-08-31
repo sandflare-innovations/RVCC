@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
-
+import { AlertCircle, Eye, EyeOff, MoreVertical,Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-import { AlertCircle, Eye, EyeOff, Pencil, Trash2, MoreVertical } from "lucide-react";
+import { useEffect,useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
@@ -76,68 +74,73 @@ export function CareerRowActions({
 
   return (
     <>
-      <div className={`relative flex items-center justify-end ${showDropdown ? "z-[60]" : ""}`} ref={dropdownRef}>
+      <div
+        className={`relative flex items-center justify-end ${showDropdown ? "z-[60]" : ""}`}
+        ref={dropdownRef}
+      >
         <button
           type="button"
           onClick={() => {
-              const next = !showDropdown;
-              setShowDropdown(next);
-              onDropdownOpen?.(next);
-            }}
+            const next = !showDropdown;
+            setShowDropdown(next);
+            onDropdownOpen?.(next);
+          }}
           className="hover:text-brand-blue rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
         >
           <MoreVertical className="h-4 w-4" />
         </button>
 
-        {showDropdown && dropdownRef.current && createPortal(
-          <div
-            className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
-            style={{
-              top: dropdownRef.current.getBoundingClientRect().bottom + 4,
-              right: window.innerWidth - dropdownRef.current.getBoundingClientRect().right,
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                setShowDropdown(false);
-                void togglePublished();
+        {showDropdown &&
+          dropdownRef.current &&
+          createPortal(
+            <div
+              className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
+              style={{
+                top: dropdownRef.current.getBoundingClientRect().bottom + 4,
+                right: window.innerWidth - dropdownRef.current.getBoundingClientRect().right,
               }}
-              disabled={busy}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100 disabled:opacity-50"
             >
-              {job.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              {job.isPublished ? "Unpublish" : "Publish"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowDropdown(false);
-                router.push(`/content/careers/${job.id}`);
-              }}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
-            >
-              <Pencil className="h-4 w-4" />
-              Edit
-            </button>
-            {canDelete && (
               <button
                 type="button"
                 onClick={() => {
                   setShowDropdown(false);
-                  setConfirmText("");
-                  setError(null);
-                  setShowDelete(true);
+                  void togglePublished();
+                }}
+                disabled={busy}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100 disabled:opacity-50"
+              >
+                {job.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {job.isPublished ? "Unpublish" : "Publish"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDropdown(false);
+                  router.push(`/content/careers/${job.id}`);
                 }}
                 className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
               >
-                <Trash2 className="h-4 w-4" />
-                Delete
+                <Pencil className="h-4 w-4" />
+                Edit
               </button>
-            )}
-          </div>,
-          document.body
-        )}
+              {canDelete && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDropdown(false);
+                    setConfirmText("");
+                    setError(null);
+                    setShowDelete(true);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </button>
+              )}
+            </div>,
+            document.body
+          )}
       </div>
 
       <Modal

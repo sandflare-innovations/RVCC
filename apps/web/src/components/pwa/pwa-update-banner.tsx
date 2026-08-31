@@ -31,7 +31,7 @@ export function PwaUpdateBanner() {
   return (
     <div
       role="status"
-      className="fixed inset-x-0 top-0 z-[200] flex justify-center px-4 pt-3 pointer-events-none"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[200] flex justify-center px-4 pt-3"
     >
       <div className="pointer-events-auto flex w-full max-w-lg items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white px-4 py-3 shadow-lg">
         <div className="min-w-0">

@@ -1,17 +1,15 @@
 "use client";
 
-import React from "react";
-
-import Image from "next/image";
-
 import {
   type Certificate,
-  type ConcernLogo,
   certificates,
+  type ConcernLogo,
   concernLogos,
   sisterCompanies,
 } from "@data/home/csr";
-import { Variants, motion } from "framer-motion";
+import { motion,Variants } from "framer-motion";
+import Image from "next/image";
+import React from "react";
 
 import { Button } from "@/components/ui/Button";
 

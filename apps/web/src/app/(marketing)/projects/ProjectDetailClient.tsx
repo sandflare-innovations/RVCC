@@ -1,15 +1,12 @@
 "use client";
 
+import { cn } from "@lib/utils";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
-import { motion } from "framer-motion";
-
-import { Icons } from "@/lib/icons";
-
 import { DetailedProject } from "@/data/projects/detailed";
-
-import { cn } from "@lib/utils";
+import { Icons } from "@/lib/icons";
 
 interface ProjectDetailClientProps {
   project: DetailedProject;

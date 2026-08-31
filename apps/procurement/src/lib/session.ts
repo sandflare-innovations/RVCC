@@ -54,7 +54,9 @@ export const getCurrentProcurementUser = cache(async (): Promise<ProcurementIden
   return fetchProcurementIdentity(token);
 });
 
-export async function resolveProcurementIdentity(token: string): Promise<ProcurementIdentity | null> {
+export async function resolveProcurementIdentity(
+  token: string
+): Promise<ProcurementIdentity | null> {
   return fetchProcurementIdentity(token);
 }
 

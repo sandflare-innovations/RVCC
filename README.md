@@ -2,12 +2,12 @@
 
 Four independent apps. Install and run each from its own folder.
 
-| App            | Folder        | Local | Production                          |
-| -------------- | ------------- | ----- | ----------------------------------- |
-| Marketing + enquire | `apps/web`    | :3000 | https://rvcc-enquiry.vercel.app |
-| Vendor portal  | `apps/vendor` | :3002 | https://rvcc-vendor.vercel.app      |
-| Staff admin    | `apps/admin`  | :3001 | https://rvcc-admin.vercel.app       |
-| API            | `apps/api`    | :4000 | https://rvcc-api.rvcc.workers.dev   |
+| App                 | Folder        | Local | Production                        |
+| ------------------- | ------------- | ----- | --------------------------------- |
+| Marketing + enquire | `apps/web`    | :3000 | https://rvcc-enquiry.vercel.app   |
+| Vendor portal       | `apps/vendor` | :3002 | https://rvcc-vendor.vercel.app    |
+| Staff admin         | `apps/admin`  | :3001 | https://rvcc-admin.vercel.app     |
+| API                 | `apps/api`    | :4000 | https://rvcc-api.rvcc.workers.dev |
 
 Marketing (`apps/web`) and the supplier portal (`apps/vendor`) are **separate deploys**. They share the unified API and Postgres, but not a codebase or host.
 
@@ -15,9 +15,9 @@ Marketing (`apps/web`) and the supplier portal (`apps/vendor`) are **separate de
 
 Shared env files live at the repo root (not committed):
 
-| File | Use |
-| ---- | --- |
-| `.env.vercel` | Paste into **all three** Vercel projects (web / vendor / admin) |
+| File          | Use                                                                             |
+| ------------- | ------------------------------------------------------------------------------- |
+| `.env.vercel` | Paste into **all three** Vercel projects (web / vendor / admin)                 |
 | `.env.server` | Copy to `apps/api/.env` locally; secrets go to Cloudflare `wrangler secret put` |
 
 ```bash

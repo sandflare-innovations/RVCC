@@ -101,27 +101,25 @@ export default function RequisitionDetailPage() {
     }
   };
 
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-zinc-50 text-zinc-900">
         <Navbar user={user} />
-        <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-8">
+        <main className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 w-48 bg-zinc-200 rounded-xl" />
-            <div className="h-64 w-full bg-white rounded-3xl border border-zinc-100" />
+            <div className="h-8 w-48 rounded-xl bg-zinc-200" />
+            <div className="h-64 w-full rounded-3xl border border-zinc-100 bg-white" />
           </div>
         </main>
       </div>
     );
   }
 
-
   if (!request) {
     return (
       <div className="min-h-screen bg-zinc-50 text-zinc-900">
         <Navbar user={user} />
-        <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <main className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 lg:px-8">
           <div className="rounded-3xl border border-zinc-200 bg-white p-12 shadow-sm">
             <h2 className="text-xl font-bold text-zinc-900">Requisition Not Found</h2>
             <p className="mt-2 text-sm text-zinc-500">
@@ -129,7 +127,7 @@ export default function RequisitionDetailPage() {
             </p>
             <Link
               href="/"
-              className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-[#0073bc] px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#005f9e] transition-all"
+              className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-[#0073bc] px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#005f9e]"
             >
               <ChevronLeft className="h-4 w-4" />
               Back to Requisitions
@@ -144,16 +142,16 @@ export default function RequisitionDetailPage() {
   const priorityBadge = getPriorityBadgeInfo(request.priority);
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900 pb-16">
+    <div className="min-h-screen bg-zinc-50 pb-16 text-zinc-900">
       <Navbar user={user} />
 
-      <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+      <main className="mx-auto max-w-6xl space-y-6 px-4 pt-6 sm:px-6 lg:px-8">
         {/* Navigation & Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 pb-5">
+        <div className="flex flex-col justify-between gap-4 border-b border-zinc-200 pb-5 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 bg-white text-zinc-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 bg-white text-zinc-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-colors hover:bg-zinc-50 hover:text-zinc-900"
             >
               <ChevronLeft className="h-5 w-5" />
             </Link>
@@ -163,18 +161,18 @@ export default function RequisitionDetailPage() {
                   {request.referenceNumber}
                 </span>
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium border ${statusBadge.bgClass} ${statusBadge.textClass} ${statusBadge.borderClass}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${statusBadge.bgClass} ${statusBadge.textClass} ${statusBadge.borderClass}`}
                 >
                   <span className={`h-1.5 w-1.5 rounded-full ${statusBadge.dotClass}`} />
                   {statusBadge.label}
                 </span>
                 <span
-                  className={`rounded-full px-2.5 py-0.5 text-[11px] border ${priorityBadge.bgClass} ${priorityBadge.textClass} ${priorityBadge.borderClass}`}
+                  className={`rounded-full border px-2.5 py-0.5 text-[11px] ${priorityBadge.bgClass} ${priorityBadge.textClass} ${priorityBadge.borderClass}`}
                 >
                   {priorityBadge.label} Priority
                 </span>
               </div>
-              <h1 className="text-xl font-bold tracking-tight text-zinc-950 sm:text-2xl mt-1">
+              <h1 className="mt-1 text-xl font-bold tracking-tight text-zinc-950 sm:text-2xl">
                 {request.title}
               </h1>
             </div>
@@ -182,10 +180,10 @@ export default function RequisitionDetailPage() {
 
           <div className="flex items-center gap-3">
             <div className="rounded-2xl border border-zinc-100 bg-white px-4 py-2 text-right shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
+              <span className="block text-[10px] font-semibold tracking-wider text-zinc-400 uppercase">
                 Total Est. Cost
               </span>
-              <span className="text-base font-bold text-zinc-950 font-mono">
+              <span className="font-mono text-base font-bold text-zinc-950">
                 {formatCurrency(request.totalEstimatedAmount, request.currency)}
               </span>
             </div>
@@ -194,7 +192,7 @@ export default function RequisitionDetailPage() {
             <button
               type="button"
               onClick={() => setDeleteModalOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-2xl border border-rose-200 bg-white px-4 py-2.5 text-xs font-semibold text-rose-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:bg-rose-50 hover:border-rose-300 transition-all cursor-pointer"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-2xl border border-rose-200 bg-white px-4 py-2.5 text-xs font-semibold text-rose-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all hover:border-rose-300 hover:bg-rose-50"
             >
               <Trash2 className="h-4 w-4 text-rose-600" />
               <span>Delete</span>
@@ -202,54 +200,63 @@ export default function RequisitionDetailPage() {
           </div>
         </div>
 
-
         {/* Top Overview Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {/* Main Info Card */}
-          <div className="md:col-span-2 space-y-6">
+          <div className="space-y-6 md:col-span-2">
             {/* Overview Meta */}
             <div className="rounded-3xl border border-zinc-100/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
-              <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-[#0073bc] mb-4">
+              <h2 className="mb-4 text-xs font-bold tracking-[0.14em] text-[#0073bc] uppercase">
                 Requisition Information
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-zinc-50/70 border border-zinc-100">
+              <div className="grid grid-cols-1 gap-4 text-xs sm:grid-cols-3">
+                <div className="flex items-start gap-3 rounded-2xl border border-zinc-100 bg-zinc-50/70 p-3">
                   <div className="rounded-xl bg-[#0073bc]/10 p-2 text-[#0073bc]">
                     <Building className="h-4 w-4" />
                   </div>
                   <div>
-                    <span className="text-zinc-400 font-medium block text-[11px]">Department / Trade</span>
+                    <span className="block text-[11px] font-medium text-zinc-400">
+                      Department / Trade
+                    </span>
                     <span className="font-semibold text-zinc-900">{request.department}</span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-zinc-50/70 border border-zinc-100">
+                <div className="flex items-start gap-3 rounded-2xl border border-zinc-100 bg-zinc-50/70 p-3">
                   <div className="rounded-xl bg-amber-500/10 p-2 text-amber-600">
                     <Calendar className="h-4 w-4" />
                   </div>
                   <div>
-                    <span className="text-zinc-400 font-medium block text-[11px]">Required On-Site</span>
-                    <span className="font-semibold text-zinc-900">{formatDate(request.requiredByDate)}</span>
+                    <span className="block text-[11px] font-medium text-zinc-400">
+                      Required On-Site
+                    </span>
+                    <span className="font-semibold text-zinc-900">
+                      {formatDate(request.requiredByDate)}
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-zinc-50/70 border border-zinc-100">
+                <div className="flex items-start gap-3 rounded-2xl border border-zinc-100 bg-zinc-50/70 p-3">
                   <div className="rounded-xl bg-zinc-200/60 p-2 text-zinc-600">
                     <Clock className="h-4 w-4" />
                   </div>
                   <div>
-                    <span className="text-zinc-400 font-medium block text-[11px]">Submitted Date</span>
-                    <span className="font-semibold text-zinc-900">{formatDate(request.createdAt)}</span>
+                    <span className="block text-[11px] font-medium text-zinc-400">
+                      Submitted Date
+                    </span>
+                    <span className="font-semibold text-zinc-900">
+                      {formatDate(request.createdAt)}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Justification */}
               <div className="mt-5">
-                <span className="text-zinc-400 font-semibold block text-[11px] uppercase tracking-wider mb-1.5">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">
                   Business Justification & Project Context
                 </span>
-                <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 text-xs text-zinc-700 leading-relaxed">
+                <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 text-xs leading-relaxed text-zinc-700">
                   {request.description}
                 </div>
               </div>
@@ -257,16 +264,16 @@ export default function RequisitionDetailPage() {
 
             {/* Itemized Table */}
             <div className="rounded-3xl border border-zinc-100/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-[#0073bc]">
+                  <h2 className="text-xs font-bold tracking-[0.14em] text-[#0073bc] uppercase">
                     Itemized Bill of Quantities
                   </h2>
-                  <p className="text-xs text-zinc-400 mt-0.5">
+                  <p className="mt-0.5 text-xs text-zinc-400">
                     {request.items?.length || 0} line item(s) requested for purchase
                   </p>
                 </div>
-                <div className="rounded-xl bg-zinc-50 px-3 py-1 text-xs font-mono font-bold text-zinc-900 border border-zinc-200/80">
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50 px-3 py-1 font-mono text-xs font-bold text-zinc-900">
                   Subtotal: {formatCurrency(request.totalEstimatedAmount, request.currency)}
                 </div>
               </div>
@@ -288,22 +295,23 @@ export default function RequisitionDetailPage() {
                         <td className="px-4 py-3.5">
                           <p className="font-semibold text-zinc-900">{item.name}</p>
                           {item.preferredVendor && (
-                            <p className="text-[11px] text-zinc-500 mt-0.5">
-                              Preferred Vendor: <strong className="text-zinc-700">{item.preferredVendor}</strong>
+                            <p className="mt-0.5 text-[11px] text-zinc-500">
+                              Preferred Vendor:{" "}
+                              <strong className="text-zinc-700">{item.preferredVendor}</strong>
                             </p>
                           )}
                           {item.notes && (
-                            <p className="text-[11px] text-zinc-400 italic mt-0.5">{item.notes}</p>
+                            <p className="mt-0.5 text-[11px] text-zinc-400 italic">{item.notes}</p>
                           )}
                         </td>
-                        <td className="px-3 py-3.5 text-zinc-600 font-medium">{item.category}</td>
-                        <td className="px-3 py-3.5 text-center text-zinc-800 font-mono font-medium">
+                        <td className="px-3 py-3.5 font-medium text-zinc-600">{item.category}</td>
+                        <td className="px-3 py-3.5 text-center font-mono font-medium text-zinc-800">
                           {item.quantity} {item.unit}
                         </td>
-                        <td className="px-3 py-3.5 text-right text-zinc-700 font-mono">
+                        <td className="px-3 py-3.5 text-right font-mono text-zinc-700">
                           {formatCurrency(item.estimatedUnitPrice, request.currency)}
                         </td>
-                        <td className="px-4 py-3.5 text-right font-bold text-zinc-950 font-mono">
+                        <td className="px-4 py-3.5 text-right font-mono font-bold text-zinc-950">
                           {formatCurrency(item.totalPrice, request.currency)}
                         </td>
                       </tr>
@@ -319,27 +327,27 @@ export default function RequisitionDetailPage() {
             {/* Feedback / Admin Notes if any */}
             {request.rejectionReason && (
               <div className="rounded-3xl border border-rose-200 bg-rose-50 p-5 shadow-xs">
-                <div className="flex items-center gap-2 font-bold text-rose-900 text-xs mb-1.5">
-                  <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
+                <div className="mb-1.5 flex items-center gap-2 text-xs font-bold text-rose-900">
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600" />
                   Admin Panel Feedback:
                 </div>
-                <p className="text-xs text-rose-800 leading-relaxed">{request.rejectionReason}</p>
+                <p className="text-xs leading-relaxed text-rose-800">{request.rejectionReason}</p>
               </div>
             )}
 
             {request.adminNotes && (
               <div className="rounded-3xl border border-blue-200 bg-blue-50 p-5 shadow-xs">
-                <div className="flex items-center gap-2 font-bold text-[#0073bc] text-xs mb-1.5">
+                <div className="mb-1.5 flex items-center gap-2 text-xs font-bold text-[#0073bc]">
                   <MessageSquare className="h-4 w-4 shrink-0" />
                   Procurement Notes:
                 </div>
-                <p className="text-xs text-blue-950 leading-relaxed">{request.adminNotes}</p>
+                <p className="text-xs leading-relaxed text-blue-950">{request.adminNotes}</p>
               </div>
             )}
 
             {/* Attached Quotes */}
             <div className="rounded-3xl border border-zinc-100/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
-              <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-[#0073bc] mb-3">
+              <h2 className="mb-3 text-xs font-bold tracking-[0.14em] text-[#0073bc] uppercase">
                 Supporting Quotes ({request.attachments?.length || 0})
               </h2>
 
@@ -351,50 +359,55 @@ export default function RequisitionDetailPage() {
                       className="flex items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50/70 p-3 text-xs"
                     >
                       <div className="flex items-center gap-2.5 truncate">
-                        <div className="rounded-xl bg-[#0073bc]/10 p-2 text-[#0073bc] shrink-0">
+                        <div className="shrink-0 rounded-xl bg-[#0073bc]/10 p-2 text-[#0073bc]">
                           <FileText className="h-4 w-4" />
                         </div>
                         <div className="truncate">
-                          <span className="font-semibold text-zinc-900 block truncate">{att.name}</span>
+                          <span className="block truncate font-semibold text-zinc-900">
+                            {att.name}
+                          </span>
                           <span className="text-[11px] text-zinc-400">
                             {(att.size / 1024 / 1024).toFixed(2)} MB • {formatDate(att.uploadedAt)}
                           </span>
                         </div>
                       </div>
-                      <span className="rounded-lg bg-white border border-zinc-200 px-2 py-1 text-[10px] font-mono text-zinc-600 shrink-0">
+                      <span className="shrink-0 rounded-lg border border-zinc-200 bg-white px-2 py-1 font-mono text-[10px] text-zinc-600">
                         {att.type.split("/")[1]?.toUpperCase() || "PDF"}
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-zinc-400 italic">No attachments uploaded for this request.</p>
+                <p className="text-xs text-zinc-400 italic">
+                  No attachments uploaded for this request.
+                </p>
               )}
             </div>
 
             {/* Timeline / Activity Log */}
             <div className="rounded-3xl border border-zinc-100/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
-              <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-[#0073bc] mb-4 flex items-center gap-1.5">
+              <h2 className="mb-4 flex items-center gap-1.5 text-xs font-bold tracking-[0.14em] text-[#0073bc] uppercase">
                 <History className="h-3.5 w-3.5" />
                 Status Timeline
               </h2>
 
-              <div className="space-y-4 pl-2 border-l-2 border-zinc-100">
+              <div className="space-y-4 border-l-2 border-zinc-100 pl-2">
                 {request.auditTrail?.map((log) => (
                   <div key={log.id} className="relative pl-5 text-xs">
-                    <div className="absolute -left-[7px] top-1 h-2.5 w-2.5 rounded-full bg-[#0073bc] ring-4 ring-white" />
+                    <div className="absolute top-1 -left-[7px] h-2.5 w-2.5 rounded-full bg-[#0073bc] ring-4 ring-white" />
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-zinc-900">{log.action}</span>
 
-                      <span className="text-[10px] text-zinc-400 font-mono">
+                      <span className="font-mono text-[10px] text-zinc-400">
                         {formatDateTime(log.timestamp)}
                       </span>
                     </div>
-                    <p className="text-zinc-500 text-[11px] mt-0.5">
-                      by <span className="font-semibold text-zinc-800">{log.actorName}</span> ({log.actorRole})
+                    <p className="mt-0.5 text-[11px] text-zinc-500">
+                      by <span className="font-semibold text-zinc-800">{log.actorName}</span> (
+                      {log.actorRole})
                     </p>
                     {log.note && (
-                      <p className="mt-1.5 rounded-xl bg-zinc-50 p-2.5 text-zinc-700 text-[11px] border border-zinc-100 leading-relaxed">
+                      <p className="mt-1.5 rounded-xl border border-zinc-100 bg-zinc-50 p-2.5 text-[11px] leading-relaxed text-zinc-700">
                         {log.note}
                       </p>
                     )}
@@ -408,25 +421,29 @@ export default function RequisitionDetailPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-3xl border border-zinc-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-150">
+        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs duration-150">
+          <div className="animate-in zoom-in-95 w-full max-w-md rounded-3xl border border-zinc-200 bg-white p-6 shadow-2xl duration-150">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
                 <AlertTriangle className="h-5 w-5" />
               </div>
               <div>
                 <h3 className="text-base font-bold text-zinc-950">Delete Requisition</h3>
-                <p className="text-xs text-zinc-500 font-mono">{request.referenceNumber}</p>
+                <p className="font-mono text-xs text-zinc-500">{request.referenceNumber}</p>
               </div>
             </div>
 
             <div className="mt-4 space-y-2">
-              <p className="text-sm text-zinc-600 leading-relaxed">
+              <p className="text-sm leading-relaxed text-zinc-600">
                 Are you sure you want to permanently delete{" "}
-                <strong className="text-zinc-950 font-semibold">&ldquo;{request.title}&rdquo;</strong>?
+                <strong className="font-semibold text-zinc-950">
+                  &ldquo;{request.title}&rdquo;
+                </strong>
+                ?
               </p>
               <p className="text-xs text-zinc-400">
-                This action cannot be undone. All associated line items, attachments, and history logs will be removed.
+                This action cannot be undone. All associated line items, attachments, and history
+                logs will be removed.
               </p>
 
               {deleteError && (
@@ -444,7 +461,7 @@ export default function RequisitionDetailPage() {
                   setDeleteModalOpen(false);
                   setDeleteError(null);
                 }}
-                className="rounded-2xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors disabled:opacity-50 cursor-pointer"
+                className="cursor-pointer rounded-2xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -452,7 +469,7 @@ export default function RequisitionDetailPage() {
                 type="button"
                 disabled={isDeleting}
                 onClick={handleDeleteConfirm}
-                className="inline-flex items-center gap-1.5 rounded-2xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-rose-700 transition-colors disabled:opacity-50 cursor-pointer"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-2xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-rose-700 disabled:opacity-50"
               >
                 {isDeleting ? (
                   <>
@@ -473,4 +490,3 @@ export default function RequisitionDetailPage() {
     </div>
   );
 }
-

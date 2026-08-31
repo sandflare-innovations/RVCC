@@ -333,14 +333,19 @@ export async function handleQuoteSave(
   if (numericPrice && selectedCurrency !== "SAR") {
     // Fetch latest exchange rate
     const fx = await prisma.exchangeRate.findUnique({
-      where: { currency: selectedCurrency as any }
+      where: { currency: selectedCurrency as any },
     });
-    
+
     if (fx && fx.rateToSar) {
       exchangeRate = Number(fx.rateToSar);
       amountSar = numericPrice * exchangeRate;
     } else {
-      return json(env, request, { error: `Exchange rate for ${selectedCurrency} is currently unavailable.` }, 400);
+      return json(
+        env,
+        request,
+        { error: `Exchange rate for ${selectedCurrency} is currently unavailable.` },
+        400
+      );
     }
   }
 

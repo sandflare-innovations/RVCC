@@ -2,7 +2,11 @@ import "server-only";
 
 /** Server-only client for apps/api `/vendor/*`. */
 function vendorBaseUrl(): string {
-  const base = (process.env.API_URL || process.env.VENDOR_API_URL || "http://localhost:4000")?.replace(/\/$/, "");
+  const base = (
+    process.env.API_URL ||
+    process.env.VENDOR_API_URL ||
+    "http://localhost:4000"
+  )?.replace(/\/$/, "");
   return `${base}/vendor`;
 }
 
@@ -27,7 +31,11 @@ export async function vendorApiFetch(
   }
 
   // Retry once on transient 500/502/503 error
-  if (!res.ok && (res.status === 500 || res.status === 502 || res.status === 503) && init.method !== "POST") {
+  if (
+    !res.ok &&
+    (res.status === 500 || res.status === 502 || res.status === 503) &&
+    init.method !== "POST"
+  ) {
     await new Promise((r) => setTimeout(r, 200));
     try {
       const retryRes = await fetch(url, { ...rest, headers, cache: "no-store" });
@@ -47,4 +55,3 @@ export const vendorWorkerFetch = vendorApiFetch;
 
 /** @deprecated Use apiConfigured */
 export const workerConfigured = apiConfigured;
-

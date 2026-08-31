@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-
-import Image from "next/image";
-
 import { clients } from "@data/clients";
 import { motion } from "framer-motion";
+import Image from "next/image";
+import React, { useEffect, useRef } from "react";
 
 export const ClientsGrid = () => {
   const hoverSoundRef = useRef<HTMLAudioElement | null>(null);

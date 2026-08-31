@@ -78,4 +78,3 @@ export async function handleVendorRequest(request: Request, env: Env): Promise<R
     return json(env, request, { error: "Internal error" }, 500);
   }
 }
-

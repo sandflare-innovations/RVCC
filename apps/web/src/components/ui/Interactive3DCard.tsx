@@ -1,7 +1,14 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
-import { motion, useMotionValue, useTransform, useSpring, animate, useAnimationFrame } from "framer-motion";
+import {
+  motion,
+  useAnimationFrame,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
+import {useRef, useState } from "react";
+
 import { cn } from "@/lib/utils";
 
 /**
@@ -59,8 +66,6 @@ export const Interactive3DCard = ({
     mouseY.set(targetY);
   });
 
-
-
   const handlePointerMove = (e: React.PointerEvent) => {
     setIsHovered(true);
     const bounds = cardRef.current?.getBoundingClientRect();
@@ -85,7 +90,7 @@ export const Interactive3DCard = ({
       ref={cardRef}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      className={cn("relative isolate w-full h-full", className)}
+      className={cn("relative isolate h-full w-full", className)}
       style={{
         perspective: "1200px",
       }}
@@ -96,12 +101,10 @@ export const Interactive3DCard = ({
           rotateY,
           transformStyle: "preserve-3d",
         }}
-        className="w-full h-full"
+        className="h-full w-full"
       >
         {children}
       </motion.div>
     </div>
   );
 };
-
-

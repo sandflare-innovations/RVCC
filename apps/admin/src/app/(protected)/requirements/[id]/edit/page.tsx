@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
+
 import { adminSessionJson } from "@/lib/admin-data";
-import { PostRequirementForm } from "@/sections/requirements/PostRequirementForm";
 import type { CachedVendorRow } from "@/lib/vendor-cache";
+import { PostRequirementForm } from "@/sections/requirements/PostRequirementForm";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +22,10 @@ type Payload = {
 
 export default async function EditRequirementPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  
+
   const [vendorsResult, reqResult] = await Promise.all([
     adminSessionJson<CachedVendorRow[]>("/vendors?filter=RELEASED"),
-    adminSessionJson<Payload>(`/requirements/${encodeURIComponent(id)}`)
+    adminSessionJson<Payload>(`/requirements/${encodeURIComponent(id)}`),
   ]);
 
   if (!reqResult.ok) {
@@ -32,7 +33,7 @@ export default async function EditRequirementPage({ params }: { params: Promise<
     return <p className="p-4">Could not load requirement ({reqResult.status}).</p>;
   }
 
-  const activeVendors = vendorsResult.ok 
+  const activeVendors = vendorsResult.ok
     ? vendorsResult.data.filter((v) => v.isActive && v.registrationComplete)
     : [];
 
@@ -42,7 +43,7 @@ export default async function EditRequirementPage({ params }: { params: Promise<
   }));
 
   const { requirement: req, invites } = reqResult.data;
-  
+
   // Parse category out of scopeOfWork if it exists
   let parsedScope = req.scopeOfWork;
   let parsedCategory = "";
@@ -52,7 +53,11 @@ export default async function EditRequirementPage({ params }: { params: Promise<
     parsedCategory = parts[1];
   }
 
-  const invitedVendorIds = invites.map(i => i.vendorUser.id || vendorOptions.find(v => v.label.includes(i.vendorUser.email))?.id).filter(Boolean) as string[];
+  const invitedVendorIds = invites
+    .map(
+      (i) => i.vendorUser.id || vendorOptions.find((v) => v.label.includes(i.vendorUser.email))?.id
+    )
+    .filter(Boolean) as string[];
 
   const initialData = {
     id: req.id,
@@ -66,7 +71,7 @@ export default async function EditRequirementPage({ params }: { params: Promise<
   };
 
   return (
-    <div className="w-full flex-1 flex flex-col min-h-0 bg-zinc-50/30">
+    <div className="flex min-h-0 w-full flex-1 flex-col bg-zinc-50/30">
       <PostRequirementForm vendors={vendorOptions} initialData={initialData} />
     </div>
   );

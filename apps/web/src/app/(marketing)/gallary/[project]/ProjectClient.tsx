@@ -1,16 +1,12 @@
 "use client";
 
-import { useState } from "react";
-
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-
-import { AnimatePresence, motion } from "framer-motion";
-
-import { Icons } from "@/lib/icons";
+import { useState } from "react";
 
 import { GallaryProject } from "@/data/gallary";
-
+import { Icons } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 interface ProjectClientProps {

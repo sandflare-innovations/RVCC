@@ -1,6 +1,5 @@
-import { notFound } from "next/navigation";
-
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 import { FloatingContact } from "@/components/common/FloatingContact";
 import { Footer } from "@/components/layout/Footer";

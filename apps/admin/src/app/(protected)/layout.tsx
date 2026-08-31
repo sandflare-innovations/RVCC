@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
-
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { ADMIN_COOKIE, ADMIN_LOGIN_EXPIRED_PATH } from "@/lib/constants";
 import { getAdminFromSession } from "@/lib/session";

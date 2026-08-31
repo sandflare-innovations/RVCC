@@ -1,17 +1,14 @@
 "use client";
 
-import { useState } from "react";
-
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-
-import { AnimatePresence, motion } from "framer-motion";
-
-import { Icons } from "@/lib/icons";
+import { useState } from "react";
 
 import { GALLARY_PROJECTS } from "@/data/gallary";
 import { services } from "@/data/services";
+import { Icons } from "@/lib/icons";
 
 export const GallaryCollections = () => {
   const searchParams = useSearchParams();

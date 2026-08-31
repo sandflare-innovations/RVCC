@@ -55,9 +55,11 @@ export const apiEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   DATABASE_READ_URL: z.string().optional(),
-  ALLOWED_ORIGINS: z.string().default(
-    "https://rvcc-enquiry.vercel.app,https://rvcc-vendor.vercel.app,https://rvcc-admin.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002"
-  ),
+  ALLOWED_ORIGINS: z
+    .string()
+    .default(
+      "https://rvcc-enquiry.vercel.app,https://rvcc-vendor.vercel.app,https://rvcc-admin.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002"
+    ),
   VENDOR_PORTAL_URL: z.string().url().default("https://rvcc-vendor.vercel.app"),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().optional(),

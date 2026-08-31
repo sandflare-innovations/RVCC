@@ -33,7 +33,7 @@ body::-webkit-scrollbar {
 
 @keyframes typing {
   0%,
-100% {
+  100% {
     transform: translateY(0);
     opacity: 0.5;
   }
@@ -45,7 +45,7 @@ body::-webkit-scrollbar {
 
 @keyframes loading-dots {
   0%,
-100% {
+  100% {
     opacity: 0;
   }
   50% {
@@ -55,7 +55,7 @@ body::-webkit-scrollbar {
 
 @keyframes wave {
   0%,
-100% {
+  100% {
     transform: scaleY(1);
   }
   50% {
@@ -65,7 +65,7 @@ body::-webkit-scrollbar {
 
 @keyframes blink {
   0%,
-100% {
+  100% {
     opacity: 1;
   }
   50% {
@@ -75,7 +75,7 @@ body::-webkit-scrollbar {
 
 @keyframes text-blink {
   0%,
-100% {
+  100% {
     color: var(--color-brand-blue);
   }
   50% {
@@ -85,7 +85,7 @@ body::-webkit-scrollbar {
 
 @keyframes bounce-dots {
   0%,
-100% {
+  100% {
     transform: scale(0.8);
     opacity: 0.5;
   }
@@ -97,7 +97,7 @@ body::-webkit-scrollbar {
 
 @keyframes thin-pulse {
   0%,
-100% {
+  100% {
     transform: scale(0.95);
     opacity: 0.8;
   }
@@ -109,7 +109,7 @@ body::-webkit-scrollbar {
 
 @keyframes pulse-dot {
   0%,
-100% {
+  100% {
     transform: scale(1);
     opacity: 0.8;
   }
@@ -130,7 +130,7 @@ body::-webkit-scrollbar {
 
 @keyframes wave-bars {
   0%,
-100% {
+  100% {
     transform: scaleY(1);
     opacity: 0.5;
   }

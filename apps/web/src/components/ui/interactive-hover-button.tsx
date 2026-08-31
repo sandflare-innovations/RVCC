@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-
 import { LuArrowRight as ArrowRight, LuLoaderCircle as Loader2 } from "react-icons/lu";
 
 import { cn } from "@/lib/utils";

@@ -1,11 +1,10 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 
-import { describeDeadline } from "@/lib/rfq";
-import { LiveRankBadge } from "@/sections/requirements/LiveRankBadge";
-
 import { VENDOR_COOKIE } from "@/lib/constants";
+import { describeDeadline } from "@/lib/rfq";
 import { vendorWorkerFetch } from "@/lib/vendor-api";
+import { LiveRankBadge } from "@/sections/requirements/LiveRankBadge";
 
 export const dynamic = "force-dynamic";
 
@@ -85,14 +84,14 @@ export default async function RequirementsPage() {
           </ul>
 
           <div className="hidden overflow-x-auto rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] lg:block">
-            <table className="w-full text-left text-sm border-separate border-spacing-y-2">
+            <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
               <thead>
                 <tr className="bg-brand-blue text-white">
-                  <th className="px-6 py-3.5 font-semibold rounded-l-2xl">Project</th>
+                  <th className="rounded-l-2xl px-6 py-3.5 font-semibold">Project</th>
                   <th className="px-6 py-3.5 font-semibold">Reference</th>
                   <th className="px-6 py-3.5 font-semibold">Your quote</th>
                   <th className="px-6 py-3.5 font-semibold">Closes</th>
-                  <th className="px-6 py-3.5 font-semibold rounded-r-2xl">
+                  <th className="rounded-r-2xl px-6 py-3.5 font-semibold">
                     <span className="sr-only">Action</span>
                   </th>
                 </tr>
@@ -101,8 +100,11 @@ export default async function RequirementsPage() {
                 {rows.map((row) => {
                   const deadline = describeDeadline(row.closesAt);
                   return (
-                    <tr key={row.id} className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl transition-all hover:ring-brand-blue/40 hover:shadow-[0_8px_24px_-16px_rgba(0,115,188,0.45)] group">
-                      <td className="px-6 py-4 rounded-l-2xl">
+                    <tr
+                      key={row.id}
+                      className="hover:ring-brand-blue/40 group rounded-2xl bg-white ring-1 ring-zinc-100 transition-all ring-inset hover:shadow-[0_8px_24px_-16px_rgba(0,115,188,0.45)]"
+                    >
+                      <td className="rounded-l-2xl px-6 py-4">
                         <p className="font-medium text-zinc-950">{row.project}</p>
                         <p className="mt-0.5 line-clamp-1 text-xs text-zinc-500">
                           {row.scopeOfWork}
@@ -128,10 +130,10 @@ export default async function RequirementsPage() {
                           {deadline.urgent ? `Closing soon, ${deadline.label}` : deadline.label}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right rounded-r-2xl">
+                      <td className="rounded-r-2xl px-6 py-4 text-right">
                         <Link
                           href={`/requirements/${row.id}`}
-                          className="focus-visible:ring-brand-blue inline-flex min-h-11 items-center rounded-full border border-brand-blue/20 bg-white px-4 font-semibold text-brand-blue transition-colors hover:bg-brand-blue/5 focus-visible:ring-2 focus-visible:outline-none"
+                          className="focus-visible:ring-brand-blue border-brand-blue/20 text-brand-blue hover:bg-brand-blue/5 inline-flex min-h-11 items-center rounded-full border bg-white px-4 font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
                         >
                           {row.quoteStatus === "SUBMITTED" ? "View" : "Open"}
                         </Link>

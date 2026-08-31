@@ -1,22 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { AnimatePresence,motion } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef,useState } from "react";
 import {
+  LuCircleAlert as AlertCircle,
   LuCircleCheck as CheckCircle2,
   LuClock as Clock,
   LuShieldCheck as ShieldCheck,
-  LuCircleAlert as AlertCircle,
 } from "react-icons/lu";
-import { motion, AnimatePresence } from "framer-motion";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { revokeSession } from "@/lib/sign-out-client";
-import {
-  type DraftRegistration,
-  useEnquire,
-} from "@/sections/enquire/EnquireContext";
+import { type DraftRegistration, useEnquire } from "@/sections/enquire/EnquireContext";
 import { ReviewDocument } from "@/sections/enquire/steps/ReviewStep";
 
 const STEP_LABELS: Record<string, string> = {
@@ -35,7 +32,12 @@ const STEP_LABELS: Record<string, string> = {
 
 type VerifyOutcome =
   | { kind: "vendor"; redirectUrl: string }
-  | { kind: "held"; registration: DraftRegistration | null; referenceNumber: string | null; status: string }
+  | {
+      kind: "held";
+      registration: DraftRegistration | null;
+      referenceNumber: string | null;
+      status: string;
+    }
   | { kind: "rejected"; message: string; referenceNumber: string | null }
   | { kind: "register" }
   | null;
@@ -53,7 +55,11 @@ function RedirectCountdown({ url }: { url: string }) {
   }, [seconds, url]);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 text-center">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-8 text-center"
+    >
       <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-50 ring-8 ring-emerald-50/50">
         <ShieldCheck className="h-12 w-12 text-emerald-600" aria-hidden="true" />
       </div>
@@ -71,7 +77,7 @@ function RedirectCountdown({ url }: { url: string }) {
         <Clock className="h-4 w-4" aria-hidden="true" />
         <span>
           Redirecting to vendor portal in{" "}
-          <span className="font-semibold tabular-nums text-zinc-950">{seconds}s</span>
+          <span className="font-semibold text-zinc-950 tabular-nums">{seconds}s</span>
         </span>
       </div>
 
@@ -101,25 +107,29 @@ function HeldView({
   onChangeEmail: () => void;
 }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-8"
+    >
       <div className="rounded-2xl border border-amber-200/60 bg-amber-50/50 p-6 backdrop-blur-sm">
         <div className="flex items-start gap-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
             <Clock className="h-5 w-5 text-amber-600" aria-hidden="true" />
           </div>
           <div className="space-y-2">
-            <p className="text-lg font-semibold text-zinc-950">
-              Account Already Registered
-            </p>
+            <p className="text-lg font-semibold text-zinc-950">Account Already Registered</p>
             <div className="flex items-center gap-2 text-sm">
               <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 font-medium text-amber-800">
                 On Hold
               </span>
-              {referenceNumber && <span className="font-mono text-zinc-500">{referenceNumber}</span>}
+              {referenceNumber && (
+                <span className="font-mono text-zinc-500">{referenceNumber}</span>
+              )}
             </div>
             <p className="text-sm leading-relaxed text-zinc-600">
-              Your account has been verified successfully. Once vendor registration opens for your company, RVCC
-              will release account access to the portal.
+              Your account has been verified successfully. Once vendor registration opens for your
+              company, RVCC will release account access to the portal.
             </p>
           </div>
         </div>
@@ -130,9 +140,7 @@ function HeldView({
           <ReviewDocument registration={registration} />
         </div>
       ) : (
-        <p className="text-sm text-zinc-500">
-          Registration data is not available at this time.
-        </p>
+        <p className="text-sm text-zinc-500">Registration data is not available at this time.</p>
       )}
 
       <button
@@ -156,7 +164,8 @@ const HERO_IMAGES = [
 
 export function VerifyStep() {
   const router = useRouter();
-  const { registration, loading, hydrateAfterAuth, setRegistration, setError, error } = useEnquire();
+  const { registration, loading, hydrateAfterAuth, setRegistration, setError, error } =
+    useEnquire();
 
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -342,7 +351,11 @@ export function VerifyStep() {
 
     if (outcome?.kind === "rejected") {
       return (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-8"
+        >
           <div className="rounded-2xl border border-red-200/60 bg-red-50/50 p-6 backdrop-blur-sm">
             <div className="flex items-start gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100">
@@ -376,24 +389,36 @@ export function VerifyStep() {
           : "Company Details";
 
       return (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mx-auto w-full max-w-sm">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-auto w-full max-w-sm"
+        >
           <div className="flex flex-col items-center space-y-6 text-center">
             {/* Success Icon */}
-            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-brand-blue/10">
-              <div className="absolute inset-0 animate-ping rounded-full bg-brand-blue/20" />
-              <CheckCircle2 className="relative z-10 h-10 w-10 text-brand-blue" aria-hidden="true" />
+            <div className="bg-brand-blue/10 relative flex h-24 w-24 items-center justify-center rounded-full">
+              <div className="bg-brand-blue/20 absolute inset-0 animate-ping rounded-full" />
+              <CheckCircle2
+                className="text-brand-blue relative z-10 h-10 w-10"
+                aria-hidden="true"
+              />
             </div>
-            
+
             <div className="space-y-3">
-              <h2 className="font-heading text-brand-blue text-4xl tracking-tight uppercase">User Verified</h2>
+              <h2 className="font-heading text-brand-blue text-4xl tracking-tight uppercase">
+                User Verified
+              </h2>
               <div className="mx-auto flex w-fit items-center gap-2 rounded-full border border-zinc-100 bg-zinc-50 px-4 py-2 shadow-sm">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-brand-blue" />
-                <span className="text-xs font-bold tracking-widest text-zinc-600 uppercase">{registration!.email}</span>
+                <div className="bg-brand-blue h-2 w-2 animate-pulse rounded-full" />
+                <span className="text-xs font-bold tracking-widest text-zinc-600 uppercase">
+                  {registration!.email}
+                </span>
               </div>
             </div>
 
             <p className="text-sm leading-relaxed text-zinc-500">
-              Your email is confirmed. You can continue where you left off, or change your email to start over.
+              Your email is confirmed. You can continue where you left off, or change your email to
+              start over.
             </p>
 
             <div className="flex w-full flex-col gap-4 pt-4">
@@ -405,7 +430,7 @@ export function VerifyStep() {
               >
                 Continue to {nextLabel}
               </InteractiveHoverButton>
-              
+
               <button
                 type="button"
                 onClick={() => void changeEmail()}
@@ -474,7 +499,10 @@ export function VerifyStep() {
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label htmlFor="code" className="text-xs font-bold tracking-[0.1em] text-zinc-400 uppercase">
+                    <label
+                      htmlFor="code"
+                      className="text-xs font-bold tracking-[0.1em] text-zinc-400 uppercase"
+                    >
                       6-Digit Code
                     </label>
                     <span className="text-xs font-medium text-zinc-500">{email}</span>
@@ -489,7 +517,7 @@ export function VerifyStep() {
                         type="text"
                         inputMode="numeric"
                         maxLength={1}
-                        className="focus:border-brand-blue focus:ring-brand-blue/10 h-14 w-12 rounded-xl border border-zinc-200 bg-zinc-50 text-center text-2xl font-bold text-brand-blue transition-all outline-none focus:bg-white focus:ring-4 sm:h-16 sm:w-14 sm:text-3xl"
+                        className="focus:border-brand-blue focus:ring-brand-blue/10 text-brand-blue h-14 w-12 rounded-xl border border-zinc-200 bg-zinc-50 text-center text-2xl font-bold transition-all outline-none focus:bg-white focus:ring-4 sm:h-16 sm:w-14 sm:text-3xl"
                         value={code[index] || ""}
                         onChange={(e) => handleOtpChange(index, e.target.value.replace(/\D/g, ""))}
                         onKeyDown={(e) => handleOtpKeyDown(index, e)}
@@ -550,7 +578,7 @@ export function VerifyStep() {
   };
 
   return (
-    <div className="flex min-h-[100dvh] w-full flex-col bg-white md:flex-row md:p-4 gap-4">
+    <div className="flex min-h-[100dvh] w-full flex-col gap-4 bg-white md:flex-row md:p-4">
       {/* Left Panel - Branding (Hidden on small screens) */}
       <div className="relative hidden w-full flex-col justify-between overflow-hidden rounded-[2rem] bg-zinc-950 p-12 md:flex md:w-5/12 lg:w-3/7 xl:p-16">
         {/* Background elements */}
@@ -573,7 +601,7 @@ export function VerifyStep() {
               />
             </motion.div>
           </AnimatePresence>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+          <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         </div>
 
         {/* Logo */}
@@ -590,30 +618,27 @@ export function VerifyStep() {
         {/* Copy */}
         <div className="relative z-10 max-w-lg space-y-4">
           <div className="space-y-1">
-            <p className="text-brand-blue w-fit rounded-sm bg-white px-3 py-1 text-xs font-black tracking-[0.2em] uppercase shadow-sm mb-4">
+            <p className="text-brand-blue mb-4 w-fit rounded-sm bg-white px-3 py-1 text-xs font-black tracking-[0.2em] uppercase shadow-sm">
               Supplier Portal
             </p>
             <h1 className="font-heading text-6xl leading-[0.6] tracking-tight text-white uppercase xl:text-8xl">
-              Shape Reality<br />With Us
+              Shape Reality
+              <br />
+              With Us
             </h1>
           </div>
           <p className="text-xl leading-relaxed font-medium text-zinc-200">
-            Join our network of premium suppliers and partners. Securely access the RVCC procurement portal to manage your company profile and track pre-qualifications.
+            Join our network of premium suppliers and partners. Securely access the RVCC procurement
+            portal to manage your company profile and track pre-qualifications.
           </p>
         </div>
       </div>
 
       {/* Right Panel - Form */}
       <div className="relative flex w-full flex-1 flex-col justify-center bg-white px-6 py-12 md:w-7/12 lg:w-4/7 lg:px-16 xl:px-24">
-
         {/* Mobile Header (Shows only on small screens) */}
         <div className="absolute top-8 left-6 md:hidden">
-          <Image
-            src="/images/logo/logo.webp"
-            alt="RVCC"
-            width={100}
-            height={100}
-          />
+          <Image src="/images/logo/logo.webp" alt="RVCC" width={100} height={100} />
         </div>
 
         <div className="mx-auto w-full max-w-md pt-16 md:pt-0">
@@ -627,8 +652,11 @@ export function VerifyStep() {
                 className="overflow-hidden"
               >
                 <div className="flex items-start gap-3 rounded-xl border border-red-200/60 bg-red-50/80 px-4 py-4 backdrop-blur-sm">
-                  <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" aria-hidden="true" />
-                  <span className="text-sm font-medium leading-relaxed text-red-800">{error}</span>
+                  <AlertCircle
+                    className="mt-0.5 h-5 w-5 shrink-0 text-red-600"
+                    aria-hidden="true"
+                  />
+                  <span className="text-sm leading-relaxed font-medium text-red-800">{error}</span>
                 </div>
               </motion.div>
             )}

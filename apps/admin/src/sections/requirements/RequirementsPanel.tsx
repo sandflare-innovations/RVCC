@@ -1,20 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { useSearchParams } from "next/navigation";
-
-import Link from "next/link";
-
-import { RefreshCw, Search, ChevronDown, FileText, Radio, Edit2, Award, ChevronUp, CircleDashed, ShieldAlert, CheckCircle, Clock, XCircle, Lock, Trophy } from "lucide-react";
-
-import { fetchTableJson } from "@/lib/table-fetch";
-import { AnimatedSearchInput } from "@/lib/ui";
-import { readVendorCache, writeVendorCache, type CachedVendorRow } from "@/lib/vendor-cache";
 import {
-  readRequirementsCache,
-  writeRequirementsCache,
-  type CachedRequirementRow,
-} from "@/lib/requirements-cache";
+  Award,
+  ChevronDown,
+  ChevronUp,
+  CircleDashed,
+  Clock,
+  Edit2,
+  FileText,
+  Lock,
+  Radio,
+  RefreshCw,
+  Trophy,
+  XCircle,
+} from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+
 import {
   filterRequirementRows,
   parseRequirementFilter,
@@ -22,6 +25,13 @@ import {
   REQUIREMENT_FILTERS,
   type RequirementFilterValue,
 } from "@/lib/requirement-filters";
+import {
+  type CachedRequirementRow,
+  readRequirementsCache,
+  writeRequirementsCache,
+} from "@/lib/requirements-cache";
+import { fetchTableJson } from "@/lib/table-fetch";
+import { AnimatedSearchInput } from "@/lib/ui";
 
 type RequirementRow = CachedRequirementRow;
 
@@ -50,21 +60,21 @@ function statusIcon(status: string, closesAt: string | null) {
   if (status === "OPEN" && closesAt) {
     const date = new Date(closesAt);
     if (!isNaN(date.getTime()) && date.getTime() <= Date.now()) {
-      return <Lock className="h-4 w-4 text-purple-500 mr-2" />;
+      return <Lock className="mr-2 h-4 w-4 text-purple-500" />;
     }
     return (
-      <div className="relative mr-2 flex items-center justify-center h-4 w-4">
+      <div className="relative mr-2 flex h-4 w-4 items-center justify-center">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
         <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
       </div>
     );
   }
 
-  if (status === "DRAFT") return <CircleDashed className="h-4 w-4 text-amber-500 mr-2" />;
-  if (status === "AWARDED") return <Trophy className="h-4 w-4 text-brand-blue mr-2" />;
-  if (status === "CANCELLED") return <XCircle className="h-4 w-4 text-rose-500 mr-2" />;
+  if (status === "DRAFT") return <CircleDashed className="mr-2 h-4 w-4 text-amber-500" />;
+  if (status === "AWARDED") return <Trophy className="text-brand-blue mr-2 h-4 w-4" />;
+  if (status === "CANCELLED") return <XCircle className="mr-2 h-4 w-4 text-rose-500" />;
 
-  return <Clock className="h-4 w-4 text-zinc-400 mr-2" />;
+  return <Clock className="mr-2 h-4 w-4 text-zinc-400" />;
 }
 
 function statusLabel(status: string, closesAt: string | null) {
@@ -72,14 +82,14 @@ function statusLabel(status: string, closesAt: string | null) {
     const date = new Date(closesAt);
     if (!isNaN(date.getTime()) && date.getTime() <= Date.now()) {
       return (
-        <span className="inline-flex items-center text-purple-700 font-medium">
+        <span className="inline-flex items-center font-medium text-purple-700">
           {statusIcon(status, closesAt)}
           Closed
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center text-emerald-700 font-medium">
+      <span className="inline-flex items-center font-medium text-emerald-700">
         {statusIcon(status, closesAt)}
         Open
       </span>
@@ -88,7 +98,7 @@ function statusLabel(status: string, closesAt: string | null) {
 
   if (status === "DRAFT") {
     return (
-      <span className="inline-flex items-center text-amber-700 font-medium">
+      <span className="inline-flex items-center font-medium text-amber-700">
         {statusIcon(status, closesAt)}
         Draft
       </span>
@@ -97,7 +107,7 @@ function statusLabel(status: string, closesAt: string | null) {
 
   if (status === "AWARDED") {
     return (
-      <span className="inline-flex items-center text-brand-blue font-medium">
+      <span className="text-brand-blue inline-flex items-center font-medium">
         {statusIcon(status, closesAt)}
         Awarded
       </span>
@@ -106,7 +116,7 @@ function statusLabel(status: string, closesAt: string | null) {
 
   if (status === "CANCELLED") {
     return (
-      <span className="inline-flex items-center text-rose-700 font-medium">
+      <span className="inline-flex items-center font-medium text-rose-700">
         {statusIcon(status, closesAt)}
         Cancelled
       </span>
@@ -114,17 +124,14 @@ function statusLabel(status: string, closesAt: string | null) {
   }
 
   return (
-    <span className="inline-flex items-center text-zinc-700 font-medium">
+    <span className="inline-flex items-center font-medium text-zinc-700">
       {statusIcon(status, closesAt)}
       {status.charAt(0) + status.slice(1).toLowerCase()}
     </span>
   );
 }
 
-const SEARCH_PLACEHOLDERS = [
-  "reference ID",
-  "project name"
-];
+const SEARCH_PLACEHOLDERS = ["reference ID", "project name"];
 
 export function RequirementsPanel() {
   const searchParams = useSearchParams();
@@ -159,7 +166,12 @@ export function RequirementsPanel() {
       const isExpired = r.closesAt && new Date(r.closesAt).getTime() <= Date.now();
       if (r.status === "OPEN" && !isExpired) open++;
       else if (r.status === "DRAFT") draft++;
-      else if ((r.status === "OPEN" && isExpired) || r.status === "AWARDED" || r.status === "CLOSED") closed++;
+      else if (
+        (r.status === "OPEN" && isExpired) ||
+        r.status === "AWARDED" ||
+        r.status === "CLOSED"
+      )
+        closed++;
     }
     return { total: allRows.length, open, draft, closed };
   }, [allRows]);
@@ -178,38 +190,39 @@ export function RequirementsPanel() {
     syncUrl(filter, next);
   };
 
+  const fetchRequirements = useCallback(
+    async (opts?: { background?: boolean }) => {
+      const id = ++requestId.current;
+      const background = opts?.background ?? false;
 
-  const fetchRequirements = useCallback(async (opts?: { background?: boolean }) => {
-    const id = ++requestId.current;
-    const background = opts?.background ?? false;
+      if (!background) setRefreshing(true);
+      if (!background && allRows.length === 0) setInitialLoad(true);
+      setLoadError(null);
 
-    if (!background) setRefreshing(true);
-    if (!background && allRows.length === 0) setInitialLoad(true);
-    setLoadError(null);
+      try {
+        const result = await fetchTableJson<RequirementRow>("/api/requirements");
 
-    try {
-      const result = await fetchTableJson<RequirementRow>("/api/requirements");
+        if (id !== requestId.current) return;
 
-      if (id !== requestId.current) return;
+        if (!result.ok) {
+          if (allRows.length === 0) setLoadError(result.error);
+          return;
+        }
 
-      if (!result.ok) {
-        if (allRows.length === 0) setLoadError(result.error);
-        return;
+        setAllRows(result.data);
+        writeRequirementsCache(result.data);
+      } catch {
+        if (id !== requestId.current) return;
+        if (allRows.length === 0) setLoadError("Network error — please try again.");
+      } finally {
+        if (id === requestId.current) {
+          setRefreshing(false);
+          setInitialLoad(false);
+        }
       }
-
-      setAllRows(result.data);
-      writeRequirementsCache(result.data);
-    } catch {
-      if (id !== requestId.current) return;
-      if (allRows.length === 0) setLoadError("Network error — please try again.");
-    } finally {
-      if (id === requestId.current) {
-        setRefreshing(false);
-        setInitialLoad(false);
-      }
-    }
-  }, [allRows.length]);
-
+    },
+    [allRows.length]
+  );
 
   useEffect(() => {
     const cached = readRequirementsCache();
@@ -224,45 +237,72 @@ export function RequirementsPanel() {
   }, []);
 
   return (
-    <div className="flex flex-1 flex-col min-h-0 w-full">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0 mb-6">
-        {([
-          { label: "Total RFQs", value: metrics.total, filterVal: "ALL" as const, icon: <FileText className="h-4 w-4" /> },
-          { label: "Open & Bidding", value: metrics.open, filterVal: "OPEN" as const, icon: <Radio className="h-4 w-4" /> },
-          { label: "Drafts", value: metrics.draft, filterVal: "DRAFT" as const, icon: <Edit2 className="h-4 w-4" /> },
-          { label: "Closed / Awarded", value: metrics.closed, filterVal: "CLOSED" as const, icon: <Award className="h-4 w-4" /> },
-        ]).map((card) => (
+    <div className="flex min-h-0 w-full flex-1 flex-col">
+      <div className="mb-6 grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          {
+            label: "Total RFQs",
+            value: metrics.total,
+            filterVal: "ALL" as const,
+            icon: <FileText className="h-4 w-4" />,
+          },
+          {
+            label: "Open & Bidding",
+            value: metrics.open,
+            filterVal: "OPEN" as const,
+            icon: <Radio className="h-4 w-4" />,
+          },
+          {
+            label: "Drafts",
+            value: metrics.draft,
+            filterVal: "DRAFT" as const,
+            icon: <Edit2 className="h-4 w-4" />,
+          },
+          {
+            label: "Closed / Awarded",
+            value: metrics.closed,
+            filterVal: "CLOSED" as const,
+            icon: <Award className="h-4 w-4" />,
+          },
+        ].map((card) => (
           <button
             key={card.filterVal}
             type="button"
             onClick={() => applyFilter(card.filterVal)}
-            className="group relative flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 cursor-pointer shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/40"
+            className="group focus-visible:ring-brand-blue/40 relative flex h-full min-h-0 cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)] focus-visible:ring-2 focus-visible:outline-none"
           >
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue/25 to-transparent" />
+            <div className="via-brand-blue/25 pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent" />
             <div className="relative z-10 flex items-start justify-between gap-3">
-              <p className="text-[11px] font-semibold tracking-[0.14em] text-zinc-400 uppercase">{card.label}</p>
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue transition-colors duration-300 group-hover:bg-brand-blue group-hover:text-white">
+              <p className="text-[11px] font-semibold tracking-[0.14em] text-zinc-400 uppercase">
+                {card.label}
+              </p>
+              <div className="bg-brand-blue/10 text-brand-blue group-hover:bg-brand-blue flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl transition-colors duration-300 group-hover:text-white">
                 {card.icon}
               </div>
             </div>
             <div className="relative z-10 mt-3 flex items-end justify-between gap-3">
-              <p className="text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">{card.value}</p>
+              <p className="text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">
+                {card.value}
+              </p>
             </div>
           </button>
         ))}
       </div>
 
-      <div className="flex flex-nowrap items-center justify-between gap-4 shrink-0 mb-6">
-        <div className="flex items-center gap-3 w-full max-w-sm">
+      <div className="mb-6 flex shrink-0 flex-nowrap items-center justify-between gap-4">
+        <div className="flex w-full max-w-sm items-center gap-3">
           <button
             type="button"
             onClick={() => void fetchRequirements()}
             disabled={refreshing}
             title="Refresh table data"
             aria-label="Refresh requirements table"
-            className="inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full border border-brand-blue bg-white text-brand-blue transition-colors hover:bg-brand-blue/5 disabled:opacity-50 focus-visible:ring-[3px] focus-visible:ring-brand-blue/25 focus-visible:outline-none"
+            className="border-brand-blue text-brand-blue hover:bg-brand-blue/5 focus-visible:ring-brand-blue/25 inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full border bg-white transition-colors focus-visible:ring-[3px] focus-visible:outline-none disabled:opacity-50"
           >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-brand-blue" : ""}`} aria-hidden />
+            <RefreshCw
+              className={`h-4 w-4 ${refreshing ? "text-brand-blue animate-spin" : ""}`}
+              aria-hidden
+            />
           </button>
 
           <AnimatedSearchInput
@@ -273,20 +313,20 @@ export function RequirementsPanel() {
           />
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex shrink-0 items-center gap-3">
           <div className="relative shrink-0">
             <button
               type="button"
               onClick={() => setFilterOpen((prev) => !prev)}
               onBlur={() => setTimeout(() => setFilterOpen(false), 200)}
-              className="focus-visible:ring-brand-blue/25 flex items-center justify-between gap-3 rounded-full border border-brand-blue bg-white py-2.5 pl-5 pr-4 text-sm font-semibold text-brand-blue outline-none focus-visible:ring-[3px] transition-shadow min-w-[160px]"
+              className="focus-visible:ring-brand-blue/25 border-brand-blue text-brand-blue flex min-w-[160px] items-center justify-between gap-3 rounded-full border bg-white py-2.5 pr-4 pl-5 text-sm font-semibold transition-shadow outline-none focus-visible:ring-[3px]"
             >
               <span>{REQUIREMENT_FILTERS.find((f) => f.value === filter)?.label || "All"}</span>
-              <ChevronDown className="h-4 w-4 text-brand-blue" />
+              <ChevronDown className="text-brand-blue h-4 w-4" />
             </button>
 
             {filterOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-zinc-200 bg-white py-2 shadow-lg z-50">
+              <div className="absolute top-full right-0 z-50 mt-2 w-48 rounded-2xl border border-zinc-200 bg-white py-2 shadow-lg">
                 {REQUIREMENT_FILTERS.map((f) => (
                   <button
                     key={f.value}
@@ -295,8 +335,11 @@ export function RequirementsPanel() {
                       applyFilter(f.value);
                       setFilterOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${f.value === filter ? "bg-zinc-50 font-semibold text-brand-blue" : "text-zinc-700 hover:bg-zinc-50"
-                      }`}
+                    className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
+                      f.value === filter
+                        ? "text-brand-blue bg-zinc-50 font-semibold"
+                        : "text-zinc-700 hover:bg-zinc-50"
+                    }`}
                   >
                     {f.label}
                   </button>
@@ -306,7 +349,7 @@ export function RequirementsPanel() {
           </div>
           <Link
             href="/requirements/new"
-            className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold text-white transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none shrink-0"
+            className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-5 text-sm font-semibold text-white transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             <FileText className="h-4 w-4" />
             Post a requirement
@@ -319,74 +362,85 @@ export function RequirementsPanel() {
         aria-busy={refreshing || initialLoad}
       >
         {/* Fixed Top Header */}
-        <div className="shrink-0 bg-brand-blue text-white rounded-2xl px-6 py-3.5 shadow-xs mb-2">
-          <div className="grid grid-cols-12 gap-3 items-center text-xs font-semibold">
+        <div className="bg-brand-blue mb-2 shrink-0 rounded-2xl px-6 py-3.5 text-white shadow-xs">
+          <div className="grid grid-cols-12 items-center gap-3 text-xs font-semibold">
             <div className="col-span-3 min-w-0">Project</div>
             <div className="col-span-2 min-w-0">Status</div>
             <div className="col-span-2 min-w-0">Reference</div>
             <div
-              className="col-span-2 min-w-0 flex items-center gap-1 cursor-pointer select-none hover:text-white/80 transition-colors"
+              className="col-span-2 flex min-w-0 cursor-pointer items-center gap-1 transition-colors select-none hover:text-white/80"
               onClick={() => {
-                if (sortCol === "createdAt") setSortDir(d => d === "asc" ? "desc" : "asc");
-                else { setSortCol("createdAt"); setSortDir("desc"); }
+                if (sortCol === "createdAt") setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                else {
+                  setSortCol("createdAt");
+                  setSortDir("desc");
+                }
               }}
             >
               <span>Posted Date</span>
-              {sortCol === "createdAt" && (sortDir === "asc" ? <ChevronUp className="h-3 w-3 shrink-0" /> : <ChevronDown className="h-3 w-3 shrink-0" />)}
+              {sortCol === "createdAt" &&
+                (sortDir === "asc" ? (
+                  <ChevronUp className="h-3 w-3 shrink-0" />
+                ) : (
+                  <ChevronDown className="h-3 w-3 shrink-0" />
+                ))}
             </div>
             <div
-              className="col-span-2 min-w-0 flex items-center gap-1 cursor-pointer select-none hover:text-white/80 transition-colors"
+              className="col-span-2 flex min-w-0 cursor-pointer items-center gap-1 transition-colors select-none hover:text-white/80"
               onClick={() => {
-                if (sortCol === "closesAt") setSortDir(d => d === "asc" ? "desc" : "asc");
-                else { setSortCol("closesAt"); setSortDir("desc"); }
+                if (sortCol === "closesAt") setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                else {
+                  setSortCol("closesAt");
+                  setSortDir("desc");
+                }
               }}
             >
               <span>Closes Date</span>
-              {sortCol === "closesAt" && (sortDir === "asc" ? <ChevronUp className="h-3 w-3 shrink-0" /> : <ChevronDown className="h-3 w-3 shrink-0" />)}
+              {sortCol === "closesAt" &&
+                (sortDir === "asc" ? (
+                  <ChevronUp className="h-3 w-3 shrink-0" />
+                ) : (
+                  <ChevronDown className="h-3 w-3 shrink-0" />
+                ))}
             </div>
             <div className="col-span-1 min-w-0 text-right">Quotes</div>
           </div>
         </div>
 
         {/* Scrollable Rows */}
-        <div data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden space-y-2 pr-1">
+        <div
+          data-lenis-prevent
+          className="min-h-0 flex-1 [scrollbar-width:none] space-y-2 overflow-y-auto pr-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
           {initialLoad && displayed.length === 0 && (
-            <div className="px-6 py-10 text-center text-zinc-600">
-              Loading requirements…
-            </div>
+            <div className="px-6 py-10 text-center text-zinc-600">Loading requirements…</div>
           )}
           {loadError && displayed.length === 0 && !initialLoad && (
-            <div className="px-6 py-10 text-center text-zinc-600">
-              {loadError}
-            </div>
+            <div className="px-6 py-10 text-center text-zinc-600">{loadError}</div>
           )}
           {!loadError && !initialLoad && displayed.length === 0 && (
-            <div className="px-6 py-10 text-center text-zinc-600">
-              Nothing posted yet.
-            </div>
+            <div className="px-6 py-10 text-center text-zinc-600">Nothing posted yet.</div>
           )}
           {displayed.map((r) => (
             <div
               key={r.id}
-              className="grid grid-cols-12 gap-3 items-center group cursor-pointer bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl p-4 transition-all hover:ring-brand-blue/40 text-sm"
-              onClick={() => window.location.href = `/requirements/${r.id}`}
+              className="group hover:ring-brand-blue/40 grid cursor-pointer grid-cols-12 items-center gap-3 rounded-2xl bg-white p-4 text-sm ring-1 ring-zinc-100 transition-all ring-inset"
+              onClick={() => (window.location.href = `/requirements/${r.id}`)}
             >
-              <div className="col-span-3 min-w-0 font-medium text-zinc-900 truncate">
+              <div className="col-span-3 min-w-0 truncate font-medium text-zinc-900">
                 {r.project}
               </div>
-              <div className="col-span-2 min-w-0 truncate">
-                {statusLabel(r.status, r.closesAt)}
-              </div>
-              <div className="col-span-2 min-w-0 font-mono text-xs text-brand-blue tabular-nums font-medium group-hover:underline truncate">
+              <div className="col-span-2 min-w-0 truncate">{statusLabel(r.status, r.closesAt)}</div>
+              <div className="text-brand-blue col-span-2 min-w-0 truncate font-mono text-xs font-medium tabular-nums group-hover:underline">
                 {r.referenceNumber ?? "— draft —"}
               </div>
-              <div className="col-span-2 min-w-0 text-zinc-600 tabular-nums text-xs truncate">
+              <div className="col-span-2 min-w-0 truncate text-xs text-zinc-600 tabular-nums">
                 {formatDateTime(r.createdAt)}
               </div>
-              <div className="col-span-2 min-w-0 text-zinc-600 tabular-nums text-xs truncate">
+              <div className="col-span-2 min-w-0 truncate text-xs text-zinc-600 tabular-nums">
                 {formatDateTime(r.closesAt)}
               </div>
-              <div className="col-span-1 min-w-0 text-right text-zinc-600 tabular-nums font-mono text-xs truncate">
+              <div className="col-span-1 min-w-0 truncate text-right font-mono text-xs text-zinc-600 tabular-nums">
                 {r.submitted} ({r.invited} inv)
               </div>
             </div>
@@ -399,9 +453,9 @@ export function RequirementsPanel() {
 
 export function RequirementsSkeleton() {
   return (
-    <div className="flex flex-1 flex-col min-h-0 w-full animate-pulse">
+    <div className="flex min-h-0 w-full flex-1 animate-pulse flex-col">
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0 mb-6">
+      <div className="mb-6 grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
@@ -420,12 +474,12 @@ export function RequirementsSkeleton() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-nowrap items-center justify-between gap-4 shrink-0 mb-6">
-        <div className="flex items-center gap-3 w-full max-w-sm">
+      <div className="mb-6 flex shrink-0 flex-nowrap items-center justify-between gap-4">
+        <div className="flex w-full max-w-sm items-center gap-3">
           <div className="h-[42px] w-[42px] shrink-0 rounded-full border border-zinc-200 bg-white" />
           <div className="h-[42px] flex-1 rounded-full border border-zinc-200 bg-white" />
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex shrink-0 items-center gap-3">
           <div className="h-10 w-40 rounded-full border border-zinc-200 bg-white" />
           <div className="h-11 w-36 rounded-full bg-zinc-100" />
         </div>
@@ -438,38 +492,49 @@ export function RequirementsSkeleton() {
           <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
             <thead>
               <tr className="text-white">
-                {['Project', 'Status', 'Reference', 'Posted Date', 'Closes Date', 'Invited', 'Quotes'].map((h, i) => (
+                {[
+                  "Project",
+                  "Status",
+                  "Reference",
+                  "Posted Date",
+                  "Closes Date",
+                  "Invited",
+                  "Quotes",
+                ].map((h, i) => (
                   <th
                     key={h}
-                    className={`whitespace-nowrap bg-zinc-100 px-8 py-3.5 font-semibold ${i === 0 ? 'rounded-l-2xl' : ''} ${i === 6 ? 'rounded-r-2xl' : ''}`}
+                    className={`bg-zinc-100 px-8 py-3.5 font-semibold whitespace-nowrap ${i === 0 ? "rounded-l-2xl" : ""} ${i === 6 ? "rounded-r-2xl" : ""}`}
                   >
-                    <div className="h-3 rounded bg-zinc-200" style={{ width: h === 'Project' ? '80px' : h === 'Status' ? '48px' : '64px' }} />
+                    <div
+                      className="h-3 rounded bg-zinc-200"
+                      style={{ width: h === "Project" ? "80px" : h === "Status" ? "48px" : "64px" }}
+                    />
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl">
-                  <td className="sticky left-0 z-10 whitespace-nowrap rounded-l-2xl bg-white px-8 py-4 ring-1 ring-inset ring-zinc-100">
+                <tr key={i} className="rounded-2xl bg-white ring-1 ring-zinc-100 ring-inset">
+                  <td className="sticky left-0 z-10 rounded-l-2xl bg-white px-8 py-4 whitespace-nowrap ring-1 ring-zinc-100 ring-inset">
                     <div className="h-4 w-36 rounded bg-zinc-100" />
                   </td>
-                  <td className="whitespace-nowrap px-8 py-4">
+                  <td className="px-8 py-4 whitespace-nowrap">
                     <div className="h-4 w-20 rounded bg-zinc-100" />
                   </td>
-                  <td className="whitespace-nowrap px-8 py-4">
+                  <td className="px-8 py-4 whitespace-nowrap">
                     <div className="h-4 w-24 rounded bg-zinc-100" />
                   </td>
-                  <td className="whitespace-nowrap px-8 py-4">
+                  <td className="px-8 py-4 whitespace-nowrap">
                     <div className="h-4 w-32 rounded bg-zinc-100" />
                   </td>
-                  <td className="whitespace-nowrap px-8 py-4">
+                  <td className="px-8 py-4 whitespace-nowrap">
                     <div className="h-4 w-32 rounded bg-zinc-100" />
                   </td>
-                  <td className="whitespace-nowrap px-8 py-4">
+                  <td className="px-8 py-4 whitespace-nowrap">
                     <div className="h-4 w-8 rounded bg-zinc-100" />
                   </td>
-                  <td className="whitespace-nowrap rounded-r-2xl px-8 py-4">
+                  <td className="rounded-r-2xl px-8 py-4 whitespace-nowrap">
                     <div className="h-4 w-8 rounded bg-zinc-100" />
                   </td>
                 </tr>

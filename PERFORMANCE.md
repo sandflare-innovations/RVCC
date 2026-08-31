@@ -14,42 +14,42 @@ Browser → Next.js (Vercel, region: bom1) → CF Worker API → Postgres (+ opt
 
 ## Phase 1 — Complete
 
-| Item | Status |
-|------|--------|
-| Careers ISR (60s) + API Cache-Control | Done |
-| Session `unstable_cache` (45s) | Done |
-| Admin/vendor prefetch on hover | Done |
-| Enquire step code-splitting | Done |
-| Marketing route group (no Lenis on `/enquire`) | Done |
-| Hero LCP + deferred Clarity | Done |
+| Item                                           | Status |
+| ---------------------------------------------- | ------ |
+| Careers ISR (60s) + API Cache-Control          | Done   |
+| Session `unstable_cache` (45s)                 | Done   |
+| Admin/vendor prefetch on hover                 | Done   |
+| Enquire step code-splitting                    | Done   |
+| Marketing route group (no Lenis on `/enquire`) | Done   |
+| Hero LCP + deferred Clarity                    | Done   |
 
 ---
 
 ## Phase 2 — Complete
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Vercel region `bom1` | Done | Change in `vercel.json` if Postgres is elsewhere |
-| Cloudflare Hyperdrive | Done (config) | Uncomment `[[hyperdrive]]` in `apps/api/wrangler` after creating binding |
-| Upstash Redis session cache | Done (optional) | Set `UPSTASH_REDIS_REST_*` on admin + vendor |
-| Profile cookie — skip layout `/auth/me` | Done | Set at login; layout reads cookie |
-| Enquire PATCH debounce (400ms) | Done | Coalesces rapid step navigation |
-| Lazy 3D (About, Quality) | Done | `dynamic(..., { ssr: false })` |
-| PDF Range proxy | Done | `/api/documents/pdf?path=/pdf/...` |
-| Remove unused Sanity | Done | Deps + files removed |
+| Item                                    | Status          | Notes                                                                    |
+| --------------------------------------- | --------------- | ------------------------------------------------------------------------ |
+| Vercel region `bom1`                    | Done            | Change in `vercel.json` if Postgres is elsewhere                         |
+| Cloudflare Hyperdrive                   | Done (config)   | Uncomment `[[hyperdrive]]` in `apps/api/wrangler` after creating binding |
+| Upstash Redis session cache             | Done (optional) | Set `UPSTASH_REDIS_REST_*` on admin + vendor                             |
+| Profile cookie — skip layout `/auth/me` | Done            | Set at login; layout reads cookie                                        |
+| Enquire PATCH debounce (400ms)          | Done            | Coalesces rapid step navigation                                          |
+| Lazy 3D (About, Quality)                | Done            | `dynamic(..., { ssr: false })`                                           |
+| PDF Range proxy                         | Done            | `/api/documents/pdf?path=/pdf/...`                                       |
+| Remove unused Sanity                    | Done            | Deps + files removed                                                     |
 
 ---
 
 ## Phase 3 — Complete
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Read replica support | Done | `DATABASE_READ_URL` — dashboard uses `createReadSql` |
-| Dashboard isolate cache (15s) | Done | `getIsolateCache` + `Cache-Control: private, max-age=15` |
-| Preview CORS (`*.vercel.app`, `*.pages.dev`) | Done | `apps/api/src/lib/http.ts` |
-| Vercel Speed Insights | Done | web + admin layouts |
-| Bundle analyzer | Done | `pnpm run analyze` in `apps/web` |
-| Observability baseline | Done | Speed Insights; use CF Worker analytics for API |
+| Item                                         | Status | Notes                                                    |
+| -------------------------------------------- | ------ | -------------------------------------------------------- |
+| Read replica support                         | Done   | `DATABASE_READ_URL` — dashboard uses `createReadSql`     |
+| Dashboard isolate cache (15s)                | Done   | `getIsolateCache` + `Cache-Control: private, max-age=15` |
+| Preview CORS (`*.vercel.app`, `*.pages.dev`) | Done   | `apps/api/src/lib/http.ts`                               |
+| Vercel Speed Insights                        | Done   | web + admin layouts                                      |
+| Bundle analyzer                              | Done   | `pnpm run analyze` in `apps/web`                         |
+| Observability baseline                       | Done   | Speed Insights; use CF Worker analytics for API          |
 
 ---
 
@@ -102,13 +102,13 @@ id = "<your-hyperdrive-config-id>"
 
 ## Measuring success
 
-| Metric | Target |
-|--------|--------|
-| Careers TTFB (cached) | < 200ms |
-| Admin dashboard (warm) | < 1.5s |
-| Admin nav (profile cookie) | No `/auth/me` on layout |
-| Enquire step change | UI instant; save debounced 400ms |
-| Home LCP | < 2.5s |
+| Metric                     | Target                           |
+| -------------------------- | -------------------------------- |
+| Careers TTFB (cached)      | < 200ms                          |
+| Admin dashboard (warm)     | < 1.5s                           |
+| Admin nav (profile cookie) | No `/auth/me` on layout          |
+| Enquire step change        | UI instant; save debounced 400ms |
+| Home LCP                   | < 2.5s                           |
 
 ```bash
 curl -w "\n%{time_total}s\n" https://rvcc-api.rvcc.workers.dev/health
@@ -120,13 +120,13 @@ ANALYZE=true pnpm run build   # in apps/web
 
 ## Key files
 
-| Area | Path |
-|------|------|
-| Careers cache | `apps/web/src/lib/cache.ts` |
-| Session + Redis | `apps/admin/src/lib/session.ts`, `redis-cache.ts` |
-| Profile cookie | `apps/admin/src/lib/profile-cookie.ts` |
-| PDF proxy | `apps/web/src/app/api/documents/pdf/route.ts` |
-| Hyperdrive | `apps/api/src/worker`, `apps/api/src/lib/sql.ts` |
+| Area            | Path                                               |
+| --------------- | -------------------------------------------------- |
+| Careers cache   | `apps/web/src/lib/cache.ts`                        |
+| Session + Redis | `apps/admin/src/lib/session.ts`, `redis-cache.ts`  |
+| Profile cookie  | `apps/admin/src/lib/profile-cookie.ts`             |
+| PDF proxy       | `apps/web/src/app/api/documents/pdf/route.ts`      |
+| Hyperdrive      | `apps/api/src/worker`, `apps/api/src/lib/sql.ts`   |
 | Dashboard cache | `apps/api/src/lib/isolate-cache.ts`, `handlers.ts` |
 
 ---

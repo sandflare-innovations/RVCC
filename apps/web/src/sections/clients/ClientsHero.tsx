@@ -1,9 +1,8 @@
 "use client";
 
+import { ThreeDMarquee } from "@components/ui/3d-marquee";
 import { clients } from "@data/clients";
 import { motion } from "framer-motion";
-
-import { ThreeDMarquee } from "@components/ui/3d-marquee";
 
 export const ClientsHero = () => {
   const marqueeImages = clients.map((client) => ({

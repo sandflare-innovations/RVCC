@@ -57,12 +57,18 @@ async function verifyOtpChallenge(
   });
 
   if (!challenge) {
-    return { valid: false, error: "No active verification code found or code has expired. Please request a new OTP." };
+    return {
+      valid: false,
+      error: "No active verification code found or code has expired. Please request a new OTP.",
+    };
   }
 
   if (Number(challenge.attempts) >= MAX_OTP_ATTEMPTS) {
     await prisma.adminOtp.delete({ where: { id: challenge.id } });
-    return { valid: false, error: "Maximum verification attempts exceeded. Please request a new OTP." };
+    return {
+      valid: false,
+      error: "Maximum verification attempts exceeded. Please request a new OTP.",
+    };
   }
 
   if (challenge.codeHash !== codeHash) {
@@ -100,15 +106,13 @@ export async function handleStaffOtpRequest(
   } catch {
     body = {};
   }
-  const action = typeof (body as any)?.action === "string" ? (body as any).action : "STAFF_MANAGEMENT";
+  const action =
+    typeof (body as any)?.action === "string" ? (body as any).action : "STAFF_MANAGEMENT";
 
   // Clean old expired challenges for this admin
   await prisma.adminOtp.deleteMany({
     where: {
-      OR: [
-        { adminId: auth.admin.id },
-        { expiresAt: { lt: new Date() } },
-      ],
+      OR: [{ adminId: auth.admin.id }, { expiresAt: { lt: new Date() } }],
     },
   });
 
@@ -149,11 +153,7 @@ export async function handleStaffOtpRequest(
  * GET /admin/staff
  * Lists all staff and admin accounts.
  */
-export async function handleStaffList(
-  sql: unknown,
-  env: Env,
-  request: Request
-): Promise<Response> {
+export async function handleStaffList(sql: unknown, env: Env, request: Request): Promise<Response> {
   const auth = await requireAdmin(sql, env, request);
   if (auth.deny) return auth.deny;
 
@@ -172,8 +172,8 @@ export async function handleStaffList(
   };
 
   const sortedRows = [...rows].sort((a, b) => {
-    const roleA = (a.role?.name || "ADMIN");
-    const roleB = (b.role?.name || "ADMIN");
+    const roleA = a.role?.name || "ADMIN";
+    const roleB = b.role?.name || "ADMIN";
     const pA = rolePriority[roleA] || 99;
     const pB = rolePriority[roleB] || 99;
     return pA - pB;
@@ -247,7 +247,14 @@ export async function handleStaffCreate(
 
   const passwordHash = await hashPassword(password);
   const staffId = cuid();
-  const validRoles = ["SUPER_ADMIN", "ADMIN", "PROCUREMENT_ADMIN", "VENDOR_ADMIN", "WEBSITE_ADMIN", "REVIEWER"];
+  const validRoles = [
+    "SUPER_ADMIN",
+    "ADMIN",
+    "PROCUREMENT_ADMIN",
+    "VENDOR_ADMIN",
+    "WEBSITE_ADMIN",
+    "REVIEWER",
+  ];
   const validRole = (validRoles.includes(role) ? role : "ADMIN") as AdminRoleName;
 
   // Find or create role
@@ -331,7 +338,12 @@ export async function handleStaffUpdate(
       },
     });
     if (superAdminsCount <= 1) {
-      return json(env, request, { error: "Cannot demote or deactivate the last active Super Admin." }, 400);
+      return json(
+        env,
+        request,
+        { error: "Cannot demote or deactivate the last active Super Admin." },
+        400
+      );
     }
   }
 
@@ -348,8 +360,18 @@ export async function handleStaffUpdate(
   const nextPosition = typeof position === "string" ? position : target.position;
   const nextDepartment = typeof department === "string" ? department : target.department;
   const nextPhone = typeof phone === "string" ? phone : target.phone;
-  const validRoles = ["SUPER_ADMIN", "ADMIN", "PROCUREMENT_ADMIN", "VENDOR_ADMIN", "WEBSITE_ADMIN", "REVIEWER"];
-  const nextRoleName = typeof role === "string" && validRoles.includes(role) ? (role as AdminRoleName) : (currentRoleName as AdminRoleName);
+  const validRoles = [
+    "SUPER_ADMIN",
+    "ADMIN",
+    "PROCUREMENT_ADMIN",
+    "VENDOR_ADMIN",
+    "WEBSITE_ADMIN",
+    "REVIEWER",
+  ];
+  const nextRoleName =
+    typeof role === "string" && validRoles.includes(role)
+      ? (role as AdminRoleName)
+      : (currentRoleName as AdminRoleName);
   const nextIsActive = typeof isActive === "boolean" ? isActive : Boolean(target.isActive);
 
   let nextRoleId = target.roleId;
@@ -489,7 +511,12 @@ export async function handleStaffDelete(
   const { otpCode } = body;
 
   if (id === auth.admin.id) {
-    return json(env, request, { error: "You cannot delete your own active administrator account." }, 400);
+    return json(
+      env,
+      request,
+      { error: "You cannot delete your own active administrator account." },
+      400
+    );
   }
 
   const target = await prisma.adminUser.findUnique({
@@ -510,7 +537,12 @@ export async function handleStaffDelete(
       },
     });
     if (superAdminsCount <= 1) {
-      return json(env, request, { error: "Cannot delete the last active Super Admin account." }, 400);
+      return json(
+        env,
+        request,
+        { error: "Cannot delete the last active Super Admin account." },
+        400
+      );
     }
   }
 

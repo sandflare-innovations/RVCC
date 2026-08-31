@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
+import { cn } from "@lib/utils";
+import { Button } from "@ui/Button";
+import { motion } from "framer-motion";
+import { useLenis } from "lenis/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-import { motion } from "framer-motion";
-import { useLenis } from "lenis/react";
-
+import { useEffect, useRef, useState } from "react";
 import {
   FaFacebookF,
   FaInstagram,
@@ -19,13 +18,7 @@ import {
 } from "react-icons/fa6";
 
 import { Icons } from "@/lib/icons";
-
 import { enquireVerifyUrl } from "@/lib/public-urls";
-
-
-import { Button } from "@ui/Button";
-
-import { cn } from "@lib/utils";
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -331,10 +324,10 @@ export const Navbar = () => {
               Close
             </span>
           </button>
-          <div className="flex items-center gap-4 text-brand-blue">
+          <div className="text-brand-blue flex items-center gap-4">
             <button
               type="button"
-              className="text-brand-blue text-[11px] font-black tracking-[0.15em] uppercase hover:opacity-75 transition-opacity p-0 bg-transparent border-none"
+              className="text-brand-blue border-none bg-transparent p-0 text-[11px] font-black tracking-[0.15em] uppercase transition-opacity hover:opacity-75"
             >
               AR
             </button>
@@ -386,7 +379,7 @@ export const Navbar = () => {
         </nav>
 
         {/* Fixed Sticky Bottom Footer (E-Vendor button & Centered Social Icons) */}
-        <div className="shrink-0 border-t border-border/10 bg-background px-8 pt-5 pb-8 md:px-10 md:pb-10">
+        <div className="border-border/10 bg-background shrink-0 border-t px-8 pt-5 pb-8 md:px-10 md:pb-10">
           <Button
             variant="primary"
             href={enquireHref}

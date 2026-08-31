@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useMemo } from "react";
-
 import { Users } from "lucide-react";
+import React, { useMemo } from "react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export interface PerformanceChartProps {

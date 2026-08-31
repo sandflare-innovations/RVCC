@@ -103,9 +103,7 @@ async function main() {
   const files = await walk(SRC);
   console.log(`\n${DRY_RUN ? "[dry run] " : ""}Optimising ${files.length} images…\n`);
 
-  const results = (await mapPool(files, CONCURRENCY, convert)).sort(
-    (a, b) => b.before - a.before
-  );
+  const results = (await mapPool(files, CONCURRENCY, convert)).sort((a, b) => b.before - a.before);
 
   let totalBefore = 0;
   let totalAfter = 0;

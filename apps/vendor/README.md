@@ -2,11 +2,11 @@
 
 Production vendor portal on port **3002**:
 
-| Area | Paths |
-| ---- | ----- |
-| Portal | `/`, `/requirements`, `/password`, `/login` |
-| Registration | `/register/*` (supplier onboarding) |
-| Access hold | `/access-held` |
+| Area         | Paths                                       |
+| ------------ | ------------------------------------------- |
+| Portal       | `/`, `/requirements`, `/password`, `/login` |
+| Registration | `/register/*` (supplier onboarding)         |
+| Access hold  | `/access-held`                              |
 
 Backend: unified API at `apps/api` via `API_URL`.
 

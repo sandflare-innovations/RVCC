@@ -53,12 +53,7 @@ export const requirementStatusSchema = z.enum([
 ]);
 export type RequirementStatusEnum = z.infer<typeof requirementStatusSchema>;
 
-export const quoteStatusSchema = z.enum([
-  "DRAFT",
-  "SUBMITTED",
-  "ACCEPTED",
-  "REJECTED",
-]);
+export const quoteStatusSchema = z.enum(["DRAFT", "SUBMITTED", "ACCEPTED", "REJECTED"]);
 export type QuoteStatusEnum = z.infer<typeof quoteStatusSchema>;
 
 /**

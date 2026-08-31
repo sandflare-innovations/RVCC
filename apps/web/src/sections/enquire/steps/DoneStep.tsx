@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { LuCheck as Check, LuCopy as Copy, LuCircleCheck as CheckCircle2 } from "react-icons/lu";
+import { useState } from "react";
+import { LuCheck as Check, LuCircleCheck as CheckCircle2,LuCopy as Copy } from "react-icons/lu";
 
 import { Button } from "@/components/ui/Button";
 import { enquireVerifyUrl, siteUrl, vendorPortalUrl } from "@/lib/public-urls";
-import { useEnquire } from "@/sections/enquire/EnquireContext";
 import { cn } from "@/lib/utils";
+import { useEnquire } from "@/sections/enquire/EnquireContext";
 
 export function DoneStep() {
   const params = useSearchParams();
@@ -31,38 +30,44 @@ export function DoneStep() {
     <>
       {/* Full screen watermark logo */}
       <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center overflow-hidden opacity-5">
-        <img src="/images/logo/logo.webp" alt="" className="w-full max-w-12xl object-contain" />
+        <img src="/images/logo/logo.webp" alt="" className="max-w-12xl w-full object-contain" />
       </div>
 
-      <div className="mx-auto max-w-5xl w-full flex flex-col md:flex-row items-stretch gap-6 md:gap-8 py-4 md:py-8 relative z-10">
+      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-stretch gap-6 py-4 md:flex-row md:gap-8 md:py-8">
         {/* Left Box */}
-        <div className="flex-1 rounded-[2rem] border border-zinc-200 bg-zinc-50/50 p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-6 md:space-y-8 shadow-sm">
-          <div className="bg-brand-blue flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-2xl shadow-xl shadow-brand-blue/20 ring-8 ring-brand-blue/5">
-            <Check className="h-8 w-8 md:h-10 md:w-10 text-white stroke-[3]" />
+        <div className="flex flex-1 flex-col items-center justify-center space-y-6 rounded-[2rem] border border-zinc-200 bg-zinc-50/50 p-8 text-center shadow-sm md:space-y-8 md:p-12">
+          <div className="bg-brand-blue shadow-brand-blue/20 ring-brand-blue/5 flex h-16 w-16 items-center justify-center rounded-2xl shadow-xl ring-8 md:h-20 md:w-20">
+            <Check className="h-8 w-8 stroke-[3] text-white md:h-10 md:w-10" />
           </div>
 
           <div className="space-y-3 md:space-y-4">
-            <h2 className="font-enquire text-2xl md:text-3xl font-bold tracking-tight text-brand-blue uppercase">Request received</h2>
-            <p className="text-base md:text-lg leading-relaxed text-zinc-800 max-w-sm mx-auto">
-              Thank you for registering as a prospective supplier with RVCC. Your request is now in our
-              procurement review queue.
+            <h2 className="font-enquire text-brand-blue text-2xl font-bold tracking-tight uppercase md:text-3xl">
+              Request received
+            </h2>
+            <p className="mx-auto max-w-sm text-base leading-relaxed text-zinc-800 md:text-lg">
+              Thank you for registering as a prospective supplier with RVCC. Your request is now in
+              our procurement review queue.
             </p>
           </div>
         </div>
 
         {/* Right Box */}
-        <div className="flex-1 rounded-[2rem] border border-zinc-200 bg-white p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-8 shadow-sm">
+        <div className="flex flex-1 flex-col items-center justify-center space-y-8 rounded-[2rem] border border-zinc-200 bg-white p-8 text-center shadow-sm md:p-12">
           <div className="w-full">
-            <p className="text-xs font-bold tracking-[0.15em] text-zinc-500 uppercase mb-3">
+            <p className="mb-3 text-xs font-bold tracking-[0.15em] text-zinc-500 uppercase">
               Reference number
             </p>
-            <div className="bg-zinc-50 border border-zinc-200 rounded-xl py-4 px-5 shadow-inner flex items-center justify-between group">
-              <p className="text-brand-blue font-mono text-xl md:text-2xl font-bold tracking-wider">{ref}</p>
+            <div className="group flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 px-5 py-4 shadow-inner">
+              <p className="text-brand-blue font-mono text-xl font-bold tracking-wider md:text-2xl">
+                {ref}
+              </p>
               <button
                 onClick={handleCopy}
                 className={cn(
-                  "p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-1",
-                  copied ? "text-green-600 bg-green-100" : "text-zinc-400 hover:text-brand-blue hover:bg-zinc-200"
+                  "focus:ring-brand-blue rounded-lg p-2 transition-colors focus:ring-2 focus:ring-offset-1 focus:outline-none",
+                  copied
+                    ? "bg-green-100 text-green-600"
+                    : "hover:text-brand-blue text-zinc-400 hover:bg-zinc-200"
                 )}
                 title="Copy reference number"
               >
@@ -71,16 +76,16 @@ export function DoneStep() {
             </div>
           </div>
 
-          <p className="text-base md:text-[14px] leading-relaxed text-zinc-800">
-            Keep this reference for follow-up. Notifications will be sent to your administrative contact
-            email when a decision is made.
+          <p className="text-base leading-relaxed text-zinc-800 md:text-[14px]">
+            Keep this reference for follow-up. Notifications will be sent to your administrative
+            contact email when a decision is made.
             {hasVendorPortal ? (
               <>
                 {" "}
                 After approval, you will sign in at the{" "}
                 <a
                   href={vendorLogin}
-                  className="font-medium text-brand-blue underline underline-offset-4 hover:text-brand-blue/80 transition-colors"
+                  className="text-brand-blue hover:text-brand-blue/80 font-medium underline underline-offset-4 transition-colors"
                   rel="noopener noreferrer"
                 >
                   supplier portal
@@ -90,22 +95,29 @@ export function DoneStep() {
             ) : null}
           </p>
 
-          <div className="flex flex-col w-full gap-3 pt-2">
-            <Button href={homeHref} variant="primary" className="w-full h-12 md:h-14 rounded-xl text-[14px] md:text-[15px] font-bold tracking-wide">
+          <div className="flex w-full flex-col gap-3 pt-2">
+            <Button
+              href={homeHref}
+              variant="primary"
+              className="h-12 w-full rounded-xl text-[14px] font-bold tracking-wide md:h-14 md:text-[15px]"
+            >
               BACK TO HOME
             </Button>
             <Button
               href={contactHref}
               variant="outline"
-              className="w-full h-12 md:h-14 rounded-xl border-2 border-zinc-200 bg-white text-[14px] md:text-[15px] font-bold tracking-wide text-zinc-700 hover:border-brand-blue hover:text-brand-blue"
+              className="hover:border-brand-blue hover:text-brand-blue h-12 w-full rounded-xl border-2 border-zinc-200 bg-white text-[14px] font-bold tracking-wide text-zinc-700 md:h-14 md:text-[15px]"
             >
               CONTACT PROCUREMENT
             </Button>
           </div>
 
-          <p className="text-[14px] md:text-[15px] text-zinc-500 w-full pt-2 border-t border-zinc-100">
+          <p className="w-full border-t border-zinc-100 pt-2 text-[14px] text-zinc-500 md:text-[15px]">
             Need to start another draft?{" "}
-            <a href={enquireVerifyUrl()} className="font-medium underline underline-offset-4 hover:text-zinc-800 transition-colors">
+            <a
+              href={enquireVerifyUrl()}
+              className="font-medium underline underline-offset-4 transition-colors hover:text-zinc-800"
+            >
               E-Vendor Registration
             </a>
           </p>

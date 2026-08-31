@@ -1,10 +1,9 @@
+import { ServicesGrid } from "@sections/services/ServicesGrid";
+import { ServicesHero } from "@sections/services/ServicesHero";
 import { Metadata } from "next";
 
 import Contact from "@/components/common/Contact";
 import { Footer } from "@/components/layout/Footer";
-
-import { ServicesGrid } from "@sections/services/ServicesGrid";
-import { ServicesHero } from "@sections/services/ServicesHero";
 
 export const metadata: Metadata = {
   title: "Services | RVCC",

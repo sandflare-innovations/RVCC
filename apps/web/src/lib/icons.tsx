@@ -1,3 +1,4 @@
+import { FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa6";
 import {
   LuArrowRight as ArrowRight,
   LuChevronDown as ChevronDown,
@@ -10,6 +11,7 @@ import {
   LuMinimize as Minimize,
   LuMinus as Minus,
   LuMoon as Moon,
+  LuPalette as Palette,
   LuPause as Pause,
   LuPlay as Play,
   LuPlus as Plus,
@@ -18,9 +20,7 @@ import {
   LuShield as Shield,
   LuSun as Sun,
   LuX as X,
-  LuPalette as Palette,
 } from "react-icons/lu";
-import { FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa6";
 
 /** Lucide / react-icons under the legacy `Icons.*` names. */
 export const Icons = {

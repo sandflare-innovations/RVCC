@@ -1,20 +1,18 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { useRouter } from "next/navigation";
-
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
-import { EnquireActions } from "@/sections/enquire/EnquireActions";
-import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
-import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
+import { cn } from "@/lib/utils";
 import {
   enquireActionLinkClass,
   enquireOptionLabelClass,
   enquireSectionTitleClass,
 } from "@/sections/enquire/enquire-typography";
-
-import { cn } from "@/lib/utils";
+import { EnquireActions } from "@/sections/enquire/EnquireActions";
+import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
+import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
 
 type ContactForm = {
   firstName: string;

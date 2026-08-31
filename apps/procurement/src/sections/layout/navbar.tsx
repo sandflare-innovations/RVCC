@@ -19,16 +19,16 @@ interface NavbarProps {
 export function Navbar({ onOpenNewRequest, user }: NavbarProps) {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md">
-      <div className="relative mx-auto flex h-16 max-w-8xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="max-w-8xl relative mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Left Placeholder for balanced symmetry */}
-        <div className="flex items-center gap-2.5 w-28 sm:w-44" />
+        <div className="flex w-28 items-center gap-2.5 sm:w-44" />
 
         {/* Center Brand / Logo */}
         <Link
           href="/"
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-3 group"
+          className="group absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-3"
         >
-          <div className="relative h-10 w-28 flex items-center justify-center">
+          <div className="relative flex h-10 w-28 items-center justify-center">
             <Image
               src="/images/logo/logo.webp"
               alt="RVCC Logo"
@@ -41,13 +41,13 @@ export function Navbar({ onOpenNewRequest, user }: NavbarProps) {
           <div className="h-6 w-px bg-zinc-200" />
           <div className="flex items-center gap-2">
             <span className="text-base font-extrabold tracking-tight text-zinc-900">
-              RVCC <span className="text-[#0073bc] font-semibold">Procurement</span>
+              RVCC <span className="font-semibold text-[#0073bc]">Procurement</span>
             </span>
           </div>
         </Link>
 
         {/* Right Action Buttons */}
-        <div className="flex items-center justify-end gap-3 w-28 sm:w-44">
+        <div className="flex w-28 items-center justify-end gap-3 sm:w-44">
           <PwaInstallButton />
           <UserProfileMenu user={user} />
         </div>
@@ -55,4 +55,3 @@ export function Navbar({ onOpenNewRequest, user }: NavbarProps) {
     </header>
   );
 }
-

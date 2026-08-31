@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { applyUpdate, onUpdateAvailable } from "@/lib/pwa/register-sw";
 
@@ -31,7 +31,7 @@ export function PwaUpdateBanner() {
   return (
     <div
       role="status"
-      className="fixed inset-x-0 top-0 z-[200] flex justify-center px-4 pt-3 pointer-events-none"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[200] flex justify-center px-4 pt-3"
     >
       <div className="pointer-events-auto flex w-full max-w-lg items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white px-4 py-3 shadow-lg">
         <div className="min-w-0">
@@ -45,7 +45,7 @@ export function PwaUpdateBanner() {
             setApplying(true);
             applyUpdate();
           }}
-          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-brand-blue px-4 py-2 text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="bg-brand-blue inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${applying ? "animate-spin" : ""}`} />
           {applying ? "Updating…" : "Update now"}

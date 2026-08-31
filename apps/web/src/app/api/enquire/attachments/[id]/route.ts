@@ -12,10 +12,7 @@ async function withRenewedSessionCookie(body: unknown, status = 200) {
   return out;
 }
 
-export async function DELETE(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const jar = await cookies();

@@ -1,11 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": [
-    "NODE_ENV",
-    "CI",
-    "VERCEL_ENV",
-    "VERCEL_GIT_COMMIT_SHA"
-  ],
+  "globalEnv": ["NODE_ENV", "CI", "VERCEL_ENV", "VERCEL_GIT_COMMIT_SHA"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

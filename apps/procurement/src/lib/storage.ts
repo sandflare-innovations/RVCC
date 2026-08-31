@@ -22,7 +22,10 @@ export class ProcurementStore {
 
   static getRequestById(id: string): PurchaseRequest | null {
     const requests = this.getRequests();
-    return requests.find((r) => r.id === id || r.referenceNumber.toLowerCase() === id.toLowerCase()) || null;
+    return (
+      requests.find((r) => r.id === id || r.referenceNumber.toLowerCase() === id.toLowerCase()) ||
+      null
+    );
   }
 
   static saveRequests(requests: PurchaseRequest[]): void {
@@ -34,7 +37,12 @@ export class ProcurementStore {
     }
   }
 
-  static addRequest(newReq: Omit<PurchaseRequest, "id" | "referenceNumber" | "createdAt" | "updatedAt" | "auditTrail" | "status">): PurchaseRequest {
+  static addRequest(
+    newReq: Omit<
+      PurchaseRequest,
+      "id" | "referenceNumber" | "createdAt" | "updatedAt" | "auditTrail" | "status"
+    >
+  ): PurchaseRequest {
     const requests = this.getRequests();
     const count = requests.length + 1;
     const ref = `PR-2026-${String(count).padStart(3, "0")}`;
@@ -68,7 +76,9 @@ export class ProcurementStore {
 
   static delete(id: string): void {
     const requests = this.getRequests();
-    const updated = requests.filter((r) => r.id !== id && r.referenceNumber.toLowerCase() !== id.toLowerCase());
+    const updated = requests.filter(
+      (r) => r.id !== id && r.referenceNumber.toLowerCase() !== id.toLowerCase()
+    );
     this.saveRequests(updated);
   }
 
@@ -77,4 +87,3 @@ export class ProcurementStore {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PURCHASE_REQUESTS));
   }
 }
-

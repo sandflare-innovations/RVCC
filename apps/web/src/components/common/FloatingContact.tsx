@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
-
-import { AnimatePresence, motion } from "framer-motion";
-import { FaWhatsapp } from "react-icons/fa";
-import { FiBook, FiMail, FiPhoneCall, FiPhone, FiX } from "react-icons/fi";
-
 import { cn } from "@lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
+import { FaWhatsapp } from "react-icons/fa";
+import { FiBook, FiMail, FiPhone, FiPhoneCall, FiX } from "react-icons/fi";
 
 const ACTIONS = [
   {
@@ -35,7 +33,7 @@ export const FloatingContact = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-center gap-4">
+    <div className="fixed right-8 bottom-8 z-[100] flex flex-col items-center gap-4">
       <AnimatePresence>
         {isOpen && (
           <motion.div

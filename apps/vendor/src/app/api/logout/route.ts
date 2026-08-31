@@ -1,11 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import {
-  VENDOR_COOKIE,
-  VENDOR_PROFILE_COOKIE,
-  expiredCookieOptions,
-} from "@/lib/constants";
+import { expiredCookieOptions,VENDOR_COOKIE, VENDOR_PROFILE_COOKIE } from "@/lib/constants";
 import { clearVendorSessionCache } from "@/lib/session";
 import { vendorWorkerFetch } from "@/lib/vendor-api";
 
@@ -19,8 +15,8 @@ export async function POST() {
 
   if (token) {
     void clearVendorSessionCache(token);
-    void vendorWorkerFetch("/auth/logout", { method: "POST", sessionToken: token }).catch(
-      (err) => console.error("[vendor/logout] bg fail", err)
+    void vendorWorkerFetch("/auth/logout", { method: "POST", sessionToken: token }).catch((err) =>
+      console.error("[vendor/logout] bg fail", err)
     );
   }
 

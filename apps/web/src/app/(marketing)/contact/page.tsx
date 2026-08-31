@@ -1,18 +1,13 @@
 "use client";
 
+import { Footer } from "@layout/Footer";
+import { cn } from "@lib/utils";
+import { Button } from "@ui/Button";
+import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
 import React, { useState } from "react";
 
-import Image from "next/image";
-
-import { AnimatePresence, motion } from "framer-motion";
-
 import { Icons } from "@/lib/icons";
-
-import { Button } from "@ui/Button";
-
-import { Footer } from "@layout/Footer";
-
-import { cn } from "@lib/utils";
 
 const socialLinks = [
   {

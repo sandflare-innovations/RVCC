@@ -1,9 +1,10 @@
 "use client";
 
-import { Document, Page, pdfjs } from "react-pdf";
-import { LuLoaderCircle as Loader2, LuFileText as FileText } from "react-icons/lu";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
+
+import { LuFileText as FileText,LuLoaderCircle as Loader2 } from "react-icons/lu";
+import { Document, Page, pdfjs } from "react-pdf";
 
 if (typeof window !== "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc = "/pdfjs/pdf.worker.min.mjs";
@@ -15,18 +16,13 @@ interface PdfThumbnailProps {
 
 export default function PdfThumbnail({ url }: PdfThumbnailProps) {
   return (
-    <div className="w-full h-full overflow-hidden flex items-center justify-center bg-zinc-50 pointer-events-none">
+    <div className="pointer-events-none flex h-full w-full items-center justify-center overflow-hidden bg-zinc-50">
       <Document
         file={`/api/proxy-pdf?url=${encodeURIComponent(url)}`}
-        loading={<Loader2 className="w-5 h-5 animate-spin text-zinc-400" />}
-        error={<FileText className="w-10 h-10 opacity-50 text-brand-blue" />}
+        loading={<Loader2 className="h-5 w-5 animate-spin text-zinc-400" />}
+        error={<FileText className="text-brand-blue h-10 w-10 opacity-50" />}
       >
-        <Page
-          pageNumber={1}
-          width={140}
-          renderTextLayer={false}
-          renderAnnotationLayer={false}
-        />
+        <Page pageNumber={1} width={140} renderTextLayer={false} renderAnnotationLayer={false} />
       </Document>
     </div>
   );

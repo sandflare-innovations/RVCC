@@ -1,25 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
-import Image from "next/image";
-
 import { ABOUT_STATS as STATS, ABOUT_WORDS as WORDS } from "@data/home/about";
+import { cn } from "@lib/utils";
 import {
-  MotionValue,
   animate,
   motion,
+  MotionValue,
   useInView,
   useMotionValue,
   useScroll,
   useTransform,
 } from "framer-motion";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { FaArrowRight, FaFileLines, FaPause, FaPlay } from "react-icons/fa6";
 
 import { ClientLogos } from "@/components/common/ClientLogos";
 import { Button } from "@/components/ui/Button";
-
-import { cn } from "@lib/utils";
 
 const Counter = ({
   from = 0,

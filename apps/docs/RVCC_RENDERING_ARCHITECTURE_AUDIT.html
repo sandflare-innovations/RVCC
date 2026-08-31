@@ -1,472 +1,524 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RVCC Platform | Rendering Strategies, Codebase Architecture & SoC Audit</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        :root {
-            --primary: #0066cc;
-            --primary-dark: #004499;
-            --primary-light: #e6f0ff;
-            --primary-subtle: #f0f7ff;
-            --accent-cyan: #0ea5e9;
-            --accent-emerald: #059669;
-            --accent-amber: #d97706;
-            --accent-rose: #e11d48;
-            --text-main: #0f172a;
-            --text-secondary: #334155;
-            --text-muted: #64748b;
-            --bg-page: #f8fafc;
-            --bg-card: #ffffff;
-            --border-light: #e2e8f0;
-            --border-medium: #cbd5e1;
-            --border-blue: #bfdbfe;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-        }
+      :root {
+        --primary: #0066cc;
+        --primary-dark: #004499;
+        --primary-light: #e6f0ff;
+        --primary-subtle: #f0f7ff;
+        --accent-cyan: #0ea5e9;
+        --accent-emerald: #059669;
+        --accent-amber: #d97706;
+        --accent-rose: #e11d48;
+        --text-main: #0f172a;
+        --text-secondary: #334155;
+        --text-muted: #64748b;
+        --bg-page: #f8fafc;
+        --bg-card: #ffffff;
+        --border-light: #e2e8f0;
+        --border-medium: #cbd5e1;
+        --border-blue: #bfdbfe;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      }
 
-        @page {
-            size: A4 portrait;
-            margin: 18mm 16mm 18mm 16mm;
-            @top-right {
-                content: "RVCC Architecture & Rendering Audit";
-                font-family: 'Plus Jakarta Sans', sans-serif;
-                font-size: 8pt;
-                color: #94a3b8;
-            }
-            @bottom-right {
-                content: "Page " counter(page);
-                font-family: 'Plus Jakarta Sans', sans-serif;
-                font-size: 8pt;
-                color: #94a3b8;
-            }
+      @page {
+        size: A4 portrait;
+        margin: 18mm 16mm 18mm 16mm;
+        @top-right {
+          content: "RVCC Architecture & Rendering Audit";
+          font-family: "Plus Jakarta Sans", sans-serif;
+          font-size: 8pt;
+          color: #94a3b8;
         }
+        @bottom-right {
+          content: "Page " counter(page);
+          font-family: "Plus Jakarta Sans", sans-serif;
+          font-size: 8pt;
+          color: #94a3b8;
+        }
+      }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
 
-        body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #ffffff;
-            color: var(--text-main);
-            line-height: 1.55;
-            font-size: 13px;
-        }
+      body {
+        font-family:
+          "Plus Jakarta Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        background-color: #ffffff;
+        color: var(--text-main);
+        line-height: 1.55;
+        font-size: 13px;
+      }
 
-        .page-break {
-            page-break-before: always;
-            break-before: page;
-        }
+      .page-break {
+        page-break-before: always;
+        break-before: page;
+      }
 
-        .avoid-break {
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
+      .avoid-break {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
 
-        /* --- HERO / COVER HEADER --- */
-        .cover-header {
-            background: linear-gradient(135deg, #004499 0%, #0066cc 60%, #0ea5e9 100%);
-            border-radius: 14px;
-            padding: 34px 32px;
-            color: #ffffff;
-            margin-bottom: 24px;
-            box-shadow: 0 10px 25px -5px rgba(0, 102, 204, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
+      /* --- HERO / COVER HEADER --- */
+      .cover-header {
+        background: linear-gradient(135deg, #004499 0%, #0066cc 60%, #0ea5e9 100%);
+        border-radius: 14px;
+        padding: 34px 32px;
+        color: #ffffff;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 25px -5px rgba(0, 102, 204, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
 
-        .badge-pill {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.18);
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            backdrop-filter: blur(8px);
-            color: #ffffff;
-            font-size: 10.5px;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            padding: 4px 12px;
-            border-radius: 999px;
-            margin-bottom: 12px;
-        }
+      .badge-pill {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(8px);
+        color: #ffffff;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 4px 12px;
+        border-radius: 999px;
+        margin-bottom: 12px;
+      }
 
-        .cover-title {
-            font-size: 24px;
-            font-weight: 800;
-            line-height: 1.25;
-            letter-spacing: -0.02em;
-            margin-bottom: 8px;
-        }
+      .cover-title {
+        font-size: 24px;
+        font-weight: 800;
+        line-height: 1.25;
+        letter-spacing: -0.02em;
+        margin-bottom: 8px;
+      }
 
-        .cover-subtitle {
-            font-size: 13.5px;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 400;
-            max-width: 680px;
-            margin-bottom: 18px;
-        }
+      .cover-subtitle {
+        font-size: 13.5px;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 400;
+        max-width: 680px;
+        margin-bottom: 18px;
+      }
 
-        .meta-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.22);
-        }
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.22);
+      }
 
-        .meta-label {
-            color: rgba(255, 255, 255, 0.7);
-            text-transform: uppercase;
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-        }
-        .meta-val {
-            font-weight: 600;
-            color: #ffffff;
-            font-size: 11px;
-            margin-top: 2px;
-        }
+      .meta-label {
+        color: rgba(255, 255, 255, 0.7);
+        text-transform: uppercase;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+      }
+      .meta-val {
+        font-weight: 600;
+        color: #ffffff;
+        font-size: 11px;
+        margin-top: 2px;
+      }
 
-        /* --- SECTION STYLES --- */
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 17px;
-            font-weight: 800;
-            color: var(--primary-dark);
-            margin: 24px 0 14px 0;
-            letter-spacing: -0.02em;
-        }
+      /* --- SECTION STYLES --- */
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--primary-dark);
+        margin: 24px 0 14px 0;
+        letter-spacing: -0.02em;
+      }
 
-        .section-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 26px;
-            height: 26px;
-            background: var(--primary-light);
-            color: var(--primary);
-            border-radius: 7px;
-            font-size: 12px;
-            font-weight: 800;
-        }
+      .section-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        background: var(--primary-light);
+        color: var(--primary);
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 800;
+      }
 
-        /* --- GRIDS & CARDS --- */
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
+      /* --- GRIDS & CARDS --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
 
-        .card {
-            background: #ffffff;
-            border: 1px solid var(--border-light);
-            border-radius: 10px;
-            padding: 14px;
-            box-shadow: var(--shadow-sm);
-        }
+      .card {
+        background: #ffffff;
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        padding: 14px;
+        box-shadow: var(--shadow-sm);
+      }
 
-        .card-primary {
-            border-left: 4px solid var(--primary);
-        }
+      .card-primary {
+        border-left: 4px solid var(--primary);
+      }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #f1f5f9;
-        }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #f1f5f9;
+      }
 
-        .card-title {
-            font-size: 13.5px;
-            font-weight: 700;
-            color: var(--primary-dark);
-        }
+      .card-title {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--primary-dark);
+      }
 
-        .card-badge {
-            font-size: 10px;
-            font-weight: 600;
-            padding: 2px 7px;
-            border-radius: 5px;
-            background: var(--primary-light);
-            color: var(--primary-dark);
-        }
+      .card-badge {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 5px;
+        background: var(--primary-light);
+        color: var(--primary-dark);
+      }
 
-        .tech-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+      .tech-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
 
-        .tech-list li {
-            position: relative;
-            padding-left: 12px;
-            margin-bottom: 5px;
-            font-size: 11.5px;
-            color: var(--text-secondary);
-            line-height: 1.4;
-        }
+      .tech-list li {
+        position: relative;
+        padding-left: 12px;
+        margin-bottom: 5px;
+        font-size: 11.5px;
+        color: var(--text-secondary);
+        line-height: 1.4;
+      }
 
-        .tech-list li::before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: var(--primary);
-            font-weight: bold;
-            font-size: 13px;
-            line-height: 1;
-        }
+      .tech-list li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: var(--primary);
+        font-weight: bold;
+        font-size: 13px;
+        line-height: 1;
+      }
 
-        /* --- TABLES --- */
-        .data-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            border: 1px solid var(--border-light);
-            border-radius: 9px;
-            overflow: hidden;
-            font-size: 11.5px;
-            margin-top: 8px;
-        }
+      /* --- TABLES --- */
+      .data-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        border: 1px solid var(--border-light);
+        border-radius: 9px;
+        overflow: hidden;
+        font-size: 11.5px;
+        margin-top: 8px;
+      }
 
-        .data-table th {
-            background: #f8fafc;
-            color: var(--primary-dark);
-            font-weight: 700;
-            text-align: left;
-            padding: 9px 12px;
-            border-bottom: 1px solid var(--border-light);
-            text-transform: uppercase;
-            font-size: 10px;
-            letter-spacing: 0.05em;
-        }
+      .data-table th {
+        background: #f8fafc;
+        color: var(--primary-dark);
+        font-weight: 700;
+        text-align: left;
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--border-light);
+        text-transform: uppercase;
+        font-size: 10px;
+        letter-spacing: 0.05em;
+      }
 
-        .data-table td {
-            padding: 8px 12px;
-            border-bottom: 1px solid #f1f5f9;
-            color: var(--text-secondary);
-            vertical-align: top;
-        }
+      .data-table td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        color: var(--text-secondary);
+        vertical-align: top;
+      }
 
-        .data-table tr:last-child td {
-            border-bottom: none;
-        }
+      .data-table tr:last-child td {
+        border-bottom: none;
+      }
 
-        .data-table tr:nth-child(even) td {
-            background-color: #fafbfc;
-        }
+      .data-table tr:nth-child(even) td {
+        background-color: #fafbfc;
+      }
 
-        .status-pill {
-            display: inline-block;
-            font-size: 9.5px;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 4px;
-            text-transform: uppercase;
-        }
-        .status-high { background: #dcfce7; color: #15803d; }
-        .status-med { background: #fef3c7; color: #92400e; }
+      .status-pill {
+        display: inline-block;
+        font-size: 9.5px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+      }
+      .status-high {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .status-med {
+        background: #fef3c7;
+        color: #92400e;
+      }
 
-        .footer {
-            margin-top: 24px;
-            padding-top: 12px;
-            border-top: 1px solid var(--border-light);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 10.5px;
-            color: var(--text-muted);
-        }
+      .footer {
+        margin-top: 24px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 10.5px;
+        color: var(--text-muted);
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <!-- ==================== COVER HEADER ==================== -->
     <div class="cover-header">
-        <div class="badge-pill">RVCC Platform Technical Report</div>
-        <div class="cover-title">Rendering Strategies, Codebase Separation & SoC Architecture</div>
-        <div class="cover-subtitle">Comprehensive architectural analysis covering Next.js rendering modes (SSG, SSR, Streaming, Client), Separation of Concerns (SoC), security policies, and shared workspace layer.</div>
-        
-        <div class="meta-grid">
-            <div class="meta-item">
-                <div class="meta-label">Rendering</div>
-                <div class="meta-val">Hybrid SSG / SSR / Edge</div>
-            </div>
-            <div class="meta-item">
-                <div class="meta-label">Separation Layer</div>
-                <div class="meta-val">7 Discrete SoC Tiers</div>
-            </div>
-            <div class="meta-item">
-                <div class="meta-label">Theme</div>
-                <div class="meta-val">White & Marine Blue</div>
-            </div>
-            <div class="meta-item">
-                <div class="meta-label">Audit Score</div>
-                <div class="meta-val">9.5 / 10 (Enterprise)</div>
-            </div>
+      <div class="badge-pill">RVCC Platform Technical Report</div>
+      <div class="cover-title">Rendering Strategies, Codebase Separation & SoC Architecture</div>
+      <div class="cover-subtitle">
+        Comprehensive architectural analysis covering Next.js rendering modes (SSG, SSR, Streaming,
+        Client), Separation of Concerns (SoC), security policies, and shared workspace layer.
+      </div>
+
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="meta-label">Rendering</div>
+          <div class="meta-val">Hybrid SSG / SSR / Edge</div>
         </div>
+        <div class="meta-item">
+          <div class="meta-label">Separation Layer</div>
+          <div class="meta-val">7 Discrete SoC Tiers</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Theme</div>
+          <div class="meta-val">White & Marine Blue</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Audit Score</div>
+          <div class="meta-val">9.5 / 10 (Enterprise)</div>
+        </div>
+      </div>
     </div>
 
     <!-- Section 1 -->
     <div class="section-title">
-        <span class="section-number">1</span>
-        <span>Rendering Strategies Across All Applications</span>
+      <span class="section-number">1</span>
+      <span>Rendering Strategies Across All Applications</span>
     </div>
 
     <table class="data-table avoid-break">
-        <thead>
-            <tr>
-                <th style="width: 20%;">Application</th>
-                <th style="width: 25%;">Rendering Strategy</th>
-                <th style="width: 30%;">Technical Implementation</th>
-                <th style="width: 25%;">Performance Benefit</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><strong>apps/web</strong> (Marketing)</td>
-                <td><span class="status-pill status-high">SSG + Code Splitting</span></td>
-                <td>Next.js 16 App Router with <code>next/dynamic</code> for below-the-fold modules and 3D WebGL.</td>
-                <td>Ultra-low TTFB, perfect SEO score &amp; lightweight initial JavaScript bundle (~70KB).</td>
-            </tr>
-            <tr>
-                <td><strong>apps/web</strong> (Enquiry)</td>
-                <td><span class="status-pill status-high">Client-Side Wizard SPA</span></td>
-                <td><code>"use client"</code> multi-step reactive wizard with <code>@rvcc/schemas</code> Zod validation.</td>
-                <td>Zero-latency step navigation, client-side input masking &amp; background draft sync.</td>
-            </tr>
-            <tr>
-                <td><strong>apps/admin</strong> (Staff)</td>
-                <td><span class="status-pill status-high">Dynamic SSR + Streaming</span></td>
-                <td><code>force-dynamic</code> combined with React <code>&lt;Suspense&gt;</code> &amp; skeleton UI loaders.</td>
-                <td>Guaranteed live KPI metrics, zero stale caching, and instant layout rendering.</td>
-            </tr>
-            <tr>
-                <td><strong>apps/vendor</strong> (Supplier)</td>
-                <td><span class="status-pill status-high">SSR Guard + Client Hydration</span></td>
-                <td>Server session resolution in layout + interactive client workspace for RFQs &amp; bids.</td>
-                <td>Secure server-side token checks with interactive real-time data filtering.</td>
-            </tr>
-            <tr>
-                <td><strong>apps/api</strong> (Unified API)</td>
-                <td><span class="status-pill status-high">Edge Execution (No SSR)</span></td>
-                <td>Hono framework running natively on Cloudflare Workers edge runtime.</td>
-                <td>Sub-millisecond cold starts, zero hydration overhead, and worldwide edge routing.</td>
-            </tr>
-        </tbody>
+      <thead>
+        <tr>
+          <th style="width: 20%">Application</th>
+          <th style="width: 25%">Rendering Strategy</th>
+          <th style="width: 30%">Technical Implementation</th>
+          <th style="width: 25%">Performance Benefit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>apps/web</strong> (Marketing)</td>
+          <td><span class="status-pill status-high">SSG + Code Splitting</span></td>
+          <td>
+            Next.js 16 App Router with <code>next/dynamic</code> for below-the-fold modules and 3D
+            WebGL.
+          </td>
+          <td>
+            Ultra-low TTFB, perfect SEO score &amp; lightweight initial JavaScript bundle (~70KB).
+          </td>
+        </tr>
+        <tr>
+          <td><strong>apps/web</strong> (Enquiry)</td>
+          <td><span class="status-pill status-high">Client-Side Wizard SPA</span></td>
+          <td>
+            <code>"use client"</code> multi-step reactive wizard with <code>@rvcc/schemas</code> Zod
+            validation.
+          </td>
+          <td>
+            Zero-latency step navigation, client-side input masking &amp; background draft sync.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>apps/admin</strong> (Staff)</td>
+          <td><span class="status-pill status-high">Dynamic SSR + Streaming</span></td>
+          <td>
+            <code>force-dynamic</code> combined with React <code>&lt;Suspense&gt;</code> &amp;
+            skeleton UI loaders.
+          </td>
+          <td>Guaranteed live KPI metrics, zero stale caching, and instant layout rendering.</td>
+        </tr>
+        <tr>
+          <td><strong>apps/vendor</strong> (Supplier)</td>
+          <td><span class="status-pill status-high">SSR Guard + Client Hydration</span></td>
+          <td>
+            Server session resolution in layout + interactive client workspace for RFQs &amp; bids.
+          </td>
+          <td>Secure server-side token checks with interactive real-time data filtering.</td>
+        </tr>
+        <tr>
+          <td><strong>apps/api</strong> (Unified API)</td>
+          <td><span class="status-pill status-high">Edge Execution (No SSR)</span></td>
+          <td>Hono framework running natively on Cloudflare Workers edge runtime.</td>
+          <td>Sub-millisecond cold starts, zero hydration overhead, and worldwide edge routing.</td>
+        </tr>
+      </tbody>
     </table>
 
     <div class="page-break"></div>
 
     <!-- Section 2 -->
     <div class="section-title">
-        <span class="section-number">2</span>
-        <span>Codebase Separation of Concerns (SoC) Audit</span>
+      <span class="section-number">2</span>
+      <span>Codebase Separation of Concerns (SoC) Audit</span>
     </div>
 
     <table class="data-table avoid-break">
-        <thead>
-            <tr>
-                <th style="width: 22%;">Layer</th>
-                <th style="width: 28%;">Dedicated Folder / Location</th>
-                <th style="width: 35%;">Responsibility &amp; Design Quality</th>
-                <th style="width: 15%;">Rating</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><strong>1. UI Primitives</strong></td>
-                <td><code>components/ui/</code></td>
-                <td>Atomic, reusable design tokens (Button, Modal, KpiCard, Sidebar, SmoothScroll).</td>
-                <td><span class="status-pill status-high">Excellent</span></td>
-            </tr>
-            <tr>
-                <td><strong>2. Feature Sections</strong></td>
-                <td><code>sections/</code></td>
-                <td>Composite page controllers (RequirementsPanel, AddressesStep, VendorChrome).</td>
-                <td><span class="status-pill status-high">Excellent</span></td>
-            </tr>
-            <tr>
-                <td><strong>3. Route Handlers</strong></td>
-                <td><code>apps/api/src/modules/*/handlers.ts</code></td>
-                <td>Strict HTTP parsing, status codes, and email dispatch orchestration.</td>
-                <td><span class="status-pill status-high">Excellent</span></td>
-            </tr>
-            <tr>
-                <td><strong>4. Database Queries</strong></td>
-                <td><code>apps/api/src/modules/*/db.ts</code></td>
-                <td>Dedicated SQL query modules; no SQL query strings in route handlers.</td>
-                <td><span class="status-pill status-high">Excellent</span></td>
-            </tr>
-            <tr>
-                <td><strong>5. Types &amp; DTOs</strong></td>
-                <td><code>packages/types/src/index.ts</code></td>
-                <td>Centralized single source of truth for domain models, DTOs, and RBAC roles.</td>
-                <td><span class="status-pill status-high">Excellent</span></td>
-            </tr>
-            <tr>
-                <td><strong>6. Validation Schemas</strong></td>
-                <td><code>packages/schemas/src/index.ts</code></td>
-                <td>Double-layer Zod validation running on client forms and edge endpoints.</td>
-                <td><span class="status-pill status-high">Excellent</span></td>
-            </tr>
-            <tr>
-                <td><strong>7. Shared Utilities</strong></td>
-                <td><code>packages/utils/src/index.ts</code></td>
-                <td>Edge-safe Tailwind <code>cn</code> mergers, cookie security configs, and TTLs.</td>
-                <td><span class="status-pill status-high">Excellent</span></td>
-            </tr>
-        </tbody>
+      <thead>
+        <tr>
+          <th style="width: 22%">Layer</th>
+          <th style="width: 28%">Dedicated Folder / Location</th>
+          <th style="width: 35%">Responsibility &amp; Design Quality</th>
+          <th style="width: 15%">Rating</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1. UI Primitives</strong></td>
+          <td><code>components/ui/</code></td>
+          <td>Atomic, reusable design tokens (Button, Modal, KpiCard, Sidebar, SmoothScroll).</td>
+          <td><span class="status-pill status-high">Excellent</span></td>
+        </tr>
+        <tr>
+          <td><strong>2. Feature Sections</strong></td>
+          <td><code>sections/</code></td>
+          <td>Composite page controllers (RequirementsPanel, AddressesStep, VendorChrome).</td>
+          <td><span class="status-pill status-high">Excellent</span></td>
+        </tr>
+        <tr>
+          <td><strong>3. Route Handlers</strong></td>
+          <td><code>apps/api/src/modules/*/handlers.ts</code></td>
+          <td>Strict HTTP parsing, status codes, and email dispatch orchestration.</td>
+          <td><span class="status-pill status-high">Excellent</span></td>
+        </tr>
+        <tr>
+          <td><strong>4. Database Queries</strong></td>
+          <td><code>apps/api/src/modules/*/db.ts</code></td>
+          <td>Dedicated SQL query modules; no SQL query strings in route handlers.</td>
+          <td><span class="status-pill status-high">Excellent</span></td>
+        </tr>
+        <tr>
+          <td><strong>5. Types &amp; DTOs</strong></td>
+          <td><code>packages/types/src/index.ts</code></td>
+          <td>Centralized single source of truth for domain models, DTOs, and RBAC roles.</td>
+          <td><span class="status-pill status-high">Excellent</span></td>
+        </tr>
+        <tr>
+          <td><strong>6. Validation Schemas</strong></td>
+          <td><code>packages/schemas/src/index.ts</code></td>
+          <td>Double-layer Zod validation running on client forms and edge endpoints.</td>
+          <td><span class="status-pill status-high">Excellent</span></td>
+        </tr>
+        <tr>
+          <td><strong>7. Shared Utilities</strong></td>
+          <td><code>packages/utils/src/index.ts</code></td>
+          <td>Edge-safe Tailwind <code>cn</code> mergers, cookie security configs, and TTLs.</td>
+          <td><span class="status-pill status-high">Excellent</span></td>
+        </tr>
+      </tbody>
     </table>
 
     <!-- Section 3 -->
-    <div class="section-title avoid-break" style="margin-top: 24px;">
-        <span class="section-number">3</span>
-        <span>Security, Scalability &amp; Architecture Matrix</span>
+    <div class="section-title avoid-break" style="margin-top: 24px">
+      <span class="section-number">3</span>
+      <span>Security, Scalability &amp; Architecture Matrix</span>
     </div>
 
     <div class="grid-2 avoid-break">
-        <div class="card card-primary">
-            <div class="card-header">
-                <div class="card-title">🔒 Security &amp; Data Integrity</div>
-                <span class="card-badge">Defense-in-Depth</span>
-            </div>
-            <ul class="tech-list">
-                <li><strong>Dual Schema Sanitization</strong>: Form payloads are validated client-side for UX and re-validated on Cloudflare Workers before database writes.</li>
-                <li><strong>Role-Based Access Control (RBAC)</strong>: Staff roles (<code>SUPER_ADMIN</code>, <code>ADMIN</code>, <code>REVIEWER</code>) and rank calculations are encapsulated in <code>@rvcc/types</code>.</li>
-                <li><strong>Isolated Deployment Boundaries</strong>: Staff backoffice logic never bundles into public client scripts.</li>
-            </ul>
+      <div class="card card-primary">
+        <div class="card-header">
+          <div class="card-title">🔒 Security &amp; Data Integrity</div>
+          <span class="card-badge">Defense-in-Depth</span>
         </div>
+        <ul class="tech-list">
+          <li>
+            <strong>Dual Schema Sanitization</strong>: Form payloads are validated client-side for
+            UX and re-validated on Cloudflare Workers before database writes.
+          </li>
+          <li>
+            <strong>Role-Based Access Control (RBAC)</strong>: Staff roles
+            (<code>SUPER_ADMIN</code>, <code>ADMIN</code>, <code>REVIEWER</code>) and rank
+            calculations are encapsulated in <code>@rvcc/types</code>.
+          </li>
+          <li>
+            <strong>Isolated Deployment Boundaries</strong>: Staff backoffice logic never bundles
+            into public client scripts.
+          </li>
+        </ul>
+      </div>
 
-        <div class="card card-primary">
-            <div class="card-header">
-                <div class="card-title">⚡ Scalability &amp; Performance</div>
-                <span class="card-badge">Edge Optimized</span>
-            </div>
-            <ul class="tech-list">
-                <li><strong>Zero-Schema Drift</strong>: Updates to validation rules propagate instantaneously to all apps via pnpm workspace packages.</li>
-                <li><strong>Zero-Egress Storage</strong>: Large compliance documents &amp; PDFs are uploaded directly to Cloudflare R2 via presigned URLs.</li>
-                <li><strong>Typecheck Certification</strong>: Monorepo compiles cleanly with 0 TypeScript errors across all 4 applications.</li>
-            </ul>
+      <div class="card card-primary">
+        <div class="card-header">
+          <div class="card-title">⚡ Scalability &amp; Performance</div>
+          <span class="card-badge">Edge Optimized</span>
         </div>
+        <ul class="tech-list">
+          <li>
+            <strong>Zero-Schema Drift</strong>: Updates to validation rules propagate
+            instantaneously to all apps via pnpm workspace packages.
+          </li>
+          <li>
+            <strong>Zero-Egress Storage</strong>: Large compliance documents &amp; PDFs are uploaded
+            directly to Cloudflare R2 via presigned URLs.
+          </li>
+          <li>
+            <strong>Typecheck Certification</strong>: Monorepo compiles cleanly with 0 TypeScript
+            errors across all 4 applications.
+          </li>
+        </ul>
+      </div>
     </div>
 
     <div class="footer avoid-break">
-        <div><strong>RVCC Technical Architecture &amp; Rendering Report</strong> &bull; Phase 2 Audit</div>
-        <div>Confidential &bull; Internal Engineering Documentation</div>
+      <div>
+        <strong>RVCC Technical Architecture &amp; Rendering Report</strong> &bull; Phase 2 Audit
+      </div>
+      <div>Confidential &bull; Internal Engineering Documentation</div>
     </div>
-
-</body>
+  </body>
 </html>

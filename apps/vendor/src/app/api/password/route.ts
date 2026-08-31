@@ -2,10 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { VENDOR_COOKIE, VENDOR_PROFILE_COOKIE } from "@/lib/constants";
-import {
-  encodeVendorProfile,
-  vendorProfileCookieOptions,
-} from "@/lib/profile-cookie";
+import { encodeVendorProfile, vendorProfileCookieOptions } from "@/lib/profile-cookie";
 import { resolveVendorIdentity } from "@/lib/session";
 import { vendorWorkerFetch } from "@/lib/vendor-api";
 
@@ -31,7 +28,9 @@ export async function POST(request: Request) {
     });
     const text = await res.text().catch(() => "{}");
     let data: { ok?: boolean; error?: string } = {};
-    try { data = JSON.parse(text); } catch {}
+    try {
+      data = JSON.parse(text);
+    } catch {}
     if (!res.ok) {
       return NextResponse.json(
         { error: data.error || "Could not change your password." },

@@ -1,24 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
+  LuFileText as FileText,
+  LuLoaderCircle as Loader2,
+  LuRefreshCw as RefreshCw,
   LuTrash2 as Trash2,
   LuUpload as Upload,
-  LuFileText as FileText,
-  LuRefreshCw as RefreshCw,
-  LuLoaderCircle as Loader2,
 } from "react-icons/lu";
-import dynamic from "next/dynamic";
 
 const PdfThumbnail = dynamic(() => import("./PdfThumbnail"), { ssr: false });
+
+import { cn } from "@lib/utils";
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { ENQUIRE_ATTACHMENT_SECTIONS } from "@/data/enquire-attachments";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
-import { createPortal } from "react-dom";
-import { useEffect } from "react";
-import { cn } from "@lib/utils";
 
 type AttachmentRow = {
   id: string;
@@ -89,7 +90,9 @@ export function AttachmentsStep() {
     }
   };
 
-  const requiredSections = ENQUIRE_ATTACHMENT_SECTIONS.filter((s) => !("optional" in s && s.optional));
+  const requiredSections = ENQUIRE_ATTACHMENT_SECTIONS.filter(
+    (s) => !("optional" in s && s.optional)
+  );
   const missingRequired = requiredSections.some(
     (s) => !attachments.some((a) => a.section === s.id)
   );
@@ -108,7 +111,7 @@ export function AttachmentsStep() {
       <InteractiveHoverButton
         type="button"
         variant="solid"
-        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        className="h-10 min-w-[120px] px-6 text-xs sm:w-auto sm:text-xs"
         disabled={Boolean(uploadingSection)}
         onClick={goNext}
       >
@@ -120,17 +123,16 @@ export function AttachmentsStep() {
   if (loading && !registration) return null;
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-3xl">
+    <div className="animate-fade-in max-w-3xl space-y-6">
       {headerNode && createPortal(actions, headerNode)}
 
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         {ENQUIRE_ATTACHMENT_SECTIONS.map((section) => {
           const uploaded = attachments.filter((a) => a.section === section.id);
           const busy = uploadingSection === section.id;
           const optional = "optional" in section && section.optional;
           const isMissing = !optional && uploaded.length === 0;
-          
+
           const uploadedFile = uploaded[0]; // Restrict to 1 file visually
           const isImage = uploadedFile?.fileName.match(/\.(jpeg|jpg|png|gif)$/i);
           const isPdf = uploadedFile?.fileName.match(/\.pdf$/i);
@@ -139,23 +141,25 @@ export function AttachmentsStep() {
             <div
               key={section.id}
               className={cn(
-                "rounded-2xl border bg-white p-5 transition-all duration-200 hover:shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6",
+                "flex flex-col justify-between gap-6 rounded-2xl border bg-white p-5 transition-all duration-200 hover:shadow-sm sm:flex-row sm:items-center",
                 showErrors && isMissing ? "border-red-500 ring-1 ring-red-500" : "border-zinc-200"
               )}
             >
-              <div className="flex-1 w-full">
+              <div className="w-full flex-1">
                 <p className="text-[15px] font-medium text-zinc-900">
                   {section.label}
                   {!optional && <span className="text-brand-blue ml-1.5">*</span>}
                 </p>
-                <p className="mt-1 text-[13px] text-zinc-500 max-w-md">{section.hint}</p>
-                
+                <p className="mt-1 max-w-md text-[13px] text-zinc-500">{section.hint}</p>
+
                 {!uploadedFile && (
-                  <label className={cn(
-                    "mt-4 inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all shrink-0",
-                    "bg-zinc-100 text-zinc-700 hover:bg-zinc-200",
-                    busy && "opacity-50 cursor-not-allowed"
-                  )}>
+                  <label
+                    className={cn(
+                      "mt-4 inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all",
+                      "bg-zinc-100 text-zinc-700 hover:bg-zinc-200",
+                      busy && "cursor-not-allowed opacity-50"
+                    )}
+                  >
                     {busy ? (
                       <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />
                     ) : (
@@ -178,25 +182,32 @@ export function AttachmentsStep() {
               </div>
 
               {uploadedFile && (
-                <div className="relative group w-28 sm:w-32 aspect-[3/4] rounded-xl overflow-hidden border border-zinc-200 bg-zinc-50 shrink-0 shadow-sm transition-transform duration-200 hover:scale-105">
+                <div className="group relative aspect-[3/4] w-28 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 shadow-sm transition-transform duration-200 hover:scale-105 sm:w-32">
                   {isImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={uploadedFile.fileUrl} alt={uploadedFile.fileName} className="w-full h-full object-cover" />
+                    <img
+                      src={uploadedFile.fileUrl}
+                      alt={uploadedFile.fileName}
+                      className="h-full w-full object-cover"
+                    />
                   ) : isPdf ? (
                     <PdfThumbnail url={uploadedFile.fileUrl} />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center text-brand-blue">
-                      <FileText className="w-10 h-10 mb-3 opacity-80" />
-                      <span className="text-[10px] font-medium line-clamp-3 leading-tight break-all text-zinc-700">
+                    <div className="text-brand-blue flex h-full w-full flex-col items-center justify-center p-3 text-center">
+                      <FileText className="mb-3 h-10 w-10 opacity-80" />
+                      <span className="line-clamp-3 text-[10px] leading-tight font-medium break-all text-zinc-700">
                         {uploadedFile.fileName}
                       </span>
                     </div>
                   )}
 
                   {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-3 backdrop-blur-[2px]">
-                    <label className="cursor-pointer bg-white/20 hover:bg-white/30 text-white rounded-full p-2.5 transition-colors transform hover:scale-110" title="Change file">
-                      <RefreshCw className="w-4 h-4" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/60 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 group-hover:opacity-100">
+                    <label
+                      className="transform cursor-pointer rounded-full bg-white/20 p-2.5 text-white transition-colors hover:scale-110 hover:bg-white/30"
+                      title="Change file"
+                    >
+                      <RefreshCw className="h-4 w-4" />
                       <input
                         type="file"
                         accept={section.accept}
@@ -216,18 +227,18 @@ export function AttachmentsStep() {
                       type="button"
                       disabled={deletingId === uploadedFile.id}
                       onClick={() => void deleteAttachment(uploadedFile.id)}
-                      className="bg-white/20 hover:bg-red-500/80 text-white rounded-full p-2.5 transition-colors transform hover:scale-110"
+                      className="transform rounded-full bg-white/20 p-2.5 text-white transition-colors hover:scale-110 hover:bg-red-500/80"
                       title="Delete file"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                  
+
                   {/* Busy Overlay */}
                   {(busy || deletingId === uploadedFile.id) && (
-                    <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center backdrop-blur-sm z-10">
-                      <Loader2 className="w-6 h-6 animate-spin text-brand-blue mb-2" />
-                      <span className="text-[10px] font-semibold text-brand-blue">
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+                      <Loader2 className="text-brand-blue mb-2 h-6 w-6 animate-spin" />
+                      <span className="text-brand-blue text-[10px] font-semibold">
                         {busy ? "Uploading..." : "Removing..."}
                       </span>
                     </div>

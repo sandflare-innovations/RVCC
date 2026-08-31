@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
 import Lenis from "lenis";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 export function SmoothScroll({
   children,
@@ -64,7 +64,7 @@ export function SmoothScroll({
   return (
     <div
       ref={wrapperRef}
-      className={`overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${className || ""}`}
+      className={`[scrollbar-width:none] overflow-y-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${className || ""}`}
     >
       <div ref={contentRef} className="min-h-full">
         {children}

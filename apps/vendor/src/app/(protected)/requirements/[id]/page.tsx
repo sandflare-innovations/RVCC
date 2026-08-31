@@ -1,12 +1,11 @@
 import { cookies } from "next/headers";
 
+import { BackButton } from "@/components/ui/back-button";
+import { VENDOR_COOKIE } from "@/lib/constants";
 import { describeDeadline } from "@/lib/rfq";
+import { vendorWorkerFetch } from "@/lib/vendor-api";
 import { type QuoteFormRequirement } from "@/sections/requirements/QuoteForm";
 import { VendorRequirementInteractive } from "@/sections/requirements/VendorRequirementInteractive";
-import { BackButton } from "@/components/ui/back-button";
-
-import { VENDOR_COOKIE } from "@/lib/constants";
-import { vendorWorkerFetch } from "@/lib/vendor-api";
 
 export const dynamic = "force-dynamic";
 
@@ -78,7 +77,7 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
           </div>
         </div>
         {deadline.urgent && !submitted && !closed ? (
-          <p className="mt-3 text-sm font-semibold text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200">
+          <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-sm font-semibold text-amber-700">
             Closing soon. Submit your price before the deadline.
           </p>
         ) : null}

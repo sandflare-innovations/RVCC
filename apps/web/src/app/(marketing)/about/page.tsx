@@ -1,6 +1,8 @@
-import { AboutCTA } from "@/sections/about/AboutCTA";
+import { Footer } from "@layout/Footer";
+
 import { AboutCertifications } from "@/sections/about/AboutCertifications";
 import { AboutClients } from "@/sections/about/AboutClients";
+import { AboutCTA } from "@/sections/about/AboutCTA";
 import { AboutDivisions } from "@/sections/about/AboutDivisions";
 import { AboutHero } from "@/sections/about/AboutHero";
 import { AboutJourney } from "@/sections/about/AboutJourney";
@@ -8,8 +10,6 @@ import { AboutMissionValues } from "@/sections/about/AboutMissionValues";
 import { AboutOverview } from "@/sections/about/AboutOverview";
 import { AboutSafetySustainability } from "@/sections/about/AboutSafetySustainability";
 import { AboutStats } from "@/sections/about/AboutStats";
-
-import { Footer } from "@layout/Footer";
 
 export default function AboutPage() {
   return (

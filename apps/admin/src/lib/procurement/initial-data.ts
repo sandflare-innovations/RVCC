@@ -1,11 +1,12 @@
-import { PurchaseRequest, PriorityLevel, RequestStatus } from "@/types/procurement";
+import { PurchaseRequest } from "@/types/procurement";
 
 export const INITIAL_PURCHASE_REQUESTS: PurchaseRequest[] = [
   {
     id: "req-1",
     referenceNumber: "PR-2026-001",
     title: "Structural Ready-Mix Concrete (Grade C35/45) - Foundation Pour",
-    description: "Supply and on-site transit mixer delivery of Grade C35/45 sulphate-resisting ready-mix concrete for Phase 2 Substructure & Foundation casting at Riyadh Metro Station Package 4.",
+    description:
+      "Supply and on-site transit mixer delivery of Grade C35/45 sulphate-resisting ready-mix concrete for Phase 2 Substructure & Foundation casting at Riyadh Metro Station Package 4.",
     department: "Civil & Structural Engineering",
     requesterName: "Tariq Al-Ghamdi (Site Engineer)",
     priority: "high",
@@ -74,7 +75,8 @@ export const INITIAL_PURCHASE_REQUESTS: PurchaseRequest[] = [
     id: "req-2",
     referenceNumber: "PR-2026-002",
     title: "High-Yield Deformed Steel Rebar (Grade 60 / ASTM A615)",
-    description: "Procurement of 16mm and 25mm high-strength ribbed steel reinforcement bars (cut & bend schedules included) for Riyadh Metro Station retaining walls and column reinforcement.",
+    description:
+      "Procurement of 16mm and 25mm high-strength ribbed steel reinforcement bars (cut & bend schedules included) for Riyadh Metro Station retaining walls and column reinforcement.",
     department: "Civil & Structural Engineering",
     requesterName: "Fahad Al-Otaibi (Project Procurement Lead)",
     priority: "urgent",
@@ -152,7 +154,8 @@ export const INITIAL_PURCHASE_REQUESTS: PurchaseRequest[] = [
     id: "req-3",
     referenceNumber: "PR-2026-003",
     title: "Heavy Mobile Crawler Crane (120-Ton Capacity) - 30-Day Site Rental",
-    description: "Monthly dry lease of 120-Ton telescopic boom crawler crane for precast beam erection and heavy girder positioning over trackway span.",
+    description:
+      "Monthly dry lease of 120-Ton telescopic boom crawler crane for precast beam erection and heavy girder positioning over trackway span.",
     department: "Heavy Plant & Equipment",
     requesterName: "Eng. Bilal Mansoor (Heavy Lift Supervisor)",
     priority: "medium",
@@ -210,7 +213,8 @@ export const INITIAL_PURCHASE_REQUESTS: PurchaseRequest[] = [
     id: "req-4",
     referenceNumber: "PR-2026-004",
     title: "MEP Electrical Substation Switchgear & Cable Trays",
-    description: "Procurement of 13.8kV Medium Voltage Switchgear panels, 600mm heavy-duty perforated galvanized cable trays, and earthing busbars for traction substation room.",
+    description:
+      "Procurement of 13.8kV Medium Voltage Switchgear panels, 600mm heavy-duty perforated galvanized cable trays, and earthing busbars for traction substation room.",
     department: "MEP & Electrical",
     requesterName: "Kareem Nassar (Lead Electrical Engineer)",
     priority: "high",
@@ -269,7 +273,8 @@ export const INITIAL_PURCHASE_REQUESTS: PurchaseRequest[] = [
     id: "req-5",
     referenceNumber: "PR-2026-005",
     title: "High-Volume Diesel Fuel (Ultra-Low Sulfur) - Generator & Fleet Supply",
-    description: "Monthly scheduled on-site fuel tanker delivery (50,000 Liters) for station tower cranes, continuous running 500kVA backup diesel generators, and heavy earthmoving machinery.",
+    description:
+      "Monthly scheduled on-site fuel tanker delivery (50,000 Liters) for station tower cranes, continuous running 500kVA backup diesel generators, and heavy earthmoving machinery.",
     department: "Plant Logistics & Site Facilities",
     requesterName: "Salem Al-Harthi (Site Logistics Manager)",
     priority: "medium",
@@ -327,7 +332,8 @@ export const INITIAL_PURCHASE_REQUESTS: PurchaseRequest[] = [
     id: "req-6",
     referenceNumber: "PR-2026-006",
     title: "Personal Protective Equipment (PPE) - Site Wide Bulk Replenishment",
-    description: "Annual replenishment of safety equipment including EN397 safety helmets, EN20471 Class 3 reflective vests, S3 steel-toe safety boots, cut-resistant gloves, and safety goggles for 350 active site operatives.",
+    description:
+      "Annual replenishment of safety equipment including EN397 safety helmets, EN20471 Class 3 reflective vests, S3 steel-toe safety boots, cut-resistant gloves, and safety goggles for 350 active site operatives.",
     department: "Health, Safety & Environment (HSE)",
     requesterName: "Nasser Al-Subaie (Head of Site HSE)",
     priority: "low",

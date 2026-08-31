@@ -1,4 +1,4 @@
-import { validateEnv, adminEnvSchema, type AdminEnv } from "@rvcc/schemas";
+import { type AdminEnv,adminEnvSchema, validateEnv } from "@rvcc/schemas";
 
 export const env: AdminEnv = validateEnv(adminEnvSchema, {
   NODE_ENV: process.env.NODE_ENV,

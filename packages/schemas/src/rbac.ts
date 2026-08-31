@@ -10,7 +10,10 @@ export const createRoleSchema = z.object({
     .string()
     .min(2, "Role name must be at least 2 characters")
     .max(50, "Role name too long")
-    .regex(/^[A-Z0-9_]+$/, "Role name must be uppercase alphanumeric with underscores (e.g. PROCUREMENT_MANAGER)"),
+    .regex(
+      /^[A-Z0-9_]+$/,
+      "Role name must be uppercase alphanumeric with underscores (e.g. PROCUREMENT_MANAGER)"
+    ),
   description: sanitizedStringSchema(0, 255).default(""),
   permissionIds: z.array(cuidSchema).default([]),
 });
@@ -27,11 +30,7 @@ export const createStaffMemberSchema = z.object({
   phone: sanitizedStringSchema(0, 30).default(""),
   roleId: cuidSchema.optional(),
   roleName: adminRoleNameSchema.optional(),
-  password: z
-    .string()
-    .min(8, "Initial password must be at least 8 characters")
-    .max(128)
-    .optional(),
+  password: z.string().min(8, "Initial password must be at least 8 characters").max(128).optional(),
 });
 export type CreateStaffMemberInput = z.infer<typeof createStaffMemberSchema>;
 

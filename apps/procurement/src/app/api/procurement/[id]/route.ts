@@ -4,10 +4,7 @@ import { NextResponse } from "next/server";
 import { procurementApiFetch } from "@/lib/procurement-api";
 import { PROCUREMENT_COOKIE } from "@/lib/constants";
 
-export async function GET(
-  _request: Request,
-  ctx: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const jar = await cookies();
   const token = jar.get(PROCUREMENT_COOKIE)?.value;
@@ -27,10 +24,7 @@ export async function GET(
   }
 }
 
-export async function DELETE(
-  _request: Request,
-  ctx: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(_request: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const jar = await cookies();
   const token = jar.get(PROCUREMENT_COOKIE)?.value;
@@ -49,4 +43,3 @@ export async function DELETE(
     return NextResponse.json({ error: "Upstream service unavailable" }, { status: 503 });
   }
 }
-

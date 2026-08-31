@@ -1,15 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  AlertCircle,
+  Briefcase,
+  Calendar,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  DollarSign,
+  FileText,
+  Tag,
+  UploadCloud,
+  Users,
+} from "lucide-react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { AlertCircle, FileText, UploadCloud, Users, Calendar, DollarSign, Tag, Check, Briefcase, ChevronLeft, ChevronDown } from "lucide-react";
+import { useEffect,useState } from "react";
+
 import { SubmitLoader } from "@/components/ui";
 import { DatePicker } from "@/components/ui/date-picker";
-import dynamic from "next/dynamic";
 
-const Document = dynamic(() => import("react-pdf").then(mod => mod.Document), { ssr: false });
-const Page = dynamic(() => import("react-pdf").then(mod => mod.Page), { ssr: false });
-
+const Document = dynamic(() => import("react-pdf").then((mod) => mod.Document), { ssr: false });
+const Page = dynamic(() => import("react-pdf").then((mod) => mod.Page), { ssr: false });
 
 export type ParticipantOption = { id: string; label: string };
 
@@ -24,7 +36,21 @@ export type RequirementInitialData = {
   invitedVendorIds: string[];
 };
 
-function FieldWrapper({ label, hint, required, icon: Icon, children, className = "" }: { label: string; hint?: string; required?: boolean; icon?: any; children: React.ReactNode; className?: string }) {
+function FieldWrapper({
+  label,
+  hint,
+  required,
+  icon: Icon,
+  children,
+  className = "",
+}: {
+  label: string;
+  hint?: string;
+  required?: boolean;
+  icon?: any;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
       <label className="flex items-center gap-1.5 text-sm font-semibold text-zinc-900">
@@ -37,9 +63,20 @@ function FieldWrapper({ label, hint, required, icon: Icon, children, className =
   );
 }
 
-const inputClass = "w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 transition-colors focus:border-brand-blue focus:bg-white focus:outline-none focus:ring-[3px] focus:ring-brand-blue/20 placeholder:text-zinc-400";
+const inputClass =
+  "w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 transition-colors focus:border-brand-blue focus:bg-white focus:outline-none focus:ring-[3px] focus:ring-brand-blue/20 placeholder:text-zinc-400";
 
-function CustomSelect({ name, options, placeholder, defaultValue }: { name: string; options: string[]; placeholder: string; defaultValue?: string }) {
+function CustomSelect({
+  name,
+  options,
+  placeholder,
+  defaultValue,
+}: {
+  name: string;
+  options: string[];
+  placeholder: string;
+  defaultValue?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(defaultValue || "");
 
@@ -55,11 +92,13 @@ function CustomSelect({ name, options, placeholder, defaultValue }: { name: stri
         <span className={selected ? "text-zinc-900" : "text-zinc-400"}>
           {selected || placeholder}
         </span>
-        <ChevronDown className={`h-4 w-4 text-zinc-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown
+          className={`h-4 w-4 text-zinc-400 transition-transform ${open ? "rotate-180" : ""}`}
+        />
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-zinc-200 bg-white py-2 shadow-xl">
+        <div className="absolute top-full left-0 z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-zinc-200 bg-white py-2 shadow-xl">
           <button
             type="button"
             onClick={() => setSelected("")}
@@ -72,7 +111,7 @@ function CustomSelect({ name, options, placeholder, defaultValue }: { name: stri
               key={opt}
               type="button"
               onClick={() => setSelected(opt)}
-              className={`w-full px-4 py-2 text-left text-sm hover:bg-zinc-50 ${selected === opt ? "bg-brand-blue/5 font-semibold text-brand-blue" : "text-zinc-700"}`}
+              className={`w-full px-4 py-2 text-left text-sm hover:bg-zinc-50 ${selected === opt ? "bg-brand-blue/5 text-brand-blue font-semibold" : "text-zinc-700"}`}
             >
               {opt}
             </button>
@@ -83,7 +122,15 @@ function CustomSelect({ name, options, placeholder, defaultValue }: { name: stri
   );
 }
 
-function CustomDatePickerInput({ name, required, defaultValue }: { name: string; required?: boolean; defaultValue?: string }) {
+function CustomDatePickerInput({
+  name,
+  required,
+  defaultValue,
+}: {
+  name: string;
+  required?: boolean;
+  defaultValue?: string;
+}) {
   const [date, setDate] = useState(defaultValue ? new Date(defaultValue).toISOString() : "");
 
   return (
@@ -99,10 +146,10 @@ function CustomDatePickerInput({ name, required, defaultValue }: { name: string;
   );
 }
 
-export function PostRequirementForm({ 
+export function PostRequirementForm({
   vendors,
   initialData,
-}: { 
+}: {
   vendors: ParticipantOption[];
   initialData?: RequirementInitialData;
 }) {
@@ -133,7 +180,7 @@ export function PostRequirementForm({
   };
 
   const toggleVendor = (id: string) => {
-    setSelectedVendors(prev => {
+    setSelectedVendors((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -188,14 +235,17 @@ export function PostRequirementForm({
   }
 
   return (
-    <form onSubmit={(e) => submit(e, true)} className="flex flex-col min-h-0 w-full h-full relative">
+    <form
+      onSubmit={(e) => submit(e, true)}
+      className="relative flex h-full min-h-0 w-full flex-col"
+    >
       {/* Sticky header */}
       <div className="sticky top-0 z-20 flex shrink-0 items-center justify-between border-b border-zinc-200/70 bg-white/95 px-6 py-4 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+            className="focus-visible:ring-brand-blue flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:ring-2 focus-visible:outline-none"
             aria-label="Go back"
           >
             <ChevronLeft className="h-6 w-6" />
@@ -212,19 +262,21 @@ export function PostRequirementForm({
             onClick={(e) => {
               const form = e.currentTarget.closest("form");
               if (form) {
-                submit({ preventDefault() { }, currentTarget: form } as any, false);
+                submit({ preventDefault() {}, currentTarget: form } as any, false);
               }
             }}
-            className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-brand-blue/20 disabled:opacity-50"
+            className="focus:ring-brand-blue/20 inline-flex h-10 items-center justify-center rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-50 focus:ring-2 disabled:opacity-50"
           >
             Save as Draft
           </button>
           <button
             type="submit"
             disabled={busy}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-brand-blue px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-blue/90 hover:shadow-md focus:ring-[3px] focus:ring-brand-blue/30 disabled:opacity-50"
+            className="bg-brand-blue hover:bg-brand-blue/90 focus:ring-brand-blue/30 inline-flex h-10 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold text-white shadow-sm transition-all hover:shadow-md focus:ring-[3px] disabled:opacity-50"
           >
-            {busy ? <SubmitLoader text={initialData ? "Updating..." : "Publishing..."} /> : (
+            {busy ? (
+              <SubmitLoader text={initialData ? "Updating..." : "Publishing..."} />
+            ) : (
               <>
                 <UploadCloud className="h-4 w-4" />
                 {initialData ? "Update Requirement" : "Post Requirement"}
@@ -235,65 +287,85 @@ export function PostRequirementForm({
       </div>
 
       <div className="flex-1">
-        <div className="p-6 md:p-8 space-y-8 max-w-6xl mx-auto w-full pb-12">
+        <div className="mx-auto w-full max-w-6xl space-y-8 p-6 pb-12 md:p-8">
           {error && (
-            <div role="alert" className="flex items-start gap-3 rounded-2xl bg-rose-50 p-5 text-sm font-medium text-rose-900 border border-rose-200/50">
+            <div
+              role="alert"
+              className="flex items-start gap-3 rounded-2xl border border-rose-200/50 bg-rose-50 p-5 text-sm font-medium text-rose-900"
+            >
               <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" aria-hidden="true" />
               <span>{error}</span>
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
             {/* Left Column: Core Details */}
             <div className="flex flex-col">
-              <section className="rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm flex flex-col h-full">
-                <h2 className="text-lg font-bold text-zinc-950 flex items-center gap-2 border-b border-zinc-100 pb-4 mb-6">
-                  <FileText className="h-5 w-5 text-brand-blue" />
+              <section className="flex h-full flex-col rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm">
+                <h2 className="mb-6 flex items-center gap-2 border-b border-zinc-100 pb-4 text-lg font-bold text-zinc-950">
+                  <FileText className="text-brand-blue h-5 w-5" />
                   Project Details
                 </h2>
 
-                <div className="flex flex-col md:flex-row gap-8 flex-1">
+                <div className="flex flex-1 flex-col gap-8 md:flex-row">
                   {/* Left Side: File Upload */}
-                  <div className="w-full md:w-64 shrink-0 flex flex-col">
+                  <div className="flex w-full shrink-0 flex-col md:w-64">
                     <FieldWrapper label="Scope of Work Document" icon={FileText}>
-                      <div className="flex justify-center items-center w-full mt-1">
-                        <label className="flex flex-col items-center justify-center w-full aspect-[3/4] border-2 border-zinc-200 border-dashed rounded-xl cursor-pointer bg-zinc-50 hover:bg-white hover:border-brand-blue/50 transition-colors group relative overflow-hidden">
+                      <div className="mt-1 flex w-full items-center justify-center">
+                        <label className="hover:border-brand-blue/50 group relative flex aspect-[3/4] w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50 transition-colors hover:bg-white">
                           {pdfPreview ? (
                             <>
-                              <div className="absolute inset-0 bg-white flex items-center justify-center p-2">
-                                <Document file={pdfPreview} className="flex items-center justify-center w-full h-full pointer-events-none">
-                                  <Page 
-                                    pageNumber={1} 
-                                    renderTextLayer={false} 
+                              <div className="absolute inset-0 flex items-center justify-center bg-white p-2">
+                                <Document
+                                  file={pdfPreview}
+                                  className="pointer-events-none flex h-full w-full items-center justify-center"
+                                >
+                                  <Page
+                                    pageNumber={1}
+                                    renderTextLayer={false}
                                     renderAnnotationLayer={false}
-                                    className="w-full h-full flex items-center justify-center drop-shadow-sm [&>canvas]:!w-auto [&>canvas]:!h-auto [&>canvas]:max-w-full [&>canvas]:max-h-full [&>canvas]:object-contain"
+                                    className="flex h-full w-full items-center justify-center drop-shadow-sm [&>canvas]:!h-auto [&>canvas]:max-h-full [&>canvas]:!w-auto [&>canvas]:max-w-full [&>canvas]:object-contain"
                                   />
                                 </Document>
                               </div>
-                              <div className="absolute inset-0 bg-white/60 opacity-0 group-hover:opacity-100 transition-all duration-200 flex flex-col items-center justify-center backdrop-blur-sm z-10">
-                                <div className="flex flex-col items-center justify-center bg-white px-4 py-3 rounded-xl shadow-sm border border-zinc-200/50 scale-95 group-hover:scale-100 transition-transform duration-200">
-                                  <UploadCloud className="w-6 h-6 text-brand-blue mb-1.5" />
-                                  <span className="text-zinc-900 font-bold text-sm">Replace Document</span>
+                              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/60 opacity-0 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100">
+                                <div className="flex scale-95 flex-col items-center justify-center rounded-xl border border-zinc-200/50 bg-white px-4 py-3 shadow-sm transition-transform duration-200 group-hover:scale-100">
+                                  <UploadCloud className="text-brand-blue mb-1.5 h-6 w-6" />
+                                  <span className="text-sm font-bold text-zinc-900">
+                                    Replace Document
+                                  </span>
                                 </div>
                               </div>
                             </>
                           ) : (
                             <div className="flex flex-col items-center justify-center p-6 text-center">
-                              <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                <UploadCloud className="w-6 h-6 text-brand-blue" />
+                              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 transition-transform group-hover:scale-110">
+                                <UploadCloud className="text-brand-blue h-6 w-6" />
                               </div>
-                              <p className="mb-2 text-sm text-zinc-600 leading-relaxed"><span className="font-semibold text-brand-blue">Click to upload</span><br />or drag and drop</p>
-                              <p className="text-xs text-zinc-400 mt-2">PDF, DOCX up to 10MB</p>
+                              <p className="mb-2 text-sm leading-relaxed text-zinc-600">
+                                <span className="text-brand-blue font-semibold">
+                                  Click to upload
+                                </span>
+                                <br />
+                                or drag and drop
+                              </p>
+                              <p className="mt-2 text-xs text-zinc-400">PDF, DOCX up to 10MB</p>
                             </div>
                           )}
-                          <input type="file" name="scopeDocument" className="hidden" accept=".pdf,.doc,.docx" onChange={handleFileChange} />
+                          <input
+                            type="file"
+                            name="scopeDocument"
+                            className="hidden"
+                            accept=".pdf,.doc,.docx"
+                            onChange={handleFileChange}
+                          />
                         </label>
                       </div>
                     </FieldWrapper>
                   </div>
 
                   {/* Right Side: Name and Description */}
-                  <div className="flex-1 space-y-6 flex flex-col">
+                  <div className="flex flex-1 flex-col space-y-6">
                     <FieldWrapper label="Project Title" icon={Briefcase} required>
                       <input
                         name="project"
@@ -304,13 +376,13 @@ export function PostRequirementForm({
                       />
                     </FieldWrapper>
 
-                    <div className="flex-1 flex flex-col mt-6">
-                      <FieldWrapper label="Scope of Work" required className="flex-1 h-full">
+                    <div className="mt-6 flex flex-1 flex-col">
+                      <FieldWrapper label="Scope of Work" required className="h-full flex-1">
                         <textarea
                           name="scopeOfWork"
                           required
                           defaultValue={initialData?.scopeOfWork}
-                          className={`${inputClass} resize-none h-full flex-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-200 hover:[&::-webkit-scrollbar-thumb]:bg-zinc-300`}
+                          className={`${inputClass} h-full flex-1 resize-none [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-200 hover:[&::-webkit-scrollbar-thumb]:bg-zinc-300 [&::-webkit-scrollbar-track]:bg-transparent`}
                           placeholder="Describe the full requirements, deliverables, and expectations in detail..."
                         />
                       </FieldWrapper>
@@ -322,28 +394,42 @@ export function PostRequirementForm({
 
             {/* Right Column: Metadata & Deadlines */}
             <div className="flex flex-col">
-              <section className="rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm flex flex-col h-full space-y-6">
-                <h2 className="text-lg font-bold text-zinc-950 flex items-center gap-2 border-b border-zinc-100 pb-4">
-                  <Calendar className="h-5 w-5 text-brand-blue" />
+              <section className="flex h-full flex-col space-y-6 rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm">
+                <h2 className="flex items-center gap-2 border-b border-zinc-100 pb-4 text-lg font-bold text-zinc-950">
+                  <Calendar className="text-brand-blue h-5 w-5" />
                   Scheduling & Budget
                 </h2>
 
                 <FieldWrapper label="Closes at (Deadline)" required>
-                  <CustomDatePickerInput name="closesAt" required defaultValue={initialData?.closesAt} />
+                  <CustomDatePickerInput
+                    name="closesAt"
+                    required
+                    defaultValue={initialData?.closesAt}
+                  />
                 </FieldWrapper>
 
                 <FieldWrapper label="Category" icon={Tag}>
                   <CustomSelect
                     name="category"
                     placeholder="Select a category (optional)"
-                    options={["IT & Hardware", "Software Services", "Consulting", "Logistics", "Maintenance"]}
+                    options={[
+                      "IT & Hardware",
+                      "Software Services",
+                      "Consulting",
+                      "Logistics",
+                      "Maintenance",
+                    ]}
                     defaultValue={initialData?.category}
                   />
                 </FieldWrapper>
 
-                <div className="space-y-6 flex-1">
+                <div className="flex-1 space-y-6">
                   <FieldWrapper label="Currency">
-                    <input name="currency" defaultValue={initialData?.currency || "SAR"} className={inputClass} />
+                    <input
+                      name="currency"
+                      defaultValue={initialData?.currency || "SAR"}
+                      className={inputClass}
+                    />
                   </FieldWrapper>
 
                   <FieldWrapper label="Selling Price" icon={DollarSign} hint="Internal use only.">
@@ -361,19 +447,19 @@ export function PostRequirementForm({
           </div>
 
           {/* Full Width: Suppliers Section */}
-          <section className="rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm space-y-6">
+          <section className="space-y-6 rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm">
             <div className="flex items-end justify-between border-b border-zinc-100 pb-4">
               <div>
                 <div className="flex items-center gap-4">
-                  <h2 className="text-lg font-bold text-zinc-950 flex items-center gap-2">
-                    <Users className="h-5 w-5 text-brand-blue" />
+                  <h2 className="flex items-center gap-2 text-lg font-bold text-zinc-950">
+                    <Users className="text-brand-blue h-5 w-5" />
                     Invite Suppliers
                   </h2>
                   {vendors.length > 0 && (
                     <button
                       type="button"
-                      onClick={() => setSelectedVendors(new Set(vendors.map(v => v.id)))}
-                      className="text-xs font-semibold text-brand-blue hover:text-brand-blue/80 transition-colors"
+                      onClick={() => setSelectedVendors(new Set(vendors.map((v) => v.id)))}
+                      className="text-brand-blue hover:text-brand-blue/80 text-xs font-semibold transition-colors"
                     >
                       Select All
                     </button>
@@ -383,14 +469,15 @@ export function PostRequirementForm({
                   Select pre-approved vendors to participate in this requirement.
                 </p>
               </div>
-              <span className="bg-brand-blue/10 text-brand-blue text-xs font-bold px-3 py-1 rounded-full">
+              <span className="bg-brand-blue/10 text-brand-blue rounded-full px-3 py-1 text-xs font-bold">
                 {selectedVendors.size} Selected
               </span>
             </div>
 
             {vendors.length === 0 ? (
               <div className="rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50 p-8 text-center text-sm text-zinc-500">
-                No active suppliers available to invite. Please approve some vendor registrations first.
+                No active suppliers available to invite. Please approve some vendor registrations
+                first.
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -400,24 +487,32 @@ export function PostRequirementForm({
                     <div
                       key={v.id}
                       onClick={() => toggleVendor(v.id)}
-                      className={`relative cursor-pointer rounded-xl border p-4 transition-all duration-200 ${isSelected
-                        ? "border-brand-blue bg-blue-50/30 shadow-[0_0_0_1px_rgba(0,111,238,1)]"
-                        : "border-zinc-200 bg-white hover:border-brand-blue/50 hover:bg-zinc-50/50"
-                        }`}
+                      className={`relative cursor-pointer rounded-xl border p-4 transition-all duration-200 ${
+                        isSelected
+                          ? "border-brand-blue bg-blue-50/30 shadow-[0_0_0_1px_rgba(0,111,238,1)]"
+                          : "hover:border-brand-blue/50 border-zinc-200 bg-white hover:bg-zinc-50/50"
+                      }`}
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-semibold truncate ${isSelected ? "text-brand-blue" : "text-zinc-900"}`}>
-                            {v.label.split(' (')[0]}
+                        <div className="min-w-0 flex-1">
+                          <p
+                            className={`truncate text-sm font-semibold ${isSelected ? "text-brand-blue" : "text-zinc-900"}`}
+                          >
+                            {v.label.split(" (")[0]}
                           </p>
-                          <p className="text-xs text-zinc-500 truncate mt-0.5">
-                            {v.label.includes('(') ? v.label.split('(')[1].replace(')', '') : v.label}
+                          <p className="mt-0.5 truncate text-xs text-zinc-500">
+                            {v.label.includes("(")
+                              ? v.label.split("(")[1].replace(")", "")
+                              : v.label}
                           </p>
                         </div>
-                        <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${isSelected
-                          ? "border-brand-blue bg-brand-blue text-white"
-                          : "border-zinc-300 bg-white"
-                          }`}>
+                        <div
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${
+                            isSelected
+                              ? "border-brand-blue bg-brand-blue text-white"
+                              : "border-zinc-300 bg-white"
+                          }`}
+                        >
                           {isSelected && <Check className="h-3 w-3" strokeWidth={3} />}
                         </div>
                       </div>

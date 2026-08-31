@@ -88,5 +88,5 @@ export default {
       process.env.DATABASE_URL = env.DATABASE_URL;
       ctx.waitUntil(syncExchangeRates());
     }
-  }
+  },
 };

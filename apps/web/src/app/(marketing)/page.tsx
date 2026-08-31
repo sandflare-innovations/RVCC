@@ -1,10 +1,9 @@
+import { AboutUs } from "@sections/home/AboutUs";
+import { Hero } from "@sections/home/Hero";
 import dynamic from "next/dynamic";
 
 import { FloatingContact } from "@/components/common/FloatingContact";
 import { Footer } from "@/components/layout/Footer";
-
-import { AboutUs } from "@sections/home/AboutUs";
-import { Hero } from "@sections/home/Hero";
 
 // Dynamically load heavy components below the fold
 const Leaders = dynamic(() => import("@sections/home/Leaders").then((mod) => mod.Leaders), {

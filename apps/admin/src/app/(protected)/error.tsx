@@ -10,11 +10,14 @@ export default function DashboardError({
   reset: () => void;
 }) {
   return (
-    <div className="flex flex-col min-h-0 w-full h-full relative">
-      <div className="flex-1 flex items-center justify-center p-8">
+    <div className="relative flex h-full min-h-0 w-full flex-col">
+      <div className="flex flex-1 items-center justify-center p-8">
         <ErrorPanel
           title="Could not load dashboard"
-          message={error.message || "An unexpected error occurred while loading the dashboard data. Please try again."}
+          message={
+            error.message ||
+            "An unexpected error occurred while loading the dashboard data. Please try again."
+          }
           onRetry={reset}
         />
       </div>

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-
 import { z } from "zod";
 
 import { adminWorkerFetch } from "@/lib/admin-api";
@@ -50,11 +49,7 @@ export async function POST(request: Request) {
 
     const admin = data.admin || (await resolveAdminIdentity(data.token));
     if (admin) {
-      out.cookies.set(
-        ADMIN_PROFILE_COOKIE,
-        encodeAdminProfile(admin),
-        adminProfileCookieOptions()
-      );
+      out.cookies.set(ADMIN_PROFILE_COOKIE, encodeAdminProfile(admin), adminProfileCookieOptions());
     }
 
     return out;

@@ -1,7 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 
 import { NextResponse } from "next/server";
-
 import { z } from "zod";
 
 const schema = z.object({

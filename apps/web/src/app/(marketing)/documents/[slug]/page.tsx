@@ -1,10 +1,9 @@
 "use client";
 
-import { use } from "react";
-
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { use } from "react";
 
 import { DOCUMENTS } from "@/data/documents";
 

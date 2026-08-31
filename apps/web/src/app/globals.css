@@ -143,8 +143,6 @@
     }
   }
 
-
-
   * {
     border-color: var(--border);
   }
@@ -262,6 +260,4 @@
   .rotate-y-negative-10 {
     transform: rotateY(-10deg);
   }
-
-
 }

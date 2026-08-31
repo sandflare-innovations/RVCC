@@ -1,11 +1,9 @@
 "use client";
 
-import { useRef } from "react";
-
-import Image from "next/image";
-
 import { MAJOR_PROJECTS as PROJECTS } from "@data/projects/major";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import Image from "next/image";
+import { useRef } from "react";
 
 import { Button } from "@/components/ui/Button";
 

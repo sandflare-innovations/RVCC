@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { LuCheck as Check, LuChevronDown as ChevronDown, LuSearch as Search } from "react-icons/lu";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@lib/utils";
+import { AnimatePresence,motion } from "framer-motion";
+import { useEffect,useRef, useState } from "react";
+import { LuCheck as Check, LuChevronDown as ChevronDown, LuSearch as Search } from "react-icons/lu";
 
 interface Option {
   value: string;
@@ -49,11 +49,11 @@ export function SearchableSelect({
   );
 
   return (
-    <div className={cn("relative w-full peer", className)} ref={ref} data-empty={!value}>
+    <div className={cn("peer relative w-full", className)} ref={ref} data-empty={!value}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex h-[52px] w-full items-center justify-between rounded-xl border border-zinc-200 bg-transparent px-4 py-2 text-sm text-zinc-900 transition-colors hover:bg-zinc-50 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+        className="focus:border-brand-blue focus:ring-brand-blue flex h-[52px] w-full items-center justify-between rounded-xl border border-zinc-200 bg-transparent px-4 py-2 text-sm text-zinc-900 transition-colors hover:bg-zinc-50 focus:ring-1 focus:outline-none"
       >
         <span className="flex items-center gap-2 truncate">
           {selectedOption && (
@@ -99,8 +99,10 @@ export function SearchableSelect({
                       setSearch("");
                     }}
                     className={cn(
-                      "relative flex cursor-pointer select-none items-center rounded-sm py-2 pl-8 pr-2 text-sm outline-none hover:bg-zinc-100",
-                      value === opt.value ? "bg-zinc-50 font-medium text-brand-blue" : "text-zinc-900"
+                      "relative flex cursor-pointer items-center rounded-sm py-2 pr-2 pl-8 text-sm outline-none select-none hover:bg-zinc-100",
+                      value === opt.value
+                        ? "text-brand-blue bg-zinc-50 font-medium"
+                        : "text-zinc-900"
                     )}
                   >
                     {value === opt.value && (

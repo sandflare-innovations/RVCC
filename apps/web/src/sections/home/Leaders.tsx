@@ -1,12 +1,10 @@
 "use client";
 
+import { FOUNDER_DATA, LEADER_MESSAGE } from "@data/home/leaders";
+import { cn } from "@lib/utils";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-
-import { FOUNDER_DATA, LEADER_MESSAGE } from "@data/home/leaders";
-import { motion } from "framer-motion";
-
-import { cn } from "@lib/utils";
 
 export const Leaders = () => {
   return (

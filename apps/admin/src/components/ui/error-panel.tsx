@@ -21,13 +21,11 @@ export function ErrorPanel({
         <AlertCircle className="h-7 w-7 text-red-500" />
       </div>
       <h2 className="text-lg font-bold tracking-tight text-zinc-900">{title}</h2>
-      {message && (
-        <p className="mt-2 max-w-md text-sm text-zinc-500 leading-relaxed">{message}</p>
-      )}
+      {message && <p className="mt-2 max-w-md text-sm leading-relaxed text-zinc-500">{message}</p>}
       {onRetry && (
         <button
           onClick={onRetry}
-          className="mt-6 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 shadow-sm transition-all hover:border-brand-blue hover:text-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
+          className="hover:border-brand-blue hover:text-brand-blue focus:ring-brand-blue/30 mt-6 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 shadow-sm transition-all focus:ring-2 focus:outline-none"
         >
           <RefreshCw className="h-4 w-4" />
           Try again

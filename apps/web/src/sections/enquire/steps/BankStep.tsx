@@ -1,23 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { useRouter } from "next/navigation";
-import { LuPlus as Plus } from "react-icons/lu";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { LuPlus as Plus } from "react-icons/lu";
 import countries from "world-countries";
-import { SearchableSelect } from "@/components/ui/searchable-select";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
-import { COUNTRIES } from "@/data/enquire-questionnaire";
-import { EnquireActions } from "@/sections/enquire/EnquireActions";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { enquireActionLinkClass } from "@/sections/enquire/enquire-typography";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
 import {
   EnquireField,
   enquireInputClass,
-  enquireSelectClass,
 } from "@/sections/enquire/EnquireField";
-import { enquireActionLinkClass, enquireMutedClass } from "@/sections/enquire/enquire-typography";
 
 type Row = {
   country: string;
@@ -120,7 +116,7 @@ export function BankStep() {
       <InteractiveHoverButton
         type="button"
         variant="outline"
-        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        className="h-10 min-w-[120px] px-6 text-xs sm:w-auto sm:text-xs"
         disabled={saving}
         pending={pendingAction === "save"}
         onClick={() => void saveLater()}
@@ -130,7 +126,7 @@ export function BankStep() {
       <InteractiveHoverButton
         type="button"
         variant="solid"
-        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        className="h-10 min-w-[120px] px-6 text-xs sm:w-auto sm:text-xs"
         onClick={goNext}
       >
         Next
@@ -144,13 +140,15 @@ export function BankStep() {
     <div className="space-y-8">
       {headerNode && createPortal(actions, headerNode)}
 
-
       {rows.map((r, i) => {
         const err = errors[i] || {};
         return (
-          <div key={i} className="grid gap-4 border-b border-zinc-100 pb-8 md:grid-cols-2 md:gap-5 animate-fade-in">
-            <div className="md:col-span-2 flex items-center justify-between pb-2">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-900">
+          <div
+            key={i}
+            className="animate-fade-in grid gap-4 border-b border-zinc-100 pb-8 md:grid-cols-2 md:gap-5"
+          >
+            <div className="flex items-center justify-between pb-2 md:col-span-2">
+              <h3 className="text-sm font-semibold tracking-wider text-zinc-900 uppercase">
                 Bank Account {String(i + 1).padStart(2, "0")}
               </h3>
               {rows.length > 1 && (
@@ -171,11 +169,17 @@ export function BankStep() {
                 onChange={(val) => {
                   update(i, "country", val);
                   if (err.country) {
-                    setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, country: false } : e)));
+                    setErrors((prev) =>
+                      prev.map((e, idx) => (idx === i ? { ...e, country: false } : e))
+                    );
                   }
                 }}
                 placeholder="Select a country..."
-                className={err.country ? "[&>button]:border-red-500 [&>button]:ring-1 [&>button]:ring-red-500" : ""}
+                className={
+                  err.country
+                    ? "[&>button]:border-red-500 [&>button]:ring-1 [&>button]:ring-red-500"
+                    : ""
+                }
               />
             </EnquireField>
             <EnquireField label="Currency">
@@ -193,7 +197,9 @@ export function BankStep() {
                 onChange={(e) => {
                   update(i, "bankName", e.target.value);
                   if (err.bankName) {
-                    setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, bankName: false } : e)));
+                    setErrors((prev) =>
+                      prev.map((e, idx) => (idx === i ? { ...e, bankName: false } : e))
+                    );
                   }
                 }}
                 aria-invalid={err.bankName}
@@ -215,7 +221,9 @@ export function BankStep() {
                 onChange={(e) => {
                   update(i, "accountName", e.target.value);
                   if (err.accountName) {
-                    setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, accountName: false } : e)));
+                    setErrors((prev) =>
+                      prev.map((e, idx) => (idx === i ? { ...e, accountName: false } : e))
+                    );
                   }
                 }}
                 aria-invalid={err.accountName}
@@ -250,12 +258,12 @@ export function BankStep() {
         );
       })}
 
-      <div className="flex justify-center pb-8 pt-4">
+      <div className="flex justify-center pt-4 pb-8">
         <button
           type="button"
           onClick={() => setRows((prev) => [...prev, empty()])}
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-6 py-2.5 text-sm font-bold tracking-wide text-zinc-700 transition-all hover:bg-zinc-50 hover:text-brand-blue hover:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 disabled:opacity-50"
+          className="hover:text-brand-blue hover:border-brand-blue focus:ring-brand-blue inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-6 py-2.5 text-sm font-bold tracking-wide text-zinc-700 transition-all hover:bg-zinc-50 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
         >
           <Plus className="h-4 w-4 stroke-[3]" />
           ADD BANK ACCOUNT

@@ -23,11 +23,11 @@ Do **not** delete a Next `app/api` route until its row is green in production.
 
 ## Web enquire (`apps/web`)
 
-| Next route                 | Backend                     | Status                          |
-| -------------------------- | --------------------------- | ------------------------------- |
-| `otp/*`, `draft`, `submit` | `/enquire/*`                | Cookie BFF → unified API        |
-| `logout`                   | Cookie clear only           | Next-only (intentional)         |
-| `documents/unlock`         | Next (DOC_PASSWORD)         | Server-side PIN check           |
+| Next route                 | Backend             | Status                   |
+| -------------------------- | ------------------- | ------------------------ |
+| `otp/*`, `draft`, `submit` | `/enquire/*`        | Cookie BFF → unified API |
+| `logout`                   | Cookie clear only   | Next-only (intentional)  |
+| `documents/unlock`         | Next (DOC_PASSWORD) | Server-side PIN check    |
 
 ## Worker-only (no Next twin) — live on `apps/api`
 

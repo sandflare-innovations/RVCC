@@ -15,7 +15,11 @@ import { cuid } from "../../lib/sql";
 import { loadRegistration } from "./db";
 import { prisma } from "../../lib/prisma";
 
-type ResolveRegistration = (sql: unknown, env: Env, request: Request) => Promise<Awaited<ReturnType<typeof loadRegistration>>>;
+type ResolveRegistration = (
+  sql: unknown,
+  env: Env,
+  request: Request
+) => Promise<Awaited<ReturnType<typeof loadRegistration>>>;
 
 export function createAttachmentHandlers(resolveRegistration: ResolveRegistration) {
   return {
@@ -29,7 +33,12 @@ export function createAttachmentHandlers(resolveRegistration: ResolveRegistratio
         return json(env, request, { error: "Not authenticated — verify your email again." }, 401);
       }
       if (registration.status !== "DRAFT") {
-        return json(env, request, { error: "Attachments cannot be changed after submission." }, 403);
+        return json(
+          env,
+          request,
+          { error: "Attachments cannot be changed after submission." },
+          403
+        );
       }
 
       let form: FormData;
@@ -92,7 +101,12 @@ export function createAttachmentHandlers(resolveRegistration: ResolveRegistratio
         return json(env, request, { error: "Not authenticated — verify your email again." }, 401);
       }
       if (registration.status !== "DRAFT") {
-        return json(env, request, { error: "Attachments cannot be changed after submission." }, 403);
+        return json(
+          env,
+          request,
+          { error: "Attachments cannot be changed after submission." },
+          403
+        );
       }
 
       const row = await prisma.registrationAttachment.findFirst({

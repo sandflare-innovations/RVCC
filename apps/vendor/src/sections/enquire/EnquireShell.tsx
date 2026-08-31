@@ -1,19 +1,17 @@
 "use client";
 
+import { AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { useRouter } from "next/navigation";
-
-import { AlertCircle } from "lucide-react";
-
 import { ENQUIRE_STEPS, type EnquireStep } from "@/lib/enquire-constants";
-import { useEnquire } from "@/sections/enquire/EnquireContext";
-import { StepTrain } from "@/sections/enquire/StepTrain";
 import {
   enquireEyebrowClass,
   enquirePageSubtitleClass,
   enquirePageTitleClass,
 } from "@/sections/enquire/enquire-typography";
+import { useEnquire } from "@/sections/enquire/EnquireContext";
+import { StepTrain } from "@/sections/enquire/StepTrain";
 
 type Props = {
   step: EnquireStep;

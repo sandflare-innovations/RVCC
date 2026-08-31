@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
-
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-
-import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 import { HiOutlineArrowRight } from "react-icons/hi2";
 
 import { GALLARY_PROJECTS } from "@/data/gallary";

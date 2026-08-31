@@ -1,13 +1,10 @@
-import { Suspense } from "react";
-
-import { Metadata } from "next";
-
-import { FloatingContact } from "@/components/common/FloatingContact";
-
+import { Footer } from "@layout/Footer";
 import { GallaryCollections } from "@sections/gallary/GallaryCollections";
 import { GallaryHero } from "@sections/gallary/GallaryHero";
+import { Metadata } from "next";
+import { Suspense } from "react";
 
-import { Footer } from "@layout/Footer";
+import { FloatingContact } from "@/components/common/FloatingContact";
 
 export const metadata: Metadata = {
   title: "Gallery | RVCC - Visualizing Excellence",

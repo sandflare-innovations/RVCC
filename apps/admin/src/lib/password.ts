@@ -1,4 +1,4 @@
-import { type ScryptOptions, randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
+import { randomBytes, scrypt as scryptCb, type ScryptOptions, timingSafeEqual } from "node:crypto";
 
 /*
  * Same scrypt encoding as apps/api/src/lib/password.ts (`scrypt$N$r$p$salt$hash`).

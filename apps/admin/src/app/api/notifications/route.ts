@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { adminUpstreamGet } from "@/lib/admin-upstream";
 import { adminWorkerFetch } from "@/lib/admin-api";
+import { adminUpstreamGet } from "@/lib/admin-upstream";
 import { ADMIN_COOKIE } from "@/lib/constants";
 
 /** This admin's own notifications — proxied to the unified API. */

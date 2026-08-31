@@ -1,12 +1,10 @@
-import { notFound } from "next/navigation";
-
+import { Footer } from "@layout/Footer";
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 import { FloatingContact } from "@/components/common/FloatingContact";
 import { GALLARY_PROJECTS, GallaryProject } from "@/data/gallary";
 import { services } from "@/data/services";
-
-import { Footer } from "@layout/Footer";
 
 import ProjectClient from "./ProjectClient";
 

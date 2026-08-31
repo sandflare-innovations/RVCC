@@ -1,17 +1,16 @@
 "use client";
 
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-
-import { AnimatePresence, motion } from "framer-motion";
-import HTMLFlipBook from "react-pageflip";
-import { Document, Page as PdfPage, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-import { Icons } from "@/lib/icons";
-import { getCachedPdfUrl, cachePdf } from "@/lib/pdf-cache";
+import { AnimatePresence, motion } from "framer-motion";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import HTMLFlipBook from "react-pageflip";
+import { Document, Page as PdfPage, pdfjs } from "react-pdf";
 
 import { DocumentItem } from "@/data/documents";
+import { Icons } from "@/lib/icons";
+import { cachePdf,getCachedPdfUrl } from "@/lib/pdf-cache";
 
 /**
  * Pin worker to the same pdfjs-dist version as the app.
@@ -250,7 +249,9 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
       pdfFallbackTried.current = false;
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [doc, isOpen, loadNonce]);
 
   // Fit the book into the real container — useLayoutEffect so size exists before paint
@@ -398,7 +399,11 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
   );
 
   const onDocumentLoadSuccess = useCallback(
-    (pdf: { numPages: number; getPage: (n: number) => Promise<unknown>; getData: () => Promise<Uint8Array> }) => {
+    (pdf: {
+      numPages: number;
+      getPage: (n: number) => Promise<unknown>;
+      getData: () => Promise<Uint8Array>;
+    }) => {
       setLoadError(null);
       setNumPages(pdf.numPages);
       setPdfReady(true);
@@ -418,12 +423,15 @@ export const FlipbookReader = ({ isOpen, onClose, document: doc }: FlipbookReade
 
       // Cache the fully-loaded PDF for instant back-navigation
       if (doc) {
-        pdf.getData().then((data: Uint8Array) => {
-          const buf = data.buffer as ArrayBuffer;
-          for (const url of [doc.fileUrl, doc.filePath]) {
-            if (url) cachePdf(url, buf).catch(() => {});
-          }
-        }).catch(() => {});
+        pdf
+          .getData()
+          .then((data: Uint8Array) => {
+            const buf = data.buffer as ArrayBuffer;
+            for (const url of [doc.fileUrl, doc.filePath]) {
+              if (url) cachePdf(url, buf).catch(() => {});
+            }
+          })
+          .catch(() => {});
       }
     },
     [doc]

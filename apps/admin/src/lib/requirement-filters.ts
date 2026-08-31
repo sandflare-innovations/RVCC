@@ -30,30 +30,28 @@ type RequirementLike = {
   closesAt: string | null;
 };
 
-export function matchesRequirementFilter(r: RequirementLike, filter: RequirementFilterValue): boolean {
+export function matchesRequirementFilter(
+  r: RequirementLike,
+  filter: RequirementFilterValue
+): boolean {
   if (filter === "ALL") return true;
-  
+
   const isExpired = r.closesAt && new Date(r.closesAt).getTime() <= Date.now();
-  
+
   if (filter === "CLOSED") {
     return r.status === "OPEN" && !!isExpired;
   }
   if (filter === "OPEN") {
     return r.status === "OPEN" && !isExpired;
   }
-  
+
   return r.status === filter;
 }
 
 export function matchesRequirementSearch(r: RequirementLike, q: string): boolean {
   if (!q) return true;
   const needle = q.toLowerCase();
-  const hay = [
-    r.referenceNumber ?? "",
-    r.project,
-  ]
-    .join(" ")
-    .toLowerCase();
+  const hay = [r.referenceNumber ?? "", r.project].join(" ").toLowerCase();
   return hay.includes(needle);
 }
 
@@ -63,5 +61,7 @@ export function filterRequirementRows<T extends RequirementLike>(
   q: string
 ): T[] {
   const search = parseRequirementSearch(q);
-  return rows.filter((r) => matchesRequirementFilter(r, filter) && matchesRequirementSearch(r, search));
+  return rows.filter(
+    (r) => matchesRequirementFilter(r, filter) && matchesRequirementSearch(r, search)
+  );
 }

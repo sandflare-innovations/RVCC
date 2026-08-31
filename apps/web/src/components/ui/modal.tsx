@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-
 import { LuX as X } from "react-icons/lu";
 
 import { cn } from "@/lib/utils";

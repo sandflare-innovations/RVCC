@@ -5,7 +5,8 @@ export const INITIAL_PURCHASE_REQUESTS: PurchaseRequest[] = [
     id: "req-1",
     referenceNumber: "PR-2026-001",
     title: "Structural Ready-Mix Concrete (Grade C35/45) - Foundation Pour",
-    description: "Supply and on-site transit mixer delivery of Grade C35/45 sulphate-resisting ready-mix concrete for Phase 2 Substructure & Foundation casting at Riyadh Metro Station Package 4.",
+    description:
+      "Supply and on-site transit mixer delivery of Grade C35/45 sulphate-resisting ready-mix concrete for Phase 2 Substructure & Foundation casting at Riyadh Metro Station Package 4.",
     department: "Civil & Structural Engineering",
     requesterName: "Tariq Al-Ghamdi (Site Engineer)",
     priority: "high",
@@ -74,7 +75,8 @@ export const INITIAL_PURCHASE_REQUESTS: PurchaseRequest[] = [
     id: "req-2",
     referenceNumber: "PR-2026-002",
     title: "High-Tensile Deformed Steel Rebar (Grade 60) - Columns & Beams",
-    description: "Urgent procurement of ASTM A615 Grade 60 deformed rebar (16mm, 20mm, 25mm, and 32mm bundles) for superstructure frame reinforcement casting on Tower B.",
+    description:
+      "Urgent procurement of ASTM A615 Grade 60 deformed rebar (16mm, 20mm, 25mm, and 32mm bundles) for superstructure frame reinforcement casting on Tower B.",
     department: "Civil & Structural Engineering",
     requesterName: "Sultan Mansour (Procurement Coordinator)",
     priority: "urgent",
@@ -164,7 +166,8 @@ export const INITIAL_PURCHASE_REQUESTS: PurchaseRequest[] = [
     id: "req-3",
     referenceNumber: "PR-2026-003",
     title: "Heavy Equipment Rental: 50-Ton Mobile Rough Terrain Crane",
-    description: "Monthly lease of 50-ton Tadano rough terrain mobile crane for heavy precast facade panel installation and structural steel truss erection on Site Sector 3.",
+    description:
+      "Monthly lease of 50-ton Tadano rough terrain mobile crane for heavy precast facade panel installation and structural steel truss erection on Site Sector 3.",
     department: "Heavy Plant & Machinery",
     requesterName: "Fahad Al-Otaibi (Plant Manager)",
     priority: "medium",
@@ -243,7 +246,8 @@ export const INITIAL_PURCHASE_REQUESTS: PurchaseRequest[] = [
     id: "req-4",
     referenceNumber: "PR-2026-004",
     title: "MEP Electrical Substation Cabling & Fire-Rated Cable Trays",
-    description: "Procurement of low-smoke zero-halogen (LSZH) XLPE copper power cables (4x240mm²) and hot-dip galvanized cable trays for basement central substation electrical rough-in.",
+    description:
+      "Procurement of low-smoke zero-halogen (LSZH) XLPE copper power cables (4x240mm²) and hot-dip galvanized cable trays for basement central substation electrical rough-in.",
     department: "MEP & Electrical Systems",
     requesterName: "Eng. Bilal Qasim",
     priority: "medium",

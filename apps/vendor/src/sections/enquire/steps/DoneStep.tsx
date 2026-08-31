@@ -5,8 +5,8 @@ import { useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
 import { enquireVerifyUrl, siteUrl, vendorPortalUrl } from "@/lib/public-urls";
-import { useEnquire } from "@/sections/enquire/EnquireContext";
 import { enquirePageTitleClass } from "@/sections/enquire/enquire-typography";
+import { useEnquire } from "@/sections/enquire/EnquireContext";
 
 export function DoneStep() {
   const params = useSearchParams();

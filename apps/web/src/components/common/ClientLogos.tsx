@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
-
 import { CLIENT_IMAGES } from "@data/home/about";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export const ClientLogos = () => {
   const logos = [...CLIENT_IMAGES, ...CLIENT_IMAGES];

@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  RefreshCw,
-  ChevronDown,
-  Plus,
-  Table as TableIcon,
-  LayoutGrid,
-} from "lucide-react";
+import { RefreshCw, ChevronDown, Plus, Table as TableIcon, LayoutGrid } from "lucide-react";
 import { AnimatedSearchInput } from "@/components/ui/animated-search-input";
 
 export interface FilterOption {
@@ -72,16 +66,16 @@ export function DashboardToolbar({
   const [deptDropdownOpen, setDeptDropdownOpen] = React.useState(false);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 shrink-0">
+    <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
       {/* Left: Refresh Button + Animated Search Input */}
-      <div className="flex items-center gap-3 w-full sm:w-auto flex-1 max-w-lg">
+      <div className="flex w-full max-w-lg flex-1 items-center gap-3 sm:w-auto">
         <button
           type="button"
           onClick={onRefresh}
           disabled={isRefreshing}
           title="Refresh table data"
           aria-label="Refresh requisitions table"
-          className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full border border-[#0073bc] bg-white text-[#0073bc] transition-all hover:bg-[#0073bc]/5 active:scale-95 disabled:opacity-50 focus-visible:ring-[3px] focus-visible:ring-[#0073bc]/25 focus-visible:outline-none cursor-pointer shadow-xs"
+          className="inline-flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full border border-[#0073bc] bg-white text-[#0073bc] shadow-xs transition-all hover:bg-[#0073bc]/5 focus-visible:ring-[3px] focus-visible:ring-[#0073bc]/25 focus-visible:outline-none active:scale-95 disabled:opacity-50"
         >
           <RefreshCw
             className={`h-4 w-4 ${isRefreshing ? "animate-spin text-[#0073bc]" : ""}`}
@@ -98,14 +92,14 @@ export function DashboardToolbar({
       </div>
 
       {/* Right: Filters + View Mode Toggle + New Requisition Button */}
-      <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+      <div className="flex shrink-0 flex-wrap items-center gap-2.5">
         {/* Table / Card View Switcher */}
         <div className="flex items-center rounded-full border border-zinc-200 bg-white p-1 shadow-2xs">
           <button
             type="button"
             onClick={() => onViewModeChange("table")}
             title="Table View"
-            className={`flex h-7 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex h-7 cursor-pointer items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-all ${
               viewMode === "table"
                 ? "bg-[#0073bc] text-white shadow-xs"
                 : "text-zinc-600 hover:text-zinc-950"
@@ -118,7 +112,7 @@ export function DashboardToolbar({
             type="button"
             onClick={() => onViewModeChange("grid")}
             title="Card View"
-            className={`flex h-7 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex h-7 cursor-pointer items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-all ${
               viewMode === "grid"
                 ? "bg-[#0073bc] text-white shadow-xs"
                 : "text-zinc-600 hover:text-zinc-950"
@@ -138,7 +132,7 @@ export function DashboardToolbar({
               setDeptDropdownOpen(false);
             }}
             onBlur={() => setTimeout(() => setStatusDropdownOpen(false), 200)}
-            className="focus-visible:ring-[#0073bc]/25 flex items-center justify-between gap-2 rounded-full border border-[#0073bc] bg-white py-2 pl-3.5 pr-3 text-xs font-semibold text-[#0073bc] outline-none focus-visible:ring-[3px] transition-all shadow-xs cursor-pointer min-w-[130px]"
+            className="flex min-w-[130px] cursor-pointer items-center justify-between gap-2 rounded-full border border-[#0073bc] bg-white py-2 pr-3 pl-3.5 text-xs font-semibold text-[#0073bc] shadow-xs transition-all outline-none focus-visible:ring-[3px] focus-visible:ring-[#0073bc]/25"
           >
             <span>
               {STATUS_FILTERS.find((f) => f.value === statusFilter)?.label || "All Statuses"}
@@ -151,7 +145,7 @@ export function DashboardToolbar({
           </button>
 
           {statusDropdownOpen && (
-            <div className="absolute right-0 top-full mt-1.5 w-48 rounded-2xl border border-zinc-200 bg-white py-1.5 shadow-lg z-50 animate-in fade-in-0 zoom-in-95 duration-100">
+            <div className="animate-in fade-in-0 zoom-in-95 absolute top-full right-0 z-50 mt-1.5 w-48 rounded-2xl border border-zinc-200 bg-white py-1.5 shadow-lg duration-100">
               {STATUS_FILTERS.map((f) => (
                 <button
                   key={f.value}
@@ -160,7 +154,7 @@ export function DashboardToolbar({
                     onStatusFilterChange(f.value);
                     setStatusDropdownOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-2 text-xs transition-colors cursor-pointer ${
+                  className={`w-full cursor-pointer px-4 py-2 text-left text-xs transition-colors ${
                     f.value === statusFilter
                       ? "bg-zinc-50 font-bold text-[#0073bc]"
                       : "text-zinc-700 hover:bg-zinc-50"
@@ -182,21 +176,20 @@ export function DashboardToolbar({
               setStatusDropdownOpen(false);
             }}
             onBlur={() => setTimeout(() => setDeptDropdownOpen(false), 200)}
-            className="focus-visible:ring-[#0073bc]/25 flex items-center justify-between gap-2 rounded-full border border-[#0073bc] bg-white py-2 pl-3.5 pr-3 text-xs font-semibold text-[#0073bc] outline-none focus-visible:ring-[3px] transition-all shadow-xs cursor-pointer min-w-[150px]"
+            className="flex min-w-[150px] cursor-pointer items-center justify-between gap-2 rounded-full border border-[#0073bc] bg-white py-2 pr-3 pl-3.5 text-xs font-semibold text-[#0073bc] shadow-xs transition-all outline-none focus-visible:ring-[3px] focus-visible:ring-[#0073bc]/25"
           >
-            <span className="truncate max-w-[140px]">
-              {DEPARTMENT_FILTERS.find((f) => f.value === departmentFilter)?.label ||
-                "All Trades"}
+            <span className="max-w-[140px] truncate">
+              {DEPARTMENT_FILTERS.find((f) => f.value === departmentFilter)?.label || "All Trades"}
             </span>
             <ChevronDown
-              className={`h-3.5 w-3.5 text-[#0073bc] shrink-0 transition-transform duration-200 ${
+              className={`h-3.5 w-3.5 shrink-0 text-[#0073bc] transition-transform duration-200 ${
                 deptDropdownOpen ? "rotate-180" : ""
               }`}
             />
           </button>
 
           {deptDropdownOpen && (
-            <div className="absolute right-0 top-full mt-1.5 w-56 rounded-2xl border border-zinc-200 bg-white py-1.5 shadow-lg z-50 animate-in fade-in-0 zoom-in-95 duration-100">
+            <div className="animate-in fade-in-0 zoom-in-95 absolute top-full right-0 z-50 mt-1.5 w-56 rounded-2xl border border-zinc-200 bg-white py-1.5 shadow-lg duration-100">
               {DEPARTMENT_FILTERS.map((f) => (
                 <button
                   key={f.value}
@@ -205,7 +198,7 @@ export function DashboardToolbar({
                     onDepartmentFilterChange(f.value);
                     setDeptDropdownOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-2 text-xs transition-colors cursor-pointer truncate ${
+                  className={`w-full cursor-pointer truncate px-4 py-2 text-left text-xs transition-colors ${
                     f.value === departmentFilter
                       ? "bg-zinc-50 font-bold text-[#0073bc]"
                       : "text-zinc-700 hover:bg-zinc-50"
@@ -222,7 +215,7 @@ export function DashboardToolbar({
         <button
           type="button"
           onClick={onOpenNewRequest}
-          className="bg-[#0073bc] hover:bg-[#005f9e] inline-flex h-[38px] items-center gap-1.5 rounded-full px-4 text-xs font-semibold text-white transition-all shadow-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none shrink-0 cursor-pointer active:scale-95"
+          className="inline-flex h-[38px] shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-[#0073bc] px-4 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#005f9e] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none active:scale-95"
         >
           <Plus className="h-4 w-4" />
           New Requisition

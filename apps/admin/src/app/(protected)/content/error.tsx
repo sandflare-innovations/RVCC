@@ -10,7 +10,7 @@ export default function ContentError({
   reset: () => void;
 }) {
   return (
-    <div className="flex flex-col min-h-0 w-full h-full relative">
+    <div className="relative flex h-full min-h-0 w-full flex-col">
       <div className="flex-1 overflow-y-auto bg-white p-8">
         <div className="mx-auto w-full max-w-6xl">
           <ErrorPanel

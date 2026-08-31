@@ -15,9 +15,9 @@ export default async function VendorPasswordPage() {
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-blue/10">
+          <div className="bg-brand-blue/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
             <svg
-              className="h-8 w-8 text-brand-blue"
+              className="text-brand-blue h-8 w-8"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.5}

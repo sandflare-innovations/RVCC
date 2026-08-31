@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui";
 
 export default function RequirementEditLoading() {
   return (
-    <div className="flex flex-col min-h-0 w-full h-full relative animate-pulse">
+    <div className="relative flex h-full min-h-0 w-full animate-pulse flex-col">
       {/* Sticky Header */}
       <div className="sticky top-0 z-20 flex shrink-0 items-center justify-between border-b border-zinc-200/70 bg-white/95 px-6 py-4 backdrop-blur-sm">
         <div className="flex items-center gap-3">
@@ -18,17 +18,17 @@ export default function RequirementEditLoading() {
       </div>
 
       <div className="flex-1">
-        <div className="p-6 md:p-8 space-y-8 max-w-6xl mx-auto w-full pb-12">
-          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+        <div className="mx-auto w-full max-w-6xl space-y-8 p-6 pb-12 md:p-8">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
             {/* Left Column */}
             <div className="flex flex-col">
-              <section className="rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm flex flex-col h-full">
-                <div className="flex items-center gap-2 border-b border-zinc-100 pb-4 mb-6">
+              <section className="flex h-full flex-col rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm">
+                <div className="mb-6 flex items-center gap-2 border-b border-zinc-100 pb-4">
                   <Skeleton className="h-5 w-5" />
                   <Skeleton className="h-5 w-36" />
                 </div>
-                <div className="flex flex-col md:flex-row gap-8 flex-1">
-                  <div className="w-full md:w-64 shrink-0 space-y-1.5">
+                <div className="flex flex-1 flex-col gap-8 md:flex-row">
+                  <div className="w-full shrink-0 space-y-1.5 md:w-64">
                     <Skeleton className="h-4 w-44" />
                     <Skeleton className="aspect-[3/4] w-full rounded-xl border-2 border-dashed border-zinc-200" />
                   </div>
@@ -37,7 +37,7 @@ export default function RequirementEditLoading() {
                       <Skeleton className="h-4 w-28" />
                       <Skeleton className="h-10 w-full rounded-xl" />
                     </div>
-                    <div className="space-y-1.5 flex-1">
+                    <div className="flex-1 space-y-1.5">
                       <Skeleton className="h-4 w-28" />
                       <Skeleton className="h-48 w-full rounded-xl" />
                     </div>
@@ -48,7 +48,7 @@ export default function RequirementEditLoading() {
 
             {/* Right Column */}
             <div className="flex flex-col">
-              <section className="rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm flex flex-col h-full space-y-6">
+              <section className="flex h-full flex-col space-y-6 rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm">
                 <div className="flex items-center gap-2 border-b border-zinc-100 pb-4">
                   <Skeleton className="h-5 w-5" />
                   <Skeleton className="h-5 w-40" />
@@ -64,7 +64,7 @@ export default function RequirementEditLoading() {
           </div>
 
           {/* Suppliers */}
-          <section className="rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm space-y-6">
+          <section className="space-y-6 rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm">
             <div className="flex items-end justify-between border-b border-zinc-100 pb-4">
               <div className="space-y-1">
                 <Skeleton className="h-5 w-36" />

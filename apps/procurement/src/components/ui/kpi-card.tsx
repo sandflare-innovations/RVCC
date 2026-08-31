@@ -13,19 +13,11 @@ export interface KpiCardProps {
   className?: string;
 }
 
-export function KpiCard({
-  label,
-  value,
-  href,
-  icon,
-  trend,
-  trendValue,
-  className,
-}: KpiCardProps) {
+export function KpiCard({ label, value, href, icon, trend, trendValue, className }: KpiCardProps) {
   const body = (
     <>
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[10px] font-bold tracking-[0.12em] text-zinc-400 uppercase truncate">
+        <p className="truncate text-[10px] font-bold tracking-[0.12em] text-zinc-400 uppercase">
           {label}
         </p>
         {icon && (
@@ -35,7 +27,7 @@ export function KpiCard({
         )}
       </div>
       <div className="mt-2 flex items-baseline justify-between gap-2">
-        <p className="text-xl sm:text-2xl font-extrabold tracking-tight text-zinc-950 tabular-nums">
+        <p className="text-xl font-extrabold tracking-tight text-zinc-950 tabular-nums sm:text-2xl">
           {value}
         </p>
         {trend && trendValue && (
@@ -44,8 +36,8 @@ export function KpiCard({
               trend === "up"
                 ? "text-[#0073bc]"
                 : trend === "down"
-                ? "text-zinc-500"
-                : "text-zinc-400"
+                  ? "text-zinc-500"
+                  : "text-zinc-400"
             }`}
           >
             {trend === "up" && <ArrowUpRight className="mr-0.5 h-3 w-3" />}
@@ -75,7 +67,7 @@ export function KpiCard({
   return (
     <Link
       href={href}
-      className={`${shell} hover:-translate-y-0.5 hover:border-[#0073bc]/30 hover:shadow-[0_12px_28px_-14px_rgba(0,115,188,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0073bc]/40`}
+      className={`${shell} hover:-translate-y-0.5 hover:border-[#0073bc]/30 hover:shadow-[0_12px_28px_-14px_rgba(0,115,188,0.25)] focus-visible:ring-2 focus-visible:ring-[#0073bc]/40 focus-visible:outline-none`}
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#0073bc]/40 to-transparent" />
       <div className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-0 bg-[#0073bc] transition-all duration-300 group-hover:w-full" />

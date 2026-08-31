@@ -4,10 +4,7 @@ import { NextResponse } from "next/server";
 import { adminApiFetch } from "@/lib/admin-api";
 import { ADMIN_COOKIE } from "@/lib/constants";
 
-export async function POST(
-  request: Request,
-  ctx: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const jar = await cookies();
   const token = jar.get(ADMIN_COOKIE)?.value;

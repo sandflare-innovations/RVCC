@@ -3,7 +3,8 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
 function createBaseClient() {
-  const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/rvcc";
+  const connectionString =
+    process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/rvcc";
   const pool = new Pool({ connectionString });
   const adapter = new PrismaPg(pool);
 
@@ -18,7 +19,15 @@ function buildExtendedClient(basePrisma: ReturnType<typeof createBaseClient>) {
     name: "soft-delete-extension",
     query: {
       $allModels: {
-        async delete({ model, args, query }: { model: string; args: any; query: (args: any) => Promise<any> }) {
+        async delete({
+          model,
+          args,
+          query,
+        }: {
+          model: string;
+          args: any;
+          query: (args: any) => Promise<any>;
+        }) {
           if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
             return ((basePrisma as any)[model] as any).update({
               where: args.where,
@@ -28,7 +37,15 @@ function buildExtendedClient(basePrisma: ReturnType<typeof createBaseClient>) {
           return query(args);
         },
 
-        async deleteMany({ model, args, query }: { model: string; args: any; query: (args: any) => Promise<any> }) {
+        async deleteMany({
+          model,
+          args,
+          query,
+        }: {
+          model: string;
+          args: any;
+          query: (args: any) => Promise<any>;
+        }) {
           if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
             return ((basePrisma as any)[model] as any).updateMany({
               where: args?.where,
@@ -38,7 +55,15 @@ function buildExtendedClient(basePrisma: ReturnType<typeof createBaseClient>) {
           return query(args);
         },
 
-        async findUnique({ model, args, query }: { model: string; args: any; query: (args: any) => Promise<any> }) {
+        async findUnique({
+          model,
+          args,
+          query,
+        }: {
+          model: string;
+          args: any;
+          query: (args: any) => Promise<any>;
+        }) {
           if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
             const result = await query(args);
             if (result && Boolean((result as any).deletedAt)) {
@@ -49,14 +74,30 @@ function buildExtendedClient(basePrisma: ReturnType<typeof createBaseClient>) {
           return query(args);
         },
 
-        async findFirst({ model, args, query }: { model: string; args: any; query: (args: any) => Promise<any> }) {
+        async findFirst({
+          model,
+          args,
+          query,
+        }: {
+          model: string;
+          args: any;
+          query: (args: any) => Promise<any>;
+        }) {
           if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
             args.where = { ...(args.where || {}), deletedAt: null };
           }
           return query(args);
         },
 
-        async findMany({ model, args, query }: { model: string; args: any; query: (args: any) => Promise<any> }) {
+        async findMany({
+          model,
+          args,
+          query,
+        }: {
+          model: string;
+          args: any;
+          query: (args: any) => Promise<any>;
+        }) {
           if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
             args.where = { ...(args.where || {}), deletedAt: null };
           }
@@ -73,7 +114,8 @@ let currentClient: ExtendedClient | null = null;
 let currentUrl: string | null = null;
 
 function getPrismaInstance(): ExtendedClient {
-  const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/rvcc";
+  const connectionString =
+    process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/rvcc";
   if (currentClient && currentUrl === connectionString) {
     return currentClient;
   }
@@ -92,5 +134,3 @@ export const prisma: ExtendedClient = new Proxy({} as any, {
 }) as ExtendedClient;
 
 export type ExtendedPrismaClient = ExtendedClient;
-
-

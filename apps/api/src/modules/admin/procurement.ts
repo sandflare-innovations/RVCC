@@ -85,13 +85,13 @@ async function generateReferenceNumber(): Promise<string> {
   return `PR-${year}-${String(nextNum).padStart(3, "0")}`;
 }
 
-export async function loadPurchaseRequestDetail(_sql: unknown, idOrRef: string): Promise<PurchaseRequestDetailDTO | null> {
+export async function loadPurchaseRequestDetail(
+  _sql: unknown,
+  idOrRef: string
+): Promise<PurchaseRequestDetailDTO | null> {
   const req = await prisma.purchaseRequest.findFirst({
     where: {
-      OR: [
-        { id: idOrRef },
-        { referenceNumber: { equals: idOrRef, mode: "insensitive" } },
-      ],
+      OR: [{ id: idOrRef }, { referenceNumber: { equals: idOrRef, mode: "insensitive" } }],
     },
     include: {
       createdBy: { select: { email: true, name: true } },
@@ -163,7 +163,11 @@ export async function loadPurchaseRequestDetail(_sql: unknown, idOrRef: string):
  * GET /admin/procurement
  * Returns list of purchase requests with items count and total estimated amounts.
  */
-export async function handleProcurementList(sql: unknown, env: Env, request: Request): Promise<Response> {
+export async function handleProcurementList(
+  sql: unknown,
+  env: Env,
+  request: Request
+): Promise<Response> {
   const auth = await requireAdmin(sql, env, request);
   if (auth.deny) return auth.deny;
 
@@ -256,14 +260,16 @@ export async function handleProcurementCreate(
   const requesterEmail = typeof b.requesterEmail === "string" ? b.requesterEmail.trim() : null;
   const description = typeof b.description === "string" ? b.description.trim() : "";
   const priorityRaw = typeof b.priority === "string" ? b.priority.toLowerCase() : "medium";
-  const priority = (["low", "medium", "high", "urgent"].includes(priorityRaw)
-    ? priorityRaw.toUpperCase()
-    : "MEDIUM") as ProcurementPriority;
+  const priority = (
+    ["low", "medium", "high", "urgent"].includes(priorityRaw) ? priorityRaw.toUpperCase() : "MEDIUM"
+  ) as ProcurementPriority;
   const requiredByDateStr = typeof b.requiredByDate === "string" ? b.requiredByDate : "";
   const currency = (typeof b.currency === "string" ? b.currency.trim() : "SAR") as Currency;
   const costCenter = typeof b.costCenter === "string" ? b.costCenter.trim() : null;
   const itemsRaw = Array.isArray(b.items) ? (b.items as Array<Record<string, unknown>>) : [];
-  const attachmentsRaw = Array.isArray(b.attachments) ? (b.attachments as Array<Record<string, unknown>>) : [];
+  const attachmentsRaw = Array.isArray(b.attachments)
+    ? (b.attachments as Array<Record<string, unknown>>)
+    : [];
 
   if (!title || title.length < 3) {
     return json(env, request, { error: "Title must be at least 3 characters" }, 400);
@@ -380,7 +386,15 @@ export async function handleProcurementReview(
 
   const b = body as Record<string, unknown>;
   const statusRaw = typeof b.status === "string" ? b.status.toLowerCase() : "";
-  const validStatuses = ["draft", "submitted", "pending", "under_review", "approved", "rejected", "revision_requested"];
+  const validStatuses = [
+    "draft",
+    "submitted",
+    "pending",
+    "under_review",
+    "approved",
+    "rejected",
+    "revision_requested",
+  ];
   if (!validStatuses.includes(statusRaw)) {
     return json(env, request, { error: `Invalid status: ${statusRaw}` }, 400);
   }
@@ -391,10 +405,7 @@ export async function handleProcurementReview(
 
   const existing = await prisma.purchaseRequest.findFirst({
     where: {
-      OR: [
-        { id },
-        { referenceNumber: { equals: id, mode: "insensitive" } },
-      ],
+      OR: [{ id }, { referenceNumber: { equals: id, mode: "insensitive" } }],
     },
   });
 
@@ -452,10 +463,7 @@ export async function handleProcurementDelete(
 
   const existing = await prisma.purchaseRequest.findFirst({
     where: {
-      OR: [
-        { id },
-        { referenceNumber: { equals: id, mode: "insensitive" } },
-      ],
+      OR: [{ id }, { referenceNumber: { equals: id, mode: "insensitive" } }],
     },
   });
 

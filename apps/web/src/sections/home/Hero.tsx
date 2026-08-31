@@ -1,17 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
-import Image from "next/image";
-
+import { cn } from "@lib/utils";
 import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { FaArrowRight } from "react-icons/fa6";
 
 import { LogoMarquee } from "@/components/common/LogoMarquee";
 import { Button } from "@/components/ui/Button";
 import { enquireVerifyUrl } from "@/lib/public-urls";
-
-import { cn } from "@lib/utils";
 
 const HERO_CONTENT = [
   {

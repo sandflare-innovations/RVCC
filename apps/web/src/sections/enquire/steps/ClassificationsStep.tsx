@@ -1,23 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { useRouter } from "next/navigation";
-import { LuPlus as Plus } from "react-icons/lu";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { SearchableSelect } from "@/components/ui/searchable-select";
-import { DatePicker } from "@/components/ui/date-picker";
+import { LuPlus as Plus } from "react-icons/lu";
 
+import { DatePicker } from "@/components/ui/date-picker";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { CLASSIFICATION_OPTIONS } from "@/data/enquire-questionnaire";
-import { EnquireActions } from "@/sections/enquire/EnquireActions";
+import { enquireActionLinkClass } from "@/sections/enquire/enquire-typography";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
 import {
   EnquireField,
   enquireInputClass,
-  enquireSelectClass,
 } from "@/sections/enquire/EnquireField";
-import { enquireActionLinkClass, enquireMutedClass } from "@/sections/enquire/enquire-typography";
 
 type Row = {
   classification: string;
@@ -104,7 +101,7 @@ export function ClassificationsStep() {
       <InteractiveHoverButton
         type="button"
         variant="outline"
-        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        className="h-10 min-w-[120px] px-6 text-xs sm:w-auto sm:text-xs"
         disabled={saving}
         pending={pendingAction === "save"}
         onClick={() => void saveLater()}
@@ -114,7 +111,7 @@ export function ClassificationsStep() {
       <InteractiveHoverButton
         type="button"
         variant="solid"
-        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        className="h-10 min-w-[120px] px-6 text-xs sm:w-auto sm:text-xs"
         onClick={goNext}
       >
         Next
@@ -128,13 +125,15 @@ export function ClassificationsStep() {
     <div className="space-y-8">
       {headerNode && createPortal(actions, headerNode)}
 
-
       {rows.map((r, i) => {
         const err = errors[i] || {};
         return (
-          <div key={i} className="grid gap-4 border-b border-zinc-100 pb-8 md:grid-cols-2 md:gap-5 animate-fade-in">
-            <div className="md:col-span-2 flex items-center justify-between pb-2">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-900">
+          <div
+            key={i}
+            className="animate-fade-in grid gap-4 border-b border-zinc-100 pb-8 md:grid-cols-2 md:gap-5"
+          >
+            <div className="flex items-center justify-between pb-2 md:col-span-2">
+              <h3 className="text-sm font-semibold tracking-wider text-zinc-900 uppercase">
                 Classification {String(i + 1).padStart(2, "0")}
               </h3>
               {rows.length > 1 && (
@@ -147,7 +146,7 @@ export function ClassificationsStep() {
                 </button>
               )}
             </div>
-            
+
             <EnquireField label="Classification" required className="md:col-span-2">
               <SearchableSelect
                 options={CLASSIFICATION_OPTIONS_LIST}
@@ -155,14 +154,20 @@ export function ClassificationsStep() {
                 onChange={(val) => {
                   update(i, "classification", val);
                   if (err.classification) {
-                    setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, classification: false } : e)));
+                    setErrors((prev) =>
+                      prev.map((e, idx) => (idx === i ? { ...e, classification: false } : e))
+                    );
                   }
                 }}
                 placeholder="Select classification..."
-                className={err.classification ? "[&>button]:border-red-500 [&>button]:ring-1 [&>button]:ring-red-500" : ""}
+                className={
+                  err.classification
+                    ? "[&>button]:border-red-500 [&>button]:ring-1 [&>button]:ring-red-500"
+                    : ""
+                }
               />
             </EnquireField>
-            
+
             <EnquireField label="Certificate number">
               <input
                 className={enquireInputClass}
@@ -195,12 +200,12 @@ export function ClassificationsStep() {
         );
       })}
 
-      <div className="flex justify-center pb-8 pt-4">
+      <div className="flex justify-center pt-4 pb-8">
         <button
           type="button"
           onClick={() => setRows((prev) => [...prev, empty()])}
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-6 py-2.5 text-sm font-bold tracking-wide text-zinc-700 transition-all hover:bg-zinc-50 hover:text-brand-blue hover:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 disabled:opacity-50"
+          className="hover:text-brand-blue hover:border-brand-blue focus:ring-brand-blue inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-6 py-2.5 text-sm font-bold tracking-wide text-zinc-700 transition-all hover:bg-zinc-50 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
         >
           <Plus className="h-4 w-4 stroke-[3]" />
           ADD CLASSIFICATION

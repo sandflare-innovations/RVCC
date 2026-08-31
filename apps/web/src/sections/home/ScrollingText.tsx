@@ -1,9 +1,5 @@
 "use client";
 
-import { useRef } from "react";
-
-import Image from "next/image";
-
 import {
   motion,
   useAnimationFrame,
@@ -13,6 +9,8 @@ import {
   useTransform,
   useVelocity,
 } from "framer-motion";
+import Image from "next/image";
+import { useRef } from "react";
 
 const wrap = (min: number, max: number, v: number) => {
   const rangeSize = max - min;

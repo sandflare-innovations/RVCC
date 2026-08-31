@@ -1,8 +1,8 @@
 "use client";
 
-import { Icons } from "@/lib/icons";
-
 import { cn } from "@lib/utils";
+
+import { Icons } from "@/lib/icons";
 
 interface ProjectFiltersProps {
   searchQuery: string;

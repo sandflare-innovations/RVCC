@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useRef } from "react";
-
-import dynamic from "next/dynamic";
-import { motion, useScroll, useSpring, useTransform } from "framer-motion";
-
 import { Button } from "@ui/Button";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import dynamic from "next/dynamic";
+import React, { useRef } from "react";
 
 const SkyscraperCanvas = dynamic(
   () => import("@ui/SkyscraperCanvas").then((m) => m.SkyscraperCanvas),

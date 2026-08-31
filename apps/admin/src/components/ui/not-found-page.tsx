@@ -25,15 +25,14 @@ export function NotFoundPage({
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full min-h-full px-6 py-8">
-      
+    <div className="flex h-full min-h-full w-full flex-col items-center justify-center px-6 py-8">
       {/* Top section: SVG + 404 badge */}
       <div className="relative mb-6 md:mb-8">
         <svg
           viewBox="0 0 200 200"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="drop-shadow-xl w-[160px] h-[160px] md:w-[220px] md:h-[220px]"
+          className="h-[160px] w-[160px] drop-shadow-xl md:h-[220px] md:w-[220px]"
         >
           <ellipse cx="100" cy="185" rx="80" ry="8" fill="#E8F4FD" />
           <rect x="60" y="50" width="80" height="135" rx="4" fill="#0073bc" />
@@ -76,18 +75,18 @@ export function NotFoundPage({
 
         {/* 404 Badge */}
         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2">
-          <span className="inline-flex items-center justify-center h-14 w-14 md:h-16 md:w-16 rounded-full bg-brand-blue text-2xl md:text-3xl font-extrabold text-white shadow-xl border-4 border-white">
+          <span className="bg-brand-blue inline-flex h-14 w-14 items-center justify-center rounded-full border-4 border-white text-2xl font-extrabold text-white shadow-xl md:h-16 md:w-16 md:text-3xl">
             404
           </span>
         </div>
       </div>
 
       {/* Title & Message */}
-      <div className="text-center mb-8 md:mb-10">
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900">
+      <div className="mb-8 text-center md:mb-10">
+        <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 md:text-4xl">
           {title}
         </h1>
-        <p className="mt-3 max-w-lg text-base md:text-lg text-zinc-500 leading-relaxed">
+        <p className="mt-3 max-w-lg text-base leading-relaxed text-zinc-500 md:text-lg">
           {message}
         </p>
       </div>
@@ -95,25 +94,34 @@ export function NotFoundPage({
       {/* Page Suggestions — only for authenticated users */}
       {isAuthenticated && (
         <div className="w-full max-w-2xl">
-          <p className="text-center text-xs font-bold text-zinc-400 uppercase tracking-widest mb-5">
+          <p className="mb-5 text-center text-xs font-bold tracking-widest text-zinc-400 uppercase">
             Quick Navigation
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-5">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-5">
             {defaultSuggestions.map((suggestion) => (
               <Link
                 key={suggestion.href}
                 href={suggestion.href}
-                className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-zinc-200 bg-white px-5 py-6 md:py-7 text-center shadow-sm transition-all duration-200 hover:border-brand-blue hover:shadow-lg hover:-translate-y-1"
+                className="group hover:border-brand-blue flex flex-col items-center gap-3 rounded-2xl border-2 border-zinc-200 bg-white px-5 py-6 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg md:py-7"
               >
-                <div className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue transition-all duration-300 group-hover:bg-brand-blue group-hover:text-white group-hover:scale-110">
+                <div className="bg-brand-blue/10 text-brand-blue group-hover:bg-brand-blue flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 group-hover:text-white md:h-14 md:w-14">
                   {suggestion.icon ?? (
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                       <polyline points="9 22 9 12 15 12 15 22" />
                     </svg>
                   )}
                 </div>
-                <span className="text-sm md:text-base font-bold text-zinc-700 group-hover:text-brand-blue transition-colors">
+                <span className="group-hover:text-brand-blue text-sm font-bold text-zinc-700 transition-colors md:text-base">
                   {suggestion.label}
                 </span>
               </Link>
@@ -127,7 +135,7 @@ export function NotFoundPage({
         <div>
           <Link
             href="/login"
-            className="inline-flex items-center gap-2.5 rounded-full bg-brand-blue px-8 py-4 text-base font-bold text-white shadow-xl transition-all duration-200 hover:bg-brand-blue/90 hover:shadow-2xl hover:-translate-y-0.5"
+            className="bg-brand-blue hover:bg-brand-blue/90 inline-flex items-center gap-2.5 rounded-full px-8 py-4 text-base font-bold text-white shadow-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl"
           >
             Sign in to continue
           </Link>
@@ -135,9 +143,12 @@ export function NotFoundPage({
       )}
 
       {/* Help text */}
-      <p className="mt-8 md:mt-10 text-sm text-zinc-400">
+      <p className="mt-8 text-sm text-zinc-400 md:mt-10">
         If you believe this is an error, please{" "}
-        <Link href={isAuthenticated ? "/profile" : "/login"} className="text-brand-blue hover:underline font-semibold">
+        <Link
+          href={isAuthenticated ? "/profile" : "/login"}
+          className="text-brand-blue font-semibold hover:underline"
+        >
           contact support
         </Link>
         .

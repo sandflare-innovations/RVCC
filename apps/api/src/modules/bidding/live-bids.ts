@@ -2,10 +2,7 @@ import type { Env } from "../../config/env";
 import { corsHeaders, json } from "../../lib/http";
 import { requireAdmin } from "../admin/auth";
 import { getVendorFromSession } from "../vendor/auth";
-import {
-  buildAdminLiveBidsPayload,
-  buildVendorLiveBidsPayload,
-} from "./ranking";
+import { buildAdminLiveBidsPayload, buildVendorLiveBidsPayload } from "./ranking";
 
 function vendorSessionFrom(request: Request): string | null {
   return request.headers.get("X-Vendor-Session");

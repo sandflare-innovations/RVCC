@@ -27,9 +27,7 @@ export function CareerApplicationsPanel({ applications }: { applications: Applic
                   {app.phone ? ` · ${app.phone}` : ""}
                 </p>
                 <p className="mt-1 text-xs text-zinc-500">
-                  {app.createdAt
-                    ? new Date(app.createdAt).toLocaleString("en-GB")
-                    : "—"}
+                  {app.createdAt ? new Date(app.createdAt).toLocaleString("en-GB") : "—"}
                 </p>
               </div>
               <a

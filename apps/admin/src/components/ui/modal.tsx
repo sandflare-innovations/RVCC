@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
 export interface ModalProps {
@@ -85,7 +84,10 @@ export function Modal({
             {title && (
               <div className="flex items-center justify-between border-b border-zinc-100/80 bg-white/50 px-6 py-5">
                 <div className="flex flex-col">
-                  <h2 id="modal-title" className="text-xl font-semibold tracking-tight text-zinc-900">
+                  <h2
+                    id="modal-title"
+                    className="text-xl font-semibold tracking-tight text-zinc-900"
+                  >
                     {title}
                   </h2>
                   {description && (
@@ -103,7 +105,7 @@ export function Modal({
               </div>
             )}
 
-            <div className="max-h-[calc(100vh-10rem)] flex-1 overflow-y-auto px-6 py-6 scrollbar-thin scrollbar-thumb-zinc-200">
+            <div className="max-h-[calc(100vh-10rem)] flex-1 scrollbar-thin scrollbar-thumb-zinc-200 overflow-y-auto px-6 py-6">
               {!title && (
                 <button
                   type="button"

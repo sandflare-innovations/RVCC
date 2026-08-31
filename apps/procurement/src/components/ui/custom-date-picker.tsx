@@ -1,11 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import {
-  Calendar as CalendarIcon,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CustomDatePickerProps {
@@ -126,9 +122,7 @@ export function CustomDatePicker({
   const isToday = (day: number) => {
     const today = new Date();
     return (
-      today.getFullYear() === viewYear &&
-      today.getMonth() === viewMonth &&
-      today.getDate() === day
+      today.getFullYear() === viewYear && today.getMonth() === viewMonth && today.getDate() === day
     );
   };
 
@@ -146,26 +140,26 @@ export function CustomDatePicker({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex w-full items-center justify-between gap-2.5 rounded-2xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-medium text-zinc-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all hover:border-[#0073bc]/40 hover:bg-zinc-50/50 focus:border-[#0073bc] focus:outline-none cursor-pointer",
-          isOpen && "border-[#0073bc] ring-2 ring-[#0073bc]/10 bg-white"
+          "flex w-full cursor-pointer items-center justify-between gap-2.5 rounded-2xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-medium text-zinc-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all hover:border-[#0073bc]/40 hover:bg-zinc-50/50 focus:border-[#0073bc] focus:outline-none",
+          isOpen && "border-[#0073bc] bg-white ring-2 ring-[#0073bc]/10"
         )}
       >
         <div className="flex items-center gap-2.5">
-          <CalendarIcon className="h-4 w-4 text-[#0073bc] shrink-0" />
-          <span className={value ? "text-zinc-900 font-semibold" : "text-zinc-400"}>
+          <CalendarIcon className="h-4 w-4 shrink-0 text-[#0073bc]" />
+          <span className={value ? "font-semibold text-zinc-900" : "text-zinc-400"}>
             {value ? formatDisplayDate(value) : placeholder}
           </span>
         </div>
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 z-50 mt-1.5 w-64 rounded-2xl border border-zinc-100/90 bg-white p-3 shadow-[0_12px_32px_-12px_rgba(15,23,42,0.18),0_2px_6px_rgba(15,23,42,0.04)] ring-1 ring-black/5 animate-in fade-in-0 zoom-in-95 duration-100">
+        <div className="animate-in fade-in-0 zoom-in-95 absolute left-0 z-50 mt-1.5 w-64 rounded-2xl border border-zinc-100/90 bg-white p-3 shadow-[0_12px_32px_-12px_rgba(15,23,42,0.18),0_2px_6px_rgba(15,23,42,0.04)] ring-1 ring-black/5 duration-100">
           {/* Calendar Header */}
-          <div className="flex items-center justify-between pb-2 border-b border-zinc-100 mb-2">
+          <div className="mb-2 flex items-center justify-between border-b border-zinc-100 pb-2">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="flex h-7 w-7 items-center justify-center rounded-xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors cursor-pointer"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-xl text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -175,14 +169,14 @@ export function CustomDatePicker({
             <button
               type="button"
               onClick={handleNextMonth}
-              className="flex h-7 w-7 items-center justify-center rounded-xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors cursor-pointer"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-xl text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
 
           {/* Days of week header */}
-          <div className="grid grid-cols-7 gap-1 text-center mb-1">
+          <div className="mb-1 grid grid-cols-7 gap-1 text-center">
             {DAYS_OF_WEEK.map((d) => (
               <span key={d} className="text-[10px] font-bold text-zinc-400 uppercase">
                 {d}
@@ -211,11 +205,13 @@ export function CustomDatePicker({
                   disabled={disabled}
                   onClick={() => handleSelectDay(day)}
                   className={cn(
-                    "flex h-7 w-7 items-center justify-center rounded-xl text-xs transition-all cursor-pointer",
-                    disabled && "text-zinc-300 cursor-not-allowed hover:bg-transparent",
-                    !disabled && !selected && "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 font-medium",
-                    today && !selected && "font-bold text-[#0073bc] bg-[#0073bc]/5",
-                    selected && "bg-[#0073bc] text-white font-bold shadow-xs hover:bg-[#005f9e]"
+                    "flex h-7 w-7 cursor-pointer items-center justify-center rounded-xl text-xs transition-all",
+                    disabled && "cursor-not-allowed text-zinc-300 hover:bg-transparent",
+                    !disabled &&
+                      !selected &&
+                      "font-medium text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950",
+                    today && !selected && "bg-[#0073bc]/5 font-bold text-[#0073bc]",
+                    selected && "bg-[#0073bc] font-bold text-white shadow-xs hover:bg-[#005f9e]"
                   )}
                 >
                   {day}
@@ -225,7 +221,7 @@ export function CustomDatePicker({
           </div>
 
           {/* Quick Action Footer */}
-          <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px]">
+          <div className="mt-2.5 flex items-center justify-between border-t border-zinc-100 pt-2 text-[11px]">
             <button
               type="button"
               onClick={() => {
@@ -233,7 +229,7 @@ export function CustomDatePicker({
                 onChange(today);
                 setIsOpen(false);
               }}
-              className="font-semibold text-[#0073bc] hover:underline cursor-pointer"
+              className="cursor-pointer font-semibold text-[#0073bc] hover:underline"
             >
               Today
             </button>
@@ -244,7 +240,7 @@ export function CustomDatePicker({
                 onChange(twoWeeks);
                 setIsOpen(false);
               }}
-              className="text-zinc-500 hover:text-zinc-900 cursor-pointer"
+              className="cursor-pointer text-zinc-500 hover:text-zinc-900"
             >
               +2 Weeks
             </button>

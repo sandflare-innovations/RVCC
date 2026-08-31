@@ -1,9 +1,8 @@
 export { VENDOR_COOKIE, VENDOR_PROFILE_COOKIE, VENDOR_SESSION_TTL_MS } from "@rvcc/utils";
-import { VENDOR_COOKIE, VENDOR_PROFILE_COOKIE, VENDOR_SESSION_TTL_MS } from "@rvcc/utils";
+import { VENDOR_SESSION_TTL_MS } from "@rvcc/utils";
 
 export const VENDOR_LOGIN_PATH = "/login";
 export const VENDOR_HOME_PATH = "/";
-
 
 /**
  * Where a server-side guard sends a request whose cookie exists but whose

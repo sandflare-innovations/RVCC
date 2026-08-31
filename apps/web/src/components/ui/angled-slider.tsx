@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-
+import { animate, motion, useMotionValue,Variants } from "framer-motion";
 import Image from "next/image";
-
-import { Variants, animate, motion, useMotionValue } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 

@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
-
+import { AlertCircle, ExternalLink, Eye, MoreVertical,Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-import { AlertCircle, ExternalLink, Eye, Trash2, MoreVertical } from "lucide-react";
+import { useEffect,useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
@@ -81,53 +79,58 @@ export function RegistrationRowActions({
 
   return (
     <>
-      <div className={`relative flex items-center justify-end ${showDropdown ? "z-[60]" : ""}`} ref={dropdownRef}>
+      <div
+        className={`relative flex items-center justify-end ${showDropdown ? "z-[60]" : ""}`}
+        ref={dropdownRef}
+      >
         <button
           type="button"
           onClick={() => {
-              const next = !showDropdown;
-              setShowDropdown(next);
-              onDropdownOpen?.(next);
-            }}
+            const next = !showDropdown;
+            setShowDropdown(next);
+            onDropdownOpen?.(next);
+          }}
           className="hover:text-brand-blue rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
         >
           <MoreVertical className="h-4 w-4" />
         </button>
 
-        {showDropdown && dropdownRef.current && createPortal(
-          <div
-            className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
-            style={{
-              top: dropdownRef.current.getBoundingClientRect().bottom + 4,
-              right: window.innerWidth - dropdownRef.current.getBoundingClientRect().right,
-            }}
-          >
-            <Link
-              href={`/registrations/${r.id}`}
-              onClick={() => setShowDropdown(false)}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+        {showDropdown &&
+          dropdownRef.current &&
+          createPortal(
+            <div
+              className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
+              style={{
+                top: dropdownRef.current.getBoundingClientRect().bottom + 4,
+                right: window.innerWidth - dropdownRef.current.getBoundingClientRect().right,
+              }}
             >
-              <Eye className="h-4 w-4" />
-              View details
-            </Link>
-            {canDelete && (
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDropdown(false);
-                  setConfirmText("");
-                  setError(null);
-                  setShowDelete(true);
-                }}
+              <Link
+                href={`/registrations/${r.id}`}
+                onClick={() => setShowDropdown(false)}
                 className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
               >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
-            )}
-          </div>,
-          document.body
-        )}
+                <Eye className="h-4 w-4" />
+                View details
+              </Link>
+              {canDelete && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDropdown(false);
+                    setConfirmText("");
+                    setError(null);
+                    setShowDelete(true);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </button>
+              )}
+            </div>,
+            document.body
+          )}
       </div>
 
       <Modal

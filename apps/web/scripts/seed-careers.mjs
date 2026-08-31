@@ -137,7 +137,9 @@ try {
   }
 
   const total = await prisma.jobPosting.count();
-  console.log(`\n  ${DRY ? "[dry run] " : ""}created ${created}, skipped ${skipped}. Total in DB: ${total}\n`);
+  console.log(
+    `\n  ${DRY ? "[dry run] " : ""}created ${created}, skipped ${skipped}. Total in DB: ${total}\n`
+  );
 } catch (err) {
   console.error("Failed:", err.message);
   process.exit(1);

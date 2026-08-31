@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { LogOut } from "lucide-react";
+import { useState } from "react";
+
 import { VENDOR_LOGIN_EXPIRED_PATH } from "@/lib/constants";
 import { signOutInstant } from "@/lib/sign-out-client";
 
@@ -15,10 +16,10 @@ export function SignOutCard() {
   };
 
   return (
-    <button 
+    <button
       onClick={handleSignOut}
       disabled={signingOut}
-      className="flex w-full items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm hover:border-red-500 hover:shadow-md transition-all text-left disabled:opacity-50"
+      className="flex w-full items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-6 text-left shadow-sm transition-all hover:border-red-500 hover:shadow-md disabled:opacity-50"
     >
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600">
         <LogOut className="h-5 w-5" />

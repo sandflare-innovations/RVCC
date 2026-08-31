@@ -1,9 +1,8 @@
 "use client";
 
-import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
-
 import { Decal, OrbitControls, Stage, useGLTF, useTexture } from "@react-three/drei";
 import { Canvas, createPortal, useFrame } from "@react-three/fiber";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 /**

@@ -1,18 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { LuPencil as Pencil } from "react-icons/lu";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
-import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
 import { attachmentSectionLabel } from "@/data/enquire-attachments";
+import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";
 import { ENQUIRE_QUESTIONNAIRE } from "@/data/enquire-questionnaire";
-import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import {
   type DraftRegistration,
   useEnquire,
@@ -34,10 +31,8 @@ function maskAccount(value?: string | null) {
 function DocField({ label, value }: { label: string; value?: string | null }) {
   return (
     <div className="grid gap-0.5 border-b border-zinc-100 py-2 sm:grid-cols-[minmax(140px,200px)_1fr] sm:gap-3 sm:py-3">
-      <dt className="text-xs font-bold tracking-[0.06em] text-zinc-900 uppercase">
-        {label}
-      </dt>
-      <dd className="text-[15px] leading-snug break-words whitespace-pre-wrap text-zinc-600 font-medium">
+      <dt className="text-xs font-bold tracking-[0.06em] text-zinc-900 uppercase">{label}</dt>
+      <dd className="text-[15px] leading-snug font-medium break-words whitespace-pre-wrap text-zinc-600">
         {display(value)}
       </dd>
     </div>
@@ -57,16 +52,16 @@ function DocSection({
 }) {
   return (
     <section className="group border-b border-zinc-100 last:border-b-0">
-      <div className="flex items-center justify-between gap-3 bg-white px-6 py-5 sm:px-10 transition-colors group-hover:bg-zinc-50/30">
-        <h3 className="font-enquire text-lg sm:text-xl text-zinc-900 flex items-center gap-3">
-          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-blue/10 text-brand-blue font-enquire text-lg font-medium">
+      <div className="flex items-center justify-between gap-3 bg-white px-6 py-5 transition-colors group-hover:bg-zinc-50/30 sm:px-10">
+        <h3 className="font-enquire flex items-center gap-3 text-lg text-zinc-900 sm:text-xl">
+          <span className="bg-brand-blue/10 text-brand-blue font-enquire flex h-8 w-8 items-center justify-center rounded-full text-lg font-medium">
             {number}
           </span>
           {title}
         </h3>
         <Link
           href={editHref}
-          className="text-brand-blue/70 hover:text-brand-blue flex shrink-0 items-center gap-1.5 text-[10px] font-bold tracking-[0.15em] uppercase transition-colors bg-white hover:bg-brand-blue/5 px-3 py-1.5 rounded-full ring-1 ring-brand-blue/20 shadow-sm"
+          className="text-brand-blue/70 hover:text-brand-blue hover:bg-brand-blue/5 ring-brand-blue/20 flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] uppercase shadow-sm ring-1 transition-colors"
         >
           <Pencil className="h-3 w-3" aria-hidden="true" />
           Edit
@@ -79,7 +74,7 @@ function DocSection({
 
 function EntryCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="my-3 overflow-hidden rounded-xl border border-zinc-200/60 bg-white/50 shadow-sm transition-all hover:shadow-md hover:bg-white">
+    <div className="my-3 overflow-hidden rounded-xl border border-zinc-200/60 bg-white/50 shadow-sm transition-all hover:bg-white hover:shadow-md">
       <div className="border-b border-zinc-100 bg-zinc-50/50 px-4 py-2.5">
         <p className="text-[10px] font-bold tracking-[0.15em] text-zinc-500 uppercase">{title}</p>
       </div>
@@ -95,32 +90,33 @@ export function ReviewDocument({ registration }: { registration: DraftRegistrati
     .filter(Boolean);
 
   return (
-    <article className="relative flex flex-col h-full overflow-hidden rounded-3xl border border-zinc-200 bg-white">
-      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-brand-blue via-brand-blue/80 to-brand-blue z-10" />
-      
-      <header className="relative shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-6 py-5 sm:px-8 sm:py-6 flex flex-col items-center text-center">
-        <p className="text-brand-blue/80 text-[10px] font-bold tracking-[0.2em] uppercase mb-1.5">
+    <article className="relative flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white">
+      <div className="from-brand-blue via-brand-blue/80 to-brand-blue absolute top-0 right-0 left-0 z-10 h-1.5 bg-gradient-to-r" />
+
+      <header className="relative flex shrink-0 flex-col items-center border-b border-zinc-100 bg-zinc-50/50 px-6 py-5 text-center sm:px-8 sm:py-6">
+        <p className="text-brand-blue/80 mb-1.5 text-[10px] font-bold tracking-[0.2em] uppercase">
           RVCC Procurement
         </p>
-        <h2 className="font-enquire text-xl text-zinc-950 sm:text-2xl font-medium tracking-tight">
+        <h2 className="font-enquire text-xl font-medium tracking-tight text-zinc-950 sm:text-2xl">
           Supplier Registration Dossier
         </h2>
-        <div className="absolute top-0 right-0 p-6 opacity-[0.03] pointer-events-none">
-          <img src="/images/logo/logo.webp" alt="" className="w-28 h-auto" />
+        <div className="pointer-events-none absolute top-0 right-0 p-6 opacity-[0.03]">
+          <img src="/images/logo/logo.webp" alt="" className="h-auto w-28" />
         </div>
-        
+
         <dl className="mt-4 w-full text-center">
           <div>
             <dt className="text-[11px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">
               Applicant email
             </dt>
-            <dd className="mt-0.5 text-sm text-zinc-950 font-medium">{display(registration.email)}</dd>
+            <dd className="mt-0.5 text-sm font-medium text-zinc-950">
+              {display(registration.email)}
+            </dd>
           </div>
         </dl>
       </header>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
-
+      <div className="custom-scrollbar flex-1 overflow-y-auto">
         <DocSection number="01" title="Company details" editHref="/enquire/company">
           <dl>
             <DocField label="Legal company name" value={registration.company?.legalName} />
@@ -149,8 +145,14 @@ export function ReviewDocument({ registration }: { registration: DraftRegistrati
                 <DocField label="Email" value={c.email} />
                 <DocField label="Phone" value={c.phone} />
                 <DocField label="Mobile" value={c.mobile} />
-                <DocField label="Administrative contact" value={c.isAdministrative ? "Yes" : "No"} />
-                <DocField label="Request portal login" value={c.requestUserAccount ? "Yes" : "No"} />
+                <DocField
+                  label="Administrative contact"
+                  value={c.isAdministrative ? "Yes" : "No"}
+                />
+                <DocField
+                  label="Request portal login"
+                  value={c.requestUserAccount ? "Yes" : "No"}
+                />
               </EntryCard>
             ))
           )}
@@ -170,7 +172,10 @@ export function ReviewDocument({ registration }: { registration: DraftRegistrati
                 <DocField label="Country" value={a.country} />
                 <DocField label="Phone" value={a.phone} />
                 <DocField label="Email" value={a.email} />
-                <DocField label="Purposes" value={a.purposes?.length ? a.purposes.join(", ") : ""} />
+                <DocField
+                  label="Purposes"
+                  value={a.purposes?.length ? a.purposes.join(", ") : ""}
+                />
               </EntryCard>
             ))
           )}
@@ -250,7 +255,7 @@ export function ReviewDocument({ registration }: { registration: DraftRegistrati
                   <dt className="text-xs font-bold tracking-[0.06em] text-zinc-900 uppercase">
                     {attachmentSectionLabel(a.section)}
                   </dt>
-                  <dd className="text-[15px] text-zinc-600 font-medium">
+                  <dd className="text-[15px] font-medium text-zinc-600">
                     <a
                       href={a.fileUrl}
                       target="_blank"
@@ -335,14 +340,14 @@ export function ReviewStep() {
   if (loading && !registration) return null;
 
   return (
-    <div className="flex flex-col flex-1 h-full animate-fade-in pb-2">
+    <div className="animate-fade-in flex h-full flex-1 flex-col pb-2">
       {headerNode &&
         createPortal(
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex w-full items-center gap-3 sm:w-auto">
             <InteractiveHoverButton
               type="button"
               variant="solid"
-              className="flex-1 sm:flex-none px-8"
+              className="flex-1 px-8 sm:flex-none"
               pending={busy}
               disabled={!registration}
               onClick={() => void submit()}
@@ -354,7 +359,7 @@ export function ReviewStep() {
         )}
 
       {syncing && (
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-[100] px-4 py-1.5 rounded-full bg-brand-blue text-white text-xs font-bold tracking-[0.1em] uppercase shadow-lg shadow-brand-blue/30 animate-in fade-in zoom-in duration-300">
+        <div className="bg-brand-blue shadow-brand-blue/30 animate-in fade-in zoom-in absolute -top-12 left-1/2 z-[100] -translate-x-1/2 rounded-full px-4 py-1.5 text-xs font-bold tracking-[0.1em] text-white uppercase shadow-lg duration-300">
           Updating...
         </div>
       )}
@@ -371,7 +376,7 @@ export function ReviewStep() {
       )}
 
       {registration ? (
-        <div className="flex-1 min-h-0">
+        <div className="min-h-0 flex-1">
           <ReviewDocument registration={registration} />
         </div>
       ) : (

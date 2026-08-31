@@ -18,7 +18,9 @@ function cuid(): string {
 const [email, password, name = "", roleArg] = process.argv.slice(2);
 
 if (!email || !password) {
-  console.error("Usage: DATABASE_URL=... pnpm run create-admin -- <email> <password> [name] [role]");
+  console.error(
+    "Usage: DATABASE_URL=... pnpm run create-admin -- <email> <password> [name] [role]"
+  );
   process.exit(1);
 }
 if (password.length < 12) {
@@ -54,7 +56,7 @@ async function main() {
       roleId = cuid();
       await sql`
         INSERT INTO "Role" (id, name, description, "isSystem", "createdAt", "updatedAt")
-        VALUES (${roleId}, ${role}, ${role + ' Administrator Role'}, true, NOW(), NOW())
+        VALUES (${roleId}, ${role}, ${role + " Administrator Role"}, true, NOW(), NOW())
         ON CONFLICT (name) DO UPDATE SET "updatedAt" = NOW()
       `;
     }
@@ -92,4 +94,3 @@ main().catch((err) => {
   console.error("Fatal error:", err);
   process.exit(1);
 });
-

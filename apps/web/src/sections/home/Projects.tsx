@@ -1,17 +1,12 @@
 "use client";
 
+import { RECENT_PROJECTS as PROJECTS } from "@data/projects/recent";
+import { motion, useScroll, useTransform } from "framer-motion";
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import Image from "next/image";
-
-import { RECENT_PROJECTS as PROJECTS } from "@data/projects/recent";
-import { PanInfo, motion, useScroll, useTransform } from "framer-motion";
-
-import { Icons } from "@/lib/icons";
-
 import { Button } from "@/components/ui/Button";
-
-import { cn } from "@lib/utils";
+import { Icons } from "@/lib/icons";
 
 export const RecentProjects = () => {
   const sectionRef = useRef<HTMLDivElement>(null);

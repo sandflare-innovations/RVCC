@@ -39,9 +39,7 @@ export const useAdminStore = create<AdminState>((set) => ({
 
   markAsRead: (id) =>
     set((state) => {
-      const updated = state.notifications.map((n) =>
-        n.id === id ? { ...n, read: true } : n
-      );
+      const updated = state.notifications.map((n) => (n.id === id ? { ...n, read: true } : n));
       return {
         notifications: updated,
         unreadCount: updated.filter((n) => !n.read).length,

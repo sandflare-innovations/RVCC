@@ -1,11 +1,10 @@
 "use client";
 
+import { cn } from "@lib/utils";
 import { motion } from "framer-motion";
 
 import { MarqueeImage, ThreeDMarquee } from "@/components/ui/3d-marquee";
 import { GALLARY_PROJECTS } from "@/data/gallary";
-
-import { cn } from "@lib/utils";
 
 export const GallaryHero = () => {
   // Collect all images from all projects for the marquee

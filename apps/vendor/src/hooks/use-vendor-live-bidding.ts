@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
 import type { VendorLiveBidsPayload } from "@rvcc/types";
+import { useCallback, useEffect, useRef,useState } from "react";
 
 export function useVendorLiveBidding(
   requirementId: string,
@@ -22,7 +22,7 @@ export function useVendorLiveBidding(
         const json = (await res.json()) as VendorLiveBidsPayload;
         setData(json);
         setLastUpdated(new Date());
-        setStatus(prev => prev === "connecting" ? "live" : prev);
+        setStatus((prev) => (prev === "connecting" ? "live" : prev));
       }
     } catch {
       // Ignored in background polling

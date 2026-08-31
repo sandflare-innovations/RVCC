@@ -1,22 +1,19 @@
 "use client";
 
+import { cn } from "@lib/utils";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-
-import { useRouter } from "next/navigation";
 import { LuPlus as Plus } from "react-icons/lu";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
-import { EnquireActions } from "@/sections/enquire/EnquireActions";
-import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
-import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
 import {
   enquireActionLinkClass,
   enquireOptionLabelClass,
   enquireSectionTitleClass,
 } from "@/sections/enquire/enquire-typography";
-
-import { cn } from "@lib/utils";
+import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
+import { EnquireField, enquireInputClass } from "@/sections/enquire/EnquireField";
 
 type ContactForm = {
   firstName: string;
@@ -48,7 +45,7 @@ export function ContactsStep() {
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [contacts, setContacts] = useState<ContactForm[]>([empty()]);
   const [errors, setErrors] = useState<Record<string, boolean>[]>([]);
-  
+
   const [headerNode, setHeaderNode] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -111,7 +108,7 @@ export function ContactsStep() {
       <InteractiveHoverButton
         type="button"
         variant="outline"
-        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        className="h-10 min-w-[120px] px-6 text-xs sm:w-auto sm:text-xs"
         disabled={saving}
         pending={pendingAction === "save"}
         onClick={() => void saveLater()}
@@ -121,7 +118,7 @@ export function ContactsStep() {
       <InteractiveHoverButton
         type="button"
         variant="solid"
-        className="h-10 px-6 min-w-[120px] text-xs sm:w-auto sm:text-xs"
+        className="h-10 min-w-[120px] px-6 text-xs sm:w-auto sm:text-xs"
         onClick={goNext}
       >
         Next
@@ -137,7 +134,7 @@ export function ContactsStep() {
       {contacts.map((c, i) => {
         const err = errors[i] || {};
         return (
-          <div key={i} className="space-y-6 border-b border-zinc-100 pb-8 animate-fade-in">
+          <div key={i} className="animate-fade-in space-y-6 border-b border-zinc-100 pb-8">
             <div className="flex items-center justify-between">
               <h3 className={enquireSectionTitleClass}>Contact {String(i + 1).padStart(2, "0")}</h3>
               {contacts.length > 1 && (
@@ -158,7 +155,9 @@ export function ContactsStep() {
                   onChange={(e) => {
                     update(i, "firstName", e.target.value);
                     if (err.firstName) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, firstName: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, firstName: false } : e))
+                      );
                     }
                   }}
                   placeholder=" "
@@ -172,7 +171,9 @@ export function ContactsStep() {
                   onChange={(e) => {
                     update(i, "lastName", e.target.value);
                     if (err.lastName) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, lastName: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, lastName: false } : e))
+                      );
                     }
                   }}
                   placeholder=" "
@@ -187,7 +188,9 @@ export function ContactsStep() {
                   onChange={(e) => {
                     update(i, "email", e.target.value);
                     if (err.email) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, email: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, email: false } : e))
+                      );
                     }
                   }}
                   placeholder=" "
@@ -201,7 +204,9 @@ export function ContactsStep() {
                   onChange={(e) => {
                     update(i, "jobTitle", e.target.value);
                     if (err.jobTitle) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, jobTitle: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, jobTitle: false } : e))
+                      );
                     }
                   }}
                   placeholder=" "
@@ -215,7 +220,9 @@ export function ContactsStep() {
                   onChange={(e) => {
                     update(i, "phone", e.target.value);
                     if (err.phone) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, phone: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, phone: false } : e))
+                      );
                     }
                   }}
                   placeholder=" "
@@ -229,7 +236,9 @@ export function ContactsStep() {
                   onChange={(e) => {
                     update(i, "mobile", e.target.value);
                     if (err.mobile) {
-                      setErrors((prev) => prev.map((e, idx) => (idx === i ? { ...e, mobile: false } : e)));
+                      setErrors((prev) =>
+                        prev.map((e, idx) => (idx === i ? { ...e, mobile: false } : e))
+                      );
                     }
                   }}
                   placeholder=" "
@@ -237,41 +246,42 @@ export function ContactsStep() {
                 />
               </EnquireField>
             </div>
-          <div className={cn("flex flex-wrap justify-center gap-8 py-4", enquireOptionLabelClass)}>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                className="appearance-none h-5 w-5 rounded-full border-2 border-zinc-300 bg-white checked:bg-brand-blue checked:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 cursor-pointer relative checked:after:content-[''] checked:after:absolute checked:after:w-1.5 checked:after:h-2.5 checked:after:border-r-2 checked:after:border-b-2 checked:after:border-white checked:after:rotate-45 checked:after:left-[6px] checked:after:top-[2px] transition-all"
-                checked={c.isAdministrative}
-                onChange={(e) => update(i, "isAdministrative", e.target.checked)}
-              />
-              Administrative contact
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                className="appearance-none h-5 w-5 rounded-full border-2 border-zinc-300 bg-white checked:bg-brand-blue checked:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 cursor-pointer relative checked:after:content-[''] checked:after:absolute checked:after:w-1.5 checked:after:h-2.5 checked:after:border-r-2 checked:after:border-b-2 checked:after:border-white checked:after:rotate-45 checked:after:left-[6px] checked:after:top-[2px] transition-all"
-                checked={c.requestUserAccount}
-                onChange={(e) => update(i, "requestUserAccount", e.target.checked)}
-              />
-              Request portal user account
-            </label>
-          </div>
+            <div
+              className={cn("flex flex-wrap justify-center gap-8 py-4", enquireOptionLabelClass)}
+            >
+              <label className="flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  className="checked:bg-brand-blue checked:border-brand-blue focus:ring-brand-blue relative h-5 w-5 cursor-pointer appearance-none rounded-full border-2 border-zinc-300 bg-white transition-all checked:after:absolute checked:after:top-[2px] checked:after:left-[6px] checked:after:h-2.5 checked:after:w-1.5 checked:after:rotate-45 checked:after:border-r-2 checked:after:border-b-2 checked:after:border-white checked:after:content-[''] focus:ring-2 focus:ring-offset-2 focus:outline-none"
+                  checked={c.isAdministrative}
+                  onChange={(e) => update(i, "isAdministrative", e.target.checked)}
+                />
+                Administrative contact
+              </label>
+              <label className="flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  className="checked:bg-brand-blue checked:border-brand-blue focus:ring-brand-blue relative h-5 w-5 cursor-pointer appearance-none rounded-full border-2 border-zinc-300 bg-white transition-all checked:after:absolute checked:after:top-[2px] checked:after:left-[6px] checked:after:h-2.5 checked:after:w-1.5 checked:after:rotate-45 checked:after:border-r-2 checked:after:border-b-2 checked:after:border-white checked:after:content-[''] focus:ring-2 focus:ring-offset-2 focus:outline-none"
+                  checked={c.requestUserAccount}
+                  onChange={(e) => update(i, "requestUserAccount", e.target.checked)}
+                />
+                Request portal user account
+              </label>
+            </div>
           </div>
         );
       })}
-      <div className="flex justify-center pb-8 pt-4">
+      <div className="flex justify-center pt-4 pb-8">
         <button
           type="button"
           onClick={() => setContacts((prev) => [...prev, empty(registration?.email || "")])}
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-6 py-2.5 text-sm font-bold tracking-wide text-zinc-700 transition-all hover:bg-zinc-50 hover:text-brand-blue hover:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 disabled:opacity-50"
+          className="hover:text-brand-blue hover:border-brand-blue focus:ring-brand-blue inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-6 py-2.5 text-sm font-bold tracking-wide text-zinc-700 transition-all hover:bg-zinc-50 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
         >
           <Plus className="h-4 w-4 stroke-[3]" />
           ADD CONTACT
         </button>
       </div>
-
     </div>
   );
 }

@@ -1,11 +1,9 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-
-import Link from "next/link";
-
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -97,7 +95,7 @@ export const DesktopSidebar = ({
   return (
     <motion.aside
       className={cn(
-        "sticky top-0 hidden shrink-0 flex-col bg-white px-3 py-4 md:flex z-40 transition-all",
+        "sticky top-0 z-40 hidden shrink-0 flex-col bg-white px-3 py-4 transition-all md:flex",
         className || "h-screen border-r border-zinc-200"
       )}
       animate={{ width: animate ? (open ? 248 : 68) : 248 }}

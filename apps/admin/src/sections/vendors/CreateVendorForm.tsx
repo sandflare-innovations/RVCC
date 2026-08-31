@@ -1,11 +1,9 @@
 "use client";
 
+import { AlertCircle, CheckCircle2, Copy, UserPlus } from "lucide-react";
 import { useState } from "react";
 
-import { AlertCircle, CheckCircle2, Copy, UserPlus } from "lucide-react";
-
 import { Modal, SubmitLoader } from "@/components/ui";
-
 import { EnquireField, enquireInputClass } from "@/sections/registrations/enquire/EnquireField";
 
 export type IndustryOption = { id: string; name: string };
@@ -129,7 +127,7 @@ export function CreateVendorForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold text-white transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none shrink-0"
+        className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-5 text-sm font-semibold text-white transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
       >
         <UserPlus className="h-4 w-4" />
         Add supplier account

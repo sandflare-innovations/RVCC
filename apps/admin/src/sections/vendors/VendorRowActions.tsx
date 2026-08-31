@@ -1,12 +1,20 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
-
+import {
+  AlertCircle,
+  Check,
+  Copy,
+  ExternalLink,
+  Eye,
+  KeyRound,
+  Lock,
+  MoreVertical,
+  Unlock,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-import { AlertCircle, Check, Copy, ExternalLink, Eye, KeyRound, Lock, Unlock, MoreVertical } from "lucide-react";
+import { useEffect,useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
@@ -135,68 +143,73 @@ export function VendorRowActions({
 
   return (
     <>
-      <div className={`relative flex items-center justify-end ${showDropdown ? "z-[60]" : ""}`} ref={dropdownRef}>
+      <div
+        className={`relative flex items-center justify-end ${showDropdown ? "z-[60]" : ""}`}
+        ref={dropdownRef}
+      >
         <button
           type="button"
           onClick={() => {
-              const next = !showDropdown;
-              setShowDropdown(next);
-              onDropdownOpen?.(next);
-            }}
+            const next = !showDropdown;
+            setShowDropdown(next);
+            onDropdownOpen?.(next);
+          }}
           className="hover:text-brand-blue rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
         >
           <MoreVertical className="h-4 w-4" />
         </button>
 
-        {showDropdown && dropdownRef.current && createPortal(
-          <div
-            className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
-            style={{
-              top: dropdownRef.current.getBoundingClientRect().bottom + 4,
-              right: window.innerWidth - dropdownRef.current.getBoundingClientRect().right,
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                setShowDropdown(false);
-                setShowDetails(true);
+        {showDropdown &&
+          dropdownRef.current &&
+          createPortal(
+            <div
+              className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
+              style={{
+                top: dropdownRef.current.getBoundingClientRect().bottom + 4,
+                right: window.innerWidth - dropdownRef.current.getBoundingClientRect().right,
               }}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
             >
-              <Eye className="h-4 w-4" />
-              View details
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowDropdown(false);
-                setIssued(null);
-                setError(null);
-                setShowReset(true);
-              }}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
-            >
-              <KeyRound className="h-4 w-4" />
-              Reset password
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowDropdown(false);
-                setError(null);
-                setAccessIssued(null);
-                setAccessCopied(false);
-                setShowAccess(true);
-              }}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
-            >
-              {held ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-              {held ? "Release access" : "Block access"}
-            </button>
-          </div>,
-          document.body
-        )}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDropdown(false);
+                  setShowDetails(true);
+                }}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+              >
+                <Eye className="h-4 w-4" />
+                View details
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDropdown(false);
+                  setIssued(null);
+                  setError(null);
+                  setShowReset(true);
+                }}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+              >
+                <KeyRound className="h-4 w-4" />
+                Reset password
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDropdown(false);
+                  setError(null);
+                  setAccessIssued(null);
+                  setAccessCopied(false);
+                  setShowAccess(true);
+                }}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+              >
+                {held ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                {held ? "Release access" : "Block access"}
+              </button>
+            </div>,
+            document.body
+          )}
       </div>
 
       <Modal
@@ -292,11 +305,13 @@ export function VendorRowActions({
         {issued ? (
           <div className="flex flex-col items-center gap-4 py-2 text-center">
             <div className="bg-brand-blue/10 flex h-14 w-14 items-center justify-center rounded-full">
-              <KeyRound className="h-7 w-7 text-brand-blue" />
+              <KeyRound className="text-brand-blue h-7 w-7" />
             </div>
             <div className="space-y-1">
               <p className="text-base font-semibold text-zinc-900">New temporary password issued</p>
-              <p className="text-sm text-zinc-500">Share this with <strong>{v.email}</strong> securely.</p>
+              <p className="text-sm text-zinc-500">
+                Share this with <strong>{v.email}</strong> securely.
+              </p>
             </div>
             <div className="w-full">
               <div className="flex items-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
@@ -419,11 +434,13 @@ export function VendorRowActions({
         {accessIssued ? (
           <div className="flex flex-col items-center gap-4 py-2 text-center">
             <div className="bg-brand-blue/10 flex h-14 w-14 items-center justify-center rounded-full">
-              <KeyRound className="h-7 w-7 text-brand-blue" />
+              <KeyRound className="text-brand-blue h-7 w-7" />
             </div>
             <div className="space-y-1">
               <p className="text-base font-semibold text-zinc-900">New temporary password issued</p>
-              <p className="text-sm text-zinc-500">Share this with <strong>{v.email}</strong> securely.</p>
+              <p className="text-sm text-zinc-500">
+                Share this with <strong>{v.email}</strong> securely.
+              </p>
             </div>
             <div className="w-full">
               <div className="flex items-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">

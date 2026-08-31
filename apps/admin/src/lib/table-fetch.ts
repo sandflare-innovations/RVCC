@@ -19,8 +19,7 @@ function scheduleAuthRedirect() {
 }
 
 export type TableFetchResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; status: number; error: string };
+  { ok: true; data: T } | { ok: false; status: number; error: string };
 
 async function fetchTableJsonOnce<T>(url: string): Promise<TableFetchResult<T>> {
   const lastAttempt = RETRY_DELAYS_MS.length - 1;

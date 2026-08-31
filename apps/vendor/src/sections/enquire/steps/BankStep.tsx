@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { COUNTRIES } from "@/data/enquire-questionnaire";
+import { enquireActionLinkClass, enquireMutedClass } from "@/sections/enquire/enquire-typography";
 import { EnquireActions } from "@/sections/enquire/EnquireActions";
 import { useEnquire, useRequireSession } from "@/sections/enquire/EnquireContext";
 import {
@@ -13,7 +13,6 @@ import {
   enquireInputClass,
   enquireSelectClass,
 } from "@/sections/enquire/EnquireField";
-import { enquireActionLinkClass, enquireMutedClass } from "@/sections/enquire/enquire-typography";
 
 type Row = {
   country: string;

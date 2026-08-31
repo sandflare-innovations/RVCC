@@ -1,4 +1,4 @@
-import { validateEnv, webEnvSchema, type WebEnv } from "@rvcc/schemas";
+import { validateEnv, type WebEnv,webEnvSchema } from "@rvcc/schemas";
 
 export const env: WebEnv = validateEnv(webEnvSchema, {
   NODE_ENV: process.env.NODE_ENV,

@@ -1,12 +1,11 @@
 "use client";
 
+import { ArrowRight } from "lucide-react";
 import React from "react";
 
-import { ArrowRight, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import { SubmitLoader } from "./loader";
-
-import { cn } from "@/lib/utils";
 
 type Variant = "solid" | "outline";
 

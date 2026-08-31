@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
-
-import { useRouter } from "next/navigation";
-
 import { AlertCircle, Trophy } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { Modal, SubmitLoader } from "@/components/ui";
 

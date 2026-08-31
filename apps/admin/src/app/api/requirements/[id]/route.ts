@@ -10,7 +10,11 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
   const token = jar.get(ADMIN_COOKIE)?.value;
   if (!token) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  const result = await proxyAdminGet(`/requirements/${params.id}`, token, "get requirement details");
+  const result = await proxyAdminGet(
+    `/requirements/${params.id}`,
+    token,
+    "get requirement details"
+  );
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: result.status });
   }

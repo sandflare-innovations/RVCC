@@ -6,10 +6,7 @@ import { vendorWorkerFetch } from "@/lib/vendor-api";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  request: Request,
-  ctx: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const jar = await cookies();
   const token = jar.get(VENDOR_COOKIE)?.value;

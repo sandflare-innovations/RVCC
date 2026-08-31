@@ -2,8 +2,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProjectsLoading() {
   return (
-    <div className="flex flex-col min-h-0 w-full h-full relative">
-      <div className="flex-none flex items-center justify-between bg-white pb-6">
+    <div className="relative flex h-full min-h-0 w-full flex-col">
+      <div className="flex flex-none items-center justify-between bg-white pb-6">
         <div className="flex items-center gap-3">
           <Skeleton className="h-9 w-9 rounded-full" />
           <div className="flex items-center gap-3">
@@ -16,10 +16,10 @@ export default function ProjectsLoading() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="flex-1 [scrollbar-width:none] overflow-y-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <Skeleton className="h-20 w-20 rounded-2xl mb-6" />
-          <Skeleton className="h-7 w-32 mb-2" />
+          <Skeleton className="mb-6 h-20 w-20 rounded-2xl" />
+          <Skeleton className="mb-2 h-7 w-32" />
           <Skeleton className="h-4 w-80" />
           <div className="mt-8 flex gap-3">
             {Array.from({ length: 4 }).map((_, i) => (

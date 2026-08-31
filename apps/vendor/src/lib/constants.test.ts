@@ -1,10 +1,10 @@
 import { expect, test } from "vitest";
 
 import {
+  expiredCookieOptions,
   VENDOR_LOGIN_EXPIRED_PATH,
   VENDOR_LOGIN_PATH,
   VENDOR_SESSION_EXPIRED_PARAM,
-  expiredCookieOptions,
   vendorCookieOptions,
 } from "./constants";
 

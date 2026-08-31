@@ -1,6 +1,6 @@
 // Layout & Shell
-export * from "./layout/VendorChrome";
 export * from "./layout/NotificationBell";
+export * from "./layout/VendorChrome";
 
 // Authentication & Account
 export * from "./auth/VendorLoginForm";

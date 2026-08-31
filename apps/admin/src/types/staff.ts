@@ -1,10 +1,5 @@
 export type AdminRoleName =
-  | "SUPER_ADMIN"
-  | "ADMIN"
-  | "PROCUREMENT_ADMIN"
-  | "VENDOR_ADMIN"
-  | "WEBSITE_ADMIN"
-  | "REVIEWER";
+  "SUPER_ADMIN" | "ADMIN" | "PROCUREMENT_ADMIN" | "VENDOR_ADMIN" | "WEBSITE_ADMIN" | "REVIEWER";
 
 export interface StaffMember {
   id: string;
@@ -39,9 +34,7 @@ export interface UpdateStaffInput {
   otpCode?: string;
 }
 
-
 export interface ResetPasswordInput {
   newPassword: string;
   otpCode: string;
 }
-

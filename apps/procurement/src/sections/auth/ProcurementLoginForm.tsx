@@ -43,13 +43,14 @@ export function ProcurementLoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="mx-auto w-full max-w-md">
       <div className="mb-8">
         <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">
           Sign In to Procurement
         </h2>
         <p className="mt-2 text-sm text-zinc-600">
-          Enter your authorized RVCC staff credentials to access requisitions and material procurement.
+          Enter your authorized RVCC staff credentials to access requisitions and material
+          procurement.
         </p>
       </div>
 
@@ -75,7 +76,7 @@ export function ProcurementLoginForm() {
 
       <form onSubmit={submit} className="space-y-5">
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
+          <label className="mb-1.5 block text-xs font-semibold tracking-wider text-zinc-700 uppercase">
             Email Address
           </label>
           <div className="relative">
@@ -89,13 +90,13 @@ export function ProcurementLoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="buyer@rvcc.com"
-              className="w-full rounded-xl border border-zinc-200 bg-white py-3 pl-10 pr-4 text-sm text-zinc-900 shadow-xs transition-all outline-none placeholder:text-zinc-400 focus:border-[#0073bc] focus:ring-3 focus:ring-[#0073bc]/10"
+              className="w-full rounded-xl border border-zinc-200 bg-white py-3 pr-4 pl-10 text-sm text-zinc-900 shadow-xs transition-all outline-none placeholder:text-zinc-400 focus:border-[#0073bc] focus:ring-3 focus:ring-[#0073bc]/10"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
+          <label className="mb-1.5 block text-xs font-semibold tracking-wider text-zinc-700 uppercase">
             Password
           </label>
           <div className="relative">
@@ -109,7 +110,7 @@ export function ProcurementLoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
-              className="w-full rounded-xl border border-zinc-200 bg-white py-3 pl-10 pr-4 text-sm text-zinc-900 shadow-xs transition-all outline-none placeholder:text-zinc-400 focus:border-[#0073bc] focus:ring-3 focus:ring-[#0073bc]/10"
+              className="w-full rounded-xl border border-zinc-200 bg-white py-3 pr-4 pl-10 text-sm text-zinc-900 shadow-xs transition-all outline-none placeholder:text-zinc-400 focus:border-[#0073bc] focus:ring-3 focus:ring-[#0073bc]/10"
             />
           </div>
         </div>
@@ -117,7 +118,7 @@ export function ProcurementLoginForm() {
         <button
           type="submit"
           disabled={busy}
-          className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-[#0073bc] py-3.5 px-4 text-sm font-bold text-white shadow-md transition-all hover:bg-[#005f9e] hover:shadow-lg disabled:opacity-60 cursor-pointer"
+          className="group relative flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#0073bc] px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:bg-[#005f9e] hover:shadow-lg disabled:opacity-60"
         >
           {busy ? (
             <>
@@ -133,7 +134,7 @@ export function ProcurementLoginForm() {
         </button>
       </form>
 
-      <div className="mt-8 pt-6 border-t border-zinc-100 text-center">
+      <div className="mt-8 border-t border-zinc-100 pt-6 text-center">
         <p className="text-xs text-zinc-400">
           Protected by RVCC enterprise multi-factor session security.
         </p>

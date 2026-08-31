@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
-
-import { useRouter } from "next/navigation";
-
 import { Trash2, Upload } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { ENQUIRE_ATTACHMENT_SECTIONS } from "@/data/enquire-attachments";
@@ -74,7 +72,9 @@ export function AttachmentsStep() {
     }
   };
 
-  const requiredSections = ENQUIRE_ATTACHMENT_SECTIONS.filter((s) => !("optional" in s && s.optional));
+  const requiredSections = ENQUIRE_ATTACHMENT_SECTIONS.filter(
+    (s) => !("optional" in s && s.optional)
+  );
   const missingRequired = requiredSections.some(
     (s) => !attachments.some((a) => a.section === s.id)
   );
@@ -95,10 +95,7 @@ export function AttachmentsStep() {
           const optional = "optional" in section && section.optional;
 
           return (
-            <div
-              key={section.id}
-              className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-5"
-            >
+            <div key={section.id} className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-zinc-950">

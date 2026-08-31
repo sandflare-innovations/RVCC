@@ -1,10 +1,20 @@
-import { Suspense } from "react";
+import {
+  ArrowRight,
+  Briefcase,
+  FileArchive,
+  FolderOpen,
+  Globe,
+  Image as ImageIcon,
+  Info,
+  ShieldCheck,
+  UserCheck,
+  Wrench,
+} from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 
-import { Briefcase, Image as ImageIcon, Wrench, Info, UserCheck, FolderOpen, FileArchive, ShieldCheck, ArrowRight, Globe } from "lucide-react";
-
-import { adminSessionJson } from "@/lib/admin-data";
 import { Skeleton } from "@/components/ui/skeleton";
+import { adminSessionJson } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
 
@@ -83,14 +93,17 @@ const SECTIONS = [
 
 function ContentStatsSkeleton() {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)]">
+        <div
+          key={i}
+          className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)]"
+        >
           <div className="flex items-start justify-between gap-3">
             <Skeleton className="h-3 w-20" />
             <Skeleton className="h-8 w-8 rounded-2xl" />
           </div>
-          <Skeleton className="h-8 w-16 mt-3" />
+          <Skeleton className="mt-3 h-8 w-16" />
         </div>
       ))}
     </div>
@@ -99,14 +112,14 @@ function ContentStatsSkeleton() {
 
 function ContentGridSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="rounded-2xl border border-zinc-200 bg-white p-5">
-          <div className="flex items-start justify-between mb-4">
+          <div className="mb-4 flex items-start justify-between">
             <Skeleton className="h-11 w-11 rounded-xl" />
             <Skeleton className="h-4 w-4" />
           </div>
-          <Skeleton className="h-5 w-32 mb-1" />
+          <Skeleton className="mb-1 h-5 w-32" />
           <Skeleton className="h-4 w-full" />
         </div>
       ))}
@@ -116,9 +129,9 @@ function ContentGridSkeleton() {
 
 function ContentPageSkeleton() {
   return (
-    <div className="flex flex-col min-h-0 w-full h-full relative">
+    <div className="relative flex h-full min-h-0 w-full flex-col">
       {/* Static header */}
-      <div className="flex-none flex items-center justify-between bg-white pb-6">
+      <div className="flex flex-none items-center justify-between bg-white pb-6">
         <div className="flex items-center gap-3">
           <Skeleton className="h-10 w-10 rounded-xl" />
           <div className="space-y-1">
@@ -128,11 +141,11 @@ function ContentPageSkeleton() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="flex-1 [scrollbar-width:none] overflow-y-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <div className="space-y-8 pb-12">
           <ContentStatsSkeleton />
           <div>
-            <Skeleton className="h-5 w-36 mb-4" />
+            <Skeleton className="mb-4 h-5 w-36" />
             <ContentGridSkeleton />
           </div>
         </div>
@@ -151,7 +164,7 @@ async function ContentStatsData() {
   const total = result.ok ? (result.data.totalJobs ?? published) : 0;
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {[
         { label: "Sections", value: "8", icon: Globe },
         { label: "Published Jobs", value: published, icon: FolderOpen },
@@ -160,16 +173,23 @@ async function ContentStatsData() {
       ].map((stat) => {
         const Icon = stat.icon;
         return (
-          <div key={stat.label} className="group relative flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)]">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue/25 to-transparent" />
+          <div
+            key={stat.label}
+            className="group relative flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.08)]"
+          >
+            <div className="via-brand-blue/25 pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent" />
             <div className="relative z-10 flex items-start justify-between gap-3">
-              <p className="text-[11px] font-semibold tracking-[0.14em] text-zinc-400 uppercase">{stat.label}</p>
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue transition-colors duration-300 group-hover:bg-brand-blue group-hover:text-white">
+              <p className="text-[11px] font-semibold tracking-[0.14em] text-zinc-400 uppercase">
+                {stat.label}
+              </p>
+              <div className="bg-brand-blue/10 text-brand-blue group-hover:bg-brand-blue flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl transition-colors duration-300 group-hover:text-white">
                 <Icon className="h-4 w-4" />
               </div>
             </div>
             <div className="relative z-10 mt-3 flex items-end justify-between gap-3">
-              <p className="text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">{stat.value}</p>
+              <p className="text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">
+                {stat.value}
+              </p>
             </div>
           </div>
         );
@@ -184,11 +204,11 @@ async function ContentStatsData() {
 
 export default async function ContentDashboardPage() {
   return (
-    <div className="flex flex-col min-h-0 w-full h-full relative">
+    <div className="relative flex h-full min-h-0 w-full flex-col">
       {/* Static Header */}
-      <div className="flex-none flex items-center justify-between bg-white pb-6">
+      <div className="flex flex-none items-center justify-between bg-white pb-6">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-brand-blue flex items-center justify-center">
+          <div className="bg-brand-blue flex h-10 w-10 items-center justify-center rounded-xl">
             <Globe className="h-5 w-5 text-white" />
           </div>
           <div>
@@ -199,7 +219,7 @@ export default async function ContentDashboardPage() {
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="flex-1 [scrollbar-width:none] overflow-y-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <div className="space-y-8 pb-12">
           {/* ---- Streamed Stats ---- */}
           <Suspense fallback={<ContentStatsSkeleton />}>
@@ -208,24 +228,28 @@ export default async function ContentDashboardPage() {
 
           {/* Static Content Sections Grid */}
           <div>
-            <h2 className="text-lg font-bold tracking-tight text-zinc-900 mb-4">Content Sections</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <h2 className="mb-4 text-lg font-bold tracking-tight text-zinc-900">
+              Content Sections
+            </h2>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {SECTIONS.map((section) => {
                 const Icon = section.icon;
                 return (
                   <Link
                     key={section.href}
                     href={section.href}
-                    className={`group flex flex-col p-5 rounded-2xl border border-zinc-200 bg-white transition-all hover:shadow-md ${section.borderColor}`}
+                    className={`group flex flex-col rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:shadow-md ${section.borderColor}`}
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`h-11 w-11 rounded-xl ${section.color} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                    <div className="mb-4 flex items-start justify-between">
+                      <div
+                        className={`h-11 w-11 rounded-xl ${section.color} flex items-center justify-center transition-transform group-hover:scale-110`}
+                      >
                         <Icon className="h-5 w-5" />
                       </div>
-                      <ArrowRight className="h-4 w-4 text-zinc-300 transition-all group-hover:text-zinc-600 group-hover:translate-x-1" />
+                      <ArrowRight className="h-4 w-4 text-zinc-300 transition-all group-hover:translate-x-1 group-hover:text-zinc-600" />
                     </div>
-                    <h3 className="font-bold text-zinc-900 text-base mb-1">{section.label}</h3>
-                    <p className="text-sm text-zinc-500 leading-relaxed">{section.description}</p>
+                    <h3 className="mb-1 text-base font-bold text-zinc-900">{section.label}</h3>
+                    <p className="text-sm leading-relaxed text-zinc-500">{section.description}</p>
                   </Link>
                 );
               })}

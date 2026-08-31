@@ -1,12 +1,12 @@
-import Script from "next/script";
-import type { Metadata } from "next";
+import "./globals.css";
+import "flag-icons/css/flag-icons.min.css";
+
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import type { Metadata } from "next";
+import Script from "next/script";
 
 import { PwaUpdateBanner } from "@/components/pwa/pwa-update-banner";
 import { ServiceWorkerRegistrar } from "@/components/pwa/sw-registrar";
-
-import "./globals.css";
-import "flag-icons/css/flag-icons.min.css";
 
 export const metadata: Metadata = {
   title: "RVCC | WHERE IDEAS ARE SHAPED TO REALITY",

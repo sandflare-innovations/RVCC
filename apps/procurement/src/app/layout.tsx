@@ -44,7 +44,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={adminSans.variable}>
-      <body className="antialiased min-h-screen bg-zinc-50 font-enquire text-zinc-900 selection:bg-[#0073bc] selection:text-white">
+      <body className="font-enquire min-h-screen bg-zinc-50 text-zinc-900 antialiased selection:bg-[#0073bc] selection:text-white">
         <PwaUpdateBanner />
         {children}
         <ServiceWorkerRegistrar />

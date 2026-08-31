@@ -1,12 +1,8 @@
-import { clients } from "@data/clients";
-import { Metadata } from "next";
-
 import { Footer } from "@components/layout/Footer";
-
-import { ThreeDMarquee } from "@ui/3d-marquee";
-
+import { clients } from "@data/clients";
 import { ClientsGrid } from "@sections/clients/ClientsGrid";
 import { ClientsHero } from "@sections/clients/ClientsHero";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Our Clients | RVCC",

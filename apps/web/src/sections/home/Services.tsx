@@ -1,17 +1,13 @@
 "use client";
 
+import { SERVICES_DATA } from "@data/home/services";
+import { cn } from "@lib/utils";
+import { motion } from "framer-motion";
+import Image from "next/image";
 import { useState } from "react";
 
-import Image from "next/image";
-
-import { SERVICES_DATA } from "@data/home/services";
-import { motion } from "framer-motion";
-
-import { Icons } from "@/lib/icons";
-
 import { Button } from "@/components/ui/Button";
-
-import { cn } from "@lib/utils";
+import { Icons } from "@/lib/icons";
 
 export const Services = () => {
   const [activeId, setActiveId] = useState(SERVICES_DATA[0].id);

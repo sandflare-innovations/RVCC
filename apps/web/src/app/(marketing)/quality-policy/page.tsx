@@ -1,9 +1,7 @@
-import { Metadata } from "next";
-
+import { Footer } from "@layout/Footer";
 import { QualityContent } from "@sections/quality/QualityContent";
 import { QualityHero } from "@sections/quality/QualityHero";
-
-import { Footer } from "@layout/Footer";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Quality Policy | RVCC - ISO Certified Excellence",

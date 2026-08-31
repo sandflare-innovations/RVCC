@@ -7,7 +7,9 @@ import "server-only";
 export function apiRoot(): string {
   let base = process.env.API_URL?.trim().replace(/\/+$/, "") ?? "";
   if (!base) {
-    throw new Error("Set API_URL to your unified API host (e.g. https://rvcc-api.rvcc.workers.dev)");
+    throw new Error(
+      "Set API_URL to your unified API host (e.g. https://rvcc-api.rvcc.workers.dev)"
+    );
   }
   // Common misconfiguration on Vercel: API_URL=https://…/enquire
   base = base.replace(/\/(enquire|admin|vendor)$/, "");

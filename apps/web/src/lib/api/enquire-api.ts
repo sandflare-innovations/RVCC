@@ -1,9 +1,9 @@
-import { cookies } from "next/headers";
-
 import "server-only";
 
-import { ENQUIRE_COOKIE } from "@/lib/enquire-constants";
+import { cookies } from "next/headers";
+
 import { apiRoot } from "@/lib/api/root";
+import { ENQUIRE_COOKIE } from "@/lib/enquire-constants";
 
 /** Server-only client for apps/api `/enquire/*`. */
 function enquireBaseUrl(): string {
@@ -16,8 +16,7 @@ export async function enquireApiFetch(
 ): Promise<Response> {
   const { sessionToken, headers: initHeaders, ...rest } = init;
   const headers = new Headers(initHeaders);
-  const isFormData =
-    typeof FormData !== "undefined" && rest.body instanceof FormData;
+  const isFormData = typeof FormData !== "undefined" && rest.body instanceof FormData;
   if (!isFormData && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }

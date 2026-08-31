@@ -1,12 +1,14 @@
-import { getVendorFromSession } from "@/lib/session";
-import { redirect } from "next/navigation";
-import { KeyRound, Building2 } from "lucide-react";
-import Link from "next/link";
-import { SignOutCard } from "./SignOutCard";
+import { Building2,KeyRound } from "lucide-react";
 import { cookies } from "next/headers";
-import { VENDOR_COOKIE } from "@/lib/constants";
-import { vendorApiFetch } from "@/lib/vendor-api";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
 import { StatusBadge } from "@/components/ui";
+import { VENDOR_COOKIE } from "@/lib/constants";
+import { getVendorFromSession } from "@/lib/session";
+import { vendorApiFetch } from "@/lib/vendor-api";
+
+import { SignOutCard } from "./SignOutCard";
 
 export const dynamic = "force-dynamic";
 
@@ -62,15 +64,15 @@ export default async function ProfilePage() {
       : null;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">My Profile</h1>
         <p className="mt-1 text-sm text-zinc-600">Manage your account settings and preferences.</p>
       </div>
-      
+
       <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-blue/10 text-2xl font-bold text-brand-blue">
+          <div className="bg-brand-blue/10 text-brand-blue flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold">
             {(vendor.name || vendor.email).charAt(0).toUpperCase()}
           </div>
           <div>
@@ -81,9 +83,9 @@ export default async function ProfilePage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Link 
-          href="/password" 
-          className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm hover:border-brand-blue hover:shadow-md transition-all"
+        <Link
+          href="/password"
+          className="hover:border-brand-blue flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:shadow-md"
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-700">
             <KeyRound className="h-5 w-5" />
@@ -93,7 +95,7 @@ export default async function ProfilePage() {
             <p className="text-xs text-zinc-500">Update your security credentials</p>
           </div>
         </Link>
-        
+
         <SignOutCard />
       </div>
 
@@ -101,14 +103,14 @@ export default async function ProfilePage() {
         <div className="border-b border-zinc-200/80 bg-zinc-50/50 px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 text-sm font-bold tracking-wide text-zinc-900 uppercase">
-              <Building2 className="h-4 w-4 text-brand-blue" />
+              <Building2 className="text-brand-blue h-4 w-4" />
               Registration Details
             </div>
             {registration ? (
               <div className="flex items-center gap-2">
                 <StatusBadge status={registration.status} />
                 {registration.referenceNumber && (
-                  <span className="inline-flex items-center rounded-lg bg-white px-2 py-1 font-mono text-[10px] font-semibold tracking-wider text-zinc-700 tabular-nums shadow-sm border border-zinc-200/60">
+                  <span className="inline-flex items-center rounded-lg border border-zinc-200/60 bg-white px-2 py-1 font-mono text-[10px] font-semibold tracking-wider text-zinc-700 tabular-nums shadow-sm">
                     Ref: {registration.referenceNumber}
                   </span>
                 )}
@@ -133,9 +135,9 @@ export default async function ProfilePage() {
             </p>
           )}
         </div>
-        <div className="border-t border-zinc-200/80 bg-zinc-50/50 px-6 py-4 text-xs font-medium text-zinc-500 leading-relaxed">
-          To correct your company details, contact RVCC procurement. Editing from the portal is
-          not yet available.
+        <div className="border-t border-zinc-200/80 bg-zinc-50/50 px-6 py-4 text-xs leading-relaxed font-medium text-zinc-500">
+          To correct your company details, contact RVCC procurement. Editing from the portal is not
+          yet available.
         </div>
       </section>
     </div>

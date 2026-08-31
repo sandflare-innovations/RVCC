@@ -45,12 +45,12 @@ cp apps/api/.env.example apps/api/.env
 
 Configure the following variables in each app's **Vercel Project Settings → Environment Variables**:
 
-| App | Required Environment Variables | Notes |
-| :--- | :--- | :--- |
-| **`apps/web`** | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`<br>`NEXT_PUBLIC_ASSET_CDN_URL`<br>`NEXT_PUBLIC_PDF_CDN_URL`<br>`DOC_PASSWORD` | Set `DOC_PASSWORD` for document download security PIN. |
-| **`apps/admin`** | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`<br>`UPSTASH_REDIS_REST_URL`<br>`UPSTASH_REDIS_REST_TOKEN`<br>`NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Upstash Redis is used for fast cross-lambda auth caching. |
-| **`apps/vendor`** | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`<br>`UPSTASH_REDIS_REST_URL`<br>`UPSTASH_REDIS_REST_TOKEN` | Upstash Redis is used for vendor session caching. |
-| **`apps/procurement`** | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL` | Cross-portal navigation links. |
+| App                    | Required Environment Variables                                                                                                                                                                       | Notes                                                     |
+| :--------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- |
+| **`apps/web`**         | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`<br>`NEXT_PUBLIC_ASSET_CDN_URL`<br>`NEXT_PUBLIC_PDF_CDN_URL`<br>`DOC_PASSWORD`               | Set `DOC_PASSWORD` for document download security PIN.    |
+| **`apps/admin`**       | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`<br>`UPSTASH_REDIS_REST_URL`<br>`UPSTASH_REDIS_REST_TOKEN`<br>`NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Upstash Redis is used for fast cross-lambda auth caching. |
+| **`apps/vendor`**      | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`<br>`UPSTASH_REDIS_REST_URL`<br>`UPSTASH_REDIS_REST_TOKEN`                                   | Upstash Redis is used for vendor session caching.         |
+| **`apps/procurement`** | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`                                                                                             | Cross-portal navigation links.                            |
 
 ### B. Cloudflare Workers (`apps/api`)
 

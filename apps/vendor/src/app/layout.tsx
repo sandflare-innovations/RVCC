@@ -1,10 +1,10 @@
+import "./globals.css";
+
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 
-import { ServiceWorkerRegistrar } from "@/components/pwa/sw-registrar";
 import { PwaUpdateBanner } from "@/components/pwa/pwa-update-banner";
-
-import "./globals.css";
+import { ServiceWorkerRegistrar } from "@/components/pwa/sw-registrar";
 
 const vendorSans = Inter({ subsets: ["latin"], display: "swap", variable: "--font-enquire-sans" });
 
@@ -51,4 +51,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-

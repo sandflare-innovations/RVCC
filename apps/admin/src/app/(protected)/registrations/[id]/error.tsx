@@ -13,7 +13,9 @@ export default function RegistrationDetailError({
     <div className="space-y-6 p-6">
       <ErrorPanel
         title="Could not load registration"
-        message={error.message || "Failed to load registration details. This might be a temporary issue."}
+        message={
+          error.message || "Failed to load registration details. This might be a temporary issue."
+        }
         onRetry={reset}
       />
     </div>

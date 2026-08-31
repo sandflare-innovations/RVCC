@@ -2,16 +2,16 @@ import { NextResponse } from "next/server";
 
 /**
  * Push notification subscription management endpoint.
- * 
+ *
  * POST: Save a new push subscription
  * DELETE: Remove a push subscription
- * 
+ *
  * NOTE: This is a placeholder implementation. In production, you should:
  * 1. Validate the subscription object
  * 2. Associate it with the authenticated admin user
  * 3. Store it in your database
  * 4. Use the web-push library to send notifications from your backend
- * 
+ *
  * Generate VAPID keys with: npx web-push generate-vapid-keys
  * Then add to .env.local:
  *   NEXT_PUBLIC_VAPID_PUBLIC_KEY=<public_key>
@@ -24,10 +24,7 @@ export async function POST(request: Request) {
 
     // Validate the subscription object
     if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
-      return NextResponse.json(
-        { error: "Invalid push subscription" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid push subscription" }, { status: 400 });
     }
 
     // TODO: Store subscription in your database
@@ -51,10 +48,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[Push] Failed to save subscription:", error);
-    return NextResponse.json(
-      { error: "Failed to save subscription" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to save subscription" }, { status: 500 });
   }
 }
 
@@ -63,10 +57,7 @@ export async function DELETE(request: Request) {
     const { endpoint } = await request.json();
 
     if (!endpoint) {
-      return NextResponse.json(
-        { error: "Missing endpoint" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing endpoint" }, { status: 400 });
     }
 
     // TODO: Remove subscription from your database
@@ -77,9 +68,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[Push] Failed to remove subscription:", error);
-    return NextResponse.json(
-      { error: "Failed to remove subscription" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to remove subscription" }, { status: 500 });
   }
 }

@@ -71,7 +71,7 @@ export function UserProfileMenu({ user }: UserProfileMenuProps) {
         aria-expanded={isOpen}
         aria-haspopup="true"
         title={`${displayName} (${displayEmail})`}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0073bc] text-sm font-bold text-white shadow-xs transition-all hover:ring-3 hover:ring-[#0073bc]/25 hover:shadow-md active:scale-95 cursor-pointer focus:outline-none focus:ring-3 focus:ring-[#0073bc]/30"
+        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-[#0073bc] text-sm font-bold text-white shadow-xs transition-all hover:shadow-md hover:ring-3 hover:ring-[#0073bc]/25 focus:ring-3 focus:ring-[#0073bc]/30 focus:outline-none active:scale-95"
       >
         {userInitial}
       </button>
@@ -79,24 +79,22 @@ export function UserProfileMenu({ user }: UserProfileMenuProps) {
       {/* Popover / Dropdown Menu on Click or Hover */}
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-64 rounded-2xl bg-white p-3 shadow-xl border border-zinc-100/90 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+          className="animate-in fade-in slide-in-from-top-2 absolute right-0 z-50 mt-2 w-64 rounded-2xl border border-zinc-100/90 bg-white p-3 shadow-xl duration-150"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
           {/* User Header Details */}
-          <div className="flex items-start gap-3 pb-3 border-b border-zinc-100">
+          <div className="flex items-start gap-3 border-b border-zinc-100 pb-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0073bc] text-sm font-bold text-white shadow-xs">
               {userInitial}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-zinc-900 leading-snug truncate">
-                {displayName}
-              </p>
-              <p className="text-xs text-zinc-500 font-medium truncate flex items-center gap-1 mt-0.5">
+              <p className="truncate text-sm leading-snug font-bold text-zinc-900">{displayName}</p>
+              <p className="mt-0.5 flex items-center gap-1 truncate text-xs font-medium text-zinc-500">
                 <Mail className="h-3 w-3 shrink-0 text-zinc-400" />
                 <span className="truncate">{displayEmail}</span>
               </p>
-              <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[#0073bc]/10 px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase text-[#0073bc]">
+              <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[#0073bc]/10 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#0073bc] uppercase">
                 <Shield className="h-2.5 w-2.5" />
                 <span>{displayRole}</span>
               </div>
@@ -109,7 +107,7 @@ export function UserProfileMenu({ user }: UserProfileMenuProps) {
               type="button"
               onClick={handleSignOut}
               disabled={isSigningOut}
-              className="flex w-full items-center justify-start gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer disabled:opacity-50"
+              className="flex w-full cursor-pointer items-center justify-start gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
             >
               <LogOut className="h-3.5 w-3.5" />
               <span>{isSigningOut ? "Signing out..." : "Sign Out"}</span>

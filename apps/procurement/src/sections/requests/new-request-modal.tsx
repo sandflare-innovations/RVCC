@@ -72,11 +72,7 @@ export const CONSTRUCTION_UNIT_OPTIONS: DropdownOption[] = [
   { value: "trips", label: "trips (Haulage)" },
 ];
 
-export function NewRequestModal({
-  isOpen,
-  onClose,
-  onSubmit,
-}: NewRequestModalProps) {
+export function NewRequestModal({ isOpen, onClose, onSubmit }: NewRequestModalProps) {
   // Metadata form states
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -140,11 +136,7 @@ export function NewRequestModal({
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const handleItemChange = (
-    index: number,
-    field: string,
-    value: string | number
-  ) => {
+  const handleItemChange = (index: number, field: string, value: string | number) => {
     const updated = [...items];
     updated[index] = {
       ...updated[index],
@@ -186,7 +178,8 @@ export function NewRequestModal({
     const newErrors: string[] = [];
 
     if (!title.trim()) newErrors.push("Site requisition title is required.");
-    if (!description.trim()) newErrors.push("Requisition specification / justification is required.");
+    if (!description.trim())
+      newErrors.push("Requisition specification / justification is required.");
     if (!department.trim()) newErrors.push("Site Department is required.");
 
     const validItems = items.filter((item) => item.name.trim().length > 0);
@@ -232,27 +225,29 @@ export function NewRequestModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/60 p-4 backdrop-blur-xs sm:p-6">
-      <div className="relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-3xl border border-zinc-100/90 bg-white shadow-[0_16px_48px_-16px_rgba(15,23,42,0.3)]">
+      <div className="relative flex max-h-[90vh] w-full max-w-3xl flex-col rounded-3xl border border-zinc-100/90 bg-white shadow-[0_16px_48px_-16px_rgba(15,23,42,0.3)]">
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-zinc-100 px-7 py-5 bg-zinc-50/80 rounded-t-3xl">
+        <div className="flex items-center justify-between rounded-t-3xl border-b border-zinc-100 bg-zinc-50/80 px-7 py-5">
           <div>
-            <div className="text-xs font-bold uppercase tracking-[0.14em] text-[#0073bc]">
+            <div className="text-xs font-bold tracking-[0.14em] text-[#0073bc] uppercase">
               RVCC Construction Requisition
             </div>
-            <h2 className="text-xl font-extrabold text-zinc-950 mt-0.5">New Material & Site Request</h2>
+            <h2 className="mt-0.5 text-xl font-extrabold text-zinc-950">
+              New Material & Site Request
+            </h2>
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-2 text-zinc-400 hover:bg-zinc-200 hover:text-zinc-700 transition-colors cursor-pointer"
+            className="cursor-pointer rounded-xl p-2 text-zinc-400 transition-colors hover:bg-zinc-200 hover:text-zinc-700"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Modal Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-7 space-y-7">
+        <form onSubmit={handleSubmit} className="flex-1 space-y-7 overflow-y-auto p-7">
           {errors.length > 0 && (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-700 space-y-1">
+            <div className="space-y-1 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-700">
               <div className="flex items-center gap-2 font-bold text-rose-800">
                 <AlertCircle className="h-4 w-4" />
                 <span>Please complete the required fields:</span>
@@ -267,13 +262,13 @@ export function NewRequestModal({
 
           {/* Step 1: General Info */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-[#0073bc]">
+            <h3 className="text-xs font-bold tracking-[0.14em] text-[#0073bc] uppercase">
               1. Site & Project Details
             </h3>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-zinc-800 mb-1.5">
+                <label className="mb-1.5 block text-xs font-bold text-zinc-800">
                   Requisition Title <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -281,13 +276,13 @@ export function NewRequestModal({
                   placeholder="e.g. Ready-Mix Concrete Grade C35/45 or ASTM Rebar 25mm"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#0073bc] focus:outline-none shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+                  className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 shadow-[0_1px_2px_rgba(15,23,42,0.04)] focus:border-[#0073bc] focus:outline-none"
                   required
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-zinc-800 mb-1.5">
+                <label className="mb-1.5 block text-xs font-bold text-zinc-800">
                   Specification & Project Justification <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -295,13 +290,13 @@ export function NewRequestModal({
                   placeholder="Specify construction package, structural drawing reference, or site section..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#0073bc] focus:outline-none shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+                  className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 shadow-[0_1px_2px_rgba(15,23,42,0.04)] focus:border-[#0073bc] focus:outline-none"
                   required
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-zinc-800 mb-1.5">
+                <label className="mb-1.5 block text-xs font-bold text-zinc-800">
                   Department / Trade
                 </label>
                 <CustomDropdown
@@ -313,7 +308,7 @@ export function NewRequestModal({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-800 mb-1.5">
+                <label className="mb-1.5 block text-xs font-bold text-zinc-800">
                   Priority / Criticality
                 </label>
                 <CustomDropdown
@@ -325,7 +320,7 @@ export function NewRequestModal({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-800 mb-1.5">
+                <label className="mb-1.5 block text-xs font-bold text-zinc-800">
                   Required On-Site Date
                 </label>
                 <CustomDatePicker
@@ -343,17 +338,17 @@ export function NewRequestModal({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-[#0073bc]">
+                <h3 className="text-xs font-bold tracking-[0.14em] text-[#0073bc] uppercase">
                   2. Bill of Quantities (BOQ Items)
                 </h3>
-                <p className="text-xs text-zinc-500 mt-0.5">
+                <p className="mt-0.5 text-xs text-zinc-500">
                   Specify construction materials, quantities, units, and estimated prices.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleAddItem}
-                className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-bold text-[#0073bc] hover:bg-blue-100 transition-colors cursor-pointer shadow-2xs"
+                className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-bold text-[#0073bc] shadow-2xs transition-colors hover:bg-blue-100"
               >
                 <Plus className="h-4 w-4" />
                 Add Material / Item
@@ -364,17 +359,17 @@ export function NewRequestModal({
               {items.map((item, index) => (
                 <div
                   key={item.id}
-                  className="rounded-3xl border border-zinc-200/90 bg-zinc-50/70 p-5 space-y-4 shadow-xs"
+                  className="space-y-4 rounded-3xl border border-zinc-200/90 bg-zinc-50/70 p-5 shadow-xs"
                 >
                   <div className="flex items-center justify-between text-xs text-zinc-500">
-                    <span className="font-extrabold text-zinc-900 text-sm">
+                    <span className="text-sm font-extrabold text-zinc-900">
                       BOQ Item #{index + 1}
                     </span>
                     {items.length > 1 && (
                       <button
                         type="button"
                         onClick={() => handleRemoveItem(index)}
-                        className="text-rose-600 hover:text-rose-800 flex items-center gap-1 font-bold text-xs cursor-pointer"
+                        className="flex cursor-pointer items-center gap-1 text-xs font-bold text-rose-600 hover:text-rose-800"
                       >
                         <Trash2 className="h-4 w-4" />
                         Remove Item
@@ -385,7 +380,7 @@ export function NewRequestModal({
                   <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                     {/* Material Specification */}
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-zinc-700 mb-1.5">
+                      <label className="mb-1.5 block text-xs font-bold text-zinc-700">
                         Material / Equipment Specification <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -400,7 +395,7 @@ export function NewRequestModal({
 
                     {/* Category */}
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-zinc-700 mb-1.5">
+                      <label className="mb-1.5 block text-xs font-bold text-zinc-700">
                         Category
                       </label>
                       <CustomDropdown
@@ -414,7 +409,7 @@ export function NewRequestModal({
                     {/* Quantity & Unit */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-bold text-zinc-700 mb-1.5">
+                        <label className="mb-1.5 block text-xs font-bold text-zinc-700">
                           Quantity
                         </label>
                         <input
@@ -422,16 +417,18 @@ export function NewRequestModal({
                           min="1"
                           value={item.quantity}
                           onChange={(e) =>
-                            handleItemChange(index, "quantity", Math.max(1, parseFloat(e.target.value) || 1))
+                            handleItemChange(
+                              index,
+                              "quantity",
+                              Math.max(1, parseFloat(e.target.value) || 1)
+                            )
                           }
                           className="w-full rounded-2xl border border-zinc-200 bg-white px-3.5 py-2 text-sm font-semibold text-zinc-900 focus:border-[#0073bc] focus:outline-none"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold text-zinc-700 mb-1.5">
-                          Unit
-                        </label>
+                        <label className="mb-1.5 block text-xs font-bold text-zinc-700">Unit</label>
                         <CustomDropdown
                           options={CONSTRUCTION_UNIT_OPTIONS}
                           value={item.unit}
@@ -444,7 +441,7 @@ export function NewRequestModal({
                     {/* Unit Price & Total Price */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-bold text-zinc-700 mb-1.5">
+                        <label className="mb-1.5 block text-xs font-bold text-zinc-700">
                           Est. Unit Price (SAR)
                         </label>
                         <input
@@ -464,10 +461,10 @@ export function NewRequestModal({
                       </div>
 
                       <div className="flex flex-col justify-end">
-                        <label className="block text-xs font-bold text-zinc-700 mb-1.5">
+                        <label className="mb-1.5 block text-xs font-bold text-zinc-700">
                           Total Price
                         </label>
-                        <div className="rounded-2xl border border-zinc-200 bg-white px-3.5 py-2 text-sm font-extrabold text-emerald-700 font-mono">
+                        <div className="rounded-2xl border border-zinc-200 bg-white px-3.5 py-2 font-mono text-sm font-extrabold text-emerald-700">
                           {formatCurrency((item.quantity || 1) * (item.estimatedUnitPrice || 0))}
                         </div>
                       </div>
@@ -478,11 +475,9 @@ export function NewRequestModal({
             </div>
 
             {/* Subtotal Summary Bar */}
-            <div className="flex items-center justify-between rounded-2xl bg-blue-50/70 border border-blue-200 p-4">
-              <span className="text-xs font-bold text-zinc-700">
-                Total Estimated BOQ Value:
-              </span>
-              <span className="text-lg font-black text-[#0073bc] font-mono">
+            <div className="flex items-center justify-between rounded-2xl border border-blue-200 bg-blue-50/70 p-4">
+              <span className="text-xs font-bold text-zinc-700">Total Estimated BOQ Value:</span>
+              <span className="font-mono text-lg font-black text-[#0073bc]">
                 {formatCurrency(calculateSubtotal())}
               </span>
             </div>
@@ -494,10 +489,10 @@ export function NewRequestModal({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-[#0073bc]">
+                <h3 className="text-xs font-bold tracking-[0.14em] text-[#0073bc] uppercase">
                   3. Technical Submittals & Quotes
                 </h3>
-                <p className="text-xs text-zinc-500 mt-0.5">
+                <p className="mt-0.5 text-xs text-zinc-500">
                   Upload BBS drawings, mix designs, supplier quotations, or test certificates.
                 </p>
               </div>
@@ -514,7 +509,7 @@ export function NewRequestModal({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-bold text-zinc-700 hover:bg-zinc-50 transition-colors shadow-2xs cursor-pointer"
+                className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-bold text-zinc-700 shadow-2xs transition-colors hover:bg-zinc-50"
               >
                 <Paperclip className="h-4 w-4 text-[#0073bc]" />
                 Upload Submittal
@@ -530,7 +525,7 @@ export function NewRequestModal({
                   >
                     <div className="flex items-center gap-2.5">
                       <Paperclip className="h-4 w-4 text-[#0073bc]" />
-                      <span className="text-zinc-900 font-bold text-xs">{att.name}</span>
+                      <span className="text-xs font-bold text-zinc-900">{att.name}</span>
                       <span className="text-zinc-400">
                         ({(att.size / 1024 / 1024).toFixed(2)} MB)
                       </span>
@@ -538,7 +533,7 @@ export function NewRequestModal({
                     <button
                       type="button"
                       onClick={() => handleRemoveAttachment(att.id)}
-                      className="text-rose-600 hover:text-rose-800 cursor-pointer p-1"
+                      className="cursor-pointer p-1 text-rose-600 hover:text-rose-800"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -548,13 +543,13 @@ export function NewRequestModal({
             ) : (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/50 p-6 text-center cursor-pointer hover:bg-zinc-50 transition-colors"
+                className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/50 p-6 text-center transition-colors hover:bg-zinc-50"
               >
-                <Upload className="h-7 w-7 text-zinc-400 mb-1.5" />
+                <Upload className="mb-1.5 h-7 w-7 text-zinc-400" />
                 <p className="text-xs font-bold text-zinc-800">
                   Click to browse and upload drawings or vendor quotes
                 </p>
-                <p className="text-[11px] text-zinc-400 mt-0.5">
+                <p className="mt-0.5 text-[11px] text-zinc-400">
                   PDF, DWG, DOCX, PNG or JPG up to 25MB
                 </p>
               </div>
@@ -563,11 +558,11 @@ export function NewRequestModal({
         </form>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-between border-t border-zinc-100 bg-zinc-50/80 px-7 py-4 rounded-b-3xl">
+        <div className="flex items-center justify-between rounded-b-3xl border-t border-zinc-100 bg-zinc-50/80 px-7 py-4">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-zinc-200 bg-white px-5 py-2.5 text-xs font-bold text-zinc-700 hover:bg-zinc-100 transition-colors shadow-2xs cursor-pointer"
+            className="cursor-pointer rounded-xl border border-zinc-200 bg-white px-5 py-2.5 text-xs font-bold text-zinc-700 shadow-2xs transition-colors hover:bg-zinc-100"
           >
             Cancel
           </button>
@@ -575,7 +570,7 @@ export function NewRequestModal({
           <button
             type="button"
             onClick={handleSubmit}
-            className="flex items-center gap-2 rounded-xl bg-[#0073bc] px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#005f9e] active:scale-98 transition-all cursor-pointer"
+            className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#0073bc] px-6 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-[#005f9e] active:scale-98"
           >
             <CheckCircle2 className="h-4 w-4" />
             Submit Site Requisition

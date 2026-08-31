@@ -1,8 +1,6 @@
-import React from "react";
-
-import Link from "next/link";
-
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
+import Link from "next/link";
+import React from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -20,9 +18,11 @@ export function KpiCard({ label, value, href, icon, trend, trendValue, className
   const body = (
     <>
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[11px] font-semibold tracking-[0.14em] text-zinc-400 uppercase">{label}</p>
+        <p className="text-[11px] font-semibold tracking-[0.14em] text-zinc-400 uppercase">
+          {label}
+        </p>
         {icon && (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue transition-colors duration-300 group-hover:bg-brand-blue group-hover:text-white">
+          <div className="bg-brand-blue/10 text-brand-blue group-hover:bg-brand-blue flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition-colors duration-300 group-hover:text-white">
             {icon}
           </div>
         )}
@@ -48,7 +48,7 @@ export function KpiCard({ label, value, href, icon, trend, trendValue, className
           )}
         </div>
         {href && (
-          <ArrowUpRight className="mb-1 h-4 w-4 text-brand-blue opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <ArrowUpRight className="text-brand-blue mb-1 h-4 w-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         )}
       </div>
     </>
@@ -56,13 +56,13 @@ export function KpiCard({ label, value, href, icon, trend, trendValue, className
 
   const shell = cn(
     "group relative flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] transition-all duration-300",
-    className,
+    className
   );
 
   if (!href) {
     return (
       <div className={shell}>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue/25 to-transparent" />
+        <div className="via-brand-blue/25 pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent" />
         <div className="relative z-10">{body}</div>
       </div>
     );
@@ -71,10 +71,10 @@ export function KpiCard({ label, value, href, icon, trend, trendValue, className
   return (
     <Link
       href={href}
-      className={`${shell} hover:-translate-y-0.5 hover:border-brand-blue/30 hover:shadow-[0_16px_40px_-18px_rgba(0,115,188,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/40`}
+      className={`${shell} hover:border-brand-blue/30 focus-visible:ring-brand-blue/40 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-18px_rgba(0,115,188,0.35)] focus-visible:ring-2 focus-visible:outline-none`}
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue/40 to-transparent" />
-      <div className="pointer-events-none absolute bottom-0 left-0 h-[3px] w-0 bg-brand-blue transition-all duration-300 group-hover:w-full" />
+      <div className="via-brand-blue/40 pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent" />
+      <div className="bg-brand-blue pointer-events-none absolute bottom-0 left-0 h-[3px] w-0 transition-all duration-300 group-hover:w-full" />
       <div className="relative z-10">{body}</div>
     </Link>
   );

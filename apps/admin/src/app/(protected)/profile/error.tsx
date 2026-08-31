@@ -10,7 +10,7 @@ export default function ProfileError({
   reset: () => void;
 }) {
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <ErrorPanel
         title="Could not load profile"
         message={error.message || "Failed to load your profile information. Please try again."}

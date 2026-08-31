@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui";
 
 export default function CareersLoading() {
   return (
-    <div className="space-y-6 animate-pulse">
+    <div className="animate-pulse space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-2">
@@ -15,25 +15,27 @@ export default function CareersLoading() {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)]">
-        <table className="w-full text-left text-sm border-separate border-spacing-y-2">
+        <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
           <thead>
             <tr className="bg-zinc-200 text-white">
-              {['Title', 'Department', 'Location', 'State', 'Actions'].map((h, i) => (
+              {["Title", "Department", "Location", "State", "Actions"].map((h, i) => (
                 <th
                   key={h}
-                  className={`px-6 py-3.5 font-semibold ${i === 0 ? 'rounded-l-2xl' : ''} ${i === 4 ? 'rounded-r-2xl text-right' : ''}`}
+                  className={`px-6 py-3.5 font-semibold ${i === 0 ? "rounded-l-2xl" : ""} ${i === 4 ? "rounded-r-2xl text-right" : ""}`}
                 >
-                  <Skeleton className={`h-3 rounded bg-zinc-300 ${h === 'Title' ? 'w-12' : h === 'Actions' ? 'w-12' : 'w-18'}`} />
+                  <Skeleton
+                    className={`h-3 rounded bg-zinc-300 ${h === "Title" ? "w-12" : h === "Actions" ? "w-12" : "w-18"}`}
+                  />
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {Array.from({ length: 4 }).map((_, i) => (
-              <tr key={i} className="bg-white ring-1 ring-inset ring-zinc-100 rounded-2xl">
-                <td className="px-6 py-4 rounded-l-2xl">
+              <tr key={i} className="rounded-2xl bg-white ring-1 ring-zinc-100 ring-inset">
+                <td className="rounded-l-2xl px-6 py-4">
                   <Skeleton className="h-4 w-40" />
-                  <Skeleton className="h-3 w-24 mt-1" />
+                  <Skeleton className="mt-1 h-3 w-24" />
                 </td>
                 <td className="px-6 py-4">
                   <Skeleton className="h-4 w-28" />
@@ -44,8 +46,8 @@ export default function CareersLoading() {
                 <td className="px-6 py-4">
                   <Skeleton className="h-5 w-20 rounded-full" />
                 </td>
-                <td className="px-6 py-4 rounded-r-2xl text-right">
-                  <Skeleton className="h-8 w-8 ml-auto rounded-full" />
+                <td className="rounded-r-2xl px-6 py-4 text-right">
+                  <Skeleton className="ml-auto h-8 w-8 rounded-full" />
                 </td>
               </tr>
             ))}

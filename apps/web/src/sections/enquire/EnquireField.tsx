@@ -13,9 +13,9 @@ type FieldProps = {
 
 export function EnquireField({ label, required, className, hint, children }: FieldProps) {
   return (
-    <div className={cn("relative group pt-2", className)}>
+    <div className={cn("group relative pt-2", className)}>
       {children}
-      <label className="absolute left-3 top-5 z-10 origin-[0] -translate-y-6 scale-75 transform text-sm text-zinc-500 duration-200 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-data-[empty=true]:translate-y-0 peer-data-[empty=true]:scale-100 peer-focus:left-3 peer-focus:-translate-y-6 peer-focus:scale-75 peer-focus:text-brand-blue bg-white px-1 pointer-events-none rounded-sm font-medium transition-all">
+      <label className="peer-focus:text-brand-blue pointer-events-none absolute top-5 left-3 z-10 origin-[0] -translate-y-6 scale-75 transform rounded-sm bg-white px-1 text-sm font-medium text-zinc-500 transition-all duration-200 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:-translate-y-6 peer-focus:scale-75 peer-data-[empty=true]:translate-y-0 peer-data-[empty=true]:scale-100">
         {label}
         {required ? (
           <span aria-hidden="true" className="text-brand-blue ml-1">
@@ -23,7 +23,9 @@ export function EnquireField({ label, required, className, hint, children }: Fie
           </span>
         ) : null}
       </label>
-      {hint ? <p className="mt-1.5 text-sm leading-relaxed text-zinc-500 sm:text-base">{hint}</p> : null}
+      {hint ? (
+        <p className="mt-1.5 text-sm leading-relaxed text-zinc-500 sm:text-base">{hint}</p>
+      ) : null}
     </div>
   );
 }

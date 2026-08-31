@@ -61,15 +61,17 @@ export async function attemptAdminLogin(
   }
 
   if (admin.lockedUntil && new Date(admin.lockedUntil) > new Date()) {
-    void prisma.adminLoginHistory.create({
-      data: {
-        adminId: admin.id,
-        ipAddress: ip,
-        userAgent,
-        status: "FAILED",
-        failureReason: "ACCOUNT_LOCKED",
-      },
-    }).catch(() => {});
+    void prisma.adminLoginHistory
+      .create({
+        data: {
+          adminId: admin.id,
+          ipAddress: ip,
+          userAgent,
+          status: "FAILED",
+          failureReason: "ACCOUNT_LOCKED",
+        },
+      })
+      .catch(() => {});
 
     return {
       ok: false,
@@ -79,15 +81,17 @@ export async function attemptAdminLogin(
   }
 
   if (!admin.isActive) {
-    void prisma.adminLoginHistory.create({
-      data: {
-        adminId: admin.id,
-        ipAddress: ip,
-        userAgent,
-        status: "FAILED",
-        failureReason: "ACCOUNT_DISABLED",
-      },
-    }).catch(() => {});
+    void prisma.adminLoginHistory
+      .create({
+        data: {
+          adminId: admin.id,
+          ipAddress: ip,
+          userAgent,
+          status: "FAILED",
+          failureReason: "ACCOUNT_DISABLED",
+        },
+      })
+      .catch(() => {});
 
     return { ok: false, reason: "disabled" };
   }
@@ -104,15 +108,17 @@ export async function attemptAdminLogin(
       },
     });
 
-    void prisma.adminLoginHistory.create({
-      data: {
-        adminId: admin.id,
-        ipAddress: ip,
-        userAgent,
-        status: "FAILED",
-        failureReason: "INVALID_PASSWORD",
-      },
-    }).catch(() => {});
+    void prisma.adminLoginHistory
+      .create({
+        data: {
+          adminId: admin.id,
+          ipAddress: ip,
+          userAgent,
+          status: "FAILED",
+          failureReason: "INVALID_PASSWORD",
+        },
+      })
+      .catch(() => {});
 
     return lock
       ? { ok: false, reason: "locked", retryAfterMs: LOCKOUT_MS }
@@ -128,15 +134,17 @@ export async function attemptAdminLogin(
     },
   });
 
-  void prisma.adminLoginHistory.create({
-    data: {
-      adminId: admin.id,
-      ipAddress: ip,
-      userAgent,
-      status: "SUCCESS",
-      failureReason: null,
-    },
-  }).catch(() => {});
+  void prisma.adminLoginHistory
+    .create({
+      data: {
+        adminId: admin.id,
+        ipAddress: ip,
+        userAgent,
+        status: "SUCCESS",
+        failureReason: null,
+      },
+    })
+    .catch(() => {});
 
   const roleName = (admin.role?.name || "ADMIN") as AdminRoleName;
 
@@ -197,12 +205,14 @@ export async function getAdminFromSession(
 
     const expiresAtMs = new Date(session.expiresAt).getTime();
     if (expiresAtMs - Date.now() < ADMIN_SESSION_TTL_MS / 2) {
-      void prisma.adminSession.update({
-        where: { id: session.id },
-        data: {
-          expiresAt: new Date(Date.now() + ADMIN_SESSION_TTL_MS),
-        },
-      }).catch(() => {});
+      void prisma.adminSession
+        .update({
+          where: { id: session.id },
+          data: {
+            expiresAt: new Date(Date.now() + ADMIN_SESSION_TTL_MS),
+          },
+        })
+        .catch(() => {});
     }
 
     const roleName = (session.admin.role?.name || "ADMIN") as AdminRoleName;
