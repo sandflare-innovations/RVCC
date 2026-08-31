@@ -3,7 +3,12 @@
 import { useCallback, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { CheckCircle2, Clock, ShieldCheck, AlertCircle } from "lucide-react";
+import {
+  LuCircleCheck as CheckCircle2,
+  LuClock as Clock,
+  LuShieldCheck as ShieldCheck,
+  LuCircleAlert as AlertCircle,
+} from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";

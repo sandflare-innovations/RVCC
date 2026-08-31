@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { Pencil } from "lucide-react";
+import { LuPencil as Pencil } from "react-icons/lu";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";

@@ -5,7 +5,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, MessageCircleQuestion } from "lucide-react";
+import {
+  LuChevronLeft as ChevronLeft,
+  LuChevronRight as ChevronRight,
+  LuMessageCircleQuestion as MessageCircleQuestion,
+} from "react-icons/lu";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { SearchableSelect } from "@/components/ui/searchable-select";

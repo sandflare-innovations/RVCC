@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import {
+  LuCalendar as CalendarIcon,
+  LuChevronLeft as ChevronLeft,
+  LuChevronRight as ChevronRight,
+  LuChevronDown as ChevronDown,
+} from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@lib/utils";
 

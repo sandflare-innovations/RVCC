@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Check, Copy, CheckCircle2 } from "lucide-react";
+import { LuCheck as Check, LuCopy as Copy, LuCircleCheck as CheckCircle2 } from "react-icons/lu";
 
 import { Button } from "@/components/ui/Button";
 import { enquireVerifyUrl, siteUrl, vendorPortalUrl } from "@/lib/public-urls";

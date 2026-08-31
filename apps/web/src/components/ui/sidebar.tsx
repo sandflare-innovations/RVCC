@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState } from "react";
 import Link from "next/link";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { LuMenu as Menu, LuX as X } from "react-icons/lu";
 
 import { cn } from "@/lib/utils";
 

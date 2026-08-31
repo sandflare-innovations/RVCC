@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { LuPlus as Plus } from "react-icons/lu";
 import { createPortal } from "react-dom";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { DatePicker } from "@/components/ui/date-picker";

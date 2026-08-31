@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { LuCheck as Check } from "react-icons/lu";
 import { ENQUIRE_STEPS, type EnquireStep } from "@/lib/enquire-constants";
 import { cn } from "@lib/utils";
 

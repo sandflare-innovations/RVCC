@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import { Loader2, FileText } from "lucide-react";
+import { LuLoaderCircle as Loader2, LuFileText as FileText } from "react-icons/lu";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 

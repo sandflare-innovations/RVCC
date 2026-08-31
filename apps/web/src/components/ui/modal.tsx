@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-import { X } from "lucide-react";
+import { LuX as X } from "react-icons/lu";
 
 import { cn } from "@/lib/utils";
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { LuPlus as Plus } from "react-icons/lu";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { EnquireActions } from "@/sections/enquire/EnquireActions";

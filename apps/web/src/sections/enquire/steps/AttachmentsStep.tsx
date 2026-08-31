@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Upload, FileText, RefreshCw, Loader2 } from "lucide-react";
+import {
+  LuTrash2 as Trash2,
+  LuUpload as Upload,
+  LuFileText as FileText,
+  LuRefreshCw as RefreshCw,
+  LuLoaderCircle as Loader2,
+} from "react-icons/lu";
 import dynamic from "next/dynamic";
 
 const PdfThumbnail = dynamic(() => import("./PdfThumbnail"), { ssr: false });

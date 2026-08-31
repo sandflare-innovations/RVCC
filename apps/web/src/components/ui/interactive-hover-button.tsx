@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { ArrowRight, Loader2 } from "lucide-react";
+import { LuArrowRight as ArrowRight, LuLoaderCircle as Loader2 } from "react-icons/lu";
 
 import { cn } from "@/lib/utils";
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Info, X } from "lucide-react";
+import { LuCircleAlert as AlertCircle, LuInfo as Info, LuX as X } from "react-icons/lu";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { ENQUIRE_STEPS, type EnquireStep } from "@/lib/enquire-constants";

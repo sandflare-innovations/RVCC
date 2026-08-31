@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
-import { CheckCircle2, Circle } from "lucide-react";
+import { LuCircleCheck as CheckCircle2, LuCircle as Circle } from "react-icons/lu";
 
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { ENQUIRE_CATEGORIES } from "@/data/enquire-categories";

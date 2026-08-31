@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Check, ChevronDown, Search } from "lucide-react";
+import { LuCheck as Check, LuChevronDown as ChevronDown, LuSearch as Search } from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@lib/utils";
 
