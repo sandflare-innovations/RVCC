@@ -34,8 +34,13 @@ export async function GET(request: Request, ctx: { params: Promise<{ id: string 
       });
     }
 
-    const data = await res.json();
-    return NextResponse.json(data, { status: res.status });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      return NextResponse.json(body, { status: res.status });
+    }
+
+    const data = await res.json().catch(() => null);
+    return NextResponse.json(data ?? {}, { status: 200 });
   } catch (err) {
     console.error("[vendor live-bids proxy error]", err);
     return NextResponse.json({ error: "Live stream unavailable" }, { status: 503 });

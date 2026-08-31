@@ -1,7 +1,7 @@
 "use client";
 
 import type { VendorLiveBidsPayload } from "@rvcc/types";
-import { useCallback, useEffect, useRef,useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useVendorLiveBidding(
   requirementId: string,
@@ -12,7 +12,7 @@ export function useVendorLiveBidding(
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
-  const fetchFallback = useCallback(async () => {
+  const fetchSnapshot = useCallback(async () => {
     try {
       const res = await fetch(`/api/requirements/${encodeURIComponent(requirementId)}/live`, {
         headers: { Accept: "application/json" },
@@ -22,10 +22,10 @@ export function useVendorLiveBidding(
         const json = (await res.json()) as VendorLiveBidsPayload;
         setData(json);
         setLastUpdated(new Date());
-        setStatus((prev) => (prev === "connecting" ? "live" : prev));
+        setStatus("live");
       }
     } catch {
-      // Ignored in background polling
+      // Ignored
     }
   }, [requirementId]);
 
@@ -33,11 +33,10 @@ export function useVendorLiveBidding(
     let unmounted = false;
     setStatus("connecting");
 
-    // Immediately fetch initial payload while SSE connects
-    if (!data) {
-      fetchFallback();
-    }
+    // Fetch initial snapshot once on page load
+    fetchSnapshot();
 
+    // Open persistent SSE stream (0 polling requests while idle)
     const url = `/api/requirements/${encodeURIComponent(requirementId)}/live`;
     const es = new EventSource(url);
     eventSourceRef.current = es;
@@ -61,32 +60,31 @@ export function useVendorLiveBidding(
     };
 
     es.onerror = () => {
-      if (unmounted) return;
-      setStatus("offline");
-      // Fallback fetch when connection is interrupted
-      fetchFallback();
+      if (!unmounted) setStatus("offline");
     };
 
-    // Cross-isolate fallback: Since Cloudflare Workers distribute across isolates,
-    // memory-based pub/sub only hits clients on the same node. We poll every 5s to guarantee 100% sync.
-    const pollInterval = setInterval(() => {
-      if (document.visibilityState === "visible") {
-        fetchFallback();
+    // When the vendor switches back to this tab, sync once
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible" && !unmounted) {
+        fetchSnapshot();
       }
-    }, 5000);
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
       unmounted = true;
-      clearInterval(pollInterval);
-      es.close();
-      eventSourceRef.current = null;
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
     };
-  }, [requirementId, fetchFallback]);
+  }, [requirementId, fetchSnapshot]);
 
   return {
     data,
     status,
     lastUpdated,
-    refresh: fetchFallback,
+    refresh: fetchSnapshot,
   };
 }

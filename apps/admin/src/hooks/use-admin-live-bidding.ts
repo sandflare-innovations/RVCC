@@ -1,14 +1,8 @@
 "use client";
 
 import type { AdminLiveBidsPayload } from "@rvcc/types";
-import { useCallback, useEffect, useRef,useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-/**
- * Polls the live-bids proxy endpoint every few seconds.
- * SSE/EventSource is NOT used because Next.js route handlers cannot reliably
- * proxy a long-lived upstream SSE stream — the fetch call is cancelled or times out,
- * producing a "Failed to fetch" console error.
- */
 export function useAdminLiveBidding(
   requirementId: string,
   initialData?: AdminLiveBidsPayload | null
@@ -16,102 +10,87 @@ export function useAdminLiveBidding(
   const [data, setData] = useState<AdminLiveBidsPayload | null>(initialData ?? null);
   const [status, setStatus] = useState<"connecting" | "live" | "offline">("connecting");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const dataRef = useRef<AdminLiveBidsPayload | null>(initialData ?? null);
-  const unmountedRef = useRef(false);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
-  dataRef.current = data;
-
-  const updateDataIfChanged = useCallback((next: AdminLiveBidsPayload) => {
-    const prev = dataRef.current;
-    if (
-      !prev ||
-      prev.totalQuotes !== next.totalQuotes ||
-      prev.lowestPrice !== next.lowestPrice ||
-      prev.updatedAt !== next.updatedAt ||
-      JSON.stringify(prev.quotes) !== JSON.stringify(next.quotes)
-    ) {
-      setData(next);
-    }
-  }, []);
-
-  const fetchLatest = useCallback(async () => {
-    if (unmountedRef.current) return;
+  const fetchSnapshot = useCallback(async () => {
     try {
       const res = await fetch(`/api/requirements/${encodeURIComponent(requirementId)}/live`, {
         headers: { Accept: "application/json" },
         cache: "no-store",
       });
-
-      if (unmountedRef.current) return;
-
       if (res.ok) {
         const json = (await res.json()) as AdminLiveBidsPayload;
         if (json?.requirementId) {
-          updateDataIfChanged(json);
+          setData(json);
           setStatus("live");
           setErrorMsg(null);
         }
-      } else {
-        let msg = `Live feed unavailable (${res.status})`;
-        try {
-          const errData = await res.json();
-          if (errData?.error && typeof errData.error === "string") {
-            msg = errData.error;
-          }
-        } catch {
-          if (res.status === 401) msg = "Session expired or unauthorized";
-          else if (res.status === 404) msg = "Requirement not found";
-          else if (res.status >= 500) msg = "Live stream service unavailable";
-        }
-        if (!unmountedRef.current) {
-          setErrorMsg(msg);
-          setStatus("offline");
-        }
       }
-    } catch (err: any) {
-      if (unmountedRef.current) return;
-      // Silently ignore AbortError (caused by navigation away) and network errors on unmount
-      if (err?.name === "AbortError") return;
-      const friendly = err?.message?.toLowerCase().includes("fetch")
-        ? "Network connection issue"
-        : "Unable to load live bidding data";
-      setErrorMsg(friendly);
-      setStatus("offline");
+    } catch {
+      // Ignored on initial mount
     }
-  }, [requirementId, updateDataIfChanged]);
+  }, [requirementId]);
 
   useEffect(() => {
-    unmountedRef.current = false;
+    let unmounted = false;
+    setStatus("connecting");
 
-    // Fetch immediately on mount
-    fetchLatest();
+    // Fetch initial snapshot once on page load
+    fetchSnapshot();
 
-    // Poll every 5 seconds while the tab is visible
-    const interval = setInterval(() => {
-      if (!unmountedRef.current && document.visibilityState === "visible") {
-        fetchLatest();
+    // Open persistent SSE stream (0 polling requests while idle)
+    const url = `/api/requirements/${encodeURIComponent(requirementId)}/live`;
+    const es = new EventSource(url);
+    eventSourceRef.current = es;
+
+    es.onopen = () => {
+      if (!unmounted) {
+        setStatus("live");
+        setErrorMsg(null);
       }
-    }, 5000);
+    };
 
-    // Refresh when the tab becomes visible again (e.g. user switches back)
+    es.onmessage = (event) => {
+      if (unmounted) return;
+      try {
+        const payload = JSON.parse(event.data) as AdminLiveBidsPayload;
+        if (payload?.requirementId) {
+          setData(payload);
+          setStatus("live");
+          setErrorMsg(null);
+        }
+      } catch (err) {
+        console.warn("[AdminLiveBidding] parse error", err);
+      }
+    };
+
+    es.onerror = () => {
+      if (unmounted) return;
+      setStatus("offline");
+    };
+
+    // When the admin switches back to the tab, sync once
     const handleVisibility = () => {
-      if (document.visibilityState === "visible" && !unmountedRef.current) {
-        fetchLatest();
+      if (document.visibilityState === "visible" && !unmounted) {
+        fetchSnapshot();
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      unmountedRef.current = true;
-      clearInterval(interval);
+      unmounted = true;
       document.removeEventListener("visibilitychange", handleVisibility);
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
     };
-  }, [requirementId, fetchLatest]);
+  }, [requirementId, fetchSnapshot]);
 
   return {
     data,
     status,
     errorMsg,
-    refresh: fetchLatest,
+    refresh: fetchSnapshot,
   };
 }
