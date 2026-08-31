@@ -9,13 +9,16 @@ import {
   ChevronLeft,
   DollarSign,
   FileText,
+  Globe,
+  Search,
   Tag,
   UploadCloud,
+  UserCheck,
   Users,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 
 import { SubmitLoader } from "@/components/ui";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -80,16 +83,19 @@ function CustomSelect({
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(defaultValue || "");
 
+  useEffect(() => {
+    if (defaultValue) setSelected(defaultValue);
+  }, [defaultValue]);
+
   return (
     <div className="relative">
       <input type="hidden" name={name} value={selected} />
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
         className={`${inputClass} flex items-center justify-between text-left`}
       >
-        <span className={selected ? "text-zinc-900" : "text-zinc-400"}>
+        <span className={selected ? "font-medium text-zinc-900" : "text-zinc-400"}>
           {selected || placeholder}
         </span>
         <ChevronDown
@@ -98,10 +104,14 @@ function CustomSelect({
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-zinc-200 bg-white py-2 shadow-xl">
+        <div className="absolute top-full left-0 z-30 mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-zinc-200 bg-white py-2 shadow-xl">
           <button
             type="button"
-            onClick={() => setSelected("")}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setSelected("");
+              setOpen(false);
+            }}
             className="w-full px-4 py-2 text-left text-sm text-zinc-500 hover:bg-zinc-50"
           >
             {placeholder}
@@ -110,7 +120,11 @@ function CustomSelect({
             <button
               key={opt}
               type="button"
-              onClick={() => setSelected(opt)}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setSelected(opt);
+                setOpen(false);
+              }}
               className={`w-full px-4 py-2 text-left text-sm hover:bg-zinc-50 ${selected === opt ? "bg-brand-blue/5 text-brand-blue font-semibold" : "text-zinc-700"}`}
             >
               {opt}
@@ -138,9 +152,9 @@ function CustomDatePickerInput({
       <input type="hidden" name={name} value={date} required={required} />
       <DatePicker
         value={date}
-        onChange={setDate}
-        placeholder="Select deadline date"
-        minDate="today"
+        onChange={(iso) => setDate(iso)}
+        placeholder="Select a closing deadline"
+        className="w-full"
       />
     </div>
   );
@@ -154,30 +168,28 @@ export function PostRequirementForm({
   initialData?: RequirementInitialData;
 }) {
   const router = useRouter();
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pdfPreview, setPdfPreview] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  // Set up pdfjs worker on client only (avoids DOMMatrix SSR crash)
-  useEffect(() => {
-    import("react-pdf").then(({ pdfjs }) => {
-      pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-    });
-  }, []);
-
-  // Track selected vendors to style the cards beautifully
-  const [selectedVendors, setSelectedVendors] = useState<Set<string>>(
-    new Set(initialData?.invitedVendorIds || [])
-  );
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type === "application/pdf") {
-      setPdfPreview(URL.createObjectURL(file));
-    } else {
-      setPdfPreview(null);
+  // Invite distribution target: "ALL" vs "CUSTOM"
+  const [inviteTarget, setInviteTarget] = useState<"ALL" | "CUSTOM">(() => {
+    if (initialData?.invitedVendorIds && initialData.invitedVendorIds.length > 0) {
+      if (initialData.invitedVendorIds.length === vendors.length && vendors.length > 0) {
+        return "ALL";
+      }
+      return "CUSTOM";
     }
-  };
+    return "ALL";
+  });
+
+  const [selectedVendors, setSelectedVendors] = useState<Set<string>>(() => {
+    if (initialData?.invitedVendorIds) {
+      return new Set(initialData.invitedVendorIds);
+    }
+    return new Set(vendors.map((v) => v.id));
+  });
+
+  const [vendorSearch, setVendorSearch] = useState("");
 
   const toggleVendor = (id: string) => {
     setSelectedVendors((prev) => {
@@ -188,21 +200,47 @@ export function PostRequirementForm({
     });
   };
 
-  async function submit(event: React.FormEvent<HTMLFormElement>, post: boolean) {
-    event.preventDefault();
-    setBusy(true);
+  const filteredVendors = vendors.filter((v) =>
+    v.label.toLowerCase().includes(vendorSearch.toLowerCase().trim())
+  );
+
+  const [file, setFile] = useState<File | null>(null);
+  const [numPages, setNumPages] = useState<number>(0);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  async function submit(e: React.FormEvent<HTMLFormElement>, post: boolean) {
+    e.preventDefault();
     setError(null);
+    setBusy(true);
 
-    const form = new FormData(event.currentTarget);
-    const vendorUserIds = Array.from(selectedVendors);
-
+    const form = new FormData(e.currentTarget);
     const category = form.get("category");
-    const scopeOfWork = form.get("scopeOfWork");
-    const scopeWithCategory = category ? `${scopeOfWork}\n\nCategory: ${category}` : scopeOfWork;
+
+    // Clean scope of work and append category properly without duplicates
+    let rawScope = String(form.get("scopeOfWork") || "").trim();
+    if (rawScope.includes("\n\nCategory: ")) {
+      rawScope = rawScope.split("\n\nCategory: ")[0].trim();
+    }
+    const scopeWithCategory = category ? `${rawScope}\n\nCategory: ${category}` : rawScope;
+
+    // Determine final invited vendor IDs based on selection mode
+    let vendorUserIds: string[] = [];
+    if (inviteTarget === "ALL") {
+      vendorUserIds = vendors.map((v) => v.id);
+    } else {
+      vendorUserIds = Array.from(selectedVendors);
+    }
 
     try {
       const isEdit = !!initialData?.id;
-      const url = isEdit ? `/api/requirements/${initialData.id}` : "/api/requirements";
+      const url = isEdit
+        ? `/api/requirements/${initialData.id}?post=${post}`
+        : `/api/requirements?post=${post}`;
       const method = isEdit ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -237,10 +275,10 @@ export function PostRequirementForm({
   return (
     <form
       onSubmit={(e) => submit(e, true)}
-      className="relative flex h-full min-h-0 w-full flex-col"
+      className="relative min-h-full w-full"
     >
       {/* Sticky header */}
-      <div className="sticky top-0 z-20 flex shrink-0 items-center justify-between border-b border-zinc-200/70 bg-white/95 px-6 py-4 backdrop-blur-sm">
+      <div className="sticky top-0 z-20 flex shrink-0 items-center justify-between border-b border-zinc-200/70 bg-white/95 px-6 py-4 backdrop-blur-sm shadow-xs">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -286,8 +324,8 @@ export function PostRequirementForm({
         </div>
       </div>
 
-      <div className="flex-1">
-        <div className="mx-auto w-full max-w-6xl space-y-8 p-6 pb-12 md:p-8">
+      <div className="flex-1 min-h-0">
+        <div className="mx-auto w-full max-w-6xl space-y-8 p-6 pb-20 md:p-8">
           {error && (
             <div
               role="alert"
@@ -298,55 +336,38 @@ export function PostRequirementForm({
             </div>
           )}
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
-            {/* Left Column: Core Details */}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr_1fr]">
+            {/* Left Column: Scope & Project Title */}
             <div className="flex flex-col">
               <section className="flex h-full flex-col rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm">
-                <h2 className="mb-6 flex items-center gap-2 border-b border-zinc-100 pb-4 text-lg font-bold text-zinc-950">
+                <h2 className="flex items-center gap-2 border-b border-zinc-100 pb-4 text-lg font-bold text-zinc-950">
                   <FileText className="text-brand-blue h-5 w-5" />
-                  Project Details
+                  Scope of Work
                 </h2>
 
-                <div className="flex flex-1 flex-col gap-8 md:flex-row">
-                  {/* Left Side: File Upload */}
-                  <div className="flex w-full shrink-0 flex-col md:w-64">
-                    <FieldWrapper label="Scope of Work Document" icon={FileText}>
-                      <div className="mt-1 flex w-full items-center justify-center">
-                        <label className="hover:border-brand-blue/50 group relative flex aspect-[3/4] w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50 transition-colors hover:bg-white">
-                          {pdfPreview ? (
-                            <>
-                              <div className="absolute inset-0 flex items-center justify-center bg-white p-2">
-                                <Document
-                                  file={pdfPreview}
-                                  className="pointer-events-none flex h-full w-full items-center justify-center"
-                                >
-                                  <Page
-                                    pageNumber={1}
-                                    renderTextLayer={false}
-                                    renderAnnotationLayer={false}
-                                    className="flex h-full w-full items-center justify-center drop-shadow-sm [&>canvas]:!h-auto [&>canvas]:max-h-full [&>canvas]:!w-auto [&>canvas]:max-w-full [&>canvas]:object-contain"
-                                  />
-                                </Document>
-                              </div>
-                              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/60 opacity-0 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100">
-                                <div className="flex scale-95 flex-col items-center justify-center rounded-xl border border-zinc-200/50 bg-white px-4 py-3 shadow-sm transition-transform duration-200 group-hover:scale-100">
-                                  <UploadCloud className="text-brand-blue mb-1.5 h-6 w-6" />
-                                  <span className="text-sm font-bold text-zinc-900">
-                                    Replace Document
-                                  </span>
-                                </div>
-                              </div>
-                            </>
+                <div className="mt-6 flex flex-1 flex-col gap-6 lg:flex-row">
+                  {/* File Upload Box */}
+                  <div className="flex w-full flex-col lg:w-48 lg:shrink-0">
+                    <FieldWrapper label="Scope Document" hint="Optional attachment.">
+                      <div className="h-full">
+                        <label className="hover:border-brand-blue/50 flex h-full min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 p-4 text-center transition-colors hover:bg-zinc-50">
+                          {file ? (
+                            <div className="flex flex-col items-center">
+                              <FileText className="text-brand-blue mb-2 h-8 w-8" />
+                              <span className="line-clamp-2 text-xs font-semibold text-zinc-900">
+                                {file.name}
+                              </span>
+                              <span className="mt-1 text-[10px] text-zinc-400">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                              </span>
+                            </div>
                           ) : (
-                            <div className="flex flex-col items-center justify-center p-6 text-center">
-                              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 transition-transform group-hover:scale-110">
-                                <UploadCloud className="text-brand-blue h-6 w-6" />
+                            <div className="flex flex-col items-center">
+                              <div className="bg-brand-blue/5 text-brand-blue mb-3 flex h-10 w-10 items-center justify-center rounded-xl">
+                                <UploadCloud className="h-5 w-5" />
                               </div>
-                              <p className="mb-2 text-sm leading-relaxed text-zinc-600">
-                                <span className="text-brand-blue font-semibold">
-                                  Click to upload
-                                </span>
-                                <br />
+                              <p className="text-xs font-medium text-zinc-600">
+                                <span className="text-brand-blue font-semibold">Upload file</span>{" "}
                                 or drag and drop
                               </p>
                               <p className="mt-2 text-xs text-zinc-400">PDF, DOCX up to 10MB</p>
@@ -364,7 +385,7 @@ export function PostRequirementForm({
                     </FieldWrapper>
                   </div>
 
-                  {/* Right Side: Name and Description */}
+                  {/* Name and Description */}
                   <div className="flex flex-1 flex-col space-y-6">
                     <FieldWrapper label="Project Title" icon={Briefcase} required>
                       <input
@@ -382,7 +403,7 @@ export function PostRequirementForm({
                           name="scopeOfWork"
                           required
                           defaultValue={initialData?.scopeOfWork}
-                          className={`${inputClass} h-full flex-1 resize-none [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-200 hover:[&::-webkit-scrollbar-thumb]:bg-zinc-300 [&::-webkit-scrollbar-track]:bg-transparent`}
+                          className={`${inputClass} min-h-[180px] h-full flex-1 resize-y`}
                           placeholder="Describe the full requirements, deliverables, and expectations in detail..."
                         />
                       </FieldWrapper>
@@ -418,6 +439,8 @@ export function PostRequirementForm({
                       "Consulting",
                       "Logistics",
                       "Maintenance",
+                      "General Supplies",
+                      "Construction & Civil",
                     ]}
                     defaultValue={initialData?.category}
                   />
@@ -446,79 +469,153 @@ export function PostRequirementForm({
             </div>
           </div>
 
-          {/* Full Width: Suppliers Section */}
+          {/* Full Width: Suppliers & Distribution Mode */}
           <section className="space-y-6 rounded-2xl border border-zinc-200/50 bg-white p-6 shadow-sm">
-            <div className="flex items-end justify-between border-b border-zinc-100 pb-4">
-              <div>
-                <div className="flex items-center gap-4">
+            <div className="border-b border-zinc-100 pb-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
                   <h2 className="flex items-center gap-2 text-lg font-bold text-zinc-950">
                     <Users className="text-brand-blue h-5 w-5" />
-                    Invite Suppliers
+                    Supplier Bidding Distribution
                   </h2>
-                  {vendors.length > 0 && (
+                  <p className="mt-0.5 text-xs text-zinc-500">
+                    Choose whether this requirement is open to the entire supplier network or restricted to selected vendors.
+                  </p>
+                </div>
+
+                {/* Segmented Radio Options */}
+                <div className="inline-flex rounded-xl border border-zinc-200 bg-zinc-100/80 p-1 text-xs font-bold">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInviteTarget("ALL");
+                      setSelectedVendors(new Set(vendors.map((v) => v.id)));
+                    }}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-2 transition-all ${
+                      inviteTarget === "ALL"
+                        ? "bg-white text-brand-blue shadow-xs"
+                        : "text-zinc-600 hover:text-zinc-900"
+                    }`}
+                  >
+                    <Globe className="h-3.5 w-3.5" />
+                    Send to All Suppliers
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setInviteTarget("CUSTOM")}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-2 transition-all ${
+                      inviteTarget === "CUSTOM"
+                        ? "bg-white text-brand-blue shadow-xs"
+                        : "text-zinc-600 hover:text-zinc-900"
+                    }`}
+                  >
+                    <UserCheck className="h-3.5 w-3.5" />
+                    Select Specific Suppliers
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {inviteTarget === "ALL" ? (
+              <div className="flex items-center gap-4 rounded-2xl border border-blue-100 bg-blue-50/50 p-6 text-zinc-800">
+                <div className="bg-brand-blue/10 text-brand-blue flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl">
+                  <Globe className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-zinc-950">Open Tender (All Approved Suppliers)</h3>
+                  <p className="mt-0.5 text-xs text-zinc-600">
+                    All <strong>{vendors.length}</strong> active, pre-approved suppliers in the RVCC portal will be invited and have full access to participate in live blind bidding.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Control bar for custom selection */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="relative w-full sm:w-72">
+                    <Search className="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
+                    <input
+                      type="text"
+                      placeholder="Filter suppliers by name..."
+                      value={vendorSearch}
+                      onChange={(e) => setVendorSearch(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-1.5 pr-3 pl-9 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-brand-blue focus:bg-white focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => setSelectedVendors(new Set(vendors.map((v) => v.id)))}
-                      className="text-brand-blue hover:text-brand-blue/80 text-xs font-semibold transition-colors"
+                      className="text-brand-blue hover:text-brand-blue/80 text-xs font-bold transition-colors"
                     >
-                      Select All
+                      Select All ({vendors.length})
                     </button>
-                  )}
-                </div>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Select pre-approved vendors to participate in this requirement.
-                </p>
-              </div>
-              <span className="bg-brand-blue/10 text-brand-blue rounded-full px-3 py-1 text-xs font-bold">
-                {selectedVendors.size} Selected
-              </span>
-            </div>
-
-            {vendors.length === 0 ? (
-              <div className="rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50 p-8 text-center text-sm text-zinc-500">
-                No active suppliers available to invite. Please approve some vendor registrations
-                first.
-              </div>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {vendors.map((v) => {
-                  const isSelected = selectedVendors.has(v.id);
-                  return (
-                    <div
-                      key={v.id}
-                      onClick={() => toggleVendor(v.id)}
-                      className={`relative cursor-pointer rounded-xl border p-4 transition-all duration-200 ${
-                        isSelected
-                          ? "border-brand-blue bg-blue-50/30 shadow-[0_0_0_1px_rgba(0,111,238,1)]"
-                          : "hover:border-brand-blue/50 border-zinc-200 bg-white hover:bg-zinc-50/50"
-                      }`}
+                    <span className="text-zinc-300">|</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedVendors(new Set())}
+                      className="text-zinc-500 hover:text-zinc-800 text-xs font-bold transition-colors"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <p
-                            className={`truncate text-sm font-semibold ${isSelected ? "text-brand-blue" : "text-zinc-900"}`}
-                          >
-                            {v.label.split(" (")[0]}
-                          </p>
-                          <p className="mt-0.5 truncate text-xs text-zinc-500">
-                            {v.label.includes("(")
-                              ? v.label.split("(")[1].replace(")", "")
-                              : v.label}
-                          </p>
-                        </div>
+                      Deselect All
+                    </button>
+                    <span className="rounded-full bg-brand-blue/10 px-2.5 py-0.5 text-xs font-bold text-brand-blue">
+                      {selectedVendors.size} Selected
+                    </span>
+                  </div>
+                </div>
+
+                {vendors.length === 0 ? (
+                  <div className="rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50 p-8 text-center text-sm text-zinc-500">
+                    No active suppliers available to invite. Please approve vendor registrations first.
+                  </div>
+                ) : filteredVendors.length === 0 ? (
+                  <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center text-xs text-zinc-500">
+                    No suppliers match "{vendorSearch}".
+                  </div>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-h-72 overflow-y-auto pr-1">
+                    {filteredVendors.map((v) => {
+                      const isSelected = selectedVendors.has(v.id);
+                      return (
                         <div
-                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${
+                          key={v.id}
+                          onClick={() => toggleVendor(v.id)}
+                          className={`relative cursor-pointer rounded-xl border p-3.5 transition-all duration-200 ${
                             isSelected
-                              ? "border-brand-blue bg-brand-blue text-white"
-                              : "border-zinc-300 bg-white"
+                              ? "border-brand-blue bg-blue-50/40 shadow-xs ring-1 ring-brand-blue/40"
+                              : "hover:border-brand-blue/40 border-zinc-200 bg-white hover:bg-zinc-50/50"
                           }`}
                         >
-                          {isSelected && <Check className="h-3 w-3" strokeWidth={3} />}
+                          <div className="flex items-start justify-between gap-2.5">
+                            <div className="min-w-0 flex-1">
+                              <p
+                                className={`truncate text-xs font-bold ${isSelected ? "text-brand-blue" : "text-zinc-900"}`}
+                              >
+                                {v.label.split(" (")[0]}
+                              </p>
+                              <p className="mt-0.5 truncate text-[11px] text-zinc-500">
+                                {v.label.includes("(")
+                                  ? v.label.split("(")[1].replace(")", "")
+                                  : v.label}
+                              </p>
+                            </div>
+                            <div
+                              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors ${
+                                isSelected
+                                  ? "border-brand-blue bg-brand-blue text-white"
+                                  : "border-zinc-300 bg-white"
+                              }`}
+                            >
+                              {isSelected && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </section>

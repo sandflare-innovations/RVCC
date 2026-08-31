@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { SmoothScroll } from "@/components/ui";
 import { adminSessionJson } from "@/lib/admin-data";
 import type { CachedVendorRow } from "@/lib/vendor-cache";
 import { PostRequirementForm } from "@/sections/requirements/PostRequirementForm";
@@ -71,7 +72,7 @@ export default async function EditRequirementPage({ params }: { params: Promise<
   };
 
   return (
-    <div className="flex min-h-0 w-full flex-1 flex-col bg-zinc-50/30">
+    <div className="h-full min-h-0 w-full flex-1 overflow-y-auto bg-zinc-50/30">
       <PostRequirementForm vendors={vendorOptions} initialData={initialData} />
     </div>
   );
