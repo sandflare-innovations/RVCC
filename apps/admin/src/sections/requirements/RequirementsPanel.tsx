@@ -8,9 +8,11 @@ import {
   Clock,
   Edit2,
   FileText,
+  Loader2,
   Lock,
   Radio,
   RefreshCw,
+  Trash2,
   Trophy,
   XCircle,
 } from "lucide-react";
@@ -32,6 +34,7 @@ import {
 } from "@/lib/requirements-cache";
 import { fetchTableJson } from "@/lib/table-fetch";
 import { AnimatedSearchInput } from "@/lib/ui";
+import { DeleteRequirementConfirmModal } from "./DeleteRequirementConfirmModal";
 
 type RequirementRow = CachedRequirementRow;
 
@@ -146,6 +149,7 @@ export function RequirementsPanel() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortCol, setSortCol] = useState<"createdAt" | "closesAt">("createdAt");
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; projectName: string } | null>(null);
   const [, startTransition] = useTransition();
   const requestId = useRef(0);
 
@@ -440,13 +444,44 @@ export function RequirementsPanel() {
               <div className="col-span-2 min-w-0 truncate text-xs text-zinc-600 tabular-nums">
                 {formatDateTime(r.closesAt)}
               </div>
-              <div className="col-span-1 min-w-0 truncate text-right font-mono text-xs text-zinc-600 tabular-nums">
-                {r.submitted} ({r.invited} inv)
+              <div className="col-span-1 flex min-w-0 items-center justify-end gap-2 text-right">
+                <span className="font-mono text-xs text-zinc-600 tabular-nums">
+                  {r.submitted} ({r.invited})
+                </span>
+                <button
+                  type="button"
+                  title="Delete requirement"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteTarget({ id: r.id, projectName: r.project });
+                  }}
+                  className="rounded-lg p-1 text-zinc-400 opacity-60 transition-all hover:bg-rose-50 hover:text-rose-600 hover:opacity-100 focus:outline-none"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      <DeleteRequirementConfirmModal
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        id={deleteTarget?.id ?? null}
+        projectName={deleteTarget?.projectName ?? ""}
+        onDeleted={() => {
+          if (deleteTarget) {
+            const deletedId = deleteTarget.id;
+            setAllRows((prev) => {
+              const next = prev.filter((r) => r.id !== deletedId);
+              writeRequirementsCache(next);
+              return next;
+            });
+            setDeleteTarget(null);
+          }
+        }}
+      />
     </div>
   );
 }

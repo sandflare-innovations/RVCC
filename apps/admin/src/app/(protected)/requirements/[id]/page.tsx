@@ -16,6 +16,7 @@ import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { adminSessionJson } from "@/lib/admin-data";
 import { rankQuotes } from "@/lib/rfq";
+import { DeleteRequirementButton } from "@/sections/requirements/DeleteRequirementButton";
 import { QuotesSection } from "@/sections/requirements/QuotesSection";
 
 export const dynamic = "force-dynamic";
@@ -290,6 +291,7 @@ async function RequirementData({ id }: { id: string }) {
             <Edit2 className="h-4 w-4" />
             Edit Requirement
           </Link>
+          <DeleteRequirementButton id={req.id} projectName={req.project} />
         </div>
       </div>
 
