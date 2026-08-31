@@ -21,6 +21,8 @@ jobs:
     name: Lint, Test & Build Monorepo
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/rvcc_db?schema=public' }}
 
     steps:
       - name: Checkout Code
@@ -42,6 +44,9 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Validate Database Schema
+        run: pnpm --filter api db:validate
 
       - name: Generate Prisma Client
         run: pnpm --filter api db:generate
