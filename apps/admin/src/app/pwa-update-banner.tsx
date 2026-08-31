@@ -14,6 +14,8 @@ export function PwaUpdateBanner() {
   const [applying, setApplying] = useState(false);
 
   useEffect(() => {
+    if (process.env.NODE_ENV === "development") return;
+
     return onUpdateAvailable((available) => {
       setVisible(available);
     });

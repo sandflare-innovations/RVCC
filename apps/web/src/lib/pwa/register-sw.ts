@@ -38,6 +38,27 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     return null;
   }
 
+  // Never register or cache Service Worker in local development to prevent Turbopack HMR caching collisions
+  if (
+    process.env.NODE_ENV === "development" ||
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+  ) {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        await reg.unregister();
+      }
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((key) => caches.delete(key)));
+      }
+    } catch {
+      // Ignore dev cleanup errors
+    }
+    return null;
+  }
+
   try {
     registration = await navigator.serviceWorker.register("/sw.js", {
       scope: "/",
