@@ -10,7 +10,8 @@
     "test": "turbo test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "docs:generate": "node scripts/build-technical-docs.mjs"
+    "docs:generate": "node scripts/build-technical-docs.mjs",
+    "clean:next": "node -e \"const fs=require('fs'); ['web','admin','vendor','procurement'].forEach(a=>{try{fs.rmSync('apps/'+a+'/.next',{recursive:true,force:true})}catch(e){}})\""
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
