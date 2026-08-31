@@ -1,8 +1,44 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "NODE_ENV",
+    "CI",
+    "VERCEL_ENV",
+    "VERCEL_GIT_COMMIT_SHA"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": [
+        "API_URL",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_SITE_URL",
+        "NEXT_PUBLIC_VENDOR_PORTAL_URL",
+        "NEXT_PUBLIC_ADMIN_PORTAL_URL",
+        "NEXT_PUBLIC_ASSET_CDN_URL",
+        "NEXT_PUBLIC_PDF_CDN_URL",
+        "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
+        "DOC_PASSWORD",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "DATABASE_URL",
+        "DATABASE_READ_URL",
+        "ALLOWED_ORIGINS",
+        "VENDOR_PORTAL_URL",
+        "SMTP_HOST",
+        "SMTP_PORT",
+        "SMTP_SECURE",
+        "SMTP_USER",
+        "SMTP_PASS",
+        "SMTP_FROM",
+        "ENQUIRE_FROM_EMAIL",
+        "R2_ACCOUNT_ID",
+        "R2_BUCKET_NAME",
+        "R2_PUBLIC_URL",
+        "R2_ACCESS_KEY_ID",
+        "R2_SECRET_ACCESS_KEY",
+        "ANALYZE"
+      ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
