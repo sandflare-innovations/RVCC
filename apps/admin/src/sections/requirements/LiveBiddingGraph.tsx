@@ -144,9 +144,9 @@ export function LiveBiddingGraph({
   if (targetPrice) allPrices.push(targetPrice);
   const minP = Math.min(...allPrices);
   const maxP = Math.max(...allPrices);
-  const range = maxP - minP || maxP * 0.1 || 1000;
-  const yMin = Math.max(0, Math.floor(minP - range * 0.15));
-  const yMax = Math.ceil(maxP + range * 0.15);
+  const span = Math.max(maxP - minP, maxP * 0.25, 1000);
+  const yMin = Math.max(0, Math.floor((minP - span * 0.15) / 500) * 500);
+  const yMax = Math.ceil((maxP + span * 0.15) / 500) * 500;
 
   return (
     <div className="relative flex h-full min-h-0 w-full flex-col">
@@ -221,13 +221,16 @@ export function LiveBiddingGraph({
               tickLine={false}
               axisLine={false}
               tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }}
-              tickFormatter={(v) =>
-                v >= 1000000
-                  ? `${(v / 1000000).toFixed(1)}M`
-                  : v >= 1000
-                    ? `${(v / 1000).toFixed(0)}k`
-                    : `${v}`
-              }
+              tickFormatter={(v) => {
+                const num = Number(v);
+                if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+                if (num >= 10000) return `${(num / 1000).toFixed(0)}k`;
+                if (num >= 1000) {
+                  const k = num / 1000;
+                  return k % 1 === 0 ? `${k.toFixed(0)}k` : `${k.toFixed(1)}k`;
+                }
+                return num.toLocaleString();
+              }}
               domain={[yMin, yMax]}
             />
 
@@ -330,8 +333,8 @@ export function LiveBiddingGraph({
 
       {/* Legend */}
       {!compact && (
-        <div className="flex items-center justify-between border-t border-zinc-100 pt-2 text-[11px] font-medium text-zinc-400">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-2 text-[11px] font-medium text-zinc-500">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <span className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               <span>L1 Winning Bid</span>
@@ -347,7 +350,7 @@ export function LiveBiddingGraph({
               </span>
             )}
           </div>
-          <span>Reverse Auction Curve</span>
+          <span className="text-[10px] text-zinc-400">Reverse Auction Curve</span>
         </div>
       )}
     </div>
