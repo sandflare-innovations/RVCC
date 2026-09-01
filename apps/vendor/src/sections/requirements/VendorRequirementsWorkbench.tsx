@@ -413,7 +413,8 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
             {/* Fixed Top Header Bar */}
             <div className="bg-brand-blue mb-2 shrink-0 rounded-2xl px-6 py-3.5 text-white shadow-xs">
               <div className="grid grid-cols-12 items-center gap-3 text-xs font-semibold">
-                <div className="col-span-5 min-w-0">Rank & Tender / Project</div>
+                <div className="col-span-1 min-w-0 text-center">Rank</div>
+                <div className="col-span-4 min-w-0">Tender / Project</div>
                 <div className="col-span-2 min-w-0">Reference</div>
                 <div className="col-span-2 min-w-0">Status / Deadline</div>
                 <div className="col-span-2 min-w-0">Your Quote</div>
@@ -433,29 +434,35 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                     key={row.id}
                     className="group hover:ring-brand-blue/40 grid grid-cols-12 items-center gap-3 rounded-2xl bg-white p-4 text-sm ring-1 ring-zinc-100 transition-all ring-inset hover:shadow-xs"
                   >
-                    {/* Col 1: Rank Badge + Tender Project (Col Span 5) */}
-                    <div className="col-span-5 min-w-0 flex items-center gap-3.5">
-                      <LiveRankBadge requirementId={row.id} />
-                      <div className="min-w-0 flex-1">
-                        <Link
-                          href={`/requirements/${row.id}`}
-                          className="font-bold text-zinc-950 group-hover:text-brand-blue transition-colors flex items-center gap-1.5"
-                        >
-                          <span className="truncate">{row.project}</span>
-                          <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </Link>
-                        <p className="line-clamp-1 text-xs text-zinc-400">
-                          {row.scopeOfWork}
-                        </p>
-                      </div>
+                    {/* Col 1: Separate Rank Column (Col Span 1) */}
+                    <div className="col-span-1 min-w-0 flex items-center justify-center">
+                      <LiveRankBadge
+                        requirementId={row.id}
+                        isEnded={row.isEnded}
+                        isWon={row.isAwardedToMe || row.endedStatus === "WON"}
+                      />
                     </div>
 
-                    {/* Col 2: Reference (Col Span 2) - No Background */}
+                    {/* Col 2: Tender Project & Scope (Col Span 4) */}
+                    <div className="col-span-4 min-w-0">
+                      <Link
+                        href={`/requirements/${row.id}`}
+                        className="font-bold text-zinc-950 group-hover:text-brand-blue transition-colors flex items-center gap-1.5"
+                      >
+                        <span className="truncate">{row.project}</span>
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </Link>
+                      <p className="line-clamp-1 text-xs text-zinc-400">
+                        {row.scopeOfWork}
+                      </p>
+                    </div>
+
+                    {/* Col 3: Reference (Col Span 2) - No Background */}
                     <div className="col-span-2 min-w-0 font-mono text-xs font-semibold text-zinc-500">
                       {row.referenceNumber ?? "—"}
                     </div>
 
-                    {/* Col 3: Status / Deadline (Col Span 2) */}
+                    {/* Col 4: Status / Deadline (Col Span 2) */}
                     <div className="col-span-2 min-w-0">
                       {row.isEnded ? (
                         <EndedStatusBadge row={row} />
@@ -475,7 +482,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                       )}
                     </div>
 
-                    {/* Col 4: Your Quote (Col Span 2) */}
+                    {/* Col 5: Your Quote (Col Span 2) */}
                     <div className="col-span-2 min-w-0">
                       {row.isEnded ? (
                         <span suppressHydrationWarning className="font-bold text-zinc-950 tabular-nums">
@@ -496,7 +503,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                       )}
                     </div>
 
-                    {/* Col 5: Action Button (Col Span 1 text-right) */}
+                    {/* Col 6: Action Button (Col Span 1 text-right) */}
                     <div className="col-span-1 min-w-0 text-right">
                       <Link
                         href={`/requirements/${row.id}`}
