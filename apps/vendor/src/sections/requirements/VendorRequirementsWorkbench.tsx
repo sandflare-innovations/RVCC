@@ -230,14 +230,9 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
             icon: <FileText className="h-4 w-4" />,
           },
         ].map((kpi) => (
-          <button
+          <div
             key={kpi.id}
-            type="button"
-            onClick={() => setActiveTab(kpi.id as TabType)}
-            className={cn(
-              "group relative flex flex-col justify-between overflow-hidden rounded-3xl bg-white p-5 text-left shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(0,115,188,0.12)]",
-              activeTab === kpi.id ? "ring-2 ring-brand-blue/30 bg-brand-blue/5" : ""
-            )}
+            className="group relative flex flex-col justify-between overflow-hidden rounded-3xl bg-white p-5 text-left shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)] transition-all duration-300 hover:shadow-[0_8px_28px_rgba(0,115,188,0.12)]"
           >
             <div className="flex w-full items-center justify-between">
               <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase truncate">
@@ -250,7 +245,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
             <span className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-zinc-950 tabular-nums">
               {kpi.count}
             </span>
-          </button>
+          </div>
         ))}
       </div>
 
