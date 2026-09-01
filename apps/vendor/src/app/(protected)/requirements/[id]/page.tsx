@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { ArrowLeft, Clock, ShieldCheck, Sparkles, Trophy } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 import { BackButton } from "@/components/ui/back-button";
@@ -51,37 +51,10 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-8">
-      {/* Top Navigation & Breadcrumb Header Card */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-3">
-          <BackButton label="Back to requirements" />
-          {detail.referenceNumber && (
-            <span className="font-mono rounded-xl bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-700">
-              {detail.referenceNumber}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {closed ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-3.5 py-1.5 text-xs font-bold text-zinc-700">
-              <Clock className="h-3.5 w-3.5" /> Sourcing Closed
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-2 rounded-full bg-brand-blue/10 px-4 py-1.5 text-xs font-bold text-brand-blue">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-blue opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-blue"></span>
-              </span>
-              Live Sourcing Open
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Main Requirement Title */}
-      <div className="pb-1">
-        <h1 className="text-3xl font-black tracking-tight text-zinc-950 sm:text-4xl">
+      {/* Header: Back Button and Project Title in Same Row */}
+      <div className="flex items-center gap-4">
+        <BackButton label="Back to requirements" />
+        <h1 className="min-w-0 flex-1 text-2xl font-black tracking-tight text-zinc-950 sm:text-3xl">
           {detail.project}
         </h1>
       </div>
