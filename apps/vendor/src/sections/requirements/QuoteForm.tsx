@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 
+import { CustomCurrencySelect } from "@/components/ui/custom-currency-select";
 import { readApiError } from "@/lib/read-error";
 
 export type QuoteAttachmentItem = {
@@ -194,26 +195,19 @@ export function QuoteForm({
             </span>
           )}
         </div>
-        <div className="focus-within:border-brand-blue focus-within:ring-2 focus-within:ring-brand-blue/20 flex w-full overflow-hidden rounded-2xl border border-zinc-200 bg-white transition-all shadow-2xs">
-          <select
-            className={`border-r border-zinc-200 bg-zinc-50 px-3.5 py-3 text-sm font-bold text-zinc-700 focus:outline-none ${isFormLocked ? "opacity-70" : ""}`}
+        <div className="focus-within:border-brand-blue focus-within:ring-2 focus-within:ring-brand-blue/20 relative flex w-full rounded-2xl border border-zinc-200 bg-white transition-all shadow-2xs">
+          <CustomCurrencySelect
             value={currency}
-            onChange={(e) => {
+            onChange={(val) => {
               if (error) setError(null);
-              setCurrency(e.target.value);
+              setCurrency(val);
             }}
             disabled={isFormLocked || busy}
-          >
-            <option value="SAR">SAR</option>
-            <option value="USD">USD</option>
-            <option value="EUR">EUR</option>
-            <option value="INR">INR</option>
-            <option value="AED">AED</option>
-          </select>
+          />
           <input
             type="text"
             inputMode="decimal"
-            className={`w-full px-4 py-3 text-base font-bold transition-all focus:outline-none ${
+            className={`w-full rounded-r-2xl px-4 py-3 text-base font-bold transition-all focus:outline-none ${
               isFormLocked ? "bg-zinc-50 text-zinc-600" : "bg-white text-zinc-950"
             }`}
             value={price}
