@@ -26,10 +26,24 @@ function getSubscribersFor(requirementId: string): Set<BidSubscriber> {
   return subs;
 }
 
+import { redisPublish } from "../../lib/redis";
+
 /**
  * Broadcasts an updated leaderboard snapshot to all active SSE client streams for a requirement.
+ * Broadcasts both to in-isolate streams and to Redis Pub/Sub for cross-node global sync.
  */
-export async function broadcastBidUpdate(requirementId: string): Promise<void> {
+export async function broadcastBidUpdate(requirementId: string, env?: Env): Promise<void> {
+  // 1. Cross-node distributed broadcast via Upstash Redis
+  try {
+    void redisPublish(`requirement:live:${requirementId}`, {
+      requirementId,
+      timestamp: Date.now(),
+    }, env);
+  } catch (err) {
+    console.warn("[broadcastBidUpdate] redis publish fallback", err);
+  }
+
+  // 2. In-isolate direct SSE push
   const subs = requirementSubscribers.get(requirementId);
   if (!subs || subs.size === 0) return;
 
