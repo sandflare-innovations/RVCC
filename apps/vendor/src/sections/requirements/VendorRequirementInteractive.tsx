@@ -222,8 +222,16 @@ export function VendorRequirementInteractive({
                 <span className="inline-flex items-center gap-1 rounded-xl bg-brand-blue/10 px-3 py-1.5 text-xs font-bold text-brand-blue">
                   Base Currency: {requirement.currency}
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-xl bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-600">
-                  <Calendar className="h-3.5 w-3.5 text-zinc-500" /> Closes {new Date(requirement.closesAt).toLocaleDateString()}
+                <span
+                  suppressHydrationWarning
+                  className="inline-flex items-center gap-1 rounded-xl bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-600"
+                >
+                  <Calendar className="h-3.5 w-3.5 text-zinc-500" /> Closes{" "}
+                  {new Date(requirement.closesAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </span>
               </div>
 

@@ -378,12 +378,17 @@ export default async function VendorDashboard() {
 
                         {/* Date & Deadline Info */}
                         <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-white/90">
-                          <span className="inline-flex items-center gap-1 rounded-md bg-black/15 px-2 py-0.5 backdrop-blur-xs">
+                          <span
+                            suppressHydrationWarning
+                            className="inline-flex items-center gap-1 rounded-md bg-black/15 px-2 py-0.5 backdrop-blur-xs"
+                          >
                             <Calendar className="h-3 w-3 text-white/80" />
                             {formattedDate}
                           </span>
                           <span className="text-white/70">·</span>
-                          <span className="text-white/90 font-bold">{deadline.label}</span>
+                          <span suppressHydrationWarning className="text-white/90 font-bold">
+                            {deadline.label}
+                          </span>
                         </div>
 
                         {bid.newPrice && (

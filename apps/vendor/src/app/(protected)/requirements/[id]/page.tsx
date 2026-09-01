@@ -114,7 +114,10 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
               </div>
             </div>
           ) : (
-            <div className="rounded-3xl bg-zinc-50 p-6 text-xs font-semibold text-zinc-600 shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)]">
+            <div
+              suppressHydrationWarning
+              className="rounded-3xl bg-zinc-50 p-6 text-xs font-semibold text-zinc-600 shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)]"
+            >
               This requirement concluded on{" "}
               {new Date(detail.closesAt).toLocaleString("en-GB", {
                 day: "numeric",
