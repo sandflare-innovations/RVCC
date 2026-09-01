@@ -37,6 +37,7 @@ enum RequirementStatus {
   DRAFT
   PENDING
   OPEN
+  EVALUATING
   AWARDED
   CANCELLED
   REJECTED
@@ -78,6 +79,7 @@ enum BusinessRelationship {
 
 enum NotificationType {
   REQUIREMENT_POSTED
+  REQUIREMENT_UPDATED
   QUOTE_SUBMITTED
   QUOTE_AWARDED
 }
@@ -168,6 +170,7 @@ model AdminUser {
   awardedReqs    Requirement[]          @relation("RequirementAwarder")
   notifications  Notification[]
   purchaseReqs   PurchaseRequest[]
+  pushSubscriptions PushSubscription[]
 
   @@index([email])
   @@index([roleId])
@@ -548,10 +551,31 @@ model Quote {
   deletedAt     DateTime?   // Soft Deletion
 
   awardedFor    Requirement? @relation("AwardedQuote")
+  revisions     QuoteRevision[]
 
   @@unique([requirementId, vendorUserId])
   @@index([requirementId, status])
   @@index([deletedAt])
+}
+
+model QuoteRevision {
+  id            String      @id @default(cuid())
+  quoteId       String
+  quote         Quote       @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  requirementId String
+  vendorUserId  String
+  currency      Currency    @default(SAR)
+  exchangeRate  Decimal     @default(1.0) @db.Decimal(12, 6)
+  price         Decimal?    @db.Decimal(14, 2)
+  amountSar     Decimal?    @db.Decimal(14, 2)
+  remarks       String      @default("")
+  status        QuoteStatus @default(DRAFT)
+  createdAt     DateTime    @default(now())
+
+  @@index([quoteId])
+  @@index([requirementId])
+  @@index([vendorUserId])
+  @@index([createdAt])
 }
 
 // =========================================================================
@@ -668,6 +692,19 @@ model Notification {
 
   @@index([vendorUserId, readAt])
   @@index([adminId, readAt])
+}
+
+model PushSubscription {
+  id        String     @id @default(cuid())
+  endpoint  String     @unique
+  p256dh    String
+  auth      String
+  adminId   String?
+  admin     AdminUser? @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
+
+  @@index([adminId])
 }
 
 /// Unified, multi-actor immutable system audit log
