@@ -147,47 +147,47 @@ export default async function VendorDashboard() {
   const docsList =
     attachments.length > 0
       ? attachments.slice(0, 4).map((att, idx) => ({
-          id: att.id,
-          name: att.fileName,
-          type: att.documentType,
-          color: [
-            "bg-brand-blue",
-            "bg-brand-blue/80",
-            "bg-brand-blue/60",
-            "bg-brand-blue/40",
-          ][idx % 4],
-          icon: <FileText className="h-4 w-4 text-white" />,
-        }))
+        id: att.id,
+        name: att.fileName,
+        type: att.documentType,
+        color: [
+          "bg-brand-blue",
+          "bg-brand-blue/80",
+          "bg-brand-blue/60",
+          "bg-brand-blue/40",
+        ][idx % 4],
+        icon: <FileText className="h-4 w-4 text-white" />,
+      }))
       : [
-          {
-            id: "d1",
-            name: "Supplier Code of Conduct.pdf",
-            type: "Policy",
-            color: "bg-brand-blue",
-            icon: <FileText className="h-4 w-4 text-white" />,
-          },
-          {
-            id: "d2",
-            name: "Standard Procurement Terms.pdf",
-            type: "Legal",
-            color: "bg-brand-blue/80",
-            icon: <FileText className="h-4 w-4 text-white" />,
-          },
-          {
-            id: "d3",
-            name: "NDA & Confidentiality.pdf",
-            type: "Agreement",
-            color: "bg-brand-blue/60",
-            icon: <FileText className="h-4 w-4 text-white" />,
-          },
-          {
-            id: "d4",
-            name: "E-Invoicing Guidelines.pdf",
-            type: "Finance",
-            color: "bg-brand-blue/40",
-            icon: <FileText className="h-4 w-4 text-white" />,
-          },
-        ];
+        {
+          id: "d1",
+          name: "Supplier Code of Conduct.pdf",
+          type: "Policy",
+          color: "bg-brand-blue",
+          icon: <FileText className="h-4 w-4 text-white" />,
+        },
+        {
+          id: "d2",
+          name: "Standard Procurement Terms.pdf",
+          type: "Legal",
+          color: "bg-brand-blue/80",
+          icon: <FileText className="h-4 w-4 text-white" />,
+        },
+        {
+          id: "d3",
+          name: "NDA & Confidentiality.pdf",
+          type: "Agreement",
+          color: "bg-brand-blue/60",
+          icon: <FileText className="h-4 w-4 text-white" />,
+        },
+        {
+          id: "d4",
+          name: "E-Invoicing Guidelines.pdf",
+          type: "Finance",
+          color: "bg-brand-blue/40",
+          icon: <FileText className="h-4 w-4 text-white" />,
+        },
+      ];
 
   // Messages / Bidding Notifications
   const messages = [

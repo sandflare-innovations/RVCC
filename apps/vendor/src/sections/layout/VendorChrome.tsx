@@ -1,7 +1,7 @@
 "use client";
 
-import { AnimatePresence,motion } from "framer-motion";
-import { ClipboardList,LayoutDashboard, Menu, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ClipboardList, LayoutDashboard, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -38,8 +38,7 @@ export function VendorChrome({
           <div className="w-full px-4 pt-4 md:px-6 md:pt-6">
             <header
               className={cn(
-                "bg-brand-blue relative z-50 mx-auto w-full px-6 py-4 transition-all duration-300 md:px-10",
-                pathname === "/" ? "rounded-t-[2.5rem]" : "rounded-[2.5rem]"
+                "bg-brand-blue relative z-50 mx-auto w-full rounded-[2.5rem] px-6 py-4 transition-all duration-300 md:px-10"
               )}
             >
               <div className="flex items-center justify-between">
