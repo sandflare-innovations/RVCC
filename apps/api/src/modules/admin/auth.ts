@@ -266,6 +266,28 @@ export async function writeAudit(
   }
 ): Promise<void> {
   try {
+    let actorName = entry.actorName ?? "";
+    let actorRole = entry.actorRole ?? "";
+
+    if (!actorName && entry.adminId) {
+      const admin = await prisma.adminUser.findUnique({
+        where: { id: entry.adminId },
+        include: { role: true },
+      });
+      if (admin) {
+        actorName = admin.name || admin.email;
+        actorRole = admin.role?.name || "";
+      }
+    } else if (!actorName && entry.vendorId) {
+      const vendor = await prisma.vendorUser.findUnique({
+        where: { id: entry.vendorId },
+      });
+      if (vendor) {
+        actorName = vendor.name || vendor.email;
+        actorRole = "VENDOR";
+      }
+    }
+
     await prisma.auditLog.create({
       data: {
         adminId: entry.adminId ?? null,
@@ -273,8 +295,8 @@ export async function writeAudit(
         action: entry.action,
         entityType: entry.entityType,
         entityId: entry.entityId,
-        actorName: entry.actorName ?? "",
-        actorRole: entry.actorRole ?? "",
+        actorName,
+        actorRole,
         previousStatus: entry.previousStatus ?? null,
         newStatus: entry.newStatus ?? null,
         note: entry.note ?? null,
