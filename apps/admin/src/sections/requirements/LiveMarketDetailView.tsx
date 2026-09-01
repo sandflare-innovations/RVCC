@@ -200,6 +200,7 @@ export function LiveMarketDetailView({ initialPayload }: LiveMarketDetailViewPro
           isLeading: lq.isLeading,
           remarks: matchingInitial?.remarks ?? null,
           quoteFileUrl: matchingInitial?.quoteFileUrl ?? null,
+          attachments: (matchingInitial as any)?.attachments ?? (lq as any).attachments ?? [],
           submittedAt: lq.submittedAt ? new Date(lq.submittedAt) : null,
         };
       });
@@ -222,6 +223,7 @@ export function LiveMarketDetailView({ initialPayload }: LiveMarketDetailViewPro
           isLeading: idx === 0,
           remarks: q.remarks,
           quoteFileUrl: q.quoteFileUrl,
+          attachments: (q as any).attachments ?? [],
           submittedAt: q.submittedAt ? new Date(q.submittedAt) : null,
         };
       });
@@ -502,8 +504,22 @@ export function LiveMarketDetailView({ initialPayload }: LiveMarketDetailViewPro
                             {formatTime(q.submittedAt)}
                           </span>
 
-                          <div className="flex items-center gap-2">
-                            {q.quoteFileUrl && (
+                          <div className="flex flex-wrap items-center gap-2">
+                            {(q as any).attachments && (q as any).attachments.length > 0 ? (
+                              (q as any).attachments.map((att: any) => (
+                                <a
+                                  key={att.id}
+                                  href={att.fileUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="hover:border-brand-blue hover:text-brand-blue inline-flex items-center gap-1 rounded-lg border border-zinc-200 px-2 py-0.5 text-[11px] font-semibold text-zinc-700 shadow-xs"
+                                  title={att.fileName}
+                                >
+                                  <FileText className="h-3 w-3 text-brand-blue" />
+                                  <span className="max-w-[100px] truncate">{att.fileName}</span>
+                                </a>
+                              ))
+                            ) : q.quoteFileUrl ? (
                               <a
                                 href={q.quoteFileUrl}
                                 target="_blank"
@@ -513,7 +529,7 @@ export function LiveMarketDetailView({ initialPayload }: LiveMarketDetailViewPro
                                 <FileText className="h-3 w-3" />
                                 PDF
                               </a>
-                            )}
+                            ) : null}
 
                             {!req.awardedQuoteId && (
                               <AwardButton

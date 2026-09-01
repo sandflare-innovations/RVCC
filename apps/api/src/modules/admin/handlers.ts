@@ -981,6 +981,7 @@ export async function handleRequirementGet(
         include: {
           vendorUser: { select: { email: true, name: true } },
           revisions: { orderBy: { createdAt: "desc" } },
+          attachments: { orderBy: { uploadedAt: "asc" } },
         },
         orderBy: [{ submittedAt: { sort: "desc", nulls: "last" } }, { updatedAt: "desc" }],
       },
@@ -1019,6 +1020,13 @@ export async function handleRequirementGet(
       updatedAt: q.updatedAt.toISOString(),
       participantEmail: q.vendorUser.email,
       participantName: q.vendorUser.name,
+      attachments: q.attachments.map((a) => ({
+        id: a.id,
+        fileName: a.fileName,
+        fileUrl: a.fileUrl,
+        fileSize: a.fileSize,
+        uploadedAt: a.uploadedAt.toISOString(),
+      })),
       revisions: q.revisions.map((r) => ({
         id: r.id,
         price: r.price ? String(r.price) : null,

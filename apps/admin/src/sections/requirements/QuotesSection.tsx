@@ -31,12 +31,21 @@ function formatDateTime(d: string | null) {
   });
 }
 
+type QuoteAttachmentInfo = {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: number;
+  uploadedAt: string;
+};
+
 type QuoteInfo = {
   id: string;
   rank: number;
   newPrice: string;
   remarks: string | null;
   quoteFileUrl?: string | null;
+  attachments?: QuoteAttachmentInfo[];
   submittedAt: Date | null;
   who: string;
   vendorEmail: string;
@@ -75,16 +84,20 @@ export function QuotesSection({
 
   // Convert live quotes or fallback to initial SSR ranked data
   const currentRanked: QuoteInfo[] = liveData?.quotes
-    ? liveData.quotes.map((q) => ({
-        id: q.id,
-        rank: q.rank,
-        newPrice: q.newPrice,
-        remarks: q.remarks,
-        quoteFileUrl: q.quoteFileUrl,
-        submittedAt: q.submittedAt ? new Date(q.submittedAt) : null,
-        who: q.who,
-        vendorEmail: q.vendorEmail,
-      }))
+    ? liveData.quotes.map((q) => {
+        const initialMatch = ranked.find((rq) => rq.id === q.id);
+        return {
+          id: q.id,
+          rank: q.rank,
+          newPrice: q.newPrice,
+          remarks: q.remarks,
+          quoteFileUrl: q.quoteFileUrl,
+          attachments: initialMatch?.attachments ?? (q as any).attachments ?? [],
+          submittedAt: q.submittedAt ? new Date(q.submittedAt) : null,
+          who: q.who,
+          vendorEmail: q.vendorEmail,
+        };
+      })
     : ranked;
 
   // Sorting logic
@@ -334,23 +347,39 @@ export function QuotesSection({
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between gap-3 pt-1">
+                      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
                         <span className="flex items-center gap-1 text-[10px] font-semibold text-zinc-400 sm:text-xs">
                           <Calendar className="h-3 w-3" />
                           {q.submittedAt ? formatDateTime(q.submittedAt.toISOString()) : "—"}
                         </span>
 
-                        {q.quoteFileUrl && (
-                          <a
-                            href={q.quoteFileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="hover:border-brand-blue hover:text-brand-blue focus-visible:ring-brand-blue/20 flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
-                          >
-                            <FileText className="h-3.5 w-3.5" />
-                            View PDF
-                          </a>
-                        )}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {q.attachments && q.attachments.length > 0 ? (
+                            q.attachments.map((att) => (
+                              <a
+                                key={att.id}
+                                href={att.fileUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="hover:border-brand-blue hover:text-brand-blue focus-visible:ring-brand-blue/20 flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-bold text-zinc-700 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                                title={att.fileName}
+                              >
+                                <FileText className="h-3.5 w-3.5 text-brand-blue" />
+                                <span className="max-w-[130px] truncate">{att.fileName}</span>
+                              </a>
+                            ))
+                          ) : q.quoteFileUrl ? (
+                            <a
+                              href={q.quoteFileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="hover:border-brand-blue hover:text-brand-blue focus-visible:ring-brand-blue/20 flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                            >
+                              <FileText className="h-3.5 w-3.5" />
+                              View PDF
+                            </a>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   </div>
