@@ -5,7 +5,16 @@ import { Pool } from "pg";
 function createBaseClient() {
   const connectionString =
     process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/rvcc";
-  const pool = new Pool({ connectionString });
+  
+  // Production-tuned pool sizing: 10 connections in node server, 1 in serverless edge isolates
+  const isProduction = process.env.NODE_ENV === "production";
+  const pool = new Pool({
+    connectionString,
+    max: isProduction ? (process.env.DB_POOL_MAX ? Number(process.env.DB_POOL_MAX) : 10) : 5,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+  });
+  
   const adapter = new PrismaPg(pool);
 
   return new PrismaClient({
