@@ -381,8 +381,8 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
 
                     {row.newPrice && (
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-zinc-950 tabular-nums">
-                          {Number(row.newPrice).toLocaleString()} {row.currency || "SAR"}
+                        <span suppressHydrationWarning className="font-bold text-zinc-950 tabular-nums">
+                          {Number(row.newPrice).toLocaleString("en-US")} {row.currency || "SAR"}
                         </span>
                         {!row.isEnded && <LiveRankBadge requirementId={row.id} />}
                       </div>
@@ -460,6 +460,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                           <div className="flex items-center gap-1.5">
                             <Clock className={cn("h-3.5 w-3.5", deadline.urgent ? "text-amber-500" : "text-zinc-400")} />
                             <span
+                              suppressHydrationWarning
                               className={cn(
                                 "text-xs font-medium",
                                 deadline.urgent ? "font-bold text-amber-600" : "text-zinc-700"
@@ -475,14 +476,14 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                       <td className="px-6 py-4.5">
                         {row.isEnded ? (
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-zinc-950 tabular-nums">
-                              {row.newPrice ? `${Number(row.newPrice).toLocaleString()} ${row.currency || "SAR"}` : "No Quote Submitted"}
+                            <span suppressHydrationWarning className="font-bold text-zinc-950 tabular-nums">
+                              {row.newPrice ? `${Number(row.newPrice).toLocaleString("en-US")} ${row.currency || "SAR"}` : "No Quote Submitted"}
                             </span>
                           </div>
                         ) : isSubmitted ? (
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-zinc-950 tabular-nums">
-                              {row.newPrice ? `${Number(row.newPrice).toLocaleString()} ${row.currency || "SAR"}` : "Submitted"}
+                            <span suppressHydrationWarning className="font-bold text-zinc-950 tabular-nums">
+                              {row.newPrice ? `${Number(row.newPrice).toLocaleString("en-US")} ${row.currency || "SAR"}` : "Submitted"}
                             </span>
                             <LiveRankBadge requirementId={row.id} />
                           </div>

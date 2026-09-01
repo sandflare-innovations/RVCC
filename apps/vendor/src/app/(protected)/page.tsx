@@ -392,8 +392,8 @@ export default async function VendorDashboard() {
                         </div>
 
                         {bid.newPrice && (
-                          <p className="mt-1.5 text-[11px] font-bold text-white/95 tabular-nums">
-                            Your Bid: {Number(bid.newPrice).toLocaleString()} {bid.currency}
+                          <p suppressHydrationWarning className="mt-1.5 text-[11px] font-bold text-white/95 tabular-nums">
+                            Your Bid: {Number(bid.newPrice).toLocaleString("en-US")} {bid.currency}
                           </p>
                         )}
                       </div>
@@ -487,8 +487,8 @@ export default async function VendorDashboard() {
                       <h3 className="group-hover:text-brand-blue text-sm font-bold text-zinc-900 transition-colors">
                         {item.project}
                       </h3>
-                      <p className="mt-1 text-xs text-zinc-500">
-                        {item.newPrice ? `${Number(item.newPrice).toLocaleString()} ${item.currency || "SAR"}` : "Quote Submitted"}
+                      <p suppressHydrationWarning className="mt-1 text-xs text-zinc-500">
+                        {item.newPrice ? `${Number(item.newPrice).toLocaleString("en-US")} ${item.currency || "SAR"}` : "Quote Submitted"}
                       </p>
                     </div>
                   </div>

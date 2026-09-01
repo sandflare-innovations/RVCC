@@ -124,10 +124,10 @@ export function VendorRequirementInteractive({
             </div>
           </div>
           <div className="mt-4">
-            <p className="text-2xl font-black tracking-tight text-zinc-950 tabular-nums">
+            <p suppressHydrationWarning className="text-2xl font-black tracking-tight text-zinc-950 tabular-nums">
               {myPrice ? (
                 <>
-                  {Number(myPrice).toLocaleString()}{" "}
+                  {Number(myPrice).toLocaleString("en-US")}{" "}
                   <span className="text-xs font-bold text-brand-blue">{requirement.currency}</span>
                 </>
               ) : (
@@ -298,7 +298,7 @@ export function VendorRequirementInteractive({
                         </span>
                       </div>
                       <p className="mt-1.5 text-xs text-zinc-600 leading-relaxed">
-                        Your offer of <strong className="text-zinc-950">{Number(myPrice).toLocaleString()} {requirement.currency}</strong> is currently leading the evaluation. If other vendors submit lower revisions before the deadline, you will receive an alert to adjust your offer.
+                        Your offer of <strong suppressHydrationWarning className="text-zinc-950">{Number(myPrice).toLocaleString("en-US")} {requirement.currency}</strong> is currently leading the evaluation. If other vendors submit lower revisions before the deadline, you will receive an alert to adjust your offer.
                       </p>
                     </div>
                   </div>
@@ -314,7 +314,7 @@ export function VendorRequirementInteractive({
                         You Are Currently Rank #{myRank}
                       </h4>
                       <p className="mt-1.5 text-xs text-zinc-600 leading-relaxed">
-                        Your submitted offer is <strong className="text-zinc-950">{Number(myPrice).toLocaleString()} {requirement.currency}</strong>. You can submit a lower revised bid at any time before the sourcing closes to improve your position.
+                        Your submitted offer is <strong suppressHydrationWarning className="text-zinc-950">{Number(myPrice).toLocaleString("en-US")} {requirement.currency}</strong>. You can submit a lower revised bid at any time before the sourcing closes to improve your position.
                       </p>
                     </div>
                   </div>
@@ -370,8 +370,8 @@ export function VendorRequirementInteractive({
                     <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
                       Your Final Submitted Bid
                     </p>
-                    <p className="mt-1.5 text-2xl font-black text-zinc-950 tabular-nums">
-                      {myPrice ? `${Number(myPrice).toLocaleString()} ${requirement.currency}` : "No Quote Submitted"}
+                    <p suppressHydrationWarning className="mt-1.5 text-2xl font-black text-zinc-950 tabular-nums">
+                      {myPrice ? `${Number(myPrice).toLocaleString("en-US")} ${requirement.currency}` : "No Quote Submitted"}
                     </p>
                   </div>
                 </div>
