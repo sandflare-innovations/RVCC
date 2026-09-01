@@ -409,9 +409,51 @@ export async function handleQuoteSave(
 
     // Broadcast live ranking update to all connected Admin and Vendor SSE streams
     try {
-      void broadcastBidUpdate(requirementId);
+      void broadcastBidUpdate(requirementId, env);
     } catch (e) {
       console.warn("[broadcastBidUpdate] non-fatal broadcast error", e);
+    }
+
+    // Trigger Outbid Alerts to overtaken bidders
+    if (submit && numericPrice) {
+      void (async () => {
+        try {
+          const reqWithQuotes = await prisma.requirement.findUnique({
+            where: { id: requirementId },
+            select: {
+              project: true,
+              referenceNumber: true,
+              currency: true,
+              quotes: {
+                where: { status: "SUBMITTED", NOT: { vendorUserId: vendor.id } },
+                include: { vendorUser: { select: { email: true, name: true } } },
+                orderBy: { amountSar: "asc" },
+                take: 3,
+              },
+            },
+          });
+
+          if (reqWithQuotes && reqWithQuotes.quotes.length > 0) {
+            // The previously leading vendor who is now outbid
+            const previousLeader = reqWithQuotes.quotes[0];
+            if (previousLeader && previousLeader.amountSar && Number(amountSar) < Number(previousLeader.amountSar)) {
+              const { sendOutbidAlertEmail } = await import("../notifications/email-dispatcher");
+              await sendOutbidAlertEmail(env, {
+                requirementId,
+                projectName: reqWithQuotes.project,
+                referenceNumber: reqWithQuotes.referenceNumber || "RFQ",
+                overtakenVendorEmail: previousLeader.vendorUser.email,
+                overtakenVendorName: previousLeader.vendorUser.name,
+                newLowestPrice: numericPrice,
+                currency: selectedCurrency,
+                portalUrl: env.VENDOR_PORTAL_URL,
+              });
+            }
+          }
+        } catch (e) {
+          console.warn("[outbidAlert] non-fatal alert error", e);
+        }
+      })();
     }
 
     return json(env, request, {
