@@ -2,10 +2,10 @@ import { Hono } from "hono";
 
 import type { Env } from "./config/env";
 import { corsHeaders, json } from "./lib/http";
-import { prisma } from "./lib/prisma";
 import { handlePublicCareersRequest } from "./modules/public/careers";
 import { handleAdminRequest } from "./routes/admin";
 import { handleEnquireRequest } from "./routes/enquire";
+import { handleHealthCheck } from "./routes/health";
 import { handleVendorRequest } from "./routes/vendor";
 
 function rewritePath(request: Request, stripPrefix: string): Request {
@@ -30,19 +30,8 @@ export function createApp(env: Env) {
     return new Response(null, { status: 204, headers: corsHeaders(c.req.raw, env) });
   });
 
-  const checkHealth = async (c: any) => {
-    let dbStatus = "connected";
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-    } catch (e) {
-      dbStatus = "error";
-    }
-    const text = `API is working. Database is ${dbStatus}.`;
-    return new Response(text, { status: 200, headers: corsHeaders(c.req.raw, env) });
-  };
-
-  app.get("/", checkHealth);
-  app.get("/health", checkHealth);
+  app.get("/", (c) => handleHealthCheck(c.req.raw, env));
+  app.get("/health", (c) => handleHealthCheck(c.req.raw, env));
   app.on("HEAD", ["/health", "/"], (c) => {
     return new Response(null, { status: 204, headers: corsHeaders(c.req.raw, env) });
   });
