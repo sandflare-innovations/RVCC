@@ -408,9 +408,9 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
             })}
           </div>
 
-          {/* Desktop Table View (Exact Admin Panel Table Structure) */}
+          {/* Desktop Table View (Exact Admin Panel Table Structure with Fixed Height & Header) */}
           <div className="hidden flex-col overflow-hidden rounded-3xl border border-zinc-100/80 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.12)] lg:flex">
-            {/* Fixed Top Header Bar */}
+            {/* Fixed Top Header Bar (Always Fixed) */}
             <div className="bg-brand-blue mb-2 shrink-0 rounded-2xl px-6 py-3.5 text-white shadow-xs">
               <div className="grid grid-cols-12 items-center gap-3 text-xs font-semibold">
                 <div className="col-span-1 min-w-0 text-center">Rank</div>
@@ -422,8 +422,11 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
               </div>
             </div>
 
-            {/* Admin-Style Row Cards */}
-            <div className="space-y-2">
+            {/* Scrollable Data Rows Container (Internal Scroll Only on Overflow) */}
+            <div
+              data-lenis-prevent
+              className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 max-h-[calc(100vh-420px)] [scrollbar-width:thin] [-ms-overflow-style:none]"
+            >
               {displayedRows.map((row) => {
                 const deadline = describeDeadline(row.closesAt);
                 const isSubmitted = row.quoteStatus === "SUBMITTED";
