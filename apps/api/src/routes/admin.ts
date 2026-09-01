@@ -55,6 +55,7 @@ import {
   handleStaffPasswordReset,
   handleStaffUpdate,
 } from "../modules/admin/staff";
+import { enforceRateLimit } from "../lib/rate-limit";
 
 /**
  * Admin domain router. Paths are relative to `/admin` (e.g. `/auth/login`).
@@ -78,6 +79,8 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
 
   try {
     if (path === "/auth/login" && request.method === "POST") {
+      const limited = await enforceRateLimit(request, env, "admin:login", { limit: 6, windowSeconds: 60 });
+      if (limited) return limited;
       return await handleLogin(sql, env, request);
     }
     if (path === "/auth/logout" && request.method === "POST") {
@@ -87,12 +90,18 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       return await handleMe(sql, env, request);
     }
     if (path === "/auth/change-password/reset" && request.method === "POST") {
+      const limited = await enforceRateLimit(request, env, "admin:change-pass", { limit: 5, windowSeconds: 60 });
+      if (limited) return limited;
       return await handleAdminChangePasswordWithCurrent(sql, env, request);
     }
     if (path === "/auth/change-password/request-otp" && request.method === "POST") {
+      const limited = await enforceRateLimit(request, env, "admin:otp-req", { limit: 4, windowSeconds: 300 });
+      if (limited) return limited;
       return await handleAdminChangePasswordRequestOtp(sql, env, request);
     }
     if (path === "/auth/change-password/verify" && request.method === "POST") {
+      const limited = await enforceRateLimit(request, env, "admin:otp-verify", { limit: 5, windowSeconds: 60 });
+      if (limited) return limited;
       return await handleAdminChangePasswordVerify(sql, env, request);
     }
 

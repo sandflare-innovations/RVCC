@@ -15,6 +15,7 @@ import {
   handleVendorNotificationsMarkRead,
 } from "../modules/vendor/notifications";
 import { handleVendorLiveBids } from "../modules/bidding/live-bids";
+import { enforceRateLimit } from "../lib/rate-limit";
 
 /**
  * Vendor domain router. Paths are relative to `/vendor`.
@@ -29,7 +30,10 @@ export async function handleVendorRequest(request: Request, env: Env): Promise<R
   const path = url.pathname.replace(/\/+$/, "") || "/";
 
   try {
+
     if (path === "/auth/login" && request.method === "POST") {
+      const limited = await enforceRateLimit(request, env, "vendor:login", { limit: 8, windowSeconds: 60 });
+      if (limited) return limited;
       return await handleLogin(null, env, request);
     }
     if (path === "/auth/logout" && request.method === "POST") {
@@ -39,6 +43,8 @@ export async function handleVendorRequest(request: Request, env: Env): Promise<R
       return await handleMe(null, env, request);
     }
     if (path === "/auth/password" && request.method === "POST") {
+      const limited = await enforceRateLimit(request, env, "vendor:password", { limit: 5, windowSeconds: 60 });
+      if (limited) return limited;
       return await handlePassword(null, env, request);
     }
 
@@ -55,6 +61,8 @@ export async function handleVendorRequest(request: Request, env: Env): Promise<R
 
     const quoteSave = path.match(/^\/requirements\/([^/]+)\/quote$/);
     if (quoteSave && request.method === "PUT") {
+      const limited = await enforceRateLimit(request, env, "vendor:quote-save", { limit: 60, windowSeconds: 60 });
+      if (limited) return limited;
       return await handleQuoteSave(null, env, request, decodeURIComponent(quoteSave[1]!));
     }
 
