@@ -18,6 +18,9 @@ export type AppEnv = {
   DATABASE_READ_URL?: string;
   ALLOWED_ORIGINS: string;
   VENDOR_PORTAL_URL: string;
+  ADMIN_PORTAL_URL?: string;
+  UPSTASH_REDIS_REST_URL?: string;
+  UPSTASH_REDIS_REST_TOKEN?: string;
   SMTP_HOST?: string;
   SMTP_PORT?: string;
   SMTP_SECURE?: string;
@@ -55,6 +58,12 @@ export function loadEnv(): AppEnv {
       /\/$/,
       ""
     ),
+    ADMIN_PORTAL_URL: (process.env.ADMIN_PORTAL_URL || "https://rvcc-admin.vercel.app").replace(
+      /\/$/,
+      ""
+    ),
+    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL?.trim() || undefined,
+    UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN?.trim() || undefined,
     SMTP_HOST: process.env.SMTP_HOST,
     SMTP_PORT: process.env.SMTP_PORT,
     SMTP_SECURE: process.env.SMTP_SECURE,
