@@ -407,6 +407,26 @@ export async function handleQuoteSave(
       },
     });
 
+    // Record immutable bid history revision
+    if (numericPrice !== null) {
+      void prisma.quoteRevision
+        .create({
+          data: {
+            id: cuid(),
+            quoteId: saved.id,
+            requirementId,
+            vendorUserId: vendor.id,
+            currency: selectedCurrency as any,
+            exchangeRate,
+            price: numericPrice,
+            amountSar,
+            remarks: String(body.remarks ?? ""),
+            status: submit ? "SUBMITTED" : "DRAFT",
+          },
+        })
+        .catch((err) => console.error("[quoteRevision] write failed", err));
+    }
+
     // Broadcast live ranking update to all connected Admin and Vendor SSE streams
     try {
       void broadcastBidUpdate(requirementId, env);

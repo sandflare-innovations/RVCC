@@ -980,6 +980,7 @@ export async function handleRequirementGet(
       quotes: {
         include: {
           vendorUser: { select: { email: true, name: true } },
+          revisions: { orderBy: { createdAt: "desc" } },
         },
         orderBy: [{ submittedAt: { sort: "desc", nulls: "last" } }, { updatedAt: "desc" }],
       },
@@ -1018,6 +1019,14 @@ export async function handleRequirementGet(
       updatedAt: q.updatedAt.toISOString(),
       participantEmail: q.vendorUser.email,
       participantName: q.vendorUser.name,
+      revisions: q.revisions.map((r) => ({
+        id: r.id,
+        price: r.price ? String(r.price) : null,
+        amountSar: r.amountSar ? String(r.amountSar) : null,
+        currency: r.currency,
+        status: r.status,
+        createdAt: r.createdAt.toISOString(),
+      })),
       vendorUser: {
         email: q.vendorUser.email,
         name: q.vendorUser.name,
