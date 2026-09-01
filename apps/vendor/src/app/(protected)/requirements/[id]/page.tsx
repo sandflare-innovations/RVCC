@@ -1,22 +1,21 @@
 import { cookies } from "next/headers";
+import { ArrowLeft, Clock, ShieldCheck, Sparkles, Trophy } from "lucide-react";
+import Link from "next/link";
 
 import { BackButton } from "@/components/ui/back-button";
 import { VENDOR_COOKIE } from "@/lib/constants";
 import { describeDeadline } from "@/lib/rfq";
 import { vendorWorkerFetch } from "@/lib/vendor-api";
-import { type QuoteFormRequirement } from "@/sections/requirements/QuoteForm";
-import { VendorRequirementInteractive } from "@/sections/requirements/VendorRequirementInteractive";
+import { type VendorRequirementDetail, VendorRequirementInteractive } from "@/sections/requirements/VendorRequirementInteractive";
 
 export const dynamic = "force-dynamic";
-
-type Detail = QuoteFormRequirement & { status: string };
 
 export default async function RequirementPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const jar = await cookies();
   const token = jar.get(VENDOR_COOKIE)?.value;
 
-  let detail: Detail | null = null;
+  let detail: VendorRequirementDetail | null = null;
   try {
     const res = await vendorWorkerFetch(`/requirements/${encodeURIComponent(id)}`, {
       method: "GET",
@@ -24,7 +23,7 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
     });
     if (res.ok) {
       const data = await res.json();
-      detail = (data?.requirement ?? data) as Detail;
+      detail = (data?.requirement ?? data) as VendorRequirementDetail;
     }
   } catch (err) {
     console.error("[vendor] requirement fetch failed", err);
@@ -32,102 +31,105 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
 
   if (!detail) {
     return (
-      <p className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
-        This requirement is not available to you.
-      </p>
+      <div className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-xs">
+        <p className="text-base font-bold text-zinc-900">Requirement Not Available</p>
+        <p className="mt-1 text-sm text-zinc-500">This tender was not found or is restricted.</p>
+        <div className="mt-5">
+          <Link
+            href="/requirements"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-brand-blue px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:opacity-90"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to all tenders
+          </Link>
+        </div>
+      </div>
     );
   }
 
   const closed = new Date(detail.closesAt).getTime() <= Date.now() || detail.status !== "OPEN";
   const deadline = describeDeadline(detail.closesAt);
-  const submitted = detail.quoteStatus === "SUBMITTED";
-  const quoteState = submitted
-    ? "Submitted"
-    : detail.quoteStatus === "DRAFT"
-      ? "Draft saved, not submitted"
-      : "Not started";
 
   return (
     <div className="space-y-6">
-      <BackButton label="Back to requirements" />
+      {/* Top Navigation & Breadcrumb Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <BackButton label="Back to requirements" />
+          {detail.referenceNumber && (
+            <span className="font-mono rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-bold text-zinc-600">
+              {detail.referenceNumber}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {closed ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-300 bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-700">
+              <Clock className="h-3.5 w-3.5" /> Sourcing Closed
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+              </span>
+              Live Sourcing Open
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Main Requirement Title & Header Info */}
       <div>
-        <p className="font-mono text-xs text-zinc-500 tabular-nums">{detail.referenceNumber}</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950">
+        <h1 className="text-2xl font-black tracking-tight text-zinc-950 sm:text-3xl">
           {detail.project}
         </h1>
-        <p className="mt-3 text-sm whitespace-pre-wrap text-zinc-700">{detail.scopeOfWork}</p>
       </div>
 
-      <div
-        className={`rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm ${
-          deadline.urgent && !submitted && !closed ? "border-l-brand-blue border-l-4" : ""
-        }`}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold tracking-[0.12em] text-zinc-600 uppercase">
-              {closed ? "Closed" : "Closes"}
-            </p>
-            <p className="mt-1 text-lg font-bold text-zinc-950 tabular-nums">
-              {closed ? "This requirement has closed" : deadline.label}
-            </p>
-          </div>
-          <div className="text-left sm:text-right">
-            <p className="text-xs font-semibold tracking-[0.12em] text-zinc-600 uppercase">
-              Your Quote Status
-            </p>
-            <p className="mt-1 text-sm font-bold text-zinc-950">{quoteState}</p>
-          </div>
-        </div>
-        {deadline.urgent && !submitted && !closed ? (
-          <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-sm font-semibold text-amber-700">
-            Closing soon. Submit your price before the deadline.
-          </p>
-        ) : null}
-      </div>
-
+      {/* Sourcing Outcome Status Alerts (Awarded / Evaluating) */}
       {closed && (
         <div className="space-y-3">
-          {(detail as any).isAwardedToMe || (detail as any).endedStatus === "WON" ? (
-            <div className="flex items-center gap-3 rounded-2xl border border-emerald-300 bg-emerald-50/80 p-5 text-emerald-900 shadow-sm">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white font-bold">
+          {detail.isAwardedToMe || detail.endedStatus === "WON" ? (
+            <div className="flex items-center gap-4 rounded-3xl border border-emerald-300 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-100/60 p-6 text-emerald-950 shadow-sm">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white font-black text-2xl shadow-sm">
                 🏆
               </div>
               <div>
-                <p className="text-base font-bold">Congratulations! Tender Awarded to You</p>
+                <h2 className="text-lg font-black tracking-tight">Congratulations! Tender Awarded to You</h2>
                 <p className="mt-0.5 text-xs text-emerald-800">
-                  RVCC Procurement has selected and awarded your commercial quote for this project.
+                  RVCC Procurement has officially selected and awarded your commercial bid for this project.
                 </p>
               </div>
             </div>
-          ) : (detail as any).endedStatus === "UNDER_EVALUATION" ? (
-            <div className="flex items-center gap-3 rounded-2xl border border-amber-300 bg-amber-50/80 p-5 text-amber-900 shadow-sm">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white font-bold">
+          ) : detail.endedStatus === "UNDER_EVALUATION" ? (
+            <div className="flex items-center gap-4 rounded-3xl border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50/60 p-6 text-amber-950 shadow-sm">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-white font-black text-2xl shadow-sm">
                 ⏳
               </div>
               <div>
-                <p className="text-base font-bold">Sourcing Ended · Under Evaluation</p>
+                <h2 className="text-lg font-black tracking-tight">Sourcing Concluded · Under Commercial Evaluation</h2>
                 <p className="mt-0.5 text-xs text-amber-800">
-                  Bidding has concluded. Procurement officers are currently evaluating the submitted commercial quotes.
+                  The bidding window has closed. Procurement committees are currently reviewing all submitted proposals.
                 </p>
               </div>
             </div>
           ) : (
-            <p className="rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 text-sm text-zinc-600">
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50/90 px-5 py-4 text-xs font-semibold text-zinc-600">
               This requirement concluded on{" "}
               {new Date(detail.closesAt).toLocaleString("en-GB", {
                 day: "numeric",
                 month: "long",
+                year: "numeric",
                 hour: "2-digit",
                 minute: "2-digit",
               })}
               .
-            </p>
+            </div>
           )}
         </div>
       )}
 
-      {/* Live Bidding & Interactive Quote Form */}
+      {/* Grid-Based Interactive Procurement Workspace */}
       <VendorRequirementInteractive
         requirement={detail}
         action={`/api/requirements/${detail.id}/quote`}
