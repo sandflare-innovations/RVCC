@@ -34,8 +34,8 @@ export function EndedStatusBadge({ row }: { row: RequirementRow }) {
 
   if (row.isAwardedToMe || row.endedStatus === "WON") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-800 shadow-xs">
-        <Trophy className="h-3.5 w-3.5 text-yellow-500" />
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-bold text-brand-blue">
+        <Trophy className="h-3.5 w-3.5" />
         Won / Awarded
       </span>
     );
@@ -43,7 +43,7 @@ export function EndedStatusBadge({ row }: { row: RequirementRow }) {
 
   if (row.endedStatus === "UNDER_EVALUATION") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">
         <Clock className="h-3.5 w-3.5 text-amber-600" />
         Under Evaluation
       </span>
@@ -52,7 +52,7 @@ export function EndedStatusBadge({ row }: { row: RequirementRow }) {
 
   if (row.endedStatus === "LOST") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-100 px-2.5 py-0.5 text-xs font-semibold text-zinc-600">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-600">
         Not Awarded
       </span>
     );
@@ -60,7 +60,7 @@ export function EndedStatusBadge({ row }: { row: RequirementRow }) {
 
   if (row.endedStatus === "CANCELLED" || row.status === "CANCELLED") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
         <XCircle className="h-3.5 w-3.5 text-red-500" />
         Cancelled
       </span>
@@ -68,7 +68,7 @@ export function EndedStatusBadge({ row }: { row: RequirementRow }) {
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">
       Closed
     </span>
   );
@@ -190,62 +190,44 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
 
   return (
     <div className="space-y-8">
-      {/* Header Banner */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-950 sm:text-3xl">
-            Sourcing & Bids Workbench
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            View all invited RFQs, participate in live blind bidding, monitor L1 ranks, and track ended bid outcomes.
-          </p>
-        </div>
-      </div>
-
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-6">
+      {/* 1. Admin-Style Elevated KPI Metric Cards */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         {[
           {
             id: "all",
             label: "Total RFQs",
             count: counts.all,
-            icon: <Layers className="h-4 w-4 text-brand-blue" />,
-            bg: "bg-blue-50/60 border-blue-100",
+            icon: <Layers className="h-4 w-4" />,
           },
           {
             id: "running",
             label: "Running / Live",
             count: counts.running,
-            icon: <Flame className="h-4 w-4 text-amber-500" />,
-            bg: "bg-amber-50/60 border-amber-100",
+            icon: <Flame className="h-4 w-4" />,
           },
           {
             id: "invited",
             label: "Action Required",
             count: counts.invited,
-            icon: <Inbox className="h-4 w-4 text-blue-500" />,
-            bg: "bg-sky-50/60 border-sky-100",
+            icon: <Inbox className="h-4 w-4" />,
           },
           {
             id: "submitted",
             label: "Submitted Bids",
             count: counts.submitted,
-            icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
-            bg: "bg-emerald-50/60 border-emerald-100",
+            icon: <CheckCircle2 className="h-4 w-4" />,
           },
           {
             id: "ended",
             label: "Ended Bids",
             count: counts.ended,
-            icon: <History className="h-4 w-4 text-indigo-500" />,
-            bg: "bg-indigo-50/60 border-indigo-100",
+            icon: <History className="h-4 w-4" />,
           },
           {
             id: "drafts",
             label: "Saved Drafts",
             count: counts.drafts,
-            icon: <FileText className="h-4 w-4 text-purple-500" />,
-            bg: "bg-purple-50/60 border-purple-100",
+            icon: <FileText className="h-4 w-4" />,
           },
         ].map((kpi) => (
           <button
@@ -253,28 +235,29 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
             type="button"
             onClick={() => setActiveTab(kpi.id as TabType)}
             className={cn(
-              "flex flex-col items-start rounded-2xl border p-4 text-left transition-all",
-              kpi.bg,
-              activeTab === kpi.id
-                ? "border-brand-blue ring-2 ring-brand-blue/30 shadow-sm"
-                : "hover:border-zinc-300"
+              "group relative flex flex-col justify-between overflow-hidden rounded-3xl bg-white p-5 text-left shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(0,115,188,0.12)]",
+              activeTab === kpi.id ? "ring-2 ring-brand-blue/30 bg-brand-blue/5" : ""
             )}
           >
             <div className="flex w-full items-center justify-between">
-              <span className="text-xs font-semibold text-zinc-600">{kpi.label}</span>
-              {kpi.icon}
+              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase truncate">
+                {kpi.label}
+              </span>
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
+                {kpi.icon}
+              </div>
             </div>
-            <span className="mt-2 text-2xl font-black tracking-tight text-zinc-900">
+            <span className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-zinc-950 tabular-nums">
               {kpi.count}
             </span>
           </button>
         ))}
       </div>
 
-      {/* Control Bar: Tabs & Search */}
+      {/* 2. Control Bar: Elevated Filter Tabs & Live Search */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-1.5 rounded-2xl border border-zinc-200 bg-zinc-100/70 p-1.5 text-xs font-bold">
+        {/* Filter Tabs Container */}
+        <div className="flex flex-wrap gap-1 rounded-2xl bg-white p-1.5 shadow-[0_2px_12px_rgba(15,23,42,0.04),0_8px_24px_-8px_rgba(15,23,42,0.06)]">
           {[
             { id: "all", label: "All Bids", count: counts.all },
             { id: "running", label: "Running Bids", count: counts.running },
@@ -288,19 +271,19 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
               type="button"
               onClick={() => setActiveTab(tab.id as TabType)}
               className={cn(
-                "flex items-center gap-2 rounded-xl px-3 py-2 transition-all",
+                "flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all",
                 activeTab === tab.id
-                  ? "bg-white text-brand-blue shadow-sm"
-                  : "text-zinc-600 hover:text-zinc-900"
+                  ? "bg-brand-blue text-white shadow-xs"
+                  : "text-zinc-600 hover:text-zinc-950 hover:bg-zinc-50"
               )}
             >
               <span>{tab.label}</span>
               <span
                 className={cn(
-                  "rounded-full px-1.5 py-0.5 text-[10px]",
+                  "rounded-full px-1.5 py-0.5 text-[10px] tabular-nums font-bold",
                   activeTab === tab.id
-                    ? "bg-brand-blue/10 text-brand-blue"
-                    : "bg-zinc-200 text-zinc-600"
+                    ? "bg-white/20 text-white"
+                    : "bg-zinc-100 text-zinc-600"
                 )}
               >
                 {tab.count}
@@ -309,29 +292,29 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
           ))}
         </div>
 
-        {/* Live Search Box */}
-        <div className="relative w-full sm:w-72">
+        {/* Live Search Input */}
+        <div className="relative w-full sm:w-80">
           <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
             placeholder="Search project or RFQ #..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-zinc-200 bg-white py-2 pr-4 pl-10 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 focus:outline-none"
+            className="w-full rounded-2xl border border-zinc-200/80 bg-white py-2.5 pr-4 pl-10 text-sm text-zinc-950 placeholder:text-zinc-400 shadow-[0_2px_12px_rgba(15,23,42,0.04),0_8px_24px_-8px_rgba(15,23,42,0.06)] focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 focus:outline-none transition-all"
           />
         </div>
       </div>
 
-      {/* Empty State */}
+      {/* 3. Content: Empty State or Admin-Style Data Table */}
       {displayedRows.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-zinc-200 bg-white p-12 text-center shadow-sm">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-brand-blue mb-4">
+        <div className="flex flex-col items-center justify-center rounded-3xl bg-white p-14 text-center shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)]">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue mb-4">
             <Inbox className="h-7 w-7" />
           </div>
-          <h3 className="text-base font-bold text-zinc-900">
+          <h3 className="text-base font-bold text-zinc-950">
             {searchQuery ? "No matching tenders found" : "No tenders in this category"}
           </h3>
-          <p className="mt-1.5 max-w-md text-xs text-zinc-500">
+          <p className="mt-1.5 max-w-md text-xs text-zinc-400">
             {searchQuery
               ? `No RFQs matching "${searchQuery}". Try searching with a different keyword or project title.`
               : "When RFQs are published, invited, or concluded, they will appear in this workbench."}
@@ -340,7 +323,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="mt-4 rounded-full bg-zinc-100 px-4 py-1.5 text-xs font-bold text-zinc-700 hover:bg-zinc-200 transition-colors"
+              className="mt-5 rounded-2xl bg-zinc-100 px-5 py-2 text-xs font-bold text-zinc-700 hover:bg-zinc-200 transition-colors"
             >
               Clear search filter
             </button>
@@ -358,45 +341,38 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
               return (
                 <div
                   key={row.id}
-                  className={cn(
-                    "rounded-2xl border bg-white p-5 shadow-sm transition-all",
-                    row.isEnded
-                      ? "border-zinc-200 bg-zinc-50/40"
-                      : deadline.urgent && !isSubmitted
-                        ? "border-amber-300 ring-1 ring-amber-300"
-                        : "border-zinc-200"
-                  )}
+                  className="rounded-3xl bg-white p-6 shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)] transition-all hover:shadow-[0_8px_28px_rgba(0,115,188,0.12)]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <span className="font-mono text-xs font-semibold text-zinc-500">
+                      <span className="font-mono rounded-lg bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-700">
                         {row.referenceNumber ?? "RFQ-PENDING"}
                       </span>
-                      <h3 className="mt-0.5 text-base font-bold text-zinc-900">{row.project}</h3>
+                      <h3 className="mt-2 text-base font-bold text-zinc-950">{row.project}</h3>
                     </div>
                     {row.isEnded ? (
                       <EndedStatusBadge row={row} />
                     ) : isSubmitted ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-bold text-brand-blue">
                         <CheckCircle2 className="h-3.5 w-3.5" /> Submitted
                       </span>
                     ) : isDraft ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2.5 py-1 text-xs font-bold text-purple-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-700">
                         <FileText className="h-3.5 w-3.5" /> Draft Saved
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-brand-blue">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-bold text-brand-blue">
                         <Sparkles className="h-3.5 w-3.5" /> Action Required
                       </span>
                     )}
                   </div>
 
-                  <p className="mt-2 line-clamp-2 text-xs text-zinc-600 leading-relaxed">
+                  <p className="mt-3 line-clamp-2 text-xs text-zinc-500 leading-relaxed">
                     {row.scopeOfWork}
                   </p>
 
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-3 text-xs">
-                    <div className="flex items-center gap-1 text-zinc-500">
+                  <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-3.5 text-xs">
+                    <div className="flex items-center gap-1.5 text-zinc-400">
                       <Clock className="h-3.5 w-3.5" />
                       <span className={deadline.urgent && !row.isEnded ? "font-bold text-amber-600" : ""}>
                         {row.isEnded ? "Bidding Concluded" : deadline.label}
@@ -405,7 +381,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
 
                     {row.newPrice && (
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-zinc-900">
+                        <span className="font-bold text-zinc-950 tabular-nums">
                           {Number(row.newPrice).toLocaleString()} {row.currency || "SAR"}
                         </span>
                         {!row.isEnded && <LiveRankBadge requirementId={row.id} />}
@@ -417,15 +393,13 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                     <Link
                       href={`/requirements/${row.id}`}
                       className={cn(
-                        "flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all",
-                        row.isEnded
-                          ? "border border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50"
-                          : isSubmitted
-                            ? "border border-zinc-200 bg-zinc-50 text-zinc-800 hover:bg-zinc-100"
-                            : "bg-brand-blue text-white hover:bg-brand-blue/90 shadow-sm"
+                        "flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-xs font-bold transition-all",
+                        row.isEnded || isSubmitted
+                          ? "bg-zinc-100 text-zinc-800 hover:bg-zinc-200"
+                          : "bg-brand-blue text-white hover:opacity-90 shadow-[0_4px_16px_rgba(0,115,188,0.25)]"
                       )}
                     >
-                      <span>{row.isEnded ? "View Outcome & Details" : isSubmitted ? "View / Revise Bid" : isDraft ? "Resume Quote" : "Enter Bid Cockpit"}</span>
+                      <span>{row.isEnded ? "View Outcome & Details" : isSubmitted ? "View / Revise Bid" : isDraft ? "Resume Quote" : "Enter Bid Workspace"}</span>
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
@@ -434,16 +408,16 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
             })}
           </div>
 
-          {/* Desktop Table View (lg:block) */}
-          <div className="hidden overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm lg:block">
+          {/* Desktop Table View (Admin-Style Borderless Elevated Table) */}
+          <div className="hidden overflow-hidden rounded-3xl bg-white shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)] lg:block">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-zinc-200 bg-zinc-50/80 text-xs font-bold tracking-wider text-zinc-600 uppercase">
+              <thead className="border-b border-zinc-100 bg-zinc-50/70 text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
                 <tr>
-                  <th className="px-6 py-4">Tender / Project</th>
-                  <th className="px-6 py-4">Reference #</th>
-                  <th className="px-6 py-4">Status / Deadline</th>
-                  <th className="px-6 py-4">Your Quote & Ranking</th>
-                  <th className="px-6 py-4 text-right">Action</th>
+                  <th className="px-6 py-4.5">Tender / Project</th>
+                  <th className="px-6 py-4.5">Reference #</th>
+                  <th className="px-6 py-4.5">Status / Deadline</th>
+                  <th className="px-6 py-4.5">Your Bid & Standing</th>
+                  <th className="px-6 py-4.5 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
@@ -455,13 +429,10 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                   return (
                     <tr
                       key={row.id}
-                      className={cn(
-                        "group transition-colors hover:bg-blue-50/30",
-                        row.isEnded && "bg-zinc-50/30"
-                      )}
+                      className="group transition-colors hover:bg-zinc-50/60"
                     >
                       {/* Project & Scope */}
-                      <td className="px-6 py-4 max-w-sm">
+                      <td className="px-6 py-4.5 max-w-sm">
                         <Link
                           href={`/requirements/${row.id}`}
                           className="font-bold text-zinc-950 group-hover:text-brand-blue transition-colors flex items-center gap-1.5"
@@ -469,18 +440,20 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                           <span>{row.project}</span>
                           <ExternalLink className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </Link>
-                        <p className="mt-0.5 line-clamp-1 text-xs text-zinc-500">
+                        <p className="mt-0.5 line-clamp-1 text-xs text-zinc-400">
                           {row.scopeOfWork}
                         </p>
                       </td>
 
                       {/* Reference # */}
-                      <td className="px-6 py-4 font-mono text-xs font-semibold text-zinc-600">
-                        {row.referenceNumber ?? "—"}
+                      <td className="px-6 py-4.5">
+                        <span className="font-mono rounded-lg bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-700">
+                          {row.referenceNumber ?? "—"}
+                        </span>
                       </td>
 
                       {/* Status / Deadline */}
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4.5">
                         {row.isEnded ? (
                           <EndedStatusBadge row={row} />
                         ) : (
@@ -499,42 +472,40 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                       </td>
 
                       {/* Your Quote & Ranking */}
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4.5">
                         {row.isEnded ? (
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-zinc-950">
+                            <span className="font-bold text-zinc-950 tabular-nums">
                               {row.newPrice ? `${Number(row.newPrice).toLocaleString()} ${row.currency || "SAR"}` : "No Quote Submitted"}
                             </span>
                           </div>
                         ) : isSubmitted ? (
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-zinc-950">
+                            <span className="font-bold text-zinc-950 tabular-nums">
                               {row.newPrice ? `${Number(row.newPrice).toLocaleString()} ${row.currency || "SAR"}` : "Submitted"}
                             </span>
                             <LiveRankBadge requirementId={row.id} />
                           </div>
                         ) : isDraft ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2.5 py-1 text-xs font-bold text-purple-700">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-700">
                             <FileText className="h-3 w-3" /> Draft saved
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-brand-blue">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-bold text-brand-blue">
                             <Sparkles className="h-3 w-3" /> Action Required
                           </span>
                         )}
                       </td>
 
                       {/* Action Button */}
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4.5 text-right">
                         <Link
                           href={`/requirements/${row.id}`}
                           className={cn(
                             "inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition-all",
-                            row.isEnded
-                              ? "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
-                              : isSubmitted
-                                ? "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300"
-                                : "bg-brand-blue text-white hover:bg-brand-blue/90 shadow-sm"
+                            row.isEnded || isSubmitted
+                              ? "bg-zinc-100 text-zinc-800 hover:bg-zinc-200"
+                              : "bg-brand-blue text-white hover:opacity-90 shadow-xs"
                           )}
                         >
                           <span>{row.isEnded ? "View Details" : isSubmitted ? "View / Revise" : isDraft ? "Resume" : "Bid Now"}</span>
