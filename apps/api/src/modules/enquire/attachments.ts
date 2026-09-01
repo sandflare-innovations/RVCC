@@ -10,6 +10,8 @@ import {
   storageKeyForRegistration,
   uploadStorageConfigured,
   validateUploadFile,
+  detectMagicMime,
+  validateUploadBytes,
 } from "../../lib/storage";
 import { cuid } from "../../lib/sql";
 import { loadRegistration } from "./db";
@@ -63,7 +65,13 @@ export function createAttachmentHandlers(resolveRegistration: ResolveRegistratio
 
       const key = storageKeyForRegistration(registration.id, section, file.name);
       const bytes = await file.arrayBuffer();
-      const mimeType = file.type || "application/octet-stream";
+      const byteError = validateUploadBytes(new Uint8Array(bytes), {
+        maxBytes: MAX_REGISTRATION_ATTACHMENT_BYTES,
+      });
+      if (byteError) return json(env, request, { error: byteError }, 400);
+
+      const detectedMime = detectMagicMime(new Uint8Array(bytes));
+      const mimeType = detectedMime || file.type || "application/octet-stream";
 
       try {
         await putUpload(env, key, bytes, mimeType);

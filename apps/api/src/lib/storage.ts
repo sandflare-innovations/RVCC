@@ -113,6 +113,51 @@ export async function deleteUpload(env: Env, key: string): Promise<void> {
   await client.fetch(url, { method: "DELETE" }).catch(() => undefined);
 }
 
+export function detectMagicMime(bytes: Uint8Array): string | null {
+  if (bytes.length >= 4) {
+    // PDF signature: %PDF- (0x25 0x50 0x44 0x46)
+    if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) {
+      return PDF;
+    }
+    // PNG signature: 89 50 4E 47 0D 0A 1A 0A
+    if (
+      bytes.length >= 8 &&
+      bytes[0] === 0x89 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x4e &&
+      bytes[3] === 0x47 &&
+      bytes[4] === 0x0d &&
+      bytes[5] === 0x0a &&
+      bytes[6] === 0x1a &&
+      bytes[7] === 0x0a
+    ) {
+      return PNG;
+    }
+    // JPEG signature: FF D8 FF
+    if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+      return JPEG;
+    }
+  }
+  return null;
+}
+
+export function validateUploadBytes(
+  bytes: Uint8Array,
+  opts: { maxBytes: number; allowedMimes?: Set<string> }
+): string | null {
+  if (!bytes.length) return "File is empty";
+  if (bytes.length > opts.maxBytes) {
+    const mb = Math.round(opts.maxBytes / (1024 * 1024));
+    return `File must be ${mb} MB or smaller`;
+  }
+  const detected = detectMagicMime(bytes);
+  const allowed = opts.allowedMimes ?? ALLOWED_UPLOAD_MIMES;
+  if (!detected || !allowed.has(detected)) {
+    return "File content signature is invalid or not allowed — only authentic PDF, JPEG, or PNG files are accepted";
+  }
+  return null;
+}
+
 export function validateUploadFile(
   file: File,
   opts: { maxBytes: number; allowedMimes?: Set<string> }

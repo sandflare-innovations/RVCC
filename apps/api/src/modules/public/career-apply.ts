@@ -7,6 +7,8 @@ import {
   storageKeyForCareer,
   uploadStorageConfigured,
   validateUploadFile,
+  validateUploadBytes,
+  detectMagicMime,
 } from "../../lib/storage";
 import { cuid } from "../../lib/sql";
 import { prisma } from "../../lib/prisma";
@@ -55,9 +57,17 @@ export async function handleCareerApply(
 
   const key = storageKeyForCareer(jobPostingId, cv.name);
   const bytes = await cv.arrayBuffer();
+  const byteError = validateUploadBytes(new Uint8Array(bytes), {
+    maxBytes: MAX_CV_BYTES,
+    allowedMimes: new Set(["application/pdf"]),
+  });
+  if (byteError) return json(env, request, { error: byteError }, 400);
+
+  const detectedMime = detectMagicMime(new Uint8Array(bytes));
+  const mimeType = detectedMime || cv.type || "application/pdf";
 
   try {
-    await putUpload(env, key, bytes, cv.type || "application/pdf");
+    await putUpload(env, key, bytes, mimeType);
   } catch (err) {
     console.error("[careers/apply] upload", err);
     return json(env, request, { error: "Failed to store CV" }, 500);
@@ -65,7 +75,6 @@ export async function handleCareerApply(
 
   const id = cuid();
   const fileUrl = publicUploadUrl(env, key);
-  const mimeType = cv.type || "application/pdf";
 
   await prisma.jobApplication.create({
     data: {
