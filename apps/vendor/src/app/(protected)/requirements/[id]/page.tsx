@@ -31,15 +31,15 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
 
   if (!detail) {
     return (
-      <div className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-xs">
-        <p className="text-base font-bold text-zinc-900">Requirement Not Available</p>
-        <p className="mt-1 text-sm text-zinc-500">This tender was not found or is restricted.</p>
-        <div className="mt-5">
+      <div className="rounded-3xl bg-white p-12 text-center shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)]">
+        <p className="text-lg font-bold text-zinc-950">Requirement Not Available</p>
+        <p className="mt-1 text-sm text-zinc-400">This tender was not found or has been restricted.</p>
+        <div className="mt-6">
           <Link
             href="/requirements"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-brand-blue px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:opacity-90"
+            className="inline-flex items-center gap-2 rounded-2xl bg-brand-blue px-6 py-3 text-xs font-bold text-white shadow-[0_4px_16px_rgba(0,115,188,0.25)] hover:opacity-90 transition-all"
           >
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to all tenders
+            <ArrowLeft className="h-4 w-4" /> Back to all tenders
           </Link>
         </div>
       </div>
@@ -50,13 +50,13 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
   const deadline = describeDeadline(detail.closesAt);
 
   return (
-    <div className="space-y-6">
-      {/* Top Navigation & Breadcrumb Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+    <div className="space-y-8">
+      {/* Top Navigation & Breadcrumb Header Card */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-3">
           <BackButton label="Back to requirements" />
           {detail.referenceNumber && (
-            <span className="font-mono rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-bold text-zinc-600">
+            <span className="font-mono rounded-xl bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-700">
               {detail.referenceNumber}
             </span>
           )}
@@ -64,14 +64,14 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
 
         <div className="flex items-center gap-2">
           {closed ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-300 bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-700">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-3.5 py-1.5 text-xs font-bold text-zinc-700">
               <Clock className="h-3.5 w-3.5" /> Sourcing Closed
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+            <span className="inline-flex items-center gap-2 rounded-full bg-brand-blue/10 px-4 py-1.5 text-xs font-bold text-brand-blue">
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-blue opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-blue"></span>
               </span>
               Live Sourcing Open
             </span>
@@ -79,42 +79,42 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
         </div>
       </div>
 
-      {/* Main Requirement Title & Header Info */}
-      <div>
-        <h1 className="text-2xl font-black tracking-tight text-zinc-950 sm:text-3xl">
+      {/* Main Requirement Title */}
+      <div className="pb-1">
+        <h1 className="text-3xl font-black tracking-tight text-zinc-950 sm:text-4xl">
           {detail.project}
         </h1>
       </div>
 
       {/* Sourcing Outcome Status Alerts (Awarded / Evaluating) */}
       {closed && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {detail.isAwardedToMe || detail.endedStatus === "WON" ? (
-            <div className="flex items-center gap-4 rounded-3xl border border-emerald-300 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-100/60 p-6 text-emerald-950 shadow-sm">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white font-black text-2xl shadow-sm">
+            <div className="flex items-center gap-5 rounded-3xl bg-gradient-to-r from-brand-blue/15 via-brand-blue/10 to-white p-7 text-zinc-950 shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)]">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-blue text-white font-black text-2xl shadow-md">
                 🏆
               </div>
               <div>
-                <h2 className="text-lg font-black tracking-tight">Congratulations! Tender Awarded to You</h2>
-                <p className="mt-0.5 text-xs text-emerald-800">
+                <h2 className="text-xl font-black tracking-tight text-zinc-950">Congratulations! Tender Awarded to You</h2>
+                <p className="mt-1 text-xs font-medium text-zinc-600">
                   RVCC Procurement has officially selected and awarded your commercial bid for this project.
                 </p>
               </div>
             </div>
           ) : detail.endedStatus === "UNDER_EVALUATION" ? (
-            <div className="flex items-center gap-4 rounded-3xl border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50/60 p-6 text-amber-950 shadow-sm">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-white font-black text-2xl shadow-sm">
+            <div className="flex items-center gap-5 rounded-3xl bg-zinc-50 p-7 text-zinc-950 shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)]">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-blue text-white font-black text-2xl shadow-md">
                 ⏳
               </div>
               <div>
-                <h2 className="text-lg font-black tracking-tight">Sourcing Concluded · Under Commercial Evaluation</h2>
-                <p className="mt-0.5 text-xs text-amber-800">
+                <h2 className="text-xl font-black tracking-tight text-zinc-950">Sourcing Concluded · Under Commercial Evaluation</h2>
+                <p className="mt-1 text-xs font-medium text-zinc-600">
                   The bidding window has closed. Procurement committees are currently reviewing all submitted proposals.
                 </p>
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50/90 px-5 py-4 text-xs font-semibold text-zinc-600">
+            <div className="rounded-3xl bg-zinc-50 p-6 text-xs font-semibold text-zinc-600 shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)]">
               This requirement concluded on{" "}
               {new Date(detail.closesAt).toLocaleString("en-GB", {
                 day: "numeric",
@@ -138,3 +138,4 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
     </div>
   );
 }
+

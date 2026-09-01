@@ -185,18 +185,18 @@ export function QuoteForm({
 
       <label className="block space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold tracking-[0.14em] text-zinc-600 uppercase">
-            {isRevising ? "Your Revised Bid Price" : "Your Price"}
+          <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">
+            {isRevising ? "Your Revised Bid Price" : "Your Commercial Price"}
           </span>
           {isSubmitted && !isRevising && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-bold text-brand-blue">
               <CheckCircle2 className="h-3 w-3" /> Submitted
             </span>
           )}
         </div>
-        <div className="focus-within:border-brand-blue focus-within:ring-brand-blue flex w-full overflow-hidden rounded-xl border border-zinc-300 bg-white transition-all focus-within:ring-1">
+        <div className="focus-within:border-brand-blue focus-within:ring-2 focus-within:ring-brand-blue/20 flex w-full overflow-hidden rounded-2xl border border-zinc-200 bg-white transition-all shadow-2xs">
           <select
-            className={`border-r border-zinc-300 bg-zinc-50 px-3 py-2.5 text-sm font-bold text-zinc-600 focus:outline-none ${isFormLocked ? "opacity-70" : ""}`}
+            className={`border-r border-zinc-200 bg-zinc-50 px-3.5 py-3 text-sm font-bold text-zinc-700 focus:outline-none ${isFormLocked ? "opacity-70" : ""}`}
             value={currency}
             onChange={(e) => {
               if (error) setError(null);
@@ -213,7 +213,7 @@ export function QuoteForm({
           <input
             type="text"
             inputMode="decimal"
-            className={`w-full px-3.5 py-2.5 text-base font-semibold transition-all focus:outline-none ${
+            className={`w-full px-4 py-3 text-base font-bold transition-all focus:outline-none ${
               isFormLocked ? "bg-zinc-50 text-zinc-600" : "bg-white text-zinc-950"
             }`}
             value={price}
@@ -226,8 +226,8 @@ export function QuoteForm({
           />
         </div>
         {currency !== "SAR" && (
-          <p className="text-[11px] font-medium text-zinc-500">
-            * Bids are normalized to SAR at today's exchange rate for fair evaluation.
+          <p className="text-[11px] font-medium text-zinc-400">
+            * Bids are normalized to SAR at today's official exchange rate for fair evaluation.
           </p>
         )}
       </label>
@@ -235,8 +235,8 @@ export function QuoteForm({
       {/* Quote Document Attachments Section */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold tracking-[0.14em] text-zinc-600 uppercase flex items-center gap-1.5">
-            <Paperclip className="h-3.5 w-3.5 text-zinc-500" /> Supporting Documents / Quotation PDF (Optional)
+          <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase flex items-center gap-1.5">
+            <Paperclip className="h-3.5 w-3.5 text-zinc-400" /> Supporting Documents / Quotation PDF (Optional)
           </span>
           <span className="text-[11px] text-zinc-400">PDF, PNG, JPG up to 15MB</span>
         </div>
@@ -247,10 +247,10 @@ export function QuoteForm({
             {attachments.map((att) => (
               <div
                 key={att.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-zinc-50/80 px-3.5 py-2.5 text-sm transition-all"
+                className="flex items-center justify-between gap-3 rounded-2xl bg-zinc-50 p-3.5 text-sm transition-all hover:bg-zinc-100/70"
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-brand-blue border border-blue-100">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
                     <FileText className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
@@ -258,12 +258,12 @@ export function QuoteForm({
                       href={att.fileUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="block truncate font-semibold text-zinc-900 hover:text-brand-blue transition-colors"
+                      className="block truncate font-bold text-zinc-900 hover:text-brand-blue transition-colors"
                       title={att.fileName}
                     >
                       {att.fileName}
                     </a>
-                    <span className="text-[11px] text-zinc-400 tabular-nums">
+                    <span className="text-[11px] font-medium text-zinc-400 tabular-nums">
                       {formatBytes(att.fileSize)}
                     </span>
                   </div>
@@ -274,7 +274,7 @@ export function QuoteForm({
                     type="button"
                     disabled={deletingId === att.id || busy}
                     onClick={() => handleDeleteAttachment(att.id)}
-                    className="shrink-0 rounded-lg p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50"
+                    className="shrink-0 rounded-xl p-2 text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50"
                     title="Remove file"
                   >
                     {deletingId === att.id ? (
@@ -303,7 +303,7 @@ export function QuoteForm({
             />
             <label
               htmlFor="quote-file-upload"
-              className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 px-4 py-3 text-xs font-bold text-zinc-700 transition-all hover:border-brand-blue hover:bg-blue-50/30 hover:text-brand-blue ${
+              className={`flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 px-4 py-3.5 text-xs font-bold text-zinc-700 transition-all hover:border-brand-blue hover:bg-brand-blue/5 hover:text-brand-blue ${
                 uploading ? "opacity-60 pointer-events-none" : ""
               }`}
             >
@@ -324,14 +324,14 @@ export function QuoteForm({
       </div>
 
       <label className="block space-y-2">
-        <span className="text-xs font-bold tracking-[0.14em] text-zinc-600 uppercase">
+        <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">
           Remarks (optional)
         </span>
         <textarea
-          className={`min-h-[90px] w-full rounded-xl border px-3.5 py-2.5 text-sm transition-all ${
+          className={`min-h-[90px] w-full rounded-2xl border p-3.5 text-sm transition-all ${
             isFormLocked
               ? "border-zinc-200 bg-zinc-50 text-zinc-600"
-              : "focus:border-brand-blue focus:ring-brand-blue border-zinc-300 bg-white text-zinc-950 focus:ring-1"
+              : "border-zinc-200 bg-white text-zinc-950 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 focus:outline-none"
           }`}
           value={remarks}
           onChange={(e) => {
@@ -339,19 +339,19 @@ export function QuoteForm({
             setRemarks(e.target.value);
           }}
           disabled={isFormLocked || busy}
-          placeholder="Add any details, delivery schedules, or warranty terms..."
+          placeholder="Add any delivery schedules, warranty terms, or remarks..."
         />
       </label>
 
       {isSubmitted && !isRevising ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <p className="text-xs text-zinc-500">
+        <div className="flex flex-col gap-3 pt-2">
+          <p className="text-xs font-medium text-zinc-400">
             Bid recorded. You can submit a lower revision or update files anytime before the deadline.
           </p>
           <button
             type="button"
             onClick={() => setIsRevising(true)}
-            className="border-brand-blue/30 bg-brand-blue/5 text-brand-blue hover:bg-brand-blue/10 inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition-colors"
+            className="w-full bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/15 inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition-colors"
           >
             <Edit3 className="h-4 w-4" /> Revise Price / Update Documents
           </button>
@@ -363,7 +363,7 @@ export function QuoteForm({
               type="button"
               disabled={busy || uploading}
               onClick={() => void save(false)}
-              className="inline-flex min-h-11 items-center rounded-xl border border-zinc-300 bg-white px-5 text-sm font-semibold text-zinc-700 hover:border-zinc-400 disabled:opacity-55"
+              className="inline-flex min-h-12 items-center rounded-2xl bg-zinc-100 px-5 text-sm font-bold text-zinc-700 hover:bg-zinc-200 transition-all disabled:opacity-55"
             >
               {busy ? "Saving…" : "Save Draft"}
             </button>
@@ -377,7 +377,7 @@ export function QuoteForm({
                 setPrice(requirement.newPrice ?? "");
                 setIsRevising(false);
               }}
-              className="inline-flex min-h-11 items-center rounded-xl border border-zinc-200 bg-zinc-100 px-4 text-sm font-semibold text-zinc-700 hover:bg-zinc-200"
+              className="inline-flex min-h-12 items-center rounded-2xl bg-zinc-100 px-4 text-sm font-bold text-zinc-700 hover:bg-zinc-200 transition-all"
             >
               Cancel
             </button>
@@ -387,7 +387,7 @@ export function QuoteForm({
             type="button"
             disabled={busy || uploading || !price.trim()}
             onClick={() => void save(true)}
-            className="bg-brand-blue inline-flex min-h-11 items-center gap-2 rounded-xl px-6 text-sm font-bold text-white shadow-sm hover:opacity-90 disabled:opacity-55"
+            className="bg-brand-blue flex-1 inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-6 text-sm font-bold text-white shadow-[0_4px_16px_rgba(0,115,188,0.25)] hover:opacity-90 transition-all disabled:opacity-55"
           >
             {isRevising ? (
               <>
