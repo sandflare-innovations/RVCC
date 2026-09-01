@@ -552,10 +552,24 @@ model Quote {
 
   awardedFor    Requirement? @relation("AwardedQuote")
   revisions     QuoteRevision[]
+  attachments   QuoteAttachment[]
 
   @@unique([requirementId, vendorUserId])
   @@index([requirementId, status])
   @@index([deletedAt])
+}
+
+model QuoteAttachment {
+  id          String    @id @default(cuid())
+  quoteId     String
+  quote       Quote     @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  fileName    String
+  fileUrl     String
+  fileSize    Int       @default(0)
+  mimeType    String    @default("application/pdf")
+  uploadedAt  DateTime  @default(now())
+
+  @@index([quoteId])
 }
 
 model QuoteRevision {
