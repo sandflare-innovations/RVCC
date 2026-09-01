@@ -1,60 +1,68 @@
 "use client";
 
-import { Medal } from "lucide-react";
-
 import { useVendorLiveBidding } from "@/hooks/use-vendor-live-bidding";
 
-export function LiveRankBadge({ requirementId }: { requirementId: string }) {
+export function LiveRankBadge({
+  requirementId,
+  fallbackRank,
+}: {
+  requirementId: string;
+  fallbackRank?: number | null;
+}) {
   const { data, status } = useVendorLiveBidding(requirementId);
 
-  if (status !== "live" || !data) {
+  const rank = status === "live" && data ? data.myRank : fallbackRank ?? null;
+
+  if (rank === 1) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold text-zinc-500">
-        <span className="relative flex h-1.5 w-1.5">
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-zinc-400"></span>
-        </span>
-        Connecting...
-      </span>
+      <div
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-400 font-black text-amber-950 shadow-xs border border-amber-300 text-xs"
+        title="Rank #1 (Lowest Offer)"
+      >
+        #1
+      </div>
     );
   }
 
-  const rank = data.myRank;
-
-  if (rank === null) {
+  if (rank === 2) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold text-zinc-600">
-        Not ranked
-      </span>
+      <div
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-slate-300 via-slate-100 to-slate-200 font-black text-slate-800 shadow-xs border border-slate-300 text-xs"
+        title="Rank #2"
+      >
+        #2
+      </div>
     );
   }
 
-  const getRankStyle = (r: number) => {
-    if (r === 1) return "bg-yellow-50 text-yellow-700 border-yellow-200 shadow-sm";
-    if (r === 2) return "bg-slate-50 text-slate-700 border-slate-200 shadow-sm";
-    if (r === 3) return "bg-amber-50 text-amber-800 border-amber-200 shadow-sm";
-    return "bg-brand-blue/5 text-brand-blue border-brand-blue/20";
-  };
+  if (rank === 3) {
+    return (
+      <div
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-700 via-orange-400 to-amber-600 font-black text-white shadow-xs border border-amber-600 text-xs"
+        title="Rank #3"
+      >
+        #3
+      </div>
+    );
+  }
 
-  const getRankIconStyle = (r: number) => {
-    if (r === 1) return "text-yellow-500";
-    if (r === 2) return "text-slate-400";
-    if (r === 3) return "text-amber-700";
-    return "text-brand-blue";
-  };
+  if (rank != null && rank > 3) {
+    return (
+      <div
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-blue/10 font-bold text-brand-blue text-xs"
+        title={`Rank #${rank}`}
+      >
+        #{rank}
+      </div>
+    );
+  }
 
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold transition-colors ${getRankStyle(rank)}`}
+    <div
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-100 font-bold text-zinc-400 text-xs"
+      title="Not Ranked"
     >
-      {rank <= 3 ? (
-        <Medal className={`h-3.5 w-3.5 drop-shadow-sm ${getRankIconStyle(rank)}`} />
-      ) : (
-        <span className="relative flex h-2 w-2">
-          <span className="bg-brand-blue absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
-          <span className="bg-brand-blue relative inline-flex h-2 w-2 rounded-full"></span>
-        </span>
-      )}
-      Live Rank #{rank}
-    </span>
+      —
+    </div>
   );
 }
