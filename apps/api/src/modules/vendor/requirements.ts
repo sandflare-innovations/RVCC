@@ -79,6 +79,11 @@ export async function getOneForVendor(_sql: unknown, requirementId: string, vend
     include: {
       quotes: {
         where: { vendorUserId },
+        include: {
+          attachments: {
+            orderBy: { uploadedAt: "asc" },
+          },
+        },
         take: 1,
       },
     },
@@ -125,6 +130,13 @@ export async function getOneForVendor(_sql: unknown, requirementId: string, vend
       remarks: q?.remarks ?? null,
       quoteStatus: q?.status ?? null,
       submittedAt: q?.submittedAt ? q.submittedAt.toISOString() : null,
+      attachments: (q?.attachments || []).map((a) => ({
+        id: a.id,
+        fileName: a.fileName,
+        fileUrl: a.fileUrl,
+        fileSize: a.fileSize,
+        uploadedAt: a.uploadedAt.toISOString(),
+      })),
     },
   ];
 }

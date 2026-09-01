@@ -11,6 +11,17 @@ import { cuid } from "./db";
 import { getOneForVendor, listOpenForVendor } from "./requirements";
 import { prisma } from "../../lib/prisma";
 import { broadcastBidUpdate } from "../bidding/live-bids";
+import {
+  deleteUpload,
+  detectMagicMime,
+  extractStorageKeyFromUrl,
+  publicUploadUrl,
+  putUpload,
+  storageKeyForQuote,
+  uploadStorageConfigured,
+  validateUploadBytes,
+  validateUploadFile,
+} from "../../lib/storage";
 
 function vendorSessionFrom(request: Request): string | null {
   return request.headers.get("X-Vendor-Session");
@@ -490,4 +501,140 @@ export async function handleQuoteSave(
     console.error("[vendor/handleQuoteSave] fatal error:", err);
     return json(env, request, { error: (err as Error).message || "Failed to save quote" }, 500);
   }
+}
+
+export async function handleQuoteAttachmentUpload(
+  sql: unknown,
+  env: Env,
+  request: Request,
+  requirementId: string
+): Promise<Response> {
+  const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
+  if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
+
+  if (!uploadStorageConfigured(env)) {
+    return json(env, request, { error: "Upload storage not configured" }, 503);
+  }
+
+  const requirement = await prisma.requirement.findUnique({
+    where: { id: requirementId },
+    select: { id: true, closesAt: true, status: true },
+  });
+  if (!requirement) return json(env, request, { error: "Requirement not found." }, 404);
+
+  const isPastDeadline = new Date(requirement.closesAt).getTime() <= Date.now();
+  if (requirement.status === "AWARDED" || requirement.status === "CANCELLED" || isPastDeadline) {
+    return json(env, request, { error: "Bidding is closed for this requirement." }, 400);
+  }
+
+  let form: FormData;
+  try {
+    form = await request.formData();
+  } catch {
+    return json(env, request, { error: "Expected multipart form data" }, 400);
+  }
+
+  const file = form.get("file");
+  if (!(file instanceof File)) {
+    return json(env, request, { error: "File is required" }, 400);
+  }
+
+  const fileError = validateUploadFile(file, { maxBytes: 15 * 1024 * 1024 });
+  if (fileError) return json(env, request, { error: fileError }, 400);
+
+  const bytes = await file.arrayBuffer();
+  const byteError = validateUploadBytes(new Uint8Array(bytes), { maxBytes: 15 * 1024 * 1024 });
+  if (byteError) return json(env, request, { error: byteError }, 400);
+
+  const detectedMime = detectMagicMime(new Uint8Array(bytes));
+  const mimeType = detectedMime || file.type || "application/pdf";
+
+  // Find or create Quote for vendor & requirement
+  let quote = await prisma.quote.findUnique({
+    where: {
+      requirementId_vendorUserId: {
+        requirementId,
+        vendorUserId: vendor.id,
+      },
+    },
+  });
+
+  if (!quote) {
+    quote = await prisma.quote.create({
+      data: {
+        id: cuid(),
+        requirementId,
+        vendorUserId: vendor.id,
+        status: "DRAFT",
+      },
+    });
+  }
+
+  const key = storageKeyForQuote(requirementId, quote.id, file.name);
+  try {
+    await putUpload(env, key, bytes, mimeType);
+  } catch (err) {
+    console.error("[quote/attachment] upload error", err);
+    return json(env, request, { error: "Failed to store document" }, 500);
+  }
+
+  const attachmentId = cuid();
+  const fileUrl = publicUploadUrl(env, key);
+
+  const attachment = await prisma.quoteAttachment.create({
+    data: {
+      id: attachmentId,
+      quoteId: quote.id,
+      fileName: file.name,
+      fileUrl,
+      fileSize: file.size,
+      mimeType,
+    },
+  });
+
+  return json(env, request, {
+    ok: true,
+    attachment: {
+      id: attachment.id,
+      fileName: attachment.fileName,
+      fileUrl: attachment.fileUrl,
+      fileSize: attachment.fileSize,
+      uploadedAt: attachment.uploadedAt.toISOString(),
+    },
+  });
+}
+
+export async function handleQuoteAttachmentDelete(
+  sql: unknown,
+  env: Env,
+  request: Request,
+  requirementId: string,
+  attachmentId: string
+): Promise<Response> {
+  const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
+  if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
+
+  const attachment = await prisma.quoteAttachment.findUnique({
+    where: { id: attachmentId },
+    include: { quote: true },
+  });
+
+  if (
+    !attachment ||
+    attachment.quote.vendorUserId !== vendor.id ||
+    attachment.quote.requirementId !== requirementId
+  ) {
+    return json(env, request, { error: "Attachment not found." }, 404);
+  }
+
+  const key = extractStorageKeyFromUrl(env, attachment.fileUrl);
+  if (key) {
+    await deleteUpload(env, key).catch(() => {});
+  }
+
+  await prisma.quoteAttachment.delete({
+    where: { id: attachmentId },
+  });
+
+  return json(env, request, { ok: true });
 }

@@ -6,6 +6,8 @@ import {
   handleLogout,
   handleMe,
   handlePassword,
+  handleQuoteAttachmentDelete,
+  handleQuoteAttachmentUpload,
   handleQuoteSave,
   handleRequirementGet,
   handleRequirementsList,
@@ -57,6 +59,29 @@ export async function handleVendorRequest(request: Request, env: Env): Promise<R
 
     if (path === "/requirements" && request.method === "GET") {
       return await handleRequirementsList(null, env, request);
+    }
+
+    const quoteAttDel = path.match(/^\/requirements\/([^/]+)\/quote\/attachment\/([^/]+)$/);
+    if (quoteAttDel && request.method === "DELETE") {
+      return await handleQuoteAttachmentDelete(
+        null,
+        env,
+        request,
+        decodeURIComponent(quoteAttDel[1]!),
+        decodeURIComponent(quoteAttDel[2]!)
+      );
+    }
+
+    const quoteAttUpload = path.match(/^\/requirements\/([^/]+)\/quote\/attachment$/);
+    if (quoteAttUpload && request.method === "POST") {
+      const limited = await enforceRateLimit(request, env, "vendor:quote-att", { limit: 30, windowSeconds: 60 });
+      if (limited) return limited;
+      return await handleQuoteAttachmentUpload(
+        null,
+        env,
+        request,
+        decodeURIComponent(quoteAttUpload[1]!)
+      );
     }
 
     const quoteSave = path.match(/^\/requirements\/([^/]+)\/quote$/);

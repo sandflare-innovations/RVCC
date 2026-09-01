@@ -48,6 +48,14 @@ export function storageKeyForRegistration(
   return `uploads/registrations/${registrationId}/${section}/${cuid()}-${sanitizeFileName(fileName)}`;
 }
 
+export function storageKeyForQuote(
+  requirementId: string,
+  quoteId: string,
+  fileName: string
+): string {
+  return `uploads/quotes/${requirementId}/${quoteId}/${cuid()}-${sanitizeFileName(fileName)}`;
+}
+
 export function extractStorageKeyFromUrl(env: Env, fileUrl: string): string | null {
   const base = (env.R2_PUBLIC_URL || DEFAULT_PUBLIC).replace(/\/$/, "");
   if (!fileUrl.startsWith(`${base}/`)) return null;
