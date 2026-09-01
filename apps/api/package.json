@@ -7,6 +7,7 @@
     "dev": "concurrently -n \"api,studio\" -c \"blue,green\" \"tsx watch --env-file-if-exists=.env src/index.ts\" \"prisma studio --port 5555\"",
     "db:studio": "prisma studio --port 5555",
     "db:generate": "prisma generate",
+    "db:push": "prisma db push",
     "db:validate": "prisma validate",
     "prebuild": "node scripts/prebuild.mjs",
     "build": "tsc -p tsconfig.json",
