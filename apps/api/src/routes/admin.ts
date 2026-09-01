@@ -38,6 +38,8 @@ import {
 import {
   handleAdminNotificationsGet,
   handleAdminNotificationsMarkRead,
+  handleAdminPushSubscribe,
+  handleAdminPushUnsubscribe,
 } from "../modules/admin/notifications";
 import {
   handleProcurementCreate,
@@ -46,6 +48,10 @@ import {
   handleProcurementList,
   handleProcurementReview,
 } from "../modules/admin/procurement";
+import {
+  handleRequirementExportCsv,
+  handleRegistrationsExportCsv,
+} from "../modules/admin/export";
 import { handleAdminLiveBids } from "../modules/bidding/live-bids";
 import {
   handleStaffCreate,
@@ -112,8 +118,18 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       return await handleAdminNotificationsMarkRead(sql, env, request);
     }
 
+    if (path === "/push/subscribe" && request.method === "POST") {
+      return await handleAdminPushSubscribe(sql, env, request);
+    }
+    if (path === "/push/subscribe" && request.method === "DELETE") {
+      return await handleAdminPushUnsubscribe(sql, env, request);
+    }
+
     if (path === "/registrations" && request.method === "GET") {
       return await handleRegistrationsList(sql, env, request);
+    }
+    if (path === "/registrations/export" && request.method === "GET") {
+      return await handleRegistrationsExportCsv(sql, env, request);
     }
 
     const regReview = path.match(/^\/registrations\/([^/]+)\/review$/);
@@ -162,6 +178,11 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       const { syncExchangeRates } = await import("../modules/bidding/fx");
       await syncExchangeRates();
       return json(env, request, { ok: true, message: "Exchange rates synchronized successfully" });
+    }
+
+    const reqExport = path.match(/^\/requirements\/([^/]+)\/export$/);
+    if (reqExport && request.method === "GET") {
+      return await handleRequirementExportCsv(sql, env, request, decodeURIComponent(reqExport[1]!));
     }
 
     const requirementOne = path.match(/^\/requirements\/([^/]+)$/);

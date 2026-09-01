@@ -66,3 +66,68 @@ export async function handleAdminNotificationsMarkRead(
 
   return json(env, request, { ok: true });
 }
+
+export async function handleAdminPushSubscribe(
+  sql: unknown,
+  env: Env,
+  request: Request
+): Promise<Response> {
+  const admin = await getAdminFromSession(sql, sessionToken(request));
+  if (!admin) return json(env, request, { error: "Not signed in." }, 401);
+
+  try {
+    const body = (await request.json()) as {
+      endpoint?: string;
+      keys?: { p256dh?: string; auth?: string };
+    } | null;
+
+    if (!body?.endpoint || !body?.keys?.p256dh || !body?.keys?.auth) {
+      return json(env, request, { error: "Invalid push subscription object" }, 400);
+    }
+
+    await prisma.pushSubscription.upsert({
+      where: { endpoint: body.endpoint },
+      create: {
+        endpoint: body.endpoint,
+        p256dh: body.keys.p256dh,
+        auth: body.keys.auth,
+        adminId: admin.id,
+      },
+      update: {
+        p256dh: body.keys.p256dh,
+        auth: body.keys.auth,
+        adminId: admin.id,
+      },
+    });
+
+    return json(env, request, { ok: true });
+  } catch (err) {
+    console.error("[admin push subscribe] failed", err);
+    return json(env, request, { error: "Failed to save subscription" }, 500);
+  }
+}
+
+export async function handleAdminPushUnsubscribe(
+  sql: unknown,
+  env: Env,
+  request: Request
+): Promise<Response> {
+  const admin = await getAdminFromSession(sql, sessionToken(request));
+  if (!admin) return json(env, request, { error: "Not signed in." }, 401);
+
+  try {
+    const body = (await request.json()) as { endpoint?: string } | null;
+    if (!body?.endpoint) {
+      return json(env, request, { error: "Missing endpoint" }, 400);
+    }
+
+    await prisma.pushSubscription.deleteMany({
+      where: { endpoint: body.endpoint, adminId: admin.id },
+    });
+
+    return json(env, request, { ok: true });
+  } catch (err) {
+    console.error("[admin push unsubscribe] failed", err);
+    return json(env, request, { error: "Failed to remove subscription" }, 500);
+  }
+}
