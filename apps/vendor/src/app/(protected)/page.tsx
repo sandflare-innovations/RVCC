@@ -2,6 +2,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   Bell,
+  Calendar,
   CheckCircle2,
   Clock,
   FileCheck,
@@ -23,6 +24,7 @@ import { vendorApiFetch } from "@/lib/vendor-api";
 import { OverviewNextActions } from "@/sections/dashboard/OverviewNextActions";
 import { VendorHeroSearch } from "@/sections/dashboard/VendorHeroSearch";
 import { LiveRankBadge } from "@/sections/requirements/LiveRankBadge";
+import { LiveRankMedal } from "@/sections/requirements/LiveRankMedal";
 
 export const dynamic = "force-dynamic";
 
@@ -351,8 +353,10 @@ export default async function VendorDashboard() {
               ) : (
                 runningBids.slice(0, 3).map((bid, index) => {
                   const closeDate = new Date(bid.closesAt);
-                  const month = closeDate.toLocaleDateString("en-US", { month: "short" });
-                  const day = closeDate.getDate();
+                  const formattedDate = closeDate.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  });
                   const deadline = describeDeadline(bid.closesAt);
                   const bgOptions = ["bg-[#3C99DC]", "bg-[#2565AE]", "bg-[#0F5298]"];
                   const bg = bgOptions[index % bgOptions.length];
@@ -361,27 +365,32 @@ export default async function VendorDashboard() {
                     <Link
                       key={bid.id}
                       href={`/requirements/${bid.id}`}
-                      className={`flex items-center gap-5 ${bg} min-h-[120px] rounded-[20px] p-5 shadow-sm transition-transform hover:scale-[1.02]`}
+                      className={`group flex items-center gap-4.5 ${bg} min-h-[110px] rounded-[22px] p-4.5 shadow-sm transition-all hover:scale-[1.02] hover:shadow-md`}
                     >
-                      {/* Clean White Date Box */}
-                      <div className="flex h-[75px] w-[75px] flex-shrink-0 flex-col items-center justify-center rounded-xl border border-black/5 bg-white shadow-sm">
-                        <span className="text-xs font-bold tracking-wider text-zinc-900 uppercase">
-                          {month}
-                        </span>
-                        <span className="mt-0.5 text-2xl leading-none font-black text-zinc-900">
-                          {day}
-                        </span>
-                      </div>
+                      {/* Left: Custom Medal Ranking Circle */}
+                      <LiveRankMedal requirementId={bid.id} />
+
+                      {/* Right: Main Box with Project Title, Date, & Status */}
                       <div className="min-w-0 flex-1">
-                        <h3 className="truncate font-bold text-white text-base tracking-tight">
+                        <h3 className="truncate font-black text-white text-base tracking-tight group-hover:text-white/95">
                           {bid.project}
                         </h3>
-                        <p className="text-xs text-white/90 mt-1 font-medium">
-                          {deadline.label}
-                        </p>
-                        <div className="mt-2 flex items-center gap-2">
-                          <LiveRankBadge requirementId={bid.id} />
+
+                        {/* Date & Deadline Info */}
+                        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-white/90">
+                          <span className="inline-flex items-center gap-1 rounded-md bg-black/15 px-2 py-0.5 backdrop-blur-xs">
+                            <Calendar className="h-3 w-3 text-white/80" />
+                            {formattedDate}
+                          </span>
+                          <span className="text-white/70">·</span>
+                          <span className="text-white/90 font-bold">{deadline.label}</span>
                         </div>
+
+                        {bid.newPrice && (
+                          <p className="mt-1.5 text-[11px] font-bold text-white/95 tabular-nums">
+                            Your Bid: {Number(bid.newPrice).toLocaleString()} {bid.currency}
+                          </p>
+                        )}
                       </div>
                     </Link>
                   );
