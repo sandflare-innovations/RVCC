@@ -22,6 +22,8 @@ export type WorkerEnv = {
   R2_SECRET_ACCESS_KEY?: string;
   R2_BUCKET_NAME?: string;
   UPLOADS?: import("./config/env").R2Bucket;
+  PUBLIC_ASSETS?: import("./config/env").R2Bucket;
+  SECURE_ASSETS?: import("./config/env").R2Bucket;
 };
 
 function toAppEnv(env: WorkerEnv): import("./config/env").Env {
@@ -47,7 +49,9 @@ function toAppEnv(env: WorkerEnv): import("./config/env").Env {
     R2_ACCESS_KEY_ID: env.R2_ACCESS_KEY_ID?.trim() || undefined,
     R2_SECRET_ACCESS_KEY: env.R2_SECRET_ACCESS_KEY?.trim() || undefined,
     R2_BUCKET_NAME: env.R2_BUCKET_NAME?.trim() || undefined,
-    uploadsBucket: env.UPLOADS,
+    uploadsBucket: env.SECURE_ASSETS || env.UPLOADS,
+    publicAssetsBucket: env.PUBLIC_ASSETS,
+    secureAssetsBucket: env.SECURE_ASSETS || env.UPLOADS,
     PORT: 0,
     NODE_ENV: "production",
   };

@@ -21,14 +21,18 @@ SMTP_PORT = "587"
 SMTP_SECURE = "false"
 SMTP_USER = "flyincob2b@gmail.com"
 ENQUIRE_FROM_EMAIL = "RVCC Procurement <flyincob2b@gmail.com>"
-# Public URL for uploaded files — enable “Public Development URL” on rvcc-uploads, then set this to that pub-*.r2.dev URL
-R2_PUBLIC_URL = "https://pub-aae9a6117dfe4a3694df38a0660161be.r2.dev"
+# Public URL for uploaded files — R2 development domain for rvcc-public-assets
+R2_PUBLIC_URL = "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev"
 R2_ACCOUNT_ID = "d17302a485a00dcb8339cce02701183f"
-R2_BUCKET_NAME = "rvcc-uploads"
+R2_BUCKET_NAME = "rvcc-public-assets"
 
 [[r2_buckets]]
-binding = "UPLOADS"
-bucket_name = "rvcc-uploads"
+binding = "PUBLIC_ASSETS"
+bucket_name = "rvcc-public-assets"
+
+[[r2_buckets]]
+binding = "SECURE_ASSETS"
+bucket_name = "rvcc-secure-assets"
 
 # Secrets (wrangler secret put …):
 #   DATABASE_URL

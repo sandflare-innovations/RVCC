@@ -7,7 +7,13 @@ export type R2Bucket = {
   put(
     key: string,
     value: ArrayBuffer | ReadableStream | Uint8Array,
-    options?: { httpMetadata?: { contentType?: string } }
+    options?: {
+      httpMetadata?: {
+        contentType?: string;
+        cacheControl?: string;
+        contentDisposition?: string;
+      };
+    }
   ): Promise<unknown>;
   delete(key: string): Promise<void>;
 };
@@ -37,6 +43,8 @@ export type AppEnv = {
   R2_BUCKET_NAME?: string;
   /** Cloudflare Worker R2 binding — set in worker.ts, not process.env. */
   uploadsBucket?: R2Bucket;
+  publicAssetsBucket?: R2Bucket;
+  secureAssetsBucket?: R2Bucket;
   PORT: number;
   NODE_ENV: string;
 };
