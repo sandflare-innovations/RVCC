@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 
 import { FloatingContact } from "@/components/common/FloatingContact";
 import { Footer } from "@/components/layout/Footer";
+import { getHeroSlides } from "@/lib/content/hero";
 
 // Dynamically load heavy components below the fold
 const Leaders = dynamic(() => import("@sections/home/Leaders").then((mod) => mod.Leaders), {
@@ -47,12 +48,14 @@ const NewsAndEvents = dynamic(
 );
 const Contact = dynamic(() => import("@components/common/Contact"), { ssr: true });
 
-export default function Home() {
+export default async function Home() {
+  const slides = await getHeroSlides();
+
   return (
     <div className="relative min-h-screen">
       {/* Sticky Hero Section */}
       <div className="sticky top-0 z-0 h-screen w-full">
-        <Hero />
+        <Hero slides={slides} />
       </div>
 
       {/* Main Content Sections - Scroll over the Hero */}

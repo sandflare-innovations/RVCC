@@ -9,38 +9,73 @@ import { FaArrowRight } from "react-icons/fa6";
 import { LogoMarquee } from "@/components/common/LogoMarquee";
 import { Button } from "@/components/ui/Button";
 import { enquireVerifyUrl } from "@/lib/public-urls";
+import type { HeroSlideItem } from "@/types/hero";
 
-const HERO_CONTENT = [
-  {
-    title1: "Building",
-    title2: "Legacy",
-    description:
-      "Redefining the architectural landscape through precision engineering and visionary design. We build structures that define generations.",
-    img: "/images/projects/13.webp",
-  },
-  {
-    title1: "Shaping",
-    title2: "Reality",
-    description:
-      "Turning ambitious concepts into solid architectural achievements with unparalleled technical expertise and innovative construction methods.",
-    img: "/images/projects/4.webp",
-  },
-  {
-    title1: "Beyond",
-    title2: "Limits",
-    description:
-      "Creating iconic environments that inspire and endure. Our commitment to quality ensures every project becomes a landmark of excellence.",
-    img: "/images/projects/2.webp",
-  },
-];
+interface HeroProps {
+  slides?: HeroSlideItem[];
+}
 
-export const Hero = () => {
+export const Hero = ({ slides }: HeroProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const enquireHref = enquireVerifyUrl();
   const [showContent, setShowContent] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const PROGRESS_DURATION = 5000;
+
+  const activeSlides = slides && slides.length > 0 ? slides : [
+    {
+      id: "fallback-1",
+      badge: "Architecture & Design",
+      title1: "Building",
+      title2: "Legacy",
+      description:
+        "Redefining the architectural landscape through precision engineering and visionary design. We build structures that define generations.",
+      imageUrl: "/images/projects/13.webp",
+      primaryBtnText: "Explore Works",
+      primaryBtnLink: "#projects",
+      secondaryBtnText: "E-Vendor Registration",
+      secondaryBtnLink: "/enquire/verify",
+      sortOrder: 0,
+      isActive: true,
+      createdAt: "",
+      updatedAt: "",
+    },
+    {
+      id: "fallback-2",
+      badge: "Architecture & Design",
+      title1: "Shaping",
+      title2: "Reality",
+      description:
+        "Turning ambitious concepts into solid architectural achievements with unparalleled technical expertise and innovative construction methods.",
+      imageUrl: "/images/projects/4.webp",
+      primaryBtnText: "Explore Works",
+      primaryBtnLink: "#projects",
+      secondaryBtnText: "E-Vendor Registration",
+      secondaryBtnLink: "/enquire/verify",
+      sortOrder: 1,
+      isActive: true,
+      createdAt: "",
+      updatedAt: "",
+    },
+    {
+      id: "fallback-3",
+      badge: "Architecture & Design",
+      title1: "Beyond",
+      title2: "Limits",
+      description:
+        "Creating iconic environments that inspire and endure. Our commitment to quality ensures every project becomes a landmark of excellence.",
+      imageUrl: "/images/projects/2.webp",
+      primaryBtnText: "Explore Works",
+      primaryBtnLink: "#projects",
+      secondaryBtnText: "E-Vendor Registration",
+      secondaryBtnLink: "/enquire/verify",
+      sortOrder: 2,
+      isActive: true,
+      createdAt: "",
+      updatedAt: "",
+    },
+  ];
 
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollY } = useScroll();
@@ -52,22 +87,25 @@ export const Hero = () => {
   const blurValue = useTransform(scrollY, [0, 800], [0, 4]);
 
   useEffect(() => {
-    // Check if we're on a mobile device to skip animations
     const isMobile = window.innerWidth < 768;
-
     if (isMobile) {
-      // Small delay to avoid synchronous setState warning in useEffect
       const timer = setTimeout(() => {
         setIsExpanded(true);
         setShowContent(true);
       }, 0);
       return () => clearTimeout(timer);
     } else {
-      const expandTimer = setTimeout(() => setIsExpanded(true), 800);
-      const contentTimer = setTimeout(() => setShowContent(true), 2800);
+      const timer1 = setTimeout(() => {
+        setIsExpanded(true);
+      }, 800);
+
+      const timer2 = setTimeout(() => {
+        setShowContent(true);
+      }, 2000);
+
       return () => {
-        clearTimeout(expandTimer);
-        clearTimeout(contentTimer);
+        clearTimeout(timer1);
+        clearTimeout(timer2);
       };
     }
   }, []);
@@ -83,7 +121,7 @@ export const Hero = () => {
       const newProgress = Math.min((elapsed / PROGRESS_DURATION) * 100, 100);
 
       if (newProgress >= 100) {
-        setCurrentIndex((prev) => (prev + 1) % HERO_CONTENT.length);
+        setCurrentIndex((prev) => (prev + 1) % activeSlides.length);
         startTime = performance.now();
         setProgress(0);
       } else {
@@ -95,14 +133,18 @@ export const Hero = () => {
 
     animationFrame = requestAnimationFrame(updateProgress);
     return () => cancelAnimationFrame(animationFrame);
-  }, [showContent, currentIndex]);
+  }, [showContent, currentIndex, activeSlides.length]);
 
   const handleSlideChange = (index: number) => {
     setCurrentIndex(index);
     setProgress(0);
   };
 
-  const content = HERO_CONTENT[currentIndex];
+  const safeIndex = currentIndex < activeSlides.length ? currentIndex : 0;
+  const content = activeSlides[safeIndex];
+
+  const sideSlide1 = activeSlides[1 % activeSlides.length];
+  const sideSlide2 = activeSlides[2 % activeSlides.length];
 
   const baseHeight = "75vh";
   const baseWidth = "calc(75vh * 3 / 4)";
@@ -136,8 +178,8 @@ export const Hero = () => {
           className="absolute z-10 hidden overflow-hidden md:block"
         >
           <Image
-            src={HERO_CONTENT[1].img}
-            alt="Side 1"
+            src={sideSlide1.imageUrl}
+            alt={sideSlide1.title1}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 33vw"
@@ -163,7 +205,7 @@ export const Hero = () => {
         >
           <AnimatePresence mode="wait">
             <motion.div
-              key={currentIndex}
+              key={content.id || currentIndex}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -171,7 +213,7 @@ export const Hero = () => {
               className="absolute inset-0"
             >
               <Image
-                src={content.img}
+                src={content.imageUrl}
                 alt={content.title1}
                 fill
                 className="object-cover"
@@ -207,8 +249,8 @@ export const Hero = () => {
           className="absolute z-10 hidden overflow-hidden md:block"
         >
           <Image
-            src={HERO_CONTENT[2].img}
-            alt="Side 2"
+            src={sideSlide2.imageUrl}
+            alt={sideSlide2.title1}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 33vw"
@@ -230,7 +272,7 @@ export const Hero = () => {
               <div className="pointer-events-auto w-full">
                 <AnimatePresence mode="wait">
                   <motion.div
-                    key={currentIndex}
+                    key={content.id || currentIndex}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -241,7 +283,7 @@ export const Hero = () => {
                       <div className="mb-4 flex items-center gap-3">
                         <span className="bg-brand-blue h-px w-8" />
                         <span className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">
-                          Architecture & Design
+                          {content.badge || "Architecture & Design"}
                         </span>
                       </div>
 
@@ -262,7 +304,7 @@ export const Hero = () => {
 
                       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap lg:justify-end">
                         <Button
-                          href="#projects"
+                          href={content.primaryBtnLink || "#projects"}
                           borderColor="border-white"
                           textColor="text-white"
                           hoverFillColor="bg-white"
@@ -270,12 +312,12 @@ export const Hero = () => {
                           className="group h-16 rounded-none px-10"
                         >
                           <span className="flex items-center gap-3 text-xs font-bold tracking-widest uppercase">
-                            Explore Works{" "}
+                            {content.primaryBtnText || "Explore Works"}{" "}
                             <FaArrowRight className="transition-transform group-hover:translate-x-2" />
                           </span>
                         </Button>
                         <Button
-                          href={enquireHref}
+                          href={content.secondaryBtnLink || enquireHref}
                           borderColor="border-white"
                           textColor="text-white"
                           hoverFillColor="bg-white"
@@ -283,7 +325,7 @@ export const Hero = () => {
                           className="group h-16 rounded-none px-10"
                         >
                           <span className="flex items-center gap-3 text-xs font-bold tracking-widest whitespace-nowrap uppercase">
-                            E-Vendor Registration{" "}
+                            {content.secondaryBtnText || "E-Vendor Registration"}{" "}
                             <FaArrowRight className="transition-transform group-hover:translate-x-2" />
                           </span>
                         </Button>
@@ -294,8 +336,8 @@ export const Hero = () => {
 
                 {/* Line Based Navigation with Timer */}
                 <div className="pointer-events-auto mt-16 w-full max-w-sm">
-                  <div className="grid grid-cols-3 gap-6">
-                    {HERO_CONTENT.map((_, idx) => (
+                  <div className="grid gap-6" style={{ gridTemplateColumns: `repeat(${activeSlides.length}, minmax(0, 1fr))` }}>
+                    {activeSlides.map((_, idx) => (
                       <button
                         key={idx}
                         onClick={() => handleSlideChange(idx)}
