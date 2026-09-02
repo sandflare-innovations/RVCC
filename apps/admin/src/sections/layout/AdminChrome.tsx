@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   ShieldCheck,
   ShoppingBag,
+  SlidersHorizontal,
   Sparkles,
   TrendingUp,
   UserCheck,
@@ -23,6 +24,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { PiSlideshowLight } from "react-icons/pi";
 
 import { Sidebar, SidebarBody, SidebarLink, useSidebar } from "@/components/ui/sidebar";
 import { ADMIN_LOGIN_EXPIRED_PATH } from "@/lib/constants";
@@ -44,7 +46,7 @@ const VENDOR_NAV = [
 
 const WEBSITE_NAV = [
   { href: "/content", label: "Dashboard", icon: <LayoutDashboard className={ICON} />, exact: true },
-  { href: "/content/hero", label: "Hero Slides", icon: <Sparkles className={ICON} /> },
+  { href: "/content/hero", label: "Hero Slides", icon: <PiSlideshowLight className={ICON} /> },
   { href: "/content/projects", label: "Projects", icon: <Briefcase className={ICON} /> },
   { href: "/content/gallery", label: "Gallery", icon: <ImageIcon className={ICON} /> },
   { href: "/content/services", label: "Services", icon: <Wrench className={ICON} /> },
