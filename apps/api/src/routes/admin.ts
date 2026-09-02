@@ -320,6 +320,10 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       const { handleAdminHeroSlideCreate } = await import("../modules/admin/hero");
       return await handleAdminHeroSlideCreate(sql, env, request);
     }
+    if (path === "/hero-slides/reorder" && request.method === "PUT") {
+      const { handleAdminHeroSlidesReorder } = await import("../modules/admin/hero");
+      return await handleAdminHeroSlidesReorder(sql, env, request);
+    }
     const heroOne = path.match(/^\/hero-slides\/([^/]+)$/);
     if (heroOne) {
       const id = decodeURIComponent(heroOne[1]!);
