@@ -311,6 +311,36 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       return await handleDashboard(sql, env, request);
     }
 
+    // Hero Slides Content Routes
+    if (path === "/hero-slides" && request.method === "GET") {
+      const { handleAdminHeroSlidesList } = await import("../modules/admin/hero");
+      return await handleAdminHeroSlidesList(sql, env, request);
+    }
+    if (path === "/hero-slides" && request.method === "POST") {
+      const { handleAdminHeroSlideCreate } = await import("../modules/admin/hero");
+      return await handleAdminHeroSlideCreate(sql, env, request);
+    }
+    const heroOne = path.match(/^\/hero-slides\/([^/]+)$/);
+    if (heroOne) {
+      const id = decodeURIComponent(heroOne[1]!);
+      const {
+        handleAdminHeroSlideGet,
+        handleAdminHeroSlideUpdate,
+        handleAdminHeroSlideDelete,
+      } = await import("../modules/admin/hero");
+      if (request.method === "GET") return await handleAdminHeroSlideGet(sql, env, request, id);
+      if (request.method === "PUT" || request.method === "PATCH") {
+        return await handleAdminHeroSlideUpdate(sql, env, request, id);
+      }
+      if (request.method === "DELETE") return await handleAdminHeroSlideDelete(sql, env, request, id);
+    }
+
+    // Public Media Upload for Admin Content (Gallery, Hero, Projects, etc.)
+    if (path === "/content/upload" && request.method === "POST") {
+      const { handleAdminContentMediaUpload } = await import("../modules/admin/hero");
+      return await handleAdminContentMediaUpload(sql, env, request);
+    }
+
     return json(env, request, { error: "Not Found" }, 404);
   } catch (err) {
     console.error("[admin]", err);
