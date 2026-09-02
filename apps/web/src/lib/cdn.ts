@@ -3,7 +3,7 @@
  * Defaults to the live Worker so production works even if
  * NEXT_PUBLIC_PDF_CDN_URL was forgotten on Vercel (origin can serve LFS stubs).
  */
-const DEFAULT_PDF_CDN = "https://pub-7f8ca337d3ac4e7f9f6ed54470da92a0.r2.dev";
+const DEFAULT_PDF_CDN = "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev";
 
 export function cdnUrl(path: string): string {
   const raw = process.env.NEXT_PUBLIC_PDF_CDN_URL || DEFAULT_PDF_CDN;
