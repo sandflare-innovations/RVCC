@@ -1,7 +1,7 @@
 import "server-only";
 
 /** Server-only client for apps/api `/admin/*`. */
-function adminBaseUrl(): string {
+export function adminBaseUrl(): string {
   const base = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL)?.replace(/\/$/, "");
   if (!base) throw new Error("Set API_URL (or NEXT_PUBLIC_API_URL)");
   return `${base}/admin`;

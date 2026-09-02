@@ -7,6 +7,7 @@ import {
   Image as ImageIcon,
   Info,
   ShieldCheck,
+  Sparkles,
   UserCheck,
   Wrench,
 } from "lucide-react";
@@ -21,6 +22,14 @@ export const dynamic = "force-dynamic";
 type DashboardJobs = { publishedJobs: number; totalJobs: number };
 
 const SECTIONS = [
+  {
+    href: "/content/hero",
+    label: "Hero Slides",
+    description: "Manage homepage interactive hero slides, titles, badges, and background media.",
+    icon: Sparkles,
+    color: "bg-amber-50 text-amber-600",
+    borderColor: "hover:border-amber-400",
+  },
   {
     href: "/content/projects",
     label: "Projects",

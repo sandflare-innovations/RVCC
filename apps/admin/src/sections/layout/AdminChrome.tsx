@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   ShieldCheck,
   ShoppingBag,
+  Sparkles,
   TrendingUp,
   UserCheck,
   Users,
@@ -43,6 +44,7 @@ const VENDOR_NAV = [
 
 const WEBSITE_NAV = [
   { href: "/content", label: "Dashboard", icon: <LayoutDashboard className={ICON} />, exact: true },
+  { href: "/content/hero", label: "Hero Slides", icon: <Sparkles className={ICON} /> },
   { href: "/content/projects", label: "Projects", icon: <Briefcase className={ICON} /> },
   { href: "/content/gallery", label: "Gallery", icon: <ImageIcon className={ICON} /> },
   { href: "/content/services", label: "Services", icon: <Wrench className={ICON} /> },
