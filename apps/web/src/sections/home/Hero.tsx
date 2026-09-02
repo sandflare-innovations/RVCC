@@ -23,59 +23,7 @@ export const Hero = ({ slides }: HeroProps) => {
   const [progress, setProgress] = useState(0);
   const PROGRESS_DURATION = 5000;
 
-  const activeSlides = slides && slides.length > 0 ? slides : [
-    {
-      id: "fallback-1",
-      badge: "Architecture & Design",
-      title1: "Building",
-      title2: "Legacy",
-      description:
-        "Redefining the architectural landscape through precision engineering and visionary design. We build structures that define generations.",
-      imageUrl: "/images/projects/13.webp",
-      primaryBtnText: "Explore Works",
-      primaryBtnLink: "#projects",
-      secondaryBtnText: "E-Vendor Registration",
-      secondaryBtnLink: "/enquire/verify",
-      sortOrder: 0,
-      isActive: true,
-      createdAt: "",
-      updatedAt: "",
-    },
-    {
-      id: "fallback-2",
-      badge: "Architecture & Design",
-      title1: "Shaping",
-      title2: "Reality",
-      description:
-        "Turning ambitious concepts into solid architectural achievements with unparalleled technical expertise and innovative construction methods.",
-      imageUrl: "/images/projects/4.webp",
-      primaryBtnText: "Explore Works",
-      primaryBtnLink: "#projects",
-      secondaryBtnText: "E-Vendor Registration",
-      secondaryBtnLink: "/enquire/verify",
-      sortOrder: 1,
-      isActive: true,
-      createdAt: "",
-      updatedAt: "",
-    },
-    {
-      id: "fallback-3",
-      badge: "Architecture & Design",
-      title1: "Beyond",
-      title2: "Limits",
-      description:
-        "Creating iconic environments that inspire and endure. Our commitment to quality ensures every project becomes a landmark of excellence.",
-      imageUrl: "/images/projects/2.webp",
-      primaryBtnText: "Explore Works",
-      primaryBtnLink: "#projects",
-      secondaryBtnText: "E-Vendor Registration",
-      secondaryBtnLink: "/enquire/verify",
-      sortOrder: 2,
-      isActive: true,
-      createdAt: "",
-      updatedAt: "",
-    },
-  ];
+  const activeSlides = slides || [];
 
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollY } = useScroll();
