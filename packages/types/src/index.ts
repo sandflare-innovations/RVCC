@@ -229,6 +229,8 @@ export type ProjectStatus = "Completed" | "In Progress" | "Upcoming";
 export interface GalleryImageDTO {
   id: string;
   projectId: string;
+  projectTitle?: string;
+  projectSlug?: string;
   imageUrl: string;
   caption: string;
   serviceSlugs?: string[];
@@ -284,6 +286,40 @@ export interface ProjectInput {
   description?: string;
   coverImage: string;
   scope?: string[];
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
+// ── Service Types ──────────────────────────────────────────────────────────
+
+export interface ServiceDTO {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  longDescription: string;
+  image: string;
+  iconName: string;
+  features: string[];
+  sortOrder: number;
+  isActive: boolean;
+  galleryImages?: GalleryImageDTO[];
+  _count?: {
+    galleryImages?: number;
+    projects?: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ServiceInput {
+  title: string;
+  slug?: string;
+  description?: string;
+  longDescription?: string;
+  image: string;
+  iconName?: string;
+  features?: string[];
   sortOrder?: number;
   isActive?: boolean;
 }
