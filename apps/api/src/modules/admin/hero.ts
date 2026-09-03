@@ -9,6 +9,7 @@ import {
   storageKeyForClient,
   storageKeyForGallery,
   storageKeyForProject,
+  storageKeyForService,
   validateUploadFile,
   validateUploadBytes,
   detectMagicMime,
@@ -347,6 +348,9 @@ export async function handleAdminContentMediaUpload(
     key = storageKeyForHero(label, ext);
   } else if (folder === "clients") {
     key = storageKeyForClient(label, ext);
+  } else if (folder.startsWith("services/") || folder === "services") {
+    const serviceFolder = folder === "services" ? "general" : folder.replace(/^services\//, "");
+    key = storageKeyForService(serviceFolder, label, ext);
   } else if (folder.startsWith("projects/") || folder === "projects") {
     const projectFolder = folder === "projects" ? "general" : folder.replace(/^projects\//, "");
     key = storageKeyForProject(projectFolder, label, ext);

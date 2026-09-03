@@ -128,6 +128,18 @@ export function storageKeyForProject(
   return `projects/${folder}/${name}-${tag}.${ext}`;
 }
 
+/** Public Service Image: services/{serviceSlug}/{imageTitle}-{tag}.webp */
+export function storageKeyForService(
+  serviceSlug: string,
+  imageTitle: string,
+  ext = "webp"
+): string {
+  const folder = slugify(serviceSlug) || "service";
+  const name = slugify(imageTitle) || "cover";
+  const tag = generateUniqueToken(4);
+  return `services/${folder}/${name}-${tag}.${ext}`;
+}
+
 /** Public Company Profile PDF: company/profiles/{title}-{tag}.pdf */
 export function storageKeyForCompanyProfile(title: string): string {
   const name = slugify(title) || "rvcc-profile";
