@@ -835,3 +835,50 @@ model ClientPartner {
   @@index([deletedAt])
 }
 
+model Project {
+  id           String         @id @default(cuid())
+  slug         String         @unique
+  title        String
+  category     String         @default("Commercial Architecture")
+  serviceSlugs String[]       @default([]) // Links to services e.g. "cladding-works", "steel-metal-works"
+  client       String         @default("")
+  location     String         @default("Riyadh, KSA")
+  year         String         @default("2024")
+  status       String         @default("Completed") // "Completed" | "In Progress" | "Upcoming"
+  description  String         @default("")
+  coverImage   String         @default("")
+  scope        String[]       @default([])
+  sortOrder    Int            @default(0)
+  isActive     Boolean        @default(true)
+
+  gallery      GalleryImage[]
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now()) @updatedAt
+  deletedAt    DateTime?      // Soft Deletion
+
+  @@index([slug])
+  @@index([isActive, sortOrder])
+  @@index([deletedAt])
+}
+
+model GalleryImage {
+  id           String    @id @default(cuid())
+  projectId    String
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  imageUrl     String
+  caption      String    @default("")
+  serviceSlugs String[]  @default([]) // Explicit services connected to this photo
+  isCover      Boolean   @default(false)
+  sortOrder    Int       @default(0)
+  isActive     Boolean   @default(true)
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+  deletedAt    DateTime? // Soft Deletion
+
+  @@index([projectId, sortOrder])
+  @@index([isActive])
+  @@index([deletedAt])
+}
+
