@@ -122,9 +122,8 @@ function SidebarContents({
           }}
           disabled={!canSwitchPortals}
           onBlur={() => setTimeout(() => setDashboardMenuOpen(false), 200)}
-          className={`flex w-full items-center gap-2.5 rounded-lg p-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white ${
-            canSwitchPortals ? "cursor-pointer hover:bg-white/10" : "cursor-default"
-          }`}
+          className={`flex w-full items-center gap-2.5 rounded-lg p-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white ${canSwitchPortals ? "cursor-pointer hover:bg-white/10" : "cursor-default"
+            }`}
         >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white p-1 shadow-sm">
             <img
@@ -225,9 +224,8 @@ function SidebarContents({
 
       <div>
         <div
-          className={`overflow-hidden rounded-2xl bg-zinc-100 p-1.5 shadow-sm ${
-            expanded ? "" : "flex flex-col items-center gap-1"
-          }`}
+          className={`overflow-hidden rounded-2xl bg-zinc-100 p-1.5 shadow-sm ${expanded ? "" : "flex flex-col items-center gap-1"
+            }`}
         >
           {/* Install App */}
           {showInstallButton && (
@@ -237,9 +235,8 @@ function SidebarContents({
                 title="Install RVCC Admin as an app"
                 disabled={prompting}
                 onClick={promptInstall}
-                className={`focus-visible:ring-brand-blue/30 flex w-full cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 transition-colors hover:bg-zinc-200/70 focus-visible:ring-2 focus-visible:outline-none ${
-                  prompting ? "opacity-70" : ""
-                } ${expanded ? "" : "justify-center"}`}
+                className={`focus-visible:ring-brand-blue/30 flex w-full cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 transition-colors hover:bg-zinc-200/70 focus-visible:ring-2 focus-visible:outline-none ${prompting ? "opacity-70" : ""
+                  } ${expanded ? "" : "justify-center"}`}
               >
                 <span className="bg-brand-blue/10 text-brand-blue flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
                   <Download className="h-4 w-4" />
@@ -262,9 +259,8 @@ function SidebarContents({
           <Link
             href="/profile"
             onClick={onNavigate}
-            className={`group focus-visible:ring-brand-blue/30 flex w-full items-center gap-3 rounded-xl px-2.5 py-2 transition-colors hover:bg-zinc-200/70 focus-visible:ring-2 focus-visible:outline-none ${
-              expanded ? "" : "justify-center"
-            }`}
+            className={`group focus-visible:ring-brand-blue/30 flex w-full items-center gap-3 rounded-xl px-2.5 py-2 transition-colors hover:bg-zinc-200/70 focus-visible:ring-2 focus-visible:outline-none ${expanded ? "" : "justify-center"
+              }`}
           >
             <span className="bg-brand-blue flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm">
               {(admin.name || admin.email).charAt(0).toUpperCase()}
@@ -340,7 +336,7 @@ export function AdminChrome({
       </Sidebar>
 
       <div className="my-3 mr-3 ml-3 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-200/60 bg-white">
-        <main className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl p-5 md:p-8">
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl p-4">
           <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">{children}</div>
         </main>
       </div>

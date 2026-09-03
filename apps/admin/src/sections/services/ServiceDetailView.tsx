@@ -275,7 +275,7 @@ export function ServiceDetailView({
   return (
     <>
       {/* Sticky Top Header Toolbar: Pulled up flush with the container top border */}
-      <div className="sticky top-0 z-30 -mx-5 -mt-6 md:-mx-8 md:-mt-9 border-b border-zinc-200/80 bg-white/95 px-5 md:px-8 py-3.5 backdrop-blur-md flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shadow-2xs">
+      <div className="sticky top-0 z-30 -mx-5 -mt-6 md:-mx-8 md:-mt-9 bg-white/95 px-5 md:px-8 py-3.5 backdrop-blur-md flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shadow-2xs">
         <div className="flex items-center gap-3">
           <Link
             href="/content/services"
@@ -337,7 +337,7 @@ export function ServiceDetailView({
       )}
 
       {/* Top Section: Main Cover Image (Left) + Service Descriptions & Features (Right) with proper pt-8 padding top from header */}
-      <div className="pt-8 grid grid-cols-1 gap-8 lg:grid-cols-12">
+      <div className="pt-12 grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Left Column: Cover Image Box (5 cols) */}
         <div className="lg:col-span-5">
           <div className="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs h-full flex flex-col">
@@ -633,11 +633,10 @@ export function ServiceDetailView({
                     type="button"
                     key={img.id}
                     onClick={() => toggleSelectImage(img.id)}
-                    className={`group relative flex flex-col justify-between text-left overflow-hidden rounded-2xl border-2 bg-white p-3 shadow-xs transition-all duration-200 cursor-pointer ${
-                      isSelected
-                        ? "border-[#0073bc] ring-2 ring-[#0073bc]/30 shadow-md"
-                        : "border-zinc-200/80 hover:border-zinc-300 hover:shadow-md"
-                    }`}
+                    className={`group relative flex flex-col justify-between text-left overflow-hidden rounded-2xl border-2 bg-white p-3 shadow-xs transition-all duration-200 cursor-pointer ${isSelected
+                      ? "border-[#0073bc] ring-2 ring-[#0073bc]/30 shadow-md"
+                      : "border-zinc-200/80 hover:border-zinc-300 hover:shadow-md"
+                      }`}
                   >
                     <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-zinc-50">
                       <Image
@@ -661,11 +660,10 @@ export function ServiceDetailView({
 
                       {/* Selection tint overlay */}
                       <div
-                        className={`absolute inset-0 transition-opacity ${
-                          isSelected
-                            ? "bg-[#0073bc]/10"
-                            : "bg-black/0 group-hover:bg-black/20"
-                        }`}
+                        className={`absolute inset-0 transition-opacity ${isSelected
+                          ? "bg-[#0073bc]/10"
+                          : "bg-black/0 group-hover:bg-black/20"
+                          }`}
                       />
                     </div>
 
