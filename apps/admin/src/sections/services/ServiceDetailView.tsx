@@ -336,21 +336,20 @@ export function ServiceDetailView({
         </div>
       )}
 
-      {/* Main Grid: Left Service Meta + Right Gallery Grid */}
+      {/* Top Section: Main Cover Image (Left) + Service Descriptions & Features (Right) */}
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-12">
-        {/* Left Column: Service Details Form (5 cols) */}
-        <div className="space-y-6 lg:col-span-5">
-          {/* Cover Image Box */}
-          <div className="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs">
+        {/* Left Column: Cover Image Box (5 cols) */}
+        <div className="lg:col-span-5">
+          <div className="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs h-full flex flex-col">
             <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">Cover Image</h3>
-            <div className="mt-3 relative aspect-16/10 w-full overflow-hidden rounded-2xl bg-zinc-100 border border-zinc-100 group">
+            <div className="mt-3 relative aspect-16/10 w-full flex-1 min-h-[240px] overflow-hidden rounded-2xl bg-zinc-100 border border-zinc-100 group">
               {coverImage ? (
                 <Image
                   src={coverImage}
                   alt={title}
                   fill
                   className="object-cover"
-                  sizes="(min-width: 1024px) 30vw, 100vw"
+                  sizes="(min-width: 1024px) 35vw, 100vw"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-xs text-zinc-400 font-medium">
@@ -384,9 +383,11 @@ export function ServiceDetailView({
               className="sr-only hidden"
             />
           </div>
+        </div>
 
-          {/* Titles & Descriptions */}
-          <div className="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs space-y-4">
+        {/* Right Column: Titles, Descriptions & Capabilities (7 cols) */}
+        <div className="lg:col-span-7">
+          <div className="rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-xs space-y-4">
             <div>
               <label className="block text-xs font-bold text-zinc-700">Service Title</label>
               <input
@@ -410,7 +411,7 @@ export function ServiceDetailView({
             <div>
               <label className="block text-xs font-bold text-zinc-700">Detailed Description</label>
               <textarea
-                rows={4}
+                rows={3}
                 value={longDescription}
                 onChange={(e) => setLongDescription(e.target.value)}
                 className="mt-1.5 w-full rounded-2xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs font-medium text-zinc-800 shadow-2xs focus:border-[#0073bc] focus:outline-hidden"
@@ -455,7 +456,7 @@ export function ServiceDetailView({
                 <button
                   type="button"
                   onClick={handleAddFeature}
-                  className="rounded-xl bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-700 hover:bg-zinc-200 transition-colors shrink-0"
+                  className="rounded-xl bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-700 hover:bg-zinc-200 transition-colors shrink-0 cursor-pointer"
                 >
                   Add
                 </button>
@@ -463,21 +464,22 @@ export function ServiceDetailView({
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Right Column: Either normal connected photos OR full panel gallery picker */}
-        <div className="space-y-4 lg:col-span-7">
-          {!isPickerOpen ? (
-            <>
-              {/* Normal Header & Action */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-base font-bold text-zinc-950">
-                    Connected Gallery Images ({galleryImages.length})
-                  </h2>
-                  <p className="text-xs text-zinc-500">
-                    All photos currently assigned to this service across all projects
-                  </p>
-                </div>
+      {/* Bottom Section: Connected Gallery Section / Full Gallery Image Picker */}
+      <div className="mt-10 space-y-4">
+        {!isPickerOpen ? (
+          <>
+            {/* Normal Header & Action */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-bold text-zinc-950">
+                  Connected Gallery Images ({galleryImages.length})
+                </h2>
+                <p className="text-xs text-zinc-500">
+                  All photos currently assigned to this service across all projects
+                </p>
+              </div>
 
                 <div className="flex items-center gap-2">
                   <button
@@ -491,9 +493,9 @@ export function ServiceDetailView({
                 </div>
               </div>
 
-              {/* Images Grid: 3 columns inside the right panel */}
+              {/* Images Grid: 4 columns across the full width */}
               {galleryImages.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                   {galleryImages.map((img) => (
                     <div
                       key={img.id}
@@ -622,7 +624,7 @@ export function ServiceDetailView({
                 </div>
               </div>
 
-              {/* Grid of gallery images */}
+              {/* Grid of gallery images: 4 columns across the full width */}
               {isLoadingAllGallery ? (
                 <div className="flex flex-col items-center justify-center py-24 text-center">
                   <Loader2 className="h-8 w-8 animate-spin text-[#0073bc]" />
@@ -631,7 +633,7 @@ export function ServiceDetailView({
                   </span>
                 </div>
               ) : filteredPickerImages.length > 0 ? (
-                <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 max-h-[600px] overflow-y-auto p-1 scrollbar-thin">
+                <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-4 max-h-[600px] overflow-y-auto p-1 scrollbar-thin">
                   {filteredPickerImages.map((img) => {
                     const isSelected = selectedImageIds.has(img.id);
 
@@ -726,7 +728,6 @@ export function ServiceDetailView({
             </div>
           )}
         </div>
-      </div>
 
       {/* Delete Image Confirmation Modal */}
       {imageToDelete && (
