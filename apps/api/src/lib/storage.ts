@@ -84,6 +84,16 @@ export function publicUploadUrl(env: Env, key: string): string {
    PUBLIC ASSETS STORAGE KEYS (Gallery, Projects, Company Profiles, Logos)
    ========================================================================= */
 
+/** Public Hero Slide Image: hero/{imageTitle}-{tag}.webp */
+export function storageKeyForHero(
+  imageTitle: string,
+  ext = "webp"
+): string {
+  const name = slugify(imageTitle) || "slide";
+  const tag = generateUniqueToken(4);
+  return `hero/${name}-${tag}.${ext}`;
+}
+
 /** Public Gallery Image: gallery/{gallerySlug}/{imageTitle}-{tag}.webp */
 export function storageKeyForGallery(
   gallerySlug: string,

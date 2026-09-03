@@ -5,6 +5,7 @@ import { requireAdmin, writeAudit } from "./auth";
 import { cuid } from "./db";
 import {
   putPublicAsset,
+  storageKeyForHero,
   storageKeyForGallery,
   validateUploadFile,
   validateUploadBytes,
@@ -337,8 +338,11 @@ export async function handleAdminContentMediaUpload(
 
   const detectedMime = detectMagicMime(new Uint8Array(bytes));
   const mimeType = detectedMime || file.type || "image/webp";
+  const ext = detectedMime === "application/pdf" ? "pdf" : "webp";
 
-  const key = storageKeyForGallery(folder, label, detectedMime === "application/pdf" ? "pdf" : "webp");
+  const key = folder === "hero"
+    ? storageKeyForHero(label, ext)
+    : storageKeyForGallery(folder, label, ext);
 
   try {
     await putPublicAsset(env, key, bytes, mimeType);
