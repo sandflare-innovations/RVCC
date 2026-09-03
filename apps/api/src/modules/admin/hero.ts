@@ -8,6 +8,7 @@ import {
   storageKeyForHero,
   storageKeyForClient,
   storageKeyForGallery,
+  storageKeyForProject,
   validateUploadFile,
   validateUploadBytes,
   detectMagicMime,
@@ -341,11 +342,20 @@ export async function handleAdminContentMediaUpload(
   const mimeType = detectedMime || file.type || "image/webp";
   const ext = detectedMime === "application/pdf" ? "pdf" : "webp";
 
-  const key = folder === "hero"
-    ? storageKeyForHero(label, ext)
-    : folder === "clients"
-      ? storageKeyForClient(label, ext)
-      : storageKeyForGallery(folder, label, ext);
+  let key: string;
+  if (folder === "hero") {
+    key = storageKeyForHero(label, ext);
+  } else if (folder === "clients") {
+    key = storageKeyForClient(label, ext);
+  } else if (folder.startsWith("projects/") || folder === "projects") {
+    const projectFolder = folder === "projects" ? "general" : folder.replace(/^projects\//, "");
+    key = storageKeyForProject(projectFolder, label, ext);
+  } else if (folder.startsWith("gallery/")) {
+    const galleryFolder = folder.replace(/^gallery\//, "");
+    key = storageKeyForGallery(galleryFolder, label, ext);
+  } else {
+    key = storageKeyForGallery(folder, label, ext);
+  }
 
   try {
     await putPublicAsset(env, key, bytes, mimeType);
