@@ -468,8 +468,8 @@ export function ServiceDetailView({
 
       {/* Bottom Section: Connected Gallery Section / Inline Selection */}
       <div className="mt-10 space-y-4">
-        {/* Header Row: Title on Left, and Controls (Search + Add Images / Save Selection) on Right in the same row */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Sticky Sub-Header: Title on Left, Controls on Right, pinned just below the main fixed top header */}
+        <div className="sticky top-[69px] z-20 -mx-5 md:-mx-8 border-y border-zinc-200/80 bg-white/95 px-5 md:px-8 py-3.5 backdrop-blur-md flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shadow-2xs">
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-zinc-950">
