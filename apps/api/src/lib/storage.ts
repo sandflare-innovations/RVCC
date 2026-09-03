@@ -94,6 +94,16 @@ export function storageKeyForHero(
   return `hero/${name}-${tag}.${ext}`;
 }
 
+/** Public Client Partner Logo: clients/{clientName}-{tag}.webp */
+export function storageKeyForClient(
+  clientName: string,
+  ext = "webp"
+): string {
+  const name = slugify(clientName) || "client";
+  const tag = generateUniqueToken(4);
+  return `clients/${name}-${tag}.${ext}`;
+}
+
 /** Public Gallery Image: gallery/{gallerySlug}/{imageTitle}-{tag}.webp */
 export function storageKeyForGallery(
   gallerySlug: string,

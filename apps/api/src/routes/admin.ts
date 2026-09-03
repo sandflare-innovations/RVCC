@@ -339,6 +339,34 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       if (request.method === "DELETE") return await handleAdminHeroSlideDelete(sql, env, request, id);
     }
 
+    // Client Partner Content Routes
+    if (path === "/clients" && request.method === "GET") {
+      const { handleAdminClientsList } = await import("../modules/admin/clients");
+      return await handleAdminClientsList(sql, env, request);
+    }
+    if (path === "/clients" && request.method === "POST") {
+      const { handleAdminClientCreate } = await import("../modules/admin/clients");
+      return await handleAdminClientCreate(sql, env, request);
+    }
+    if (path === "/clients/reorder" && request.method === "PUT") {
+      const { handleAdminClientsReorder } = await import("../modules/admin/clients");
+      return await handleAdminClientsReorder(sql, env, request);
+    }
+    const clientOne = path.match(/^\/clients\/([^/]+)$/);
+    if (clientOne) {
+      const id = decodeURIComponent(clientOne[1]!);
+      const {
+        handleAdminClientGet,
+        handleAdminClientUpdate,
+        handleAdminClientDelete,
+      } = await import("../modules/admin/clients");
+      if (request.method === "GET") return await handleAdminClientGet(sql, env, request, id);
+      if (request.method === "PUT" || request.method === "PATCH") {
+        return await handleAdminClientUpdate(sql, env, request, id);
+      }
+      if (request.method === "DELETE") return await handleAdminClientDelete(sql, env, request, id);
+    }
+
     // Public Media Upload for Admin Content (Gallery, Hero, Projects, etc.)
     if (path === "/content/upload" && request.method === "POST") {
       const { handleAdminContentMediaUpload } = await import("../modules/admin/hero");

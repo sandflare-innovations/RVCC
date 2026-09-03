@@ -6,6 +6,7 @@ import { cuid } from "./db";
 import {
   putPublicAsset,
   storageKeyForHero,
+  storageKeyForClient,
   storageKeyForGallery,
   validateUploadFile,
   validateUploadBytes,
@@ -342,7 +343,9 @@ export async function handleAdminContentMediaUpload(
 
   const key = folder === "hero"
     ? storageKeyForHero(label, ext)
-    : storageKeyForGallery(folder, label, ext);
+    : folder === "clients"
+      ? storageKeyForClient(label, ext)
+      : storageKeyForGallery(folder, label, ext);
 
   try {
     await putPublicAsset(env, key, bytes, mimeType);

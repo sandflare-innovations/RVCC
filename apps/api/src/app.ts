@@ -44,6 +44,11 @@ export function createApp(env: Env) {
     return handlePublicHeroRequest(c.req.raw, env);
   });
 
+  app.all("/clients", async (c) => {
+    const { handlePublicClientsRequest } = await import("./modules/public/clients");
+    return handlePublicClientsRequest(c.req.raw, env);
+  });
+
   app.all("/admin", (c) => handleAdminRequest(rewritePath(c.req.raw, "/admin"), env));
   app.all("/admin/*", (c) => handleAdminRequest(rewritePath(c.req.raw, "/admin"), env));
 
