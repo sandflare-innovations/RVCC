@@ -1,9 +1,9 @@
 "use client";
 
-import { Check, ExternalLink, Globe, GripVertical, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, ExternalLink, Globe, GripVertical, Loader2, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
@@ -19,6 +19,7 @@ export function ClientsGrid({
 }) {
   const router = useRouter();
   const [clients, setClients] = useState<ClientPartnerDTO[]>(initialClients);
+  const [searchQuery, setSearchQuery] = useState("");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
@@ -154,8 +155,53 @@ export function ClientsGrid({
     router.refresh();
   };
 
+  const filteredClients = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return clients;
+    return clients.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        (c.industry && c.industry.toLowerCase().includes(q))
+    );
+  }, [clients, searchQuery]);
+
   return (
     <>
+      {/* Search & Actions Bar */}
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search clients by name or industry..."
+            className="w-full rounded-2xl border border-zinc-200 bg-white py-2.5 pl-10 pr-10 text-xs font-medium text-zinc-800 shadow-2xs placeholder:text-zinc-400 focus:border-[#0073bc] focus:outline-hidden focus:ring-2 focus:ring-[#0073bc]/10 transition-all"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors"
+              title="Clear search"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-zinc-500 font-medium">
+          <span className="rounded-full bg-zinc-100 px-3 py-1 font-semibold text-zinc-700">
+            {filteredClients.length} {filteredClients.length === 1 ? "Client" : "Clients"}
+          </span>
+          {searchQuery && (
+            <span className="text-[11px] text-zinc-400">
+              (filtered from {clients.length})
+            </span>
+          )}
+        </div>
+      </div>
+
       {isSavingOrder && (
         <div className="mb-4 flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2 text-xs font-medium text-[#0073bc]">
           <span className="h-3.5 w-3.5 rounded-full bg-[#0073bc]/30 animate-pulse" />
@@ -201,21 +247,22 @@ export function ClientsGrid({
           </div>
         </button>
 
-        {clients.map((client, index) => {
+        {filteredClients.map((client, index) => {
           const isDragging = draggedIndex === index;
           const isOver = dragOverIndex === index;
           const isBusy = busyClientId === client.id;
+          const canDrag = !searchQuery; // Disable drag during active search filtering to prevent order confusion
 
           return (
             <div
               key={client.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, index)}
-              onDragOver={(e) => handleDragOver(e, index)}
-              onDragLeave={(e) => handleDragLeave(e, index)}
-              onDrop={(e) => handleDrop(e, index)}
+              draggable={canDrag}
+              onDragStart={(e) => canDrag && handleDragStart(e, index)}
+              onDragOver={(e) => canDrag && handleDragOver(e, index)}
+              onDragLeave={(e) => canDrag && handleDragLeave(e, index)}
+              onDrop={(e) => canDrag && handleDrop(e, index)}
               onDragEnd={handleDragEnd}
-              className={`group relative flex cursor-grab flex-col justify-between overflow-hidden rounded-3xl border bg-white p-3.5 shadow-xs transition-all duration-200 active:cursor-grabbing ${
+              className={`group relative flex ${canDrag ? "cursor-grab active:cursor-grabbing" : ""} flex-col justify-between overflow-hidden rounded-3xl border bg-white p-3.5 shadow-xs transition-all duration-200 ${
                 isDragging
                   ? "scale-[0.97] opacity-40 border-blue-400 shadow-none ring-2 ring-blue-500"
                   : isOver
@@ -346,6 +393,26 @@ export function ClientsGrid({
           );
         })}
       </div>
+
+      {/* Empty Search Results */}
+      {filteredClients.length === 0 && searchQuery && (
+        <div className="mt-8 flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-200 bg-zinc-50/50 py-16 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-400">
+            <Search className="h-6 w-6" />
+          </div>
+          <h3 className="mt-4 text-sm font-bold text-zinc-800">No clients found</h3>
+          <p className="mt-1 max-w-sm text-xs text-zinc-500">
+            No client partners match &ldquo;{searchQuery}&rdquo;. Try searching for another name or sector.
+          </p>
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            className="mt-4 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-700 shadow-2xs hover:bg-zinc-50"
+          >
+            Clear Search
+          </button>
+        </div>
+      )}
 
       {/* Edit/Create Modal */}
       {modalOpen && (
