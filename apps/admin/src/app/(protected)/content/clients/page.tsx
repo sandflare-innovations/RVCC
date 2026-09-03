@@ -1,11 +1,30 @@
-import { ChevronLeft, Construction,UserCheck } from "lucide-react";
+import { ChevronLeft, UserCheck } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
+
+import { Skeleton } from "@/components/ui/skeleton";
+import { adminSessionJson } from "@/lib/admin-data";
+import { hasRole } from "@/lib/constants";
+import { getAdminFromSession } from "@/lib/session";
+import { ClientsGrid } from "@/sections/clients/ClientsGrid";
+import type { ClientPartnerDTO } from "@rvcc/types";
 
 export const dynamic = "force-dynamic";
 
-export default function ContentClientsPage() {
+async function ClientsContent({ canDelete }: { canDelete: boolean }) {
+  const res = await adminSessionJson<{ clients: ClientPartnerDTO[] }>("/clients");
+  const clients = res.ok && Array.isArray(res.data.clients) ? res.data.clients : [];
+
+  return <ClientsGrid initialClients={clients} canDelete={canDelete} />;
+}
+
+export default async function ContentClientsPage() {
+  const admin = await getAdminFromSession();
+  const canDelete = Boolean(admin && hasRole(admin.role, "SUPER_ADMIN"));
+
   return (
     <div className="relative flex h-full min-h-0 w-full flex-col">
+      {/* Top Header */}
       <div className="flex flex-none items-center justify-between bg-white pb-6">
         <div className="flex items-center gap-3">
           <Link
@@ -21,34 +40,27 @@ export default function ContentClientsPage() {
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-zinc-950">Clients</h1>
-              <p className="text-sm text-zinc-500">Manage client logos and partner information</p>
+              <p className="text-sm text-zinc-500">
+                Manage partner logos, sectors, and interactive 1:1 display order
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 [scrollbar-width:none] overflow-y-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border border-cyan-100 bg-cyan-50">
-            <Construction className="h-10 w-10 text-cyan-400" />
-          </div>
-          <h2 className="mb-2 text-2xl font-bold tracking-tight text-zinc-900">Coming Soon</h2>
-          <p className="max-w-md text-sm leading-relaxed text-zinc-500">
-            The client management module is under development. You&apos;ll be able to add, edit, and
-            organize client logos and information displayed on the website.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <span className="rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600">
-              Upload Logos
-            </span>
-            <span className="rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600">
-              Client Details
-            </span>
-            <span className="rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600">
-              Reorder
-            </span>
-          </div>
-        </div>
+      {/* Grid Content with Suspense */}
+      <div className="flex-1 overflow-y-auto pb-12">
+        <Suspense
+          fallback={
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="aspect-square rounded-3xl bg-zinc-100 animate-pulse p-4" />
+              ))}
+            </div>
+          }
+        >
+          <ClientsContent canDelete={canDelete} />
+        </Suspense>
       </div>
     </div>
   );
