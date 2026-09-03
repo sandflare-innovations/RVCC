@@ -1,7 +1,8 @@
 "use client";
 
-import { Check, ExternalLink, Globe, GripVertical, Loader2, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { Check, ChevronLeft, ExternalLink, Globe, GripVertical, Loader2, Pencil, Plus, Search, Trash2, UserCheck, X } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -167,37 +168,53 @@ export function ClientsGrid({
 
   return (
     <>
-      {/* Search & Actions Bar */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1 max-w-md">
+      {/* Top Header with Title on Left and Search on Right (Same Row) */}
+      <div className="flex flex-col gap-4 bg-white pb-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/content"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+            aria-label="Go back"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </Link>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50">
+              <UserCheck className="h-5 w-5 text-cyan-600" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold tracking-tight text-zinc-950">Clients</h1>
+                <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-600">
+                  {filteredClients.length} {filteredClients.length === 1 ? "Client" : "Clients"}
+                </span>
+              </div>
+              <p className="text-xs text-zinc-500">
+                Manage partner logos, sectors, and interactive 1:1 display order
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right side search input */}
+        <div className="relative w-full sm:w-72 md:w-80">
           <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search clients by name or industry..."
-            className="w-full rounded-2xl border border-zinc-200 bg-white py-2.5 pl-10 pr-10 text-xs font-medium text-zinc-800 shadow-2xs placeholder:text-zinc-400 focus:border-[#0073bc] focus:outline-hidden focus:ring-2 focus:ring-[#0073bc]/10 transition-all"
+            placeholder="Search clients or industry..."
+            className="w-full rounded-2xl border border-zinc-200 bg-white py-2 pl-9 pr-9 text-xs font-medium text-zinc-800 shadow-2xs placeholder:text-zinc-400 focus:border-[#0073bc] focus:outline-hidden focus:ring-2 focus:ring-[#0073bc]/10 transition-all"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors"
               title="Clear search"
             >
               <X className="h-3.5 w-3.5" />
             </button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 text-xs text-zinc-500 font-medium">
-          <span className="rounded-full bg-zinc-100 px-3 py-1 font-semibold text-zinc-700">
-            {filteredClients.length} {filteredClients.length === 1 ? "Client" : "Clients"}
-          </span>
-          {searchQuery && (
-            <span className="text-[11px] text-zinc-400">
-              (filtered from {clients.length})
-            </span>
           )}
         </div>
       </div>
