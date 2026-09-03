@@ -421,7 +421,35 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       if (request.method === "DELETE") return await handleAdminGalleryImageDelete(sql, env, request, id);
     }
 
-    // Public Media Upload for Admin Content (Gallery, Hero, Projects, etc.)
+    // Services Content Routes
+    if (path === "/services" && request.method === "GET") {
+      const { handleAdminServicesList } = await import("../modules/admin/services");
+      return await handleAdminServicesList(sql, env, request);
+    }
+    if (path === "/services" && request.method === "POST") {
+      const { handleAdminServiceCreate } = await import("../modules/admin/services");
+      return await handleAdminServiceCreate(sql, env, request);
+    }
+    if (path === "/services/reorder" && request.method === "PUT") {
+      const { handleAdminServicesReorder } = await import("../modules/admin/services");
+      return await handleAdminServicesReorder(sql, env, request);
+    }
+    const serviceOne = path.match(/^\/services\/([^/]+)$/);
+    if (serviceOne) {
+      const id = decodeURIComponent(serviceOne[1]!);
+      const {
+        handleAdminServiceGet,
+        handleAdminServiceUpdate,
+        handleAdminServiceDelete,
+      } = await import("../modules/admin/services");
+      if (request.method === "GET") return await handleAdminServiceGet(sql, env, request, id);
+      if (request.method === "PUT" || request.method === "PATCH") {
+        return await handleAdminServiceUpdate(sql, env, request, id);
+      }
+      if (request.method === "DELETE") return await handleAdminServiceDelete(sql, env, request, id);
+    }
+
+    // Public Media Upload for Admin Content (Gallery, Hero, Projects, Services, etc.)
     if (path === "/content/upload" && request.method === "POST") {
       const { handleAdminContentMediaUpload } = await import("../modules/admin/hero");
       return await handleAdminContentMediaUpload(sql, env, request);

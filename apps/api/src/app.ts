@@ -58,6 +58,15 @@ export function createApp(env: Env) {
     return handlePublicProjectsRequest(c.req.raw, env);
   });
 
+  app.all("/services", async (c) => {
+    const { handlePublicServicesRequest } = await import("./modules/public/services");
+    return handlePublicServicesRequest(c.req.raw, env);
+  });
+  app.all("/services/*", async (c) => {
+    const { handlePublicServicesRequest } = await import("./modules/public/services");
+    return handlePublicServicesRequest(c.req.raw, env);
+  });
+
   app.all("/gallery", async (c) => {
     const { handlePublicGalleryRequest } = await import("./modules/public/gallery");
     return handlePublicGalleryRequest(c.req.raw, env);
