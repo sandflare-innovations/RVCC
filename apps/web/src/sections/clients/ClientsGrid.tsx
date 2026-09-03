@@ -1,11 +1,28 @@
 "use client";
 
-import { clients } from "@data/clients";
+import { clients as fallbackClients } from "@data/clients";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import React, { useEffect, useRef } from "react";
 
-export const ClientsGrid = () => {
+export interface ClientItemProp {
+  id: string | number;
+  name: string;
+  logoUrl?: string;
+  logo?: string;
+  industry?: string;
+}
+
+export const ClientsGrid = ({ clients: initialClients }: { clients?: ClientItemProp[] }) => {
+  const displayClients: ClientItemProp[] = (initialClients && initialClients.length > 0)
+    ? initialClients
+    : fallbackClients.map((c) => ({
+        id: c.id,
+        name: c.name,
+        logoUrl: c.logo,
+        logo: c.logo,
+        industry: c.industry,
+      }));
   const hoverSoundRef = useRef<HTMLAudioElement | null>(null);
 
   const speakTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -99,7 +116,7 @@ export const ClientsGrid = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-px border border-zinc-100 bg-zinc-100 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {clients.map((client, index) => (
+          {displayClients.map((client, index) => (
             <motion.div
               key={client.id}
               initial={{ opacity: 0, y: 20 }}
@@ -113,7 +130,7 @@ export const ClientsGrid = () => {
               {/* Logo Container */}
               <div className="relative aspect-[2/2] w-full max-w-[380px] transition-transform duration-700 group-hover:scale-125">
                 <Image
-                  src={client.logo}
+                  src={client.logoUrl || client.logo || ""}
                   alt={client.name}
                   fill
                   className="object-contain grayscale transition-all duration-500 group-hover:grayscale-0"

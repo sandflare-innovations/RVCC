@@ -1,8 +1,10 @@
 import { Footer } from "@components/layout/Footer";
-import { clients } from "@data/clients";
+import { clients as fallbackClients } from "@data/clients";
 import { ClientsGrid } from "@sections/clients/ClientsGrid";
 import { ClientsHero } from "@sections/clients/ClientsHero";
 import { Metadata } from "next";
+
+import { getClientPartners } from "@/lib/content/clients";
 
 export const metadata: Metadata = {
   title: "Our Clients | RVCC",
@@ -10,18 +12,14 @@ export const metadata: Metadata = {
     "Explore the network of industry leaders and visionary partners who trust RVCC for architectural and infrastructure excellence.",
 };
 
-export default function ClientsPage() {
-  // Map our client data to the format expected by ThreeDMarquee
-  const marqueeImages = clients.map((client) => ({
-    src: client.logo,
-    alt: client.name,
-  }));
+export default async function ClientsPage() {
+  const dynamicClients = await getClientPartners();
 
   return (
     <main className="min-h-screen bg-white">
       <ClientsHero />
 
-      <ClientsGrid />
+      <ClientsGrid clients={dynamicClients} />
 
       {/* CTA Section */}
       <section className="bg-zinc-50 py-32">
