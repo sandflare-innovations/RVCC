@@ -4,3 +4,9 @@ export const CAREERS_CACHE_TAG = "careers";
 
 export const HERO_REVALIDATE_SECONDS = 60;
 export const HERO_CACHE_TAG = "hero-slides";
+
+export const PROJECTS_REVALIDATE_SECONDS = 60;
+export const PROJECTS_CACHE_TAG = "projects";
+
+export const GALLERY_REVALIDATE_SECONDS = 60;
+export const GALLERY_CACHE_TAG = "gallery";

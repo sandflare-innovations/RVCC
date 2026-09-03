@@ -1,20 +1,20 @@
-"use client";
+import { useMemo, useState } from "react";
 
-import { useMemo,useState } from "react";
+import { PROJECTS as DEFAULT_PROJECTS, DetailedProject } from "../data/projects/detailed";
 
-import { PROJECTS } from "../data/projects/detailed";
-
-export const useProjectFilters = () => {
+export const useProjectFilters = (initialProjects?: DetailedProject[]) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
+  const sourceProjects = initialProjects && initialProjects.length > 0 ? initialProjects : DEFAULT_PROJECTS;
+
   const categories = useMemo(() => {
-    const cats = new Set(PROJECTS.map((p) => p.category));
+    const cats = new Set(sourceProjects.map((p) => p.category));
     return ["All", ...Array.from(cats)];
-  }, []);
+  }, [sourceProjects]);
 
   const filteredProjects = useMemo(() => {
-    const allProjects = PROJECTS || [];
+    const allProjects = sourceProjects || [];
     let result = [...allProjects];
 
     // Search
