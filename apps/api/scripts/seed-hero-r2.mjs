@@ -74,7 +74,7 @@ async function main() {
   for (const slide of SEED_SLIDES) {
     const seoSlug = slugify(`${slide.title1}-${slide.title2}`);
     const token = generateUniqueToken(4);
-    const r2Key = `gallery/hero/${seoSlug}-${token}.webp`;
+    const r2Key = `hero/${seoSlug}-${token}.webp`;
 
     console.log(`\n[Upload] Uploading "${slide.localFile}" to R2 -> "${BUCKET_NAME}/${r2Key}"...`);
     const cmd = `npx wrangler r2 object put "${BUCKET_NAME}/${r2Key}" --file="${slide.localFile}" --content-type="image/webp" --remote`;
