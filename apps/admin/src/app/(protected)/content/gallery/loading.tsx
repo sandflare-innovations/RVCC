@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function GalleryLoading() {
   return (
-    <div className="relative flex h-full min-h-0 w-full flex-col">
+    <div className="relative flex h-full min-h-0 w-full flex-col overflow-x-hidden">
       {/* Sticky Bar Skeleton */}
       <div className="-mx-5 -mt-5 md:-mx-8 md:-mt-8 mb-6 border-b border-zinc-200/80 bg-white px-5 md:px-8 py-3.5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
@@ -14,7 +14,7 @@ export default function GalleryLoading() {
         <Skeleton className="h-9 w-full lg:w-72 rounded-2xl" />
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-12">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden pb-12">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="rounded-3xl border border-zinc-200/80 bg-white p-5 space-y-3">

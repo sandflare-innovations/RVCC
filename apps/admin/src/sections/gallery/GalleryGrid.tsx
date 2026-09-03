@@ -199,9 +199,9 @@ export function GalleryGrid({
     <>
       {/* Fixed Sticky Top Bar: Sorting & Search in a single sleek row */}
       <div className="sticky top-0 z-30 -mx-5 -mt-5 md:-mx-8 md:-mt-8 mb-8 md:mb-10 border-b border-zinc-200/80 bg-white/95 px-5 md:px-8 py-3.5 backdrop-blur-md">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Left: View Mode Toggle & Custom Dropdown Filter */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             {/* View Mode Switcher: All vs By Project vs By Service */}
             <div className="flex shrink-0 items-center rounded-2xl bg-zinc-100 p-1">
               <button

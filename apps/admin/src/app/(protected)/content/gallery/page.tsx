@@ -24,8 +24,8 @@ async function GalleryContent() {
 
 export default async function ContentGalleryPage() {
   return (
-    <div className="relative flex h-full min-h-0 w-full flex-col">
-      <div className="flex-1 overflow-y-auto pb-12">
+    <div className="relative flex h-full min-h-0 w-full flex-col overflow-x-hidden">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden pb-12">
         <Suspense
           fallback={
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
