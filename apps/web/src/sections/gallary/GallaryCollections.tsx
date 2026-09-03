@@ -6,13 +6,20 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-import { GALLARY_PROJECTS } from "@/data/gallary";
+import { GALLARY_PROJECTS as STATIC_GALLERY, GallaryProject } from "@/data/gallary";
 import { services } from "@/data/services";
 import { Icons } from "@/lib/icons";
 
-export const GallaryCollections = () => {
+export const GallaryCollections = ({
+  initialCollections,
+}: {
+  initialCollections?: GallaryProject[];
+}) => {
   const searchParams = useSearchParams();
   const initialService = searchParams.get("service");
+
+  const gallerySource =
+    initialCollections && initialCollections.length > 0 ? initialCollections : STATIC_GALLERY;
 
   const [viewMode, setViewMode] = useState<"projects" | "services">(
     initialService ? "services" : "projects"
@@ -23,7 +30,7 @@ export const GallaryCollections = () => {
   // Prepare Service-based collections
   const serviceCollections = services
     .map((service) => {
-      const relatedProjects = GALLARY_PROJECTS.filter((p) => p.serviceSlugs.includes(service.slug));
+      const relatedProjects = gallerySource.filter((p) => p.serviceSlugs.includes(service.slug));
       const allImages = relatedProjects.flatMap((p) => p.images);
 
       return {
@@ -39,7 +46,7 @@ export const GallaryCollections = () => {
     .filter((s) => s.images.length > 0);
 
   // Prepare Project-based collections
-  const projectCollections = GALLARY_PROJECTS.map((p) => ({
+  const projectCollections = gallerySource.map((p) => ({
     id: `project-${p.id}`,
     slug: p.slug,
     title: p.title,

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { FloatingContact } from "@/components/common/FloatingContact";
 import { GALLARY_PROJECTS, GallaryProject } from "@/data/gallary";
 import { services } from "@/data/services";
+import { getGalleryCollections } from "@/lib/content/projects";
 
 import ProjectClient from "./ProjectClient";
 
@@ -13,14 +14,20 @@ interface Props {
 }
 
 async function getGalleryItem(slug: string): Promise<GallaryProject | null> {
+  const dynamicCollections = await getGalleryCollections();
+
   // 1. Try to find a specific project
-  const project = GALLARY_PROJECTS.find((p) => p.slug === slug);
+  const project = dynamicCollections.find((p) => p.slug === slug || p.id === slug);
   if (project) return project;
+
+  // Fallback check in static gallery
+  const staticFound = GALLARY_PROJECTS.find((p) => p.slug === slug || p.id === slug);
+  if (staticFound) return staticFound;
 
   // 2. Try to find a service and aggregate its project images
   const service = services.find((s) => s.slug === slug);
   if (service) {
-    const relatedProjects = GALLARY_PROJECTS.filter((p) => p.serviceSlugs.includes(service.slug));
+    const relatedProjects = dynamicCollections.filter((p) => p.serviceSlugs.includes(service.slug));
     const allImages = relatedProjects.flatMap((p) => p.images);
 
     if (allImages.length === 0) return null;

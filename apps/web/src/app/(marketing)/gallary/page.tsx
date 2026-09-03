@@ -5,6 +5,7 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 
 import { FloatingContact } from "@/components/common/FloatingContact";
+import { getGalleryCollections } from "@/lib/content/projects";
 
 export const metadata: Metadata = {
   title: "Gallery | RVCC - Visualizing Excellence",
@@ -18,12 +19,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GallaryPage() {
+export default async function GallaryPage() {
+  const collections = await getGalleryCollections();
+
   return (
     <div className="relative min-h-screen">
       <GallaryHero />
       <Suspense fallback={<div className="container py-24 text-center">Loading gallery...</div>}>
-        <GallaryCollections />
+        <GallaryCollections initialCollections={collections} />
       </Suspense>
       <Footer />
       <FloatingContact />
