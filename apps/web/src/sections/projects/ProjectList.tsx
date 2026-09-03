@@ -7,9 +7,10 @@ import Link from "next/link";
 import { Icons } from "@/lib/icons";
 
 import { useProjectFilters } from "../../hooks/useProjectFilters";
+import { DetailedProject } from "@/data/projects/detailed";
 import { ProjectFilters } from "./ProjectFilters";
 
-export const ProjectList = () => {
+export const ProjectList = ({ initialProjects }: { initialProjects?: DetailedProject[] }) => {
   const {
     searchQuery,
     setSearchQuery,
@@ -17,7 +18,7 @@ export const ProjectList = () => {
     setSelectedCategory,
     categories,
     projects,
-  } = useProjectFilters();
+  } = useProjectFilters(initialProjects);
 
   return (
     <section className="bg-background">

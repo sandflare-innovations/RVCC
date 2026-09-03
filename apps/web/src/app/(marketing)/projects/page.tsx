@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ProjectHero } from "@/sections/projects/ProjectHero";
 import { ProjectList } from "@/sections/projects/ProjectList";
 import { ProjectMetrics } from "@/sections/projects/ProjectMetrics";
+import { getProjects } from "@/lib/content/projects";
 
 export const metadata: Metadata = {
   title: "Projects | RVCC - Our Architectural Portfolio",
@@ -13,13 +14,15 @@ export const metadata: Metadata = {
     "Explore our complete portfolio of premier projects across Saudi Arabia, including commercial towers, luxury residences, and urban landscaping.",
 };
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const projects = await getProjects();
+
   return (
     <main className="relative min-h-screen">
       <ProjectHero />
       <ProjectMetrics />
       <ClientLogos />
-      <ProjectList />
+      <ProjectList initialProjects={projects} />
       <Footer />
       <FloatingContact />
     </main>

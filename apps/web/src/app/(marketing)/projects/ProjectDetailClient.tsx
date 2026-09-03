@@ -132,9 +132,9 @@ export const ProjectDetailClient: React.FC<ProjectDetailClientProps> = ({ projec
                 </p>
               </motion.div>
 
-              {/* Asymmetrical Gallery */}
+              {/* Asymmetrical Gallery: List all images under the project */}
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                {project.gallery.slice(1).map((img, idx) => (
+                {(project.gallery && project.gallery.length > 0 ? project.gallery : [project.image]).map((img, idx) => (
                   <motion.div
                     key={idx}
                     initial={{ opacity: 0, y: 40 }}
@@ -148,7 +148,7 @@ export const ProjectDetailClient: React.FC<ProjectDetailClientProps> = ({ projec
                   >
                     <Image
                       src={img}
-                      alt={`${project.title} detailed view`}
+                      alt={`${project.title} gallery view ${idx + 1}`}
                       fill
                       className="object-cover transition-transform duration-700 hover:scale-105"
                     />
