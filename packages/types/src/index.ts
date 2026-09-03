@@ -222,3 +222,69 @@ export interface ClientPartnerInput {
   isActive?: boolean;
 }
 
+// ── Project & Gallery Types ────────────────────────────────────────────────
+
+export type ProjectStatus = "Completed" | "In Progress" | "Upcoming";
+
+export interface GalleryImageDTO {
+  id: string;
+  projectId: string;
+  imageUrl: string;
+  caption: string;
+  serviceSlugs?: string[];
+  isCover?: boolean;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GalleryImageInput {
+  projectId: string;
+  imageUrl: string;
+  caption?: string;
+  serviceSlugs?: string[];
+  isCover?: boolean;
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
+export interface ProjectDTO {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  serviceSlugs?: string[];
+  client: string;
+  location: string;
+  year: string;
+  status: ProjectStatus;
+  description: string;
+  coverImage: string;
+  scope: string[];
+  sortOrder: number;
+  isActive: boolean;
+  gallery?: GalleryImageDTO[];
+  _count?: {
+    gallery: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectInput {
+  title: string;
+  slug?: string;
+  category: string;
+  serviceSlugs?: string[];
+  client?: string;
+  location?: string;
+  year?: string;
+  status?: ProjectStatus;
+  description?: string;
+  coverImage: string;
+  scope?: string[];
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
