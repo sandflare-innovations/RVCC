@@ -198,3 +198,27 @@ export interface HeroSlideInput {
   sortOrder?: number;
   isActive?: boolean;
 }
+
+// ── Client Partner Types ───────────────────────────────────────────────────
+
+export interface ClientPartnerDTO {
+  id: string;
+  name: string;
+  logoUrl: string;
+  industry: string;
+  websiteUrl: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClientPartnerInput {
+  name: string;
+  logoUrl: string;
+  industry?: string;
+  websiteUrl?: string | null;
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
