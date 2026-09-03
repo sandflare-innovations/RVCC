@@ -1,13 +1,13 @@
-"use client";
-
 import {
   AlertCircle,
   ArrowLeft,
   Check,
+  CheckCircle2,
   ChevronLeft,
   Image as ImageIcon,
   Loader2,
   Plus,
+  Search,
   Trash2,
   UploadCloud,
   Wrench,
@@ -16,7 +16,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
@@ -48,9 +48,18 @@ export function ServiceDetailView({
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [uploadingCover, setUploadingCover] = useState(false);
 
-  // Add gallery image state
-  const galleryInputRef = useRef<HTMLInputElement>(null);
-  const [uploadingGallery, setUploadingGallery] = useState(false);
+  // Gallery Picker Modal state (select/unselect images from gallery)
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [allGalleryImages, setAllGalleryImages] = useState<GalleryImageDTO[]>([]);
+  const [isLoadingAllGallery, setIsLoadingAllGallery] = useState(false);
+  const [selectedImageIds, setSelectedImageIds] = useState<Set<string>>(
+    new Set((initialService.galleryImages ?? []).map((img) => img.id))
+  );
+  const [pickerSearch, setPickerSearch] = useState("");
+  const [isSavingPicker, setIsSavingPicker] = useState(false);
+  const [pickerError, setPickerError] = useState<string | null>(null);
+
+  // Delete single connected image modal
   const [imageToDelete, setImageToDelete] = useState<GalleryImageDTO | null>(null);
   const [isDeletingImage, setIsDeletingImage] = useState(false);
 
@@ -133,6 +142,110 @@ export function ServiceDetailView({
       setErrorMessage("Network error — please try again.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleOpenPicker = async () => {
+    setIsPickerOpen(true);
+    setPickerError(null);
+    setSelectedImageIds(new Set(galleryImages.map((img) => img.id)));
+
+    if (allGalleryImages.length === 0) {
+      setIsLoadingAllGallery(true);
+      try {
+        const res = await fetch("/api/gallery");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.images)) {
+            setAllGalleryImages(data.images);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load gallery images", err);
+      } finally {
+        setIsLoadingAllGallery(false);
+      }
+    }
+  };
+
+  const toggleSelectImage = (imgId: string) => {
+    setSelectedImageIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(imgId)) {
+        next.delete(imgId);
+      } else {
+        next.add(imgId);
+      }
+      return next;
+    });
+  };
+
+  const filteredPickerImages = useMemo(() => {
+    let list = allGalleryImages;
+    if (pickerSearch.trim()) {
+      const q = pickerSearch.toLowerCase().trim();
+      list = list.filter(
+        (img) =>
+          (img.caption && img.caption.toLowerCase().includes(q)) ||
+          (img.projectTitle && img.projectTitle.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }, [allGalleryImages, pickerSearch]);
+
+  const handleSavePickerSelection = async () => {
+    setIsSavingPicker(true);
+    setPickerError(null);
+
+    try {
+      // Find which images were added and which were removed
+      const currentIds = new Set(galleryImages.map((img) => img.id));
+      const newlySelectedIds = Array.from(selectedImageIds).filter((id) => !currentIds.has(id));
+      const removedIds = Array.from(currentIds).filter((id) => !selectedImageIds.has(id));
+
+      const updatePromises: Promise<any>[] = [];
+
+      // Add this service's slug to newly selected images
+      for (const id of newlySelectedIds) {
+        const targetImg = allGalleryImages.find((img) => img.id === id);
+        const currentSlugs = targetImg?.serviceSlugs || [];
+        const updatedSlugs = Array.from(new Set([...currentSlugs, service.slug]));
+
+        updatePromises.push(
+          fetch(`/api/gallery/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ serviceSlugs: updatedSlugs }),
+          })
+        );
+      }
+
+      // Remove this service's slug from unselected images
+      for (const id of removedIds) {
+        const targetImg = allGalleryImages.find((img) => img.id === id) || galleryImages.find((img) => img.id === id);
+        const currentSlugs = targetImg?.serviceSlugs || [];
+        const updatedSlugs = currentSlugs.filter((s) => s !== service.slug);
+
+        updatePromises.push(
+          fetch(`/api/gallery/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ serviceSlugs: updatedSlugs }),
+          })
+        );
+      }
+
+      await Promise.all(updatePromises);
+
+      // Re-populate local connected images
+      const updatedGalleryList = allGalleryImages.filter((img) => selectedImageIds.has(img.id));
+      setGalleryImages(updatedGalleryList);
+      setIsPickerOpen(false);
+      router.refresh();
+    } catch {
+      setPickerError("Failed to update service images.");
+    } finally {
+      setIsSavingPicker(false);
     }
   };
 
@@ -361,13 +474,16 @@ export function ServiceDetailView({
               </p>
             </div>
 
-            <Link
-              href="/content/gallery"
-              className="flex items-center gap-1.5 rounded-2xl bg-[#0073bc] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005fa0] transition-colors cursor-pointer"
-            >
-              <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-              <span>Add in Gallery</span>
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleOpenPicker}
+                className="flex items-center gap-1.5 rounded-2xl bg-[#0073bc] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005fa0] transition-colors cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+                <span>Add Images</span>
+              </button>
+            </div>
           </div>
 
           {/* Images Grid: 3 columns inside the right panel */}
@@ -463,6 +579,170 @@ export function ServiceDetailView({
                 {isDeletingImage && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 <span>{isDeletingImage ? "Deleting..." : "Delete Photo"}</span>
               </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Gallery Image Picker Modal */}
+      {isPickerOpen && (
+        <Modal
+          open={isPickerOpen}
+          onClose={() => !isSavingPicker && setIsPickerOpen(false)}
+          title="Select Gallery Images"
+          description={`Choose images to display under ${service.title}. Click any image to select or unselect.`}
+          maxWidth="4xl"
+        >
+          <div className="space-y-4">
+            {pickerError && (
+              <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{pickerError}</span>
+              </div>
+            )}
+
+            {/* Top Toolbar in Modal: Search + Count */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="relative w-full sm:w-80">
+                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                <input
+                  type="text"
+                  value={pickerSearch}
+                  onChange={(e) => setPickerSearch(e.target.value)}
+                  placeholder="Filter by caption, project title..."
+                  className="w-full rounded-xl border border-zinc-200 bg-white py-2 pl-9 pr-9 text-xs font-medium text-zinc-800 shadow-2xs placeholder:text-zinc-400 focus:border-[#0073bc] focus:outline-hidden"
+                />
+                {pickerSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setPickerSearch("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-400 hover:bg-zinc-100"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 text-xs font-bold text-zinc-700">
+                <span className="rounded-full bg-blue-50 border border-blue-100 px-3 py-1 text-[#0073bc]">
+                  {selectedImageIds.size} {selectedImageIds.size === 1 ? "Image" : "Images"} Selected
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedImageIds.size === allGalleryImages.length) {
+                      setSelectedImageIds(new Set());
+                    } else {
+                      setSelectedImageIds(new Set(allGalleryImages.map((img) => img.id)));
+                    }
+                  }}
+                  className="text-xs font-semibold text-zinc-500 hover:text-zinc-800 transition-colors"
+                >
+                  {selectedImageIds.size === allGalleryImages.length ? "Deselect All" : "Select All"}
+                </button>
+              </div>
+            </div>
+
+            {/* Grid of Gallery Images to Pick */}
+            {isLoadingAllGallery ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-[#0073bc]" />
+                <span className="mt-3 text-xs font-semibold text-zinc-500">
+                  Loading gallery collection...
+                </span>
+              </div>
+            ) : filteredPickerImages.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 md:grid-cols-4 max-h-[50vh] overflow-y-auto p-1">
+                {filteredPickerImages.map((img) => {
+                  const isSelected = selectedImageIds.has(img.id);
+
+                  return (
+                    <button
+                      type="button"
+                      key={img.id}
+                      onClick={() => toggleSelectImage(img.id)}
+                      className={`group relative flex flex-col text-left overflow-hidden rounded-2xl border-2 transition-all duration-200 cursor-pointer ${
+                        isSelected
+                          ? "border-[#0073bc] ring-2 ring-[#0073bc]/30 shadow-md scale-[0.98]"
+                          : "border-zinc-200/80 hover:border-zinc-300 hover:shadow-xs"
+                      }`}
+                    >
+                      <div className="relative aspect-4/3 w-full overflow-hidden bg-zinc-100">
+                        <Image
+                          src={img.imageUrl}
+                          alt={img.caption || "Gallery photo"}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          sizes="(min-width: 1024px) 20vw, 33vw"
+                        />
+
+                        {/* Top Selection Indicator */}
+                        <div className="absolute top-2 right-2 z-10">
+                          {isSelected ? (
+                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0073bc] text-white shadow-md">
+                              <Check className="h-3.5 w-3.5 stroke-[3]" />
+                            </div>
+                          ) : (
+                            <div className="h-6 w-6 rounded-full border-2 border-white/90 bg-black/30 backdrop-blur-xs transition-colors group-hover:bg-black/50" />
+                          )}
+                        </div>
+
+                        {/* Hover Overlay */}
+                        <div
+                          className={`absolute inset-0 transition-opacity ${
+                            isSelected
+                              ? "bg-[#0073bc]/10"
+                              : "bg-black/0 group-hover:bg-black/20"
+                          }`}
+                        />
+                      </div>
+
+                      <div className="bg-white p-2.5">
+                        <span className="line-clamp-1 text-[11px] font-bold text-zinc-900">
+                          {img.caption || "Photo"}
+                        </span>
+                        {img.projectTitle && (
+                          <span className="line-clamp-1 text-[10px] font-medium text-zinc-400">
+                            {img.projectTitle}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <ImageIcon className="h-10 w-10 text-zinc-300" />
+                <h4 className="mt-2 text-xs font-bold text-zinc-700">No images match your search</h4>
+                <p className="mt-1 text-[11px] text-zinc-400">Try adjusting your keyword filter.</p>
+              </div>
+            )}
+
+            {/* Modal Bottom Actions */}
+            <div className="flex items-center justify-between border-t border-zinc-100 pt-4">
+              <span className="text-xs text-zinc-500">
+                {selectedImageIds.size} image{selectedImageIds.size === 1 ? "" : "s"} selected for this service
+              </span>
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  disabled={isSavingPicker}
+                  onClick={() => setIsPickerOpen(false)}
+                  className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-bold text-zinc-700 hover:bg-zinc-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isSavingPicker}
+                  onClick={handleSavePickerSelection}
+                  className="flex items-center gap-2 rounded-xl bg-[#0073bc] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005fa0] disabled:opacity-50 cursor-pointer"
+                >
+                  {isSavingPicker && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  <span>{isSavingPicker ? "Saving Images..." : "Save Selection"}</span>
+                </button>
+              </div>
             </div>
           </div>
         </Modal>
