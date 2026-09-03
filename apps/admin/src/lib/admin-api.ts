@@ -17,11 +17,19 @@ export async function adminApiFetch(
   if (!headers.has("User-Agent")) headers.set("User-Agent", "RVCC-Admin-SSR/1.0");
   if (sessionToken) headers.set("X-Admin-Session", sessionToken);
 
-  return fetch(`${adminBaseUrl()}${path.startsWith("/") ? path : `/${path}`}`, {
-    ...rest,
-    headers,
-    cache: "no-store",
-  });
+  try {
+    return await fetch(`${adminBaseUrl()}${path.startsWith("/") ? path : `/${path}`}`, {
+      ...rest,
+      headers,
+      cache: "no-store",
+    });
+  } catch (err) {
+    console.error(`[adminApiFetch network error] ${path}:`, err);
+    return new Response(JSON.stringify({ error: "Backend API unavailable." }), {
+      status: 503,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 }
 
 /** @deprecated Use adminApiFetch */

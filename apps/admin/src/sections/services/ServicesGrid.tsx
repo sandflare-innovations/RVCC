@@ -177,7 +177,7 @@ export function ServicesGrid({
   return (
     <>
       {/* Sticky Top Header & Search Toolbar */}
-      <div className="sticky top-0 z-30 -mx-5 -mt-5 md:-mx-8 md:-mt-8 mb-6 border-b border-zinc-200/80 bg-white/95 px-5 md:px-8 py-3.5 backdrop-blur-md flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="sticky top-0 z-30 -mx-5 -mt-6 md:-mx-8 md:-mt-9 mb-6 border-b border-zinc-200/80 bg-white/95 px-5 md:px-8 py-3.5 backdrop-blur-md flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shadow-2xs">
         <div className="flex items-center gap-3">
           <Link
             href="/content"

@@ -274,8 +274,8 @@ export function ServiceDetailView({
 
   return (
     <>
-      {/* Sticky Top Header Toolbar */}
-      <div className="sticky top-0 z-30 -mx-5 -mt-5 md:-mx-8 md:-mt-8 mb-6 border-b border-zinc-200/80 bg-white/95 px-5 md:px-8 py-3.5 backdrop-blur-md flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Sticky Top Header Toolbar: Pulled up flush with the container top border */}
+      <div className="sticky top-0 z-30 -mx-5 -mt-6 md:-mx-8 md:-mt-9 border-b border-zinc-200/80 bg-white/95 px-5 md:px-8 py-3.5 backdrop-blur-md flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shadow-2xs">
         <div className="flex items-center gap-3">
           <Link
             href="/content/services"
@@ -314,7 +314,7 @@ export function ServiceDetailView({
             type="button"
             disabled={isSaving}
             onClick={handleSaveMeta}
-            className="flex items-center gap-2 rounded-2xl bg-[#0073bc] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005fa0] transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 rounded-2xl bg-[#0073bc] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005fa0] transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             <span>{isSaving ? "Saving..." : "Save Changes"}</span>
@@ -336,8 +336,8 @@ export function ServiceDetailView({
         </div>
       )}
 
-      {/* Top Section: Main Cover Image (Left) + Service Descriptions & Features (Right) */}
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-12">
+      {/* Top Section: Main Cover Image (Left) + Service Descriptions & Features (Right) with proper pt-8 padding top from header */}
+      <div className="pt-8 grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Left Column: Cover Image Box (5 cols) */}
         <div className="lg:col-span-5">
           <div className="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs h-full flex flex-col">
