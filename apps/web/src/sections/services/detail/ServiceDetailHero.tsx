@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Service } from "@/data/services";
 
 interface ServiceDetailHeroProps {
-  service: Service;
+  service: Service & { dynamicGalleryImages?: string[]; dynamicProjects?: any[] };
 }
 
 export const ServiceDetailHero = ({ service }: ServiceDetailHeroProps) => {

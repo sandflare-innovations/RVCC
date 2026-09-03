@@ -10,15 +10,19 @@ import { GALLARY_PROJECTS } from "@/data/gallary";
 import { Service } from "@/data/services";
 
 interface ServiceDetailProjectsProps {
-  service: Service;
+  service: Service & { dynamicGalleryImages?: string[]; dynamicProjects?: any[] };
 }
 
 export const ServiceDetailProjects = ({ service }: ServiceDetailProjectsProps) => {
-  // Get linked projects
-  const relatedProjects = GALLARY_PROJECTS.filter((p) => service.projectIds.includes(p.id));
+  // Get linked projects from static or dynamic
+  const relatedProjects = GALLARY_PROJECTS.filter((p) => service.projectIds?.includes(p.id));
 
-  // Flatten images from projects
-  const allImages = relatedProjects.flatMap((p) => p.images);
+  // Flatten images from dynamic gallery images or project images
+  const allImages =
+    service.dynamicGalleryImages && service.dynamicGalleryImages.length > 0
+      ? service.dynamicGalleryImages
+      : relatedProjects.flatMap((p) => p.images);
+
   // Take only 3 images for the vertical sidebar
   const displayImages = allImages.slice(0, 3);
 

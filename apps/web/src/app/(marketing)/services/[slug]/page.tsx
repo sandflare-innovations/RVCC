@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { FloatingContact } from "@/components/common/FloatingContact";
 import { Footer } from "@/components/layout/Footer";
 import { services } from "@/data/services";
+import { getServiceBySlug } from "@/lib/content/services";
 import { ServiceDetailContent } from "@/sections/services/detail/ServiceDetailContent";
 import { ServiceDetailHero } from "@/sections/services/detail/ServiceDetailHero";
 import { ServiceDetailProjects } from "@/sections/services/detail/ServiceDetailProjects";
@@ -14,7 +15,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const service = services.find((s) => s.slug === slug || s.id.toString() === slug);
+  const service = await getServiceBySlug(slug);
 
   if (!service) return { title: "Service Not Found" };
 
@@ -32,7 +33,7 @@ export async function generateStaticParams() {
 
 export default async function ServicePage({ params }: Props) {
   const { slug } = await params;
-  const service = services.find((s) => s.slug === slug || s.id.toString() === slug);
+  const service = await getServiceBySlug(slug);
 
   if (!service) {
     notFound();

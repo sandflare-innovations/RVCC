@@ -6,7 +6,7 @@ import { HiOutlineCheck } from "react-icons/hi2";
 import { Service } from "@/data/services";
 
 interface ServiceDetailContentProps {
-  service: Service;
+  service: Service & { dynamicGalleryImages?: string[]; dynamicProjects?: any[] };
 }
 
 export const ServiceDetailContent = ({ service }: ServiceDetailContentProps) => {

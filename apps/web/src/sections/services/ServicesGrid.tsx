@@ -4,9 +4,11 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
-import { services } from "@/data/services";
+import { Service, services as STATIC_SERVICES } from "@/data/services";
 
-export const ServicesGrid = () => {
+export const ServicesGrid = ({ initialServices }: { initialServices?: Service[] }) => {
+  const displayServices = initialServices && initialServices.length > 0 ? initialServices : STATIC_SERVICES;
+
   return (
     <section id="services-grid" className="section-padding bg-background">
       <div className="container">
@@ -24,7 +26,7 @@ export const ServicesGrid = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-          {services.map((service, index) => (
+          {displayServices.map((service, index) => (
             <motion.div
               key={service.id}
               initial={{ opacity: 0, y: 30 }}
