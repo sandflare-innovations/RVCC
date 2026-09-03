@@ -464,88 +464,281 @@ export function ServiceDetailView({
           </div>
         </div>
 
-        {/* Right Column: Connected Gallery Images Grid (7 cols) */}
+        {/* Right Column: Either normal connected photos OR full panel gallery picker */}
         <div className="space-y-4 lg:col-span-7">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-zinc-950">
-                Connected Gallery Images ({galleryImages.length})
-              </h2>
-              <p className="text-xs text-zinc-500">
-                All photos currently assigned to this service across all projects
-              </p>
-            </div>
+          {!isPickerOpen ? (
+            <>
+              {/* Normal Header & Action */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-bold text-zinc-950">
+                    Connected Gallery Images ({galleryImages.length})
+                  </h2>
+                  <p className="text-xs text-zinc-500">
+                    All photos currently assigned to this service across all projects
+                  </p>
+                </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleOpenPicker}
-                className="flex items-center gap-1.5 rounded-2xl bg-[#0073bc] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005fa0] transition-colors cursor-pointer"
-              >
-                <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-                <span>Add Images</span>
-              </button>
-            </div>
-          </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleOpenPicker}
+                    className="flex items-center gap-1.5 rounded-2xl bg-[#0073bc] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005fa0] transition-colors cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+                    <span>Add Images</span>
+                  </button>
+                </div>
+              </div>
 
-          {/* Images Grid: 3 columns inside the right panel */}
-          {galleryImages.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-              {galleryImages.map((img) => (
-                <div
-                  key={img.id}
-                  className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-3 shadow-xs transition-all hover:border-zinc-300 hover:shadow-md"
-                >
-                  <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-zinc-50">
-                    <Image
-                      src={img.imageUrl}
-                      alt={img.caption || service.title}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      sizes="(min-width: 1024px) 25vw, 50vw"
-                    />
+              {/* Images Grid: 3 columns inside the right panel */}
+              {galleryImages.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                  {galleryImages.map((img) => (
+                    <div
+                      key={img.id}
+                      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-3 shadow-xs transition-all hover:border-zinc-300 hover:shadow-md"
+                    >
+                      <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-zinc-50">
+                        <Image
+                          src={img.imageUrl}
+                          alt={img.caption || service.title}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          sizes="(min-width: 1024px) 25vw, 50vw"
+                        />
 
-                    {/* Delete hover button */}
-                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* Delete hover button */}
+                        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            onClick={() => setImageToDelete(img)}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-600 text-white shadow-md hover:bg-red-700 transition-colors cursor-pointer"
+                            title="Delete photo"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="pt-2.5">
+                        <h4 className="line-clamp-1 text-xs font-bold text-zinc-900">
+                          {img.caption || "Gallery Photo"}
+                        </h4>
+                        {img.projectTitle && (
+                          <span className="mt-0.5 line-clamp-1 text-[11px] font-medium text-[#0073bc]">
+                            {img.projectTitle}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-200 bg-zinc-50/50 py-16 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-400">
+                    <ImageIcon className="h-6 w-6" />
+                  </div>
+                  <h4 className="mt-3 text-sm font-bold text-zinc-800">No images tagged with this service</h4>
+                  <p className="mt-1 max-w-xs text-xs text-zinc-500">
+                    Click "Add Images" above to select existing gallery photos for this service.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleOpenPicker}
+                    className="mt-4 flex items-center gap-1.5 rounded-xl bg-[#0073bc] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005fa0] cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Select Images from Gallery</span>
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            /* Inline Full Panel Gallery Picker */
+            <div className="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs animate-in fade-in duration-200 space-y-4">
+              {/* Picker Top Header Bar */}
+              <div className="flex flex-col gap-3 pb-3 border-b border-zinc-100 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-bold text-zinc-950">Select Gallery Images</h2>
+                    <span className="rounded-full bg-blue-50 border border-blue-100 px-2.5 py-0.5 text-[11px] font-bold text-[#0073bc]">
+                      {selectedImageIds.size} Selected
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-500">
+                    Click any image card to select or unselect it with blue borders
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={isSavingPicker}
+                    onClick={() => setIsPickerOpen(false)}
+                    className="rounded-xl border border-zinc-200 px-3.5 py-1.5 text-xs font-bold text-zinc-700 hover:bg-zinc-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSavingPicker}
+                    onClick={handleSavePickerSelection}
+                    className="flex items-center gap-1.5 rounded-xl bg-[#0073bc] px-4 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#005fa0] disabled:opacity-50 cursor-pointer"
+                  >
+                    {isSavingPicker && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                    <span>{isSavingPicker ? "Saving..." : "Save Selection"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {pickerError && (
+                <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{pickerError}</span>
+                </div>
+              )}
+
+              {/* Search + Select All toolbar */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="relative w-full sm:w-80">
+                  <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                  <input
+                    type="text"
+                    value={pickerSearch}
+                    onChange={(e) => setPickerSearch(e.target.value)}
+                    placeholder="Search caption, project title..."
+                    className="w-full rounded-xl border border-zinc-200 bg-white py-2 pl-9 pr-9 text-xs font-medium text-zinc-800 shadow-2xs placeholder:text-zinc-400 focus:border-[#0073bc] focus:outline-hidden"
+                  />
+                  {pickerSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setPickerSearch("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-400 hover:bg-zinc-100"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedImageIds.size === allGalleryImages.length) {
+                        setSelectedImageIds(new Set());
+                      } else {
+                        setSelectedImageIds(new Set(allGalleryImages.map((img) => img.id)));
+                      }
+                    }}
+                    className="text-xs font-semibold text-zinc-600 hover:text-[#0073bc] transition-colors"
+                  >
+                    {selectedImageIds.size === allGalleryImages.length ? "Deselect All" : "Select All"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Grid of gallery images */}
+              {isLoadingAllGallery ? (
+                <div className="flex flex-col items-center justify-center py-24 text-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-[#0073bc]" />
+                  <span className="mt-3 text-xs font-semibold text-zinc-500">
+                    Loading gallery images...
+                  </span>
+                </div>
+              ) : filteredPickerImages.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 max-h-[600px] overflow-y-auto p-1 scrollbar-thin">
+                  {filteredPickerImages.map((img) => {
+                    const isSelected = selectedImageIds.has(img.id);
+
+                    return (
                       <button
                         type="button"
-                        onClick={() => setImageToDelete(img)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-600 text-white shadow-md hover:bg-red-700 transition-colors cursor-pointer"
-                        title="Delete photo"
+                        key={img.id}
+                        onClick={() => toggleSelectImage(img.id)}
+                        className={`group relative flex flex-col text-left overflow-hidden rounded-2xl border-2 transition-all duration-200 cursor-pointer ${
+                          isSelected
+                            ? "border-[#0073bc] ring-2 ring-[#0073bc]/30 shadow-md scale-[0.98]"
+                            : "border-zinc-200/80 hover:border-zinc-300 hover:shadow-xs"
+                        }`}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
+                        <div className="relative aspect-4/3 w-full overflow-hidden bg-zinc-100">
+                          <Image
+                            src={img.imageUrl}
+                            alt={img.caption || "Gallery photo"}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            sizes="(min-width: 1024px) 20vw, 33vw"
+                          />
 
-                  <div className="pt-2.5">
-                    <h4 className="line-clamp-1 text-xs font-bold text-zinc-900">
-                      {img.caption || "Gallery Photo"}
-                    </h4>
-                    {img.projectTitle && (
-                      <span className="mt-0.5 line-clamp-1 text-[11px] font-medium text-[#0073bc]">
-                        {img.projectTitle}
-                      </span>
-                    )}
-                  </div>
+                          {/* Top Selection Indicator */}
+                          <div className="absolute top-2 right-2 z-10">
+                            {isSelected ? (
+                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0073bc] text-white shadow-md">
+                                <Check className="h-3.5 w-3.5 stroke-[3]" />
+                              </div>
+                            ) : (
+                              <div className="h-6 w-6 rounded-full border-2 border-white/90 bg-black/30 backdrop-blur-xs transition-colors group-hover:bg-black/50" />
+                            )}
+                          </div>
+
+                          {/* Blue overlay when selected */}
+                          <div
+                            className={`absolute inset-0 transition-opacity ${
+                              isSelected
+                                ? "bg-[#0073bc]/10"
+                                : "bg-black/0 group-hover:bg-black/20"
+                            }`}
+                          />
+                        </div>
+
+                        <div className="bg-white p-2.5">
+                          <span className="line-clamp-1 text-[11px] font-bold text-zinc-900">
+                            {img.caption || "Photo"}
+                          </span>
+                          {img.projectTitle && (
+                            <span className="line-clamp-1 text-[10px] font-medium text-zinc-400">
+                              {img.projectTitle}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-200 bg-zinc-50/50 py-16 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-400">
-                <ImageIcon className="h-6 w-6" />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <ImageIcon className="h-10 w-10 text-zinc-300" />
+                  <h4 className="mt-2 text-xs font-bold text-zinc-700">No gallery images found</h4>
+                  <p className="mt-1 text-[11px] text-zinc-400">Try adjusting your keyword filter.</p>
+                </div>
+              )}
+
+              {/* Bottom save bar */}
+              <div className="flex items-center justify-between border-t border-zinc-100 pt-3">
+                <span className="text-xs text-zinc-500">
+                  {selectedImageIds.size} image{selectedImageIds.size === 1 ? "" : "s"} selected
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={isSavingPicker}
+                    onClick={() => setIsPickerOpen(false)}
+                    className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-bold text-zinc-700 hover:bg-zinc-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSavingPicker}
+                    onClick={handleSavePickerSelection}
+                    className="flex items-center gap-2 rounded-xl bg-[#0073bc] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005fa0] disabled:opacity-50 cursor-pointer"
+                  >
+                    {isSavingPicker && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                    <span>{isSavingPicker ? "Saving Selection..." : "Save Selection"}</span>
+                  </button>
+                </div>
               </div>
-              <h4 className="mt-3 text-sm font-bold text-zinc-800">No images tagged with this service</h4>
-              <p className="mt-1 max-w-xs text-xs text-zinc-500">
-                Go to the Gallery page to upload photos or select this service tag on existing project images.
-              </p>
-              <Link
-                href="/content/gallery"
-                className="mt-4 rounded-xl bg-[#0073bc] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005fa0]"
-              >
-                Go to Gallery
-              </Link>
             </div>
           )}
         </div>
@@ -581,170 +774,6 @@ export function ServiceDetailView({
                 {isDeletingImage && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 <span>{isDeletingImage ? "Deleting..." : "Delete Photo"}</span>
               </button>
-            </div>
-          </div>
-        </Modal>
-      )}
-
-      {/* Gallery Image Picker Modal */}
-      {isPickerOpen && (
-        <Modal
-          open={isPickerOpen}
-          onClose={() => !isSavingPicker && setIsPickerOpen(false)}
-          title="Select Gallery Images"
-          description={`Choose images to display under ${service.title}. Click any image to select or unselect.`}
-          maxWidth="4xl"
-        >
-          <div className="space-y-4">
-            {pickerError && (
-              <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{pickerError}</span>
-              </div>
-            )}
-
-            {/* Top Toolbar in Modal: Search + Count */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                <input
-                  type="text"
-                  value={pickerSearch}
-                  onChange={(e) => setPickerSearch(e.target.value)}
-                  placeholder="Filter by caption, project title..."
-                  className="w-full rounded-xl border border-zinc-200 bg-white py-2 pl-9 pr-9 text-xs font-medium text-zinc-800 shadow-2xs placeholder:text-zinc-400 focus:border-[#0073bc] focus:outline-hidden"
-                />
-                {pickerSearch && (
-                  <button
-                    type="button"
-                    onClick={() => setPickerSearch("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-400 hover:bg-zinc-100"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 text-xs font-bold text-zinc-700">
-                <span className="rounded-full bg-blue-50 border border-blue-100 px-3 py-1 text-[#0073bc]">
-                  {selectedImageIds.size} {selectedImageIds.size === 1 ? "Image" : "Images"} Selected
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (selectedImageIds.size === allGalleryImages.length) {
-                      setSelectedImageIds(new Set());
-                    } else {
-                      setSelectedImageIds(new Set(allGalleryImages.map((img) => img.id)));
-                    }
-                  }}
-                  className="text-xs font-semibold text-zinc-500 hover:text-zinc-800 transition-colors"
-                >
-                  {selectedImageIds.size === allGalleryImages.length ? "Deselect All" : "Select All"}
-                </button>
-              </div>
-            </div>
-
-            {/* Grid of Gallery Images to Pick */}
-            {isLoadingAllGallery ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <Loader2 className="h-8 w-8 animate-spin text-[#0073bc]" />
-                <span className="mt-3 text-xs font-semibold text-zinc-500">
-                  Loading gallery collection...
-                </span>
-              </div>
-            ) : filteredPickerImages.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 md:grid-cols-4 max-h-[50vh] overflow-y-auto p-1">
-                {filteredPickerImages.map((img) => {
-                  const isSelected = selectedImageIds.has(img.id);
-
-                  return (
-                    <button
-                      type="button"
-                      key={img.id}
-                      onClick={() => toggleSelectImage(img.id)}
-                      className={`group relative flex flex-col text-left overflow-hidden rounded-2xl border-2 transition-all duration-200 cursor-pointer ${
-                        isSelected
-                          ? "border-[#0073bc] ring-2 ring-[#0073bc]/30 shadow-md scale-[0.98]"
-                          : "border-zinc-200/80 hover:border-zinc-300 hover:shadow-xs"
-                      }`}
-                    >
-                      <div className="relative aspect-4/3 w-full overflow-hidden bg-zinc-100">
-                        <Image
-                          src={img.imageUrl}
-                          alt={img.caption || "Gallery photo"}
-                          fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          sizes="(min-width: 1024px) 20vw, 33vw"
-                        />
-
-                        {/* Top Selection Indicator */}
-                        <div className="absolute top-2 right-2 z-10">
-                          {isSelected ? (
-                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0073bc] text-white shadow-md">
-                              <Check className="h-3.5 w-3.5 stroke-[3]" />
-                            </div>
-                          ) : (
-                            <div className="h-6 w-6 rounded-full border-2 border-white/90 bg-black/30 backdrop-blur-xs transition-colors group-hover:bg-black/50" />
-                          )}
-                        </div>
-
-                        {/* Hover Overlay */}
-                        <div
-                          className={`absolute inset-0 transition-opacity ${
-                            isSelected
-                              ? "bg-[#0073bc]/10"
-                              : "bg-black/0 group-hover:bg-black/20"
-                          }`}
-                        />
-                      </div>
-
-                      <div className="bg-white p-2.5">
-                        <span className="line-clamp-1 text-[11px] font-bold text-zinc-900">
-                          {img.caption || "Photo"}
-                        </span>
-                        {img.projectTitle && (
-                          <span className="line-clamp-1 text-[10px] font-medium text-zinc-400">
-                            {img.projectTitle}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <ImageIcon className="h-10 w-10 text-zinc-300" />
-                <h4 className="mt-2 text-xs font-bold text-zinc-700">No images match your search</h4>
-                <p className="mt-1 text-[11px] text-zinc-400">Try adjusting your keyword filter.</p>
-              </div>
-            )}
-
-            {/* Modal Bottom Actions */}
-            <div className="flex items-center justify-between border-t border-zinc-100 pt-4">
-              <span className="text-xs text-zinc-500">
-                {selectedImageIds.size} image{selectedImageIds.size === 1 ? "" : "s"} selected for this service
-              </span>
-              <div className="flex items-center gap-2.5">
-                <button
-                  type="button"
-                  disabled={isSavingPicker}
-                  onClick={() => setIsPickerOpen(false)}
-                  className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-bold text-zinc-700 hover:bg-zinc-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  disabled={isSavingPicker}
-                  onClick={handleSavePickerSelection}
-                  className="flex items-center gap-2 rounded-xl bg-[#0073bc] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005fa0] disabled:opacity-50 cursor-pointer"
-                >
-                  {isSavingPicker && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                  <span>{isSavingPicker ? "Saving Images..." : "Save Selection"}</span>
-                </button>
-              </div>
             </div>
           </div>
         </Modal>
