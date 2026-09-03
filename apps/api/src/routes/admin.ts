@@ -367,6 +367,60 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       if (request.method === "DELETE") return await handleAdminClientDelete(sql, env, request, id);
     }
 
+    // Projects Content Routes
+    if (path === "/projects" && request.method === "GET") {
+      const { handleAdminProjectsList } = await import("../modules/admin/projects");
+      return await handleAdminProjectsList(sql, env, request);
+    }
+    if (path === "/projects" && request.method === "POST") {
+      const { handleAdminProjectCreate } = await import("../modules/admin/projects");
+      return await handleAdminProjectCreate(sql, env, request);
+    }
+    if (path === "/projects/reorder" && request.method === "PUT") {
+      const { handleAdminProjectsReorder } = await import("../modules/admin/projects");
+      return await handleAdminProjectsReorder(sql, env, request);
+    }
+    const projectOne = path.match(/^\/projects\/([^/]+)$/);
+    if (projectOne) {
+      const id = decodeURIComponent(projectOne[1]!);
+      const {
+        handleAdminProjectGet,
+        handleAdminProjectUpdate,
+        handleAdminProjectDelete,
+      } = await import("../modules/admin/projects");
+      if (request.method === "GET") return await handleAdminProjectGet(sql, env, request, id);
+      if (request.method === "PUT" || request.method === "PATCH") {
+        return await handleAdminProjectUpdate(sql, env, request, id);
+      }
+      if (request.method === "DELETE") return await handleAdminProjectDelete(sql, env, request, id);
+    }
+
+    // Gallery Content Routes
+    if (path === "/gallery" && request.method === "GET") {
+      const { handleAdminGalleryImagesList } = await import("../modules/admin/gallery");
+      return await handleAdminGalleryImagesList(sql, env, request);
+    }
+    if (path === "/gallery" && request.method === "POST") {
+      const { handleAdminGalleryImageCreate } = await import("../modules/admin/gallery");
+      return await handleAdminGalleryImageCreate(sql, env, request);
+    }
+    if (path === "/gallery/reorder" && request.method === "PUT") {
+      const { handleAdminGalleryImagesReorder } = await import("../modules/admin/gallery");
+      return await handleAdminGalleryImagesReorder(sql, env, request);
+    }
+    const galleryOne = path.match(/^\/gallery\/([^/]+)$/);
+    if (galleryOne) {
+      const id = decodeURIComponent(galleryOne[1]!);
+      const {
+        handleAdminGalleryImageUpdate,
+        handleAdminGalleryImageDelete,
+      } = await import("../modules/admin/gallery");
+      if (request.method === "PUT" || request.method === "PATCH") {
+        return await handleAdminGalleryImageUpdate(sql, env, request, id);
+      }
+      if (request.method === "DELETE") return await handleAdminGalleryImageDelete(sql, env, request, id);
+    }
+
     // Public Media Upload for Admin Content (Gallery, Hero, Projects, etc.)
     if (path === "/content/upload" && request.method === "POST") {
       const { handleAdminContentMediaUpload } = await import("../modules/admin/hero");

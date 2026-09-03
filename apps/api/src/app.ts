@@ -49,6 +49,20 @@ export function createApp(env: Env) {
     return handlePublicClientsRequest(c.req.raw, env);
   });
 
+  app.all("/projects", async (c) => {
+    const { handlePublicProjectsRequest } = await import("./modules/public/projects");
+    return handlePublicProjectsRequest(c.req.raw, env);
+  });
+  app.all("/projects/*", async (c) => {
+    const { handlePublicProjectsRequest } = await import("./modules/public/projects");
+    return handlePublicProjectsRequest(c.req.raw, env);
+  });
+
+  app.all("/gallery", async (c) => {
+    const { handlePublicGalleryRequest } = await import("./modules/public/gallery");
+    return handlePublicGalleryRequest(c.req.raw, env);
+  });
+
   app.all("/admin", (c) => handleAdminRequest(rewritePath(c.req.raw, "/admin"), env));
   app.all("/admin/*", (c) => handleAdminRequest(rewritePath(c.req.raw, "/admin"), env));
 
