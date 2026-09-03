@@ -10,3 +10,6 @@ export const PROJECTS_CACHE_TAG = "projects";
 
 export const GALLERY_REVALIDATE_SECONDS = 60;
 export const GALLERY_CACHE_TAG = "gallery";
+
+export const SERVICES_REVALIDATE_SECONDS = 60;
+export const SERVICES_CACHE_TAG = "services";
