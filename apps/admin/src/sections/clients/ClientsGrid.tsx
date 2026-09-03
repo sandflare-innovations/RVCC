@@ -165,6 +165,42 @@ export function ClientsGrid({
 
       {/* Modern 1:1 Aspect Ratio Grid */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        {/* 1:1 Aspect Ratio Skeleton Add Card as First Card */}
+        <button
+          type="button"
+          onClick={() => {
+            setEditingClient(null);
+            setModalOpen(true);
+          }}
+          className="group relative flex flex-col justify-between rounded-3xl border-2 border-dashed border-zinc-200/90 bg-zinc-50/50 p-3.5 shadow-2xs transition-all duration-200 hover:border-[#0073bc] hover:bg-blue-50/20 hover:shadow-md cursor-pointer text-left"
+        >
+          <div className="flex items-center justify-between pb-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 group-hover:text-[#0073bc]">
+              + New Client
+            </span>
+          </div>
+
+          <div className="relative aspect-square w-full rounded-2xl border border-dashed border-zinc-200 bg-white/70 flex flex-col items-center justify-center p-3 text-center transition-colors group-hover:border-[#0073bc]/40 group-hover:bg-blue-50/40">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-500 shadow-2xs transition-all duration-200 group-hover:scale-110 group-hover:bg-[#0073bc] group-hover:text-white">
+              <Plus className="h-5 w-5 stroke-[2.5]" />
+            </div>
+            <span className="mt-2.5 text-xs font-bold text-zinc-800 group-hover:text-[#0073bc]">
+              Add Logo
+            </span>
+            <span className="text-[9px] text-zinc-400">1:1 Ratio</span>
+          </div>
+
+          <div className="pt-3">
+            <div className="h-3 w-3/4 rounded-full bg-zinc-200/70 group-hover:bg-blue-200/60 transition-colors" />
+            <div className="mt-1 h-2 w-1/2 rounded-full bg-zinc-200/50 group-hover:bg-blue-200/40 transition-colors" />
+            <div className="mt-2.5 border-t border-dashed border-zinc-200 pt-2 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-zinc-400 group-hover:text-[#0073bc] transition-colors">
+                + Upload
+              </span>
+            </div>
+          </div>
+        </button>
+
         {clients.map((client, index) => {
           const isDragging = draggedIndex === index;
           const isOver = dragOverIndex === index;
@@ -309,42 +345,6 @@ export function ClientsGrid({
             </div>
           );
         })}
-
-        {/* 1:1 Aspect Ratio Skeleton Add Card */}
-        <button
-          type="button"
-          onClick={() => {
-            setEditingClient(null);
-            setModalOpen(true);
-          }}
-          className="group relative flex flex-col justify-between rounded-3xl border-2 border-dashed border-zinc-200/90 bg-zinc-50/50 p-3.5 shadow-2xs transition-all duration-200 hover:border-[#0073bc] hover:bg-blue-50/20 hover:shadow-md cursor-pointer text-left"
-        >
-          <div className="flex items-center justify-between pb-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 group-hover:text-[#0073bc]">
-              + New Client
-            </span>
-          </div>
-
-          <div className="relative aspect-square w-full rounded-2xl border border-dashed border-zinc-200 bg-white/70 flex flex-col items-center justify-center p-3 text-center transition-colors group-hover:border-[#0073bc]/40 group-hover:bg-blue-50/40">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-500 shadow-2xs transition-all duration-200 group-hover:scale-110 group-hover:bg-[#0073bc] group-hover:text-white">
-              <Plus className="h-5 w-5 stroke-[2.5]" />
-            </div>
-            <span className="mt-2.5 text-xs font-bold text-zinc-800 group-hover:text-[#0073bc]">
-              Add Logo
-            </span>
-            <span className="text-[9px] text-zinc-400">1:1 Ratio</span>
-          </div>
-
-          <div className="pt-3">
-            <div className="h-3 w-3/4 rounded-full bg-zinc-200/70 group-hover:bg-blue-200/60 transition-colors" />
-            <div className="mt-1 h-2 w-1/2 rounded-full bg-zinc-200/50 group-hover:bg-blue-200/40 transition-colors" />
-            <div className="mt-2.5 border-t border-dashed border-zinc-200 pt-2 flex items-center justify-between">
-              <span className="text-[10px] font-bold text-zinc-400 group-hover:text-[#0073bc] transition-colors">
-                + Upload
-              </span>
-            </div>
-          </div>
-        </button>
       </div>
 
       {/* Edit/Create Modal */}
