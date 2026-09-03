@@ -882,3 +882,24 @@ model GalleryImage {
   @@index([deletedAt])
 }
 
+model Service {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  description     String    @default("")
+  longDescription String    @default("")
+  image           String    @default("")
+  iconName        String    @default("Wrench")
+  features        String[]  @default([])
+  sortOrder       Int       @default(0)
+  isActive        Boolean   @default(true)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
+  deletedAt       DateTime? // Soft Deletion
+
+  @@index([slug])
+  @@index([isActive, sortOrder])
+  @@index([deletedAt])
+}
+
