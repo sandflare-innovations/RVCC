@@ -269,6 +269,40 @@ export async function handleAdminHeroSlideDelete(
   return json(env, request, { ok: true });
 }
 
+export async function handleAdminHeroSlidesReorder(
+  sql: unknown,
+  env: Env,
+  request: Request
+): Promise<Response> {
+  const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
+  if (deny) return deny;
+
+  const body = (await readJson(request)) as { slideIds?: string[] } | null;
+  if (!body || !Array.isArray(body.slideIds)) {
+    return json(env, request, { error: "slideIds array is required." }, 400);
+  }
+
+  const { slideIds } = body;
+  await prisma.$transaction(
+    slideIds.map((id, index) =>
+      prisma.heroSlide.update({
+        where: { id },
+        data: { sortOrder: index },
+      })
+    )
+  );
+
+  await writeAudit(sql, {
+    adminId: admin.id,
+    action: "hero_slides.reordered",
+    entityType: "HeroSlide",
+    entityId: "order",
+    metadata: { count: slideIds.length },
+  });
+
+  return json(env, request, { ok: true });
+}
+
 // ── Public Image Upload Endpoint for Admin Content ──────────────────────────
 
 export async function handleAdminContentMediaUpload(
