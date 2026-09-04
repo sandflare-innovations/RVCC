@@ -903,3 +903,60 @@ model Service {
   @@index([deletedAt])
 }
 
+// =========================================================================
+// 8. FILE MANAGER & EXPLORER (Cloudflare R2 Backed)
+// =========================================================================
+
+enum ManagedFileType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+  AUDIO
+  OTHER
+}
+
+model ManagedFolder {
+  id          String          @id @default(cuid())
+  name        String
+  slug        String
+  color       String?         @default("indigo") // visual badge color: indigo, emerald, amber, rose, blue, purple
+  parentId    String?
+  parent      ManagedFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  subfolders  ManagedFolder[] @relation("FolderHierarchy")
+
+  files       ManagedFile[]
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now()) @updatedAt
+  deletedAt   DateTime?
+
+  @@unique([name, parentId, deletedAt])
+  @@index([parentId])
+  @@index([deletedAt])
+}
+
+model ManagedFile {
+  id           String          @id @default(cuid())
+  folderId     String?
+  folder       ManagedFolder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  name         String          // Display name (user editable)
+  originalName String          // Original uploaded filename
+  fileUrl      String          // Public CDN URL (https://pub-....r2.dev/file-manager/...)
+  storageKey   String          // R2 storage key (file-manager/...)
+  fileType     ManagedFileType @default(OTHER)
+  mimeType     String          // e.g. image/webp, video/mp4, application/pdf
+  sizeBytes    BigInt          @default(0)
+  extension    String          @default("")
+  description  String?
+  tags         String[]        @default([])
+
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @default(now()) @updatedAt
+  deletedAt    DateTime?
+
+  @@index([folderId])
+  @@index([fileType])
+  @@index([deletedAt])
+}
+
