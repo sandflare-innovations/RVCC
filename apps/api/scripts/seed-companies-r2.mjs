@@ -86,38 +86,8 @@ async function main() {
     console.log(`[DB] Created SisterCompany (id: ${record.id}) - "${record.name}"`);
   }
 
-  // 2. Upload & Seed Subsidiary Companies
-  console.log("\n--- Seeding Main Subsidiary Companies ---");
-  for (let j = 0; j < SEED_SUBSIDIARIES.length; j++) {
-    const sub = SEED_SUBSIDIARIES[j];
-    const localFile = resolve(process.cwd(), `../web/public/images/concern-companies/${sub.file}`);
-    const seoSlug = slugify(sub.name);
-    const token = generateUniqueToken(4);
-    const r2Key = `sister-companies/${seoSlug}-${token}.webp`;
-
-    console.log(`\n[Subsidiary ${j + 1}/${SEED_SUBSIDIARIES.length}] Uploading "${localFile}" -> "${BUCKET_NAME}/${r2Key}"...`);
-    const cmd = `npx wrangler r2 object put "${BUCKET_NAME}/${r2Key}" --file="${localFile}" --content-type="image/webp" --remote`;
-    execSync(cmd, { stdio: "inherit" });
-
-    const publicUrl = `${R2_PUBLIC_URL}/${r2Key}`;
-    console.log(`[CDN] URL: ${publicUrl}`);
-
-    const record = await prisma.sisterCompany.create({
-      data: {
-        name: sub.name,
-        logoUrl: publicUrl,
-        industry: sub.industry,
-        websiteUrl: sub.websiteUrl,
-        sortOrder: SEED_LOGOS.length + j,
-        isActive: true,
-      },
-    });
-
-    console.log(`[DB] Created Subsidiary SisterCompany (id: ${record.id}) - "${record.name}"`);
-  }
-
   const total = await prisma.sisterCompany.count({ where: { deletedAt: null } });
-  console.log(`\n=== Successfully uploaded and seeded ${total} Sister Concern Companies to Cloudflare R2 and PostgreSQL! ===`);
+  console.log(`\n=== Successfully seeded ${total} Sister Concern Company Logos to Cloudflare R2 and PostgreSQL! ===`);
 }
 
 main()
