@@ -25,8 +25,8 @@ export default async function ContentCompaniesPage() {
       <div className="flex-1 overflow-y-auto pb-12">
         <Suspense
           fallback={
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-              {Array.from({ length: 12 }).map((_, i) => (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="aspect-square rounded-3xl bg-zinc-100 animate-pulse p-4" />
               ))}
             </div>

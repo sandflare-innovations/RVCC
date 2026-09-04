@@ -239,8 +239,8 @@ export function CompaniesGrid({
         </div>
       )}
 
-      {/* Modern 1:1 Aspect Ratio Grid */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      {/* Modern 1:1 Aspect Ratio Grid - larger cards with fewer columns per row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {/* 1:1 Aspect Ratio Skeleton Add Card as First Card */}
         <button
           type="button"
@@ -363,15 +363,15 @@ export function CompaniesGrid({
               </div>
 
               {/* Company Info & Active Toggle */}
-              <div className="pt-3">
-                <h4 className="line-clamp-1 text-xs font-bold text-zinc-900" title={company.name}>
+              <div className="pt-3.5">
+                <h4 className="line-clamp-1 text-sm font-bold text-zinc-900" title={company.name}>
                   {company.name}
                 </h4>
-                <p className="line-clamp-1 text-[10px] font-medium text-zinc-400">
+                <p className="line-clamp-1 text-xs font-medium text-zinc-400 mt-0.5">
                   {company.industry || "Sister Concern"}
                 </p>
 
-                <div className="mt-2.5 flex items-center justify-between border-t border-zinc-100 pt-2">
+                <div className="mt-3 flex items-center justify-between border-t border-zinc-100 pt-2.5">
                   <button
                     type="button"
                     onClick={(e) => {
@@ -380,7 +380,7 @@ export function CompaniesGrid({
                     }}
                     disabled={isBusy}
                     title={company.isActive ? "Hide from website" : "Show on website"}
-                    className={`flex h-6 items-center gap-1 rounded-full px-2 text-[10px] font-semibold transition-all ${
+                    className={`flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold transition-all ${
                       company.isActive
                         ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100"
                         : "bg-zinc-100 text-zinc-500 ring-1 ring-zinc-200 hover:bg-zinc-200"
