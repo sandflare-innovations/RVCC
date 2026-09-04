@@ -455,6 +455,53 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       return await handleAdminContentMediaUpload(sql, env, request);
     }
 
+    // ── File Manager (Folders & Files) ───────────────────────────────────────
+    if (path === "/folders") {
+      const { handleAdminFoldersList, handleAdminFolderCreate } = await import(
+        "../modules/admin/files"
+      );
+      if (request.method === "GET") return await handleAdminFoldersList(sql, env, request);
+      if (request.method === "POST") return await handleAdminFolderCreate(sql, env, request);
+    }
+
+    const folderMatch = path.match(/^\/folders\/([^/]+)$/);
+    if (folderMatch) {
+      const id = folderMatch[1];
+      const { handleAdminFolderUpdate, handleAdminFolderDelete } = await import(
+        "../modules/admin/files"
+      );
+      if (request.method === "PUT" || request.method === "PATCH") {
+        return await handleAdminFolderUpdate(sql, env, request, id);
+      }
+      if (request.method === "DELETE") {
+        return await handleAdminFolderDelete(sql, env, request, id);
+      }
+    }
+
+    if (path === "/files") {
+      const { handleAdminFilesList } = await import("../modules/admin/files");
+      if (request.method === "GET") return await handleAdminFilesList(sql, env, request);
+    }
+
+    if (path === "/files/upload" && request.method === "POST") {
+      const { handleAdminFileUpload } = await import("../modules/admin/files");
+      return await handleAdminFileUpload(sql, env, request);
+    }
+
+    const fileMatch = path.match(/^\/files\/([^/]+)$/);
+    if (fileMatch) {
+      const id = fileMatch[1];
+      const { handleAdminFileUpdate, handleAdminFileDelete } = await import(
+        "../modules/admin/files"
+      );
+      if (request.method === "PUT" || request.method === "PATCH") {
+        return await handleAdminFileUpdate(sql, env, request, id);
+      }
+      if (request.method === "DELETE") {
+        return await handleAdminFileDelete(sql, env, request, id);
+      }
+    }
+
     return json(env, request, { error: "Not Found" }, 404);
   } catch (err) {
     console.error("[admin]", err);
