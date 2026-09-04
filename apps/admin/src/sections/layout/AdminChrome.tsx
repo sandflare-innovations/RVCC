@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import {
   Briefcase,
+  Building2,
   ClipboardList,
   Download,
   FileArchive,
@@ -52,6 +53,7 @@ const WEBSITE_NAV = [
   { href: "/content/services", label: "Services", icon: <Wrench className={ICON} /> },
   { href: "/content/about", label: "About Page", icon: <Info className={ICON} /> },
   { href: "/content/clients", label: "Clients", icon: <UserCheck className={ICON} /> },
+  { href: "/content/companies", label: "Our Companies", icon: <Building2 className={ICON} /> },
   { href: "/content/careers", label: "Careers", icon: <Briefcase className={ICON} /> },
   { href: "/content/documents", label: "File Manager", icon: <FolderOpen className={ICON} /> },
   {

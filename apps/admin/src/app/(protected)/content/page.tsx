@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   Briefcase,
+  Building2,
   FileArchive,
   FolderOpen,
   Globe,
@@ -70,6 +71,14 @@ const SECTIONS = [
     icon: UserCheck,
     color: "bg-cyan-50 text-cyan-600",
     borderColor: "hover:border-cyan-400",
+  },
+  {
+    href: "/content/companies",
+    label: "Our Companies",
+    description: "Manage sister concern companies, subsidiaries, and logos.",
+    icon: Building2,
+    color: "bg-blue-50 text-blue-600",
+    borderColor: "hover:border-blue-400",
   },
   {
     href: "/content/careers",
