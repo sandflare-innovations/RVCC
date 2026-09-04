@@ -49,6 +49,11 @@ export function createApp(env: Env) {
     return handlePublicClientsRequest(c.req.raw, env);
   });
 
+  app.all("/sister-companies", async (c) => {
+    const { handlePublicSisterCompaniesRequest } = await import("./modules/public/companies");
+    return handlePublicSisterCompaniesRequest(c.req.raw, env);
+  });
+
   app.all("/projects", async (c) => {
     const { handlePublicProjectsRequest } = await import("./modules/public/projects");
     return handlePublicProjectsRequest(c.req.raw, env);

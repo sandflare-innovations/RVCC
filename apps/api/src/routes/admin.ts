@@ -367,6 +367,34 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       if (request.method === "DELETE") return await handleAdminClientDelete(sql, env, request, id);
     }
 
+    // Sister Concern Companies Content Routes
+    if (path === "/companies" && request.method === "GET") {
+      const { handleAdminCompaniesList } = await import("../modules/admin/companies");
+      return await handleAdminCompaniesList(sql, env, request);
+    }
+    if (path === "/companies" && request.method === "POST") {
+      const { handleAdminCompanyCreate } = await import("../modules/admin/companies");
+      return await handleAdminCompanyCreate(sql, env, request);
+    }
+    if (path === "/companies/reorder" && request.method === "PUT") {
+      const { handleAdminCompaniesReorder } = await import("../modules/admin/companies");
+      return await handleAdminCompaniesReorder(sql, env, request);
+    }
+    const companyOne = path.match(/^\/companies\/([^/]+)$/);
+    if (companyOne) {
+      const id = decodeURIComponent(companyOne[1]!);
+      const {
+        handleAdminCompanyGet,
+        handleAdminCompanyUpdate,
+        handleAdminCompanyDelete,
+      } = await import("../modules/admin/companies");
+      if (request.method === "GET") return await handleAdminCompanyGet(sql, env, request, id);
+      if (request.method === "PUT" || request.method === "PATCH") {
+        return await handleAdminCompanyUpdate(sql, env, request, id);
+      }
+      if (request.method === "DELETE") return await handleAdminCompanyDelete(sql, env, request, id);
+    }
+
     // Projects Content Routes
     if (path === "/projects" && request.method === "GET") {
       const { handleAdminProjectsList } = await import("../modules/admin/projects");
