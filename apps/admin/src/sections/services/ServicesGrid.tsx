@@ -177,7 +177,7 @@ export function ServicesGrid({
   return (
     <>
       {/* Sticky Top Header & Search Toolbar */}
-      <div className="sticky top-0 z-30 -mx-5 -mt-6 md:-mx-8 md:-mt-9 mb-6 border-b border-zinc-200/80 bg-white/95 px-5 md:px-8 py-3.5 backdrop-blur-md flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shadow-2xs">
+      <div className="sticky top-0 z-30 -mx-5 -mt-6 md:-mx-8 md:-mt-9 mb-8 bg-white/95 px-5 md:px-8 py-3.5 backdrop-blur-md flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shadow-2xs">
         <div className="flex items-center gap-3">
           <Link
             href="/content"
@@ -241,7 +241,7 @@ export function ServicesGrid({
       </div>
 
       {/* Modern Services Cards Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 pt-6">
         {filteredServices.map((service, index) => {
           const isBusy = busyServiceId === service.id;
           const galleryCount = service._count?.galleryImages ?? service.galleryImages?.length ?? 0;
@@ -334,19 +334,17 @@ export function ServicesGrid({
                   onClick={() => toggleActive(service)}
                   disabled={isBusy || !canEdit}
                   title={service.isActive ? "Hide service from website" : "Show service on website"}
-                  className={`flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold transition-all ${
-                    service.isActive
-                      ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 ring-1 ring-emerald-200"
-                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 ring-1 ring-zinc-200"
-                  }`}
+                  className={`flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold transition-all ${service.isActive
+                    ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 ring-1 ring-emerald-200"
+                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 ring-1 ring-zinc-200"
+                    }`}
                 >
                   {isBusy ? (
                     <span className="h-3 w-3 rounded-full bg-zinc-400 animate-pulse" />
                   ) : (
                     <span
-                      className={`h-2 w-2 rounded-full ${
-                        service.isActive ? "bg-emerald-500" : "bg-zinc-400"
-                      }`}
+                      className={`h-2 w-2 rounded-full ${service.isActive ? "bg-emerald-500" : "bg-zinc-400"
+                        }`}
                     />
                   )}
                   <span>{service.isActive ? "Live" : "Draft"}</span>
