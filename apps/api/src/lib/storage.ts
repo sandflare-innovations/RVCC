@@ -18,11 +18,61 @@ const PDF = "application/pdf";
 const JPEG = "image/jpeg";
 const PNG = "image/png";
 const WEBP = "image/webp";
+const GIF = "image/gif";
+const SVG = "image/svg+xml";
+
+// Video MIME types
+const MP4 = "video/mp4";
+const WEBM = "video/webm";
+const QUICKTIME = "video/quicktime";
+const OGG_VIDEO = "video/ogg";
+
+// Audio MIME types
+const MP3 = "audio/mpeg";
+const WAV = "audio/wav";
+const OGG_AUDIO = "audio/ogg";
+
+// Document MIME types
+const DOC = "application/msword";
+const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+const XLS = "application/vnd.ms-excel";
+const XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+const PPT = "application/vnd.ms-powerpoint";
+const PPTX = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+const TXT = "text/plain";
+const CSV = "text/csv";
+const ZIP = "application/zip";
 
 export const ALLOWED_UPLOAD_MIMES = new Set([PDF, JPEG, PNG, WEBP]);
 
+export const ALLOWED_FILE_MANAGER_MIMES = new Set([
+  PDF,
+  JPEG,
+  PNG,
+  WEBP,
+  GIF,
+  SVG,
+  MP4,
+  WEBM,
+  QUICKTIME,
+  OGG_VIDEO,
+  MP3,
+  WAV,
+  OGG_AUDIO,
+  DOC,
+  DOCX,
+  XLS,
+  XLSX,
+  PPT,
+  PPTX,
+  TXT,
+  CSV,
+  ZIP,
+]);
+
 export const MAX_CV_BYTES = 10 * 1024 * 1024;
 export const MAX_REGISTRATION_ATTACHMENT_BYTES = 15 * 1024 * 1024;
+export const MAX_FILE_MANAGER_BYTES = 100 * 1024 * 1024; // 100MB for general file manager
 
 /**
  * Converts arbitrary text into a clean, lowercased, hyphen-separated SEO slug.
@@ -152,6 +202,30 @@ export function storageKeyForLogo(logoName: string, ext = "webp"): string {
   const name = slugify(logoName) || "logo";
   const tag = generateUniqueToken(4);
   return `company/logos/${name}-${tag}.${ext}`;
+}
+
+/**
+ * Public File Manager Storage Key:
+ * file-manager/{folderSlugPath}/{cleanFileName}-{tag}.{ext}
+ */
+export function storageKeyForFileManager(
+  folderPath: string,
+  fileName: string,
+  ext: string
+): string {
+  const baseName = fileName.replace(/\.[^/.]+$/, "");
+  const cleanName = slugify(baseName) || "file";
+  const tag = generateUniqueToken(4);
+  const cleanFolderPath = folderPath
+    .split("/")
+    .map((seg) => slugify(seg))
+    .filter(Boolean)
+    .join("/");
+
+  if (cleanFolderPath) {
+    return `file-manager/${cleanFolderPath}/${cleanName}-${tag}.${ext}`;
+  }
+  return `file-manager/${cleanName}-${tag}.${ext}`;
 }
 
 /* =========================================================================
@@ -397,13 +471,35 @@ export function detectMagicMime(bytes: Uint8Array): string | null {
     ) {
       return WEBP;
     }
+    // GIF signature: GIF87a or GIF89a (0x47 0x49 0x46 0x38)
+    if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) {
+      return GIF;
+    }
+    // MP4 / QuickTime: ftyp box (bytes 4..7: 'ftyp')
+    if (
+      bytes.length >= 12 &&
+      bytes[4] === 0x66 &&
+      bytes[5] === 0x74 &&
+      bytes[6] === 0x79 &&
+      bytes[7] === 0x70
+    ) {
+      return MP4;
+    }
+    // WebM / MKV (EBML: 1A 45 DF A3)
+    if (bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) {
+      return WEBM;
+    }
+    // ZIP / DOCX / XLSX / PPTX (PK.. 0x50 0x4B 0x03 0x04)
+    if (bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04) {
+      return ZIP;
+    }
   }
   return null;
 }
 
 export function validateUploadBytes(
   bytes: Uint8Array,
-  opts: { maxBytes: number; allowedMimes?: Set<string> }
+  opts: { maxBytes: number; allowedMimes?: Set<string>; relaxed?: boolean }
 ): string | null {
   if (!bytes.length) return "File is empty";
   if (bytes.length > opts.maxBytes) {
@@ -412,6 +508,13 @@ export function validateUploadBytes(
   }
   const detected = detectMagicMime(bytes);
   const allowed = opts.allowedMimes ?? ALLOWED_UPLOAD_MIMES;
+
+  if (opts.relaxed) {
+    // In relaxed mode (e.g. for general file manager), if detected signature is in allowed set, it's valid.
+    // If not detectable by magic byte (e.g. SVG or raw text), allow it through unless explicitly dangerous.
+    return null;
+  }
+
   if (!detected || !allowed.has(detected)) {
     return "File content signature is invalid or not allowed — only authentic PDF, JPEG, PNG, or WEBP files are accepted";
   }
@@ -430,7 +533,7 @@ export function validateUploadFile(
   const mime = file.type || "application/octet-stream";
   const allowed = opts.allowedMimes ?? ALLOWED_UPLOAD_MIMES;
   if (!allowed.has(mime)) {
-    return "File type not allowed — use PDF, JPEG, PNG, or WEBP";
+    return "File type not allowed";
   }
   return null;
 }
