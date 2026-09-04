@@ -95,7 +95,7 @@ export const DesktopSidebar = ({
   return (
     <motion.aside
       className={cn(
-        "bg-brand-blue shadow-brand-blue/20 sticky top-3 ml-3 hidden h-[calc(100vh-24px)] shrink-0 flex-col rounded-3xl px-3 py-4 shadow-lg md:flex",
+        "bg-brand-blue shadow-brand-blue/20 sticky top-3 ml-3 hidden h-[calc(100vh-24px)] min-h-0 shrink-0 flex-col overflow-hidden rounded-3xl px-3 py-4 shadow-lg md:flex",
         className
       )}
       animate={{ width: animate ? (open ? 248 : 68) : 248 }}

@@ -52,8 +52,8 @@ const WEBSITE_NAV = [
   { href: "/content/services", label: "Services", icon: <Wrench className={ICON} /> },
   { href: "/content/about", label: "About Page", icon: <Info className={ICON} /> },
   { href: "/content/clients", label: "Clients", icon: <UserCheck className={ICON} /> },
-  { href: "/content/careers", label: "Careers", icon: <FolderOpen className={ICON} /> },
-  { href: "/content/documents", label: "Documents", icon: <FileArchive className={ICON} /> },
+  { href: "/content/careers", label: "Careers", icon: <Briefcase className={ICON} /> },
+  { href: "/content/documents", label: "File Manager", icon: <FolderOpen className={ICON} /> },
   {
     href: "/content/quality-policy",
     label: "Quality Policy",
@@ -114,8 +114,9 @@ function SidebarContents({
   const { showInstallButton, prompting, promptInstall } = useInstallPrompt();
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="relative mb-6 py-1">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      {/* Fixed Sidebar Header / Portal Switcher */}
+      <div className="relative mb-3 shrink-0 py-1">
         <button
           onClick={() => {
             if (canSwitchPortals) setDashboardMenuOpen(!dashboardMenuOpen);
@@ -210,7 +211,8 @@ function SidebarContents({
         )}
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1">
+      {/* Center Portion: Scrollable Menu Items */}
+      <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {currentNav.map((item) => (
           <SidebarLink
             key={item.href}
@@ -222,7 +224,8 @@ function SidebarContents({
         ))}
       </nav>
 
-      <div>
+      {/* Fixed Sidebar Bottom Profile / Actions Item */}
+      <div className="mt-3 shrink-0 pt-1">
         <div
           className={`overflow-hidden rounded-2xl bg-zinc-100 p-1.5 shadow-sm ${expanded ? "" : "flex flex-col items-center gap-1"
             }`}
