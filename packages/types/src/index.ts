@@ -222,6 +222,29 @@ export interface ClientPartnerInput {
   isActive?: boolean;
 }
 
+// ── Sister Concern Company Types ───────────────────────────────────────────
+
+export interface SisterCompanyDTO {
+  id: string;
+  name: string;
+  logoUrl: string;
+  industry: string;
+  websiteUrl: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SisterCompanyInput {
+  name: string;
+  logoUrl: string;
+  industry?: string;
+  websiteUrl?: string | null;
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
 // ── Project & Gallery Types ────────────────────────────────────────────────
 
 export type ProjectStatus = "Completed" | "In Progress" | "Upcoming";
