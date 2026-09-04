@@ -13,6 +13,10 @@ import React from "react";
 
 import { Button } from "@/components/ui/Button";
 
+interface CSRSectionProps {
+  initialLogos?: ConcernLogo[];
+}
+
 const CertificateCard = ({
   cert,
   index,
@@ -81,7 +85,9 @@ const LogoMedia = ({ logo, index }: { logo: ConcernLogo; index: number }) => {
   return image;
 };
 
-const LogoTicker = () => {
+const LogoTicker = ({ logos = concernLogos }: { logos?: ConcernLogo[] }) => {
+  const displayLogos = logos && logos.length > 0 ? logos : concernLogos;
+
   return (
     <div className="relative w-full overflow-hidden">
       {/* Desktop Ticker */}
@@ -100,7 +106,7 @@ const LogoTicker = () => {
           }}
           className="flex w-max items-center gap-2 md:gap-8"
         >
-          {[...concernLogos, ...concernLogos].map((logo, index) => (
+          {[...displayLogos, ...displayLogos].map((logo, index) => (
             <div
               key={index}
               className="group relative h-32 w-48 flex-shrink-0 transition-all duration-700"
@@ -113,7 +119,7 @@ const LogoTicker = () => {
 
       {/* Mobile Grid - 3 Columns */}
       <div className="grid grid-cols-3 gap-6 md:hidden">
-        {concernLogos.map((logo, index) => (
+        {displayLogos.map((logo, index) => (
           <div
             key={index}
             className="relative flex aspect-[4/3] items-center justify-center p-0 transition-all duration-700"
@@ -126,7 +132,7 @@ const LogoTicker = () => {
   );
 };
 
-export const CSRSection = () => {
+export const CSRSection = ({ initialLogos }: CSRSectionProps = {}) => {
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -288,7 +294,7 @@ export const CSRSection = () => {
             </div>
           </div>
 
-          <LogoTicker />
+          <LogoTicker logos={initialLogos} />
 
           <div className="scroll-hide md:gap-content-gap flex snap-x snap-mandatory flex-row items-stretch justify-start gap-4 overflow-x-auto overflow-y-hidden md:flex-row md:items-center md:justify-center md:overflow-visible">
             {sisterCompanies.map((company, index) => (

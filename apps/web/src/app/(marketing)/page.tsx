@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { FloatingContact } from "@/components/common/FloatingContact";
 import { Footer } from "@/components/layout/Footer";
 import { getHeroSlides } from "@/lib/content/hero";
+import { getSisterCompanies } from "@/lib/content/companies";
 
 // Dynamically load heavy components below the fold
 const Leaders = dynamic(() => import("@sections/home/Leaders").then((mod) => mod.Leaders), {
@@ -49,7 +50,10 @@ const NewsAndEvents = dynamic(
 const Contact = dynamic(() => import("@components/common/Contact"), { ssr: true });
 
 export default async function Home() {
-  const slides = await getHeroSlides();
+  const [slides, sisterLogos] = await Promise.all([
+    getHeroSlides(),
+    getSisterCompanies(),
+  ]);
 
   return (
     <div className="relative min-h-screen">
@@ -67,7 +71,7 @@ export default async function Home() {
         <RecentProjects />
         <ScrollingText />
         <OurWorks />
-        <CSRSection />
+        <CSRSection initialLogos={sisterLogos} />
         <NewsAndEvents />
         <Contact />
         <Footer />
