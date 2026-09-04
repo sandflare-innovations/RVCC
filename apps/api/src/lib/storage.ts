@@ -154,6 +154,16 @@ export function storageKeyForClient(
   return `clients/${name}-${tag}.${ext}`;
 }
 
+/** Public Sister Concern Company Logo: sister-companies/{companyName}-{tag}.webp */
+export function storageKeyForSisterCompany(
+  companyName: string,
+  ext = "webp"
+): string {
+  const name = slugify(companyName) || "company";
+  const tag = generateUniqueToken(4);
+  return `sister-companies/${name}-${tag}.${ext}`;
+}
+
 /** Public Gallery Image: gallery/{gallerySlug}/{imageTitle}-{tag}.webp */
 export function storageKeyForGallery(
   gallerySlug: string,

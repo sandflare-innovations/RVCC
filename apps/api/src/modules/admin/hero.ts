@@ -7,6 +7,7 @@ import {
   putPublicAsset,
   storageKeyForHero,
   storageKeyForClient,
+  storageKeyForSisterCompany,
   storageKeyForGallery,
   storageKeyForProject,
   storageKeyForService,
@@ -348,6 +349,8 @@ export async function handleAdminContentMediaUpload(
     key = storageKeyForHero(label, ext);
   } else if (folder === "clients") {
     key = storageKeyForClient(label, ext);
+  } else if (folder === "sister-companies" || folder === "companies") {
+    key = storageKeyForSisterCompany(label, ext);
   } else if (folder.startsWith("services/") || folder === "services") {
     const serviceFolder = folder === "services" ? "general" : folder.replace(/^services\//, "");
     key = storageKeyForService(serviceFolder, label, ext);
