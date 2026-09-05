@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import {
   expiredCookieOptions,
   VENDOR_COOKIE,
+  VENDOR_HOME_PATH,
   VENDOR_LOGIN_PATH,
   VENDOR_PROFILE_COOKIE,
   VENDOR_SESSION_EXPIRED_PARAM,
