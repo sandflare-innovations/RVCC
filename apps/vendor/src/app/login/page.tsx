@@ -1,8 +1,16 @@
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
+import { VENDOR_HOME_PATH } from "@/lib/constants";
+import { getVendorFromSession } from "@/lib/session";
 import { VendorLoginForm } from "@/sections/auth/VendorLoginForm";
 
-export default function VendorLoginPage() {
+export default async function VendorLoginPage() {
+  const vendor = await getVendorFromSession();
+  if (vendor) {
+    redirect(VENDOR_HOME_PATH);
+  }
+
   return (
     <div className="flex min-h-[100dvh] w-full flex-col gap-4 bg-white md:flex-row md:p-4">
       {/* Left Panel — Branding (hidden on mobile) */}
