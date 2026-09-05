@@ -319,8 +319,13 @@ const DocumentCard = ({
   );
 };
 
-export const DocumentList = () => {
+export const DocumentList = ({
+  initialDocuments,
+}: {
+  initialDocuments?: DocumentItem[];
+}) => {
   const router = useRouter();
+  const docs = initialDocuments && initialDocuments.length > 0 ? initialDocuments : DOCUMENTS;
 
   const handleRead = (doc: DocumentItem) => {
     // User gesture on READ: start PDF/worker/chunk warm-up before the route mounts the reader
@@ -332,7 +337,7 @@ export const DocumentList = () => {
     <section className="bg-white py-32">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
-          {DOCUMENTS.map((item, index) => (
+          {docs.map((item, index) => (
             <DocumentCard key={item.id} item={item} index={index} onRead={handleRead} />
           ))}
         </div>

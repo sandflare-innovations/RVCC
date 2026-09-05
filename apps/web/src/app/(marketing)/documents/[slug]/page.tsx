@@ -1,27 +1,41 @@
-"use client";
-
-import dynamic from "next/dynamic";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { use } from "react";
+import { notFound } from "next/navigation";
 
-import { DOCUMENTS } from "@/data/documents";
-
-// Load the FlipbookReader dynamically to avoid SSR issues with PDF.js (DOMMatrix is not defined)
-const FlipbookReader = dynamic(
-  () => import("@/sections/documents/FlipbookReader").then((mod) => mod.FlipbookReader),
-  { ssr: false }
-);
+import { getDocumentBySlug } from "@/lib/content/documents";
+import { DocumentReaderClient } from "./reader-client";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default function DocumentDetailPage({ params }: PageProps) {
-  const router = useRouter();
-  const { slug } = use(params);
+export const revalidate = 60;
 
-  const doc = DOCUMENTS.find((d) => d.slug === slug);
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const doc = await getDocumentBySlug(slug);
+
+  if (!doc) {
+    return {
+      title: "Document Not Found | RVCC",
+      description: "The requested document could not be found.",
+    };
+  }
+
+  return {
+    title: `${doc.title} | RVCC Publications`,
+    description: doc.description || `Access and read ${doc.title} published by RVCC.`,
+    openGraph: {
+      title: `${doc.title} | RVCC Publications`,
+      description: doc.description || `Access and read ${doc.title} published by RVCC.`,
+      images: doc.image ? [{ url: doc.image }] : undefined,
+    },
+  };
+}
+
+export default async function DocumentDetailPage({ params }: PageProps) {
+  const { slug } = await params;
+  const doc = await getDocumentBySlug(slug);
 
   if (!doc) {
     return (
@@ -38,9 +52,5 @@ export default function DocumentDetailPage({ params }: PageProps) {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-white">
-      <FlipbookReader isOpen={true} onClose={() => router.push("/documents")} document={doc} />
-    </div>
-  );
+  return <DocumentReaderClient doc={doc} />;
 }
