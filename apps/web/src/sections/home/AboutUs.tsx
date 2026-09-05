@@ -72,7 +72,7 @@ const Word = ({
 const InlineImage = ({ src }: { src: string }) => {
   return (
     <span className="relative top-2 mx-3 mb-3 hidden h-12 w-24 md:inline-block md:h-10 md:w-32">
-      <motion.span
+      <motion.div
         className="absolute inset-0 z-10 block cursor-pointer overflow-hidden rounded-sm"
         initial={{ opacity: 1, scale: 1 }}
         whileHover={{
@@ -82,8 +82,8 @@ const InlineImage = ({ src }: { src: string }) => {
         }}
         transition={{ type: "spring", stiffness: 250, damping: 25 }}
       >
-        <motion.span
-          className="block h-full w-full"
+        <motion.div
+          className="relative block h-full w-full"
           initial={{ scale: 1.2 }}
           whileHover={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 250, damping: 25 }}
@@ -95,8 +95,8 @@ const InlineImage = ({ src }: { src: string }) => {
             className="object-cover"
             sizes="(max-width: 768px) 300px, 600px"
           />
-        </motion.span>
-      </motion.span>
+        </motion.div>
+      </motion.div>
     </span>
   );
 };
