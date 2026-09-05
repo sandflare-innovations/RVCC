@@ -82,6 +82,16 @@ export function createApp(env: Env) {
     return handlePublicMediaRequest(c.req.raw, env, c.req.param("id"));
   });
 
+  app.all("/documents", async (c) => {
+    const { handlePublicDocumentsRequest } = await import("./modules/public/documents");
+    return handlePublicDocumentsRequest(c.req.raw, env);
+  });
+  app.all("/documents/*", async (c) => {
+    const { handlePublicDocumentsRequest } = await import("./modules/public/documents");
+    const slug = c.req.path.replace(/^\/documents\/?/, "");
+    return handlePublicDocumentsRequest(c.req.raw, env, slug);
+  });
+
   app.all("/admin", (c) => handleAdminRequest(rewritePath(c.req.raw, "/admin"), env));
   app.all("/admin/*", (c) => handleAdminRequest(rewritePath(c.req.raw, "/admin"), env));
 

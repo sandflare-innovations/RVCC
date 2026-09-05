@@ -483,6 +483,38 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       return await handleAdminContentMediaUpload(sql, env, request);
     }
 
+    // ── Company Documents Content Routes ────────────────────────────────────
+    if (path === "/documents" && request.method === "GET") {
+      const { handleAdminDocumentsList } = await import("../modules/admin/documents");
+      return await handleAdminDocumentsList(sql, env, request);
+    }
+    if (path === "/documents" && request.method === "POST") {
+      const { handleAdminDocumentCreate } = await import("../modules/admin/documents");
+      return await handleAdminDocumentCreate(sql, env, request);
+    }
+    if (path === "/documents/reorder" && request.method === "PUT") {
+      const { handleAdminDocumentsReorder } = await import("../modules/admin/documents");
+      return await handleAdminDocumentsReorder(sql, env, request);
+    }
+    if (path === "/documents/upload" && request.method === "POST") {
+      const { handleAdminDocumentUpload } = await import("../modules/admin/documents");
+      return await handleAdminDocumentUpload(sql, env, request);
+    }
+    const documentOne = path.match(/^\/documents\/([^/]+)$/);
+    if (documentOne) {
+      const id = decodeURIComponent(documentOne[1]!);
+      const {
+        handleAdminDocumentGet,
+        handleAdminDocumentUpdate,
+        handleAdminDocumentDelete,
+      } = await import("../modules/admin/documents");
+      if (request.method === "GET") return await handleAdminDocumentGet(sql, env, request, id);
+      if (request.method === "PUT" || request.method === "PATCH") {
+        return await handleAdminDocumentUpdate(sql, env, request, id);
+      }
+      if (request.method === "DELETE") return await handleAdminDocumentDelete(sql, env, request, id);
+    }
+
     // ── File Manager (Folders & Files) ───────────────────────────────────────
     if (path === "/folders") {
       const { handleAdminFoldersList, handleAdminFolderCreate } = await import(
