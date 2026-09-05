@@ -1,6 +1,6 @@
 import "server-only";
 
-import { DOCUMENTS as FALLBACK_DOCUMENTS, type DocumentItem } from "@/data/documents";
+import type { DocumentItem } from "@/data/documents";
 
 function apiBase(): string {
   const envUrl = process.env.API_URL;
@@ -11,15 +11,10 @@ function apiBase(): string {
   return "https://rvcc-api.rvcc.workers.dev";
 }
 
-export type WebDocumentItem = DocumentItem & {
-  sizeBytes?: number;
-  pageCount?: number;
-  requiresAuth?: boolean;
-};
+export type WebDocumentItem = DocumentItem;
 
 /**
- * Fetch all published company documents from the API.
- * Falls back to bundled static documents if API is unreachable.
+ * Fetch all published company documents dynamically from the API.
  */
 export async function getDocuments(): Promise<WebDocumentItem[]> {
   try {
@@ -28,13 +23,13 @@ export async function getDocuments(): Promise<WebDocumentItem[]> {
     });
 
     if (!res.ok) {
-      console.warn(`[getDocuments] API returned status ${res.status}, using fallback`);
-      return FALLBACK_DOCUMENTS;
+      console.warn(`[getDocuments] API returned status ${res.status}`);
+      return [];
     }
 
     const data = await res.json();
-    if (!Array.isArray(data.documents) || data.documents.length === 0) {
-      return FALLBACK_DOCUMENTS;
+    if (!Array.isArray(data.documents)) {
+      return [];
     }
 
     return data.documents.map((d: any) => ({
@@ -55,13 +50,13 @@ export async function getDocuments(): Promise<WebDocumentItem[]> {
         : "March 2026",
     }));
   } catch (err) {
-    console.warn("[getDocuments] Fetch failed, falling back to static:", err);
-    return FALLBACK_DOCUMENTS;
+    console.error("[getDocuments] Fetch failed:", err);
+    return [];
   }
 }
 
 /**
- * Fetch a single company document by slug from the API.
+ * Fetch a single company document dynamically by slug from the API.
  */
 export async function getDocumentBySlug(slug: string): Promise<WebDocumentItem | null> {
   try {
@@ -70,14 +65,12 @@ export async function getDocumentBySlug(slug: string): Promise<WebDocumentItem |
     });
 
     if (!res.ok) {
-      const fallback = FALLBACK_DOCUMENTS.find((d) => d.slug === slug);
-      return fallback || null;
+      return null;
     }
 
     const data = await res.json();
     if (!data.document) {
-      const fallback = FALLBACK_DOCUMENTS.find((d) => d.slug === slug);
-      return fallback || null;
+      return null;
     }
 
     const d = data.document;
@@ -99,8 +92,8 @@ export async function getDocumentBySlug(slug: string): Promise<WebDocumentItem |
         : "March 2026",
     };
   } catch (err) {
-    console.warn(`[getDocumentBySlug/${slug}] Fetch failed, using fallback:`, err);
-    const fallback = FALLBACK_DOCUMENTS.find((d) => d.slug === slug);
-    return fallback || null;
+    console.error(`[getDocumentBySlug/${slug}] Fetch failed:`, err);
+    return null;
   }
 }
+

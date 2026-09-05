@@ -8,7 +8,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import HTMLFlipBook from "react-pageflip";
 import { Document, Page as PdfPage, pdfjs } from "react-pdf";
 
-import { DocumentItem } from "@/data/documents";
+import type { DocumentItem } from "@/data/documents";
 import { Icons } from "@/lib/icons";
 import { cachePdf,getCachedPdfUrl } from "@/lib/pdf-cache";
 

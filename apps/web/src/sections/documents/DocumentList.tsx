@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
-import { DocumentItem,DOCUMENTS } from "@/data/documents";
+import type { DocumentItem } from "@/data/documents";
 import { Icons } from "@/lib/icons";
 import { prefetchDocumentReader } from "@/lib/pdf-prefetch";
+
 
 const PasswordModal = ({
   isOpen,
@@ -320,14 +321,15 @@ const DocumentCard = ({
 };
 
 export const DocumentList = ({
-  initialDocuments,
+  initialDocuments = [],
 }: {
   initialDocuments?: DocumentItem[];
 }) => {
   const router = useRouter();
-  const docs = initialDocuments && initialDocuments.length > 0 ? initialDocuments : DOCUMENTS;
+  const docs = initialDocuments;
 
   const handleRead = (doc: DocumentItem) => {
+
     // User gesture on READ: start PDF/worker/chunk warm-up before the route mounts the reader
     prefetchDocumentReader(doc.fileUrl, doc.filePath);
     router.push(`/documents/${doc.slug}`);

@@ -4,11 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
-import { DOCUMENTS } from "@/data/documents";
-import { prefetchDocumentReader } from "@/lib/pdf-prefetch";
-
 export const DocumentHero = () => {
-  const firstDoc = DOCUMENTS[0];
 
   return (
     <section className="relative flex h-screen items-center overflow-hidden border-b border-zinc-100 bg-white">
@@ -62,10 +58,8 @@ export const DocumentHero = () => {
           <Link
             href="/documents/rvcc-general-profile"
             className="block w-full"
-            onClick={() => {
-              if (firstDoc) prefetchDocumentReader(firstDoc.fileUrl, firstDoc.filePath);
-            }}
           >
+
             <motion.div
               initial={{ opacity: 0, scale: 0.8, rotateY: 15 }}
               animate={{ opacity: 1, scale: 1, rotateY: -20 }}
