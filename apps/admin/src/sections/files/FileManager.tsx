@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { optimizeImageForUpload } from "@/lib/image-optimizer";
 
 export type ManagedFolderDTO = {
   id: string;
@@ -306,13 +307,28 @@ export function FileManager() {
     try {
       let uploadedCount = 0;
       for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
+        let fileToUpload = selectedFiles[i];
+
+        // Optimize raster images (PNG, JPEG, WebP) before uploading to save storage & bandwidth
+        if (fileToUpload.type.startsWith("image/") && !fileToUpload.type.includes("svg")) {
+          try {
+            const { file: optimized } = await optimizeImageForUpload(fileToUpload, {
+              maxWidth: 2400,
+              maxHeight: 2400,
+              quality: 0.95,
+            });
+            fileToUpload = optimized;
+          } catch (optErr) {
+            console.warn("[file_manager] Image optimization fallback to original:", optErr);
+          }
+        }
+
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", fileToUpload);
         if (currentFolder?.id) {
           formData.append("folderId", currentFolder.id);
         }
-        formData.append("name", file.name);
+        formData.append("name", fileToUpload.name);
 
         const res = await fetch("/api/files/upload", {
           method: "POST",
@@ -321,7 +337,7 @@ export function FileManager() {
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || `Failed uploading ${file.name}`);
+          throw new Error(data.error || `Failed uploading ${fileToUpload.name}`);
         }
 
         const data = await res.json();
