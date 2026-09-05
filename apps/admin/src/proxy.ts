@@ -37,6 +37,10 @@ export default function proxy(request: NextRequest) {
       res.cookies.set(ADMIN_PROFILE_COOKIE, "", expiredCookieOptions());
       return res;
     }
+    const token = request.cookies.get(ADMIN_COOKIE)?.value;
+    if (token) {
+      return NextResponse.redirect(new URL(ADMIN_HOME_PATH, request.url));
+    }
     return NextResponse.next();
   }
 

@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
+import { ADMIN_HOME_PATH } from "@/lib/constants";
+import { getAdminFromSession } from "@/lib/session";
 import { AdminLoginForm } from "@/sections/auth/AdminLoginForm";
 
 export const metadata: Metadata = {
@@ -8,7 +11,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AdminLoginPage() {
+export default async function AdminLoginPage() {
+  const admin = await getAdminFromSession();
+  if (admin) {
+    redirect(ADMIN_HOME_PATH);
+  }
+
   return (
     <div className="flex min-h-[100dvh] w-full flex-col gap-4 bg-white md:flex-row md:p-4">
       {/* Left Panel — Branding (hidden on mobile) */}
