@@ -38,6 +38,10 @@ export default function proxy(request: NextRequest) {
       res.cookies.set(PROCUREMENT_PROFILE_COOKIE, "", expiredCookieOptions());
       return res;
     }
+    const token = request.cookies.get(PROCUREMENT_COOKIE)?.value;
+    if (token) {
+      return NextResponse.redirect(new URL(PROCUREMENT_HOME_PATH, request.url));
+    }
     return NextResponse.next();
   }
 

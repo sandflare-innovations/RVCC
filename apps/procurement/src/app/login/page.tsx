@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
+import { PROCUREMENT_HOME_PATH } from "@/lib/constants";
+import { getCurrentProcurementUser } from "@/lib/session";
 import { ProcurementLoginForm } from "@/sections/auth/ProcurementLoginForm";
 
 export const metadata: Metadata = {
@@ -9,7 +12,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function ProcurementLoginPage() {
+export default async function ProcurementLoginPage() {
+  const user = await getCurrentProcurementUser();
+  if (user) {
+    redirect(PROCUREMENT_HOME_PATH);
+  }
+
   return (
     <div className="flex min-h-[100dvh] w-full flex-col gap-4 bg-white md:flex-row md:p-4">
       {/* Left Panel — Branding (hidden on mobile) */}
