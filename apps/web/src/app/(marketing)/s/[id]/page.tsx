@@ -33,6 +33,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? [
         {
           url: file.fileUrl,
+          secureUrl: file.fileUrl,
+          type: file.mimeType || "image/webp",
+          width: 1200,
+          height: 630,
           alt: file.name,
         },
       ]

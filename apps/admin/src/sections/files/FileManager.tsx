@@ -30,6 +30,7 @@ import {
   Loader2,
   Home,
   RefreshCw,
+  MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect, useMemo, useRef } from "react";
@@ -213,11 +214,9 @@ export function FileManager() {
   // ── Actions: Copy URL & Share ──────────────────────────────────────────────
 
   const getRichShareUrl = (file: ManagedFileDTO) => {
+    // Production public URL so WhatsApp/Slack scrapers can fetch Open Graph tags
     const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      (typeof window !== "undefined" && window.location.origin.includes(":3001")
-        ? window.location.origin.replace(":3001", ":3000")
-        : "https://rvcc-enquiry.vercel.app");
+      process.env.NEXT_PUBLIC_SITE_URL || "https://rvcc-enquiry.vercel.app";
     return `${siteUrl.replace(/\/$/, "")}/s/${file.id}`;
   };
 
@@ -225,10 +224,28 @@ export function FileManager() {
     e?.stopPropagation();
     try {
       await navigator.clipboard.writeText(file.fileUrl);
-      showToast("Direct file URL copied to clipboard!");
+      showToast("Direct CDN file URL copied!");
     } catch {
       showToast("Could not copy link");
     }
+  };
+
+  const handleCopyRichLink = async (file: ManagedFileDTO, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const shareUrl = getRichShareUrl(file);
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      showToast("Rich link copied! (Shows preview thumbnail in WhatsApp / Social)");
+    } catch {
+      showToast("Could not copy link");
+    }
+  };
+
+  const handleWhatsAppShare = (file: ManagedFileDTO, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const shareUrl = getRichShareUrl(file);
+    const msg = encodeURIComponent(`${file.name}\n${shareUrl}`);
+    window.open(`https://api.whatsapp.com/send?text=${msg}`, "_blank");
   };
 
   const handleShare = async (file: ManagedFileDTO, e?: React.MouseEvent) => {
@@ -247,12 +264,7 @@ export function FileManager() {
       }
     }
     // Fallback: Copy the rich preview link
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      showToast("Rich preview link copied to clipboard!");
-    } catch {
-      showToast("Could not copy link");
-    }
+    await handleCopyRichLink(file, e);
   };
 
   // ── Actions: Create Folder ────────────────────────────────────────────────
@@ -797,14 +809,21 @@ export function FileManager() {
                             <button
                               onClick={(e) => handleCopyUrl(file, e)}
                               className="flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-zinc-800 hover:bg-white hover:text-[#0073bc] transition-colors shadow"
-                              title="Copy URL"
+                              title="Copy Direct CDN URL"
                             >
                               <Copy className="h-4 w-4" />
                             </button>
                             <button
+                              onClick={(e) => handleWhatsAppShare(file, e)}
+                              className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white hover:bg-emerald-500 transition-colors shadow"
+                              title="Share on WhatsApp (Rich Preview)"
+                            >
+                              <MessageCircle className="h-4 w-4" />
+                            </button>
+                            <button
                               onClick={(e) => handleShare(file, e)}
                               className="flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-zinc-800 hover:bg-white hover:text-[#0073bc] transition-colors shadow"
-                              title="Share"
+                              title="Share Rich Link"
                             >
                               <Share2 className="h-4 w-4" />
                             </button>
@@ -833,13 +852,24 @@ export function FileManager() {
                           className="mt-3 flex items-center justify-between border-t border-zinc-100 pt-2 text-zinc-400"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <button
-                            onClick={(e) => handleCopyUrl(file, e)}
-                            className="flex items-center gap-1 text-[11px] font-medium text-zinc-500 hover:text-[#0073bc] transition-colors"
-                          >
-                            <Copy className="h-3 w-3" />
-                            <span>Copy URL</span>
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => handleCopyRichLink(file, e)}
+                              className="flex items-center gap-1 text-[11px] font-semibold text-[#0073bc] hover:underline transition-colors"
+                              title="Copy rich preview link for WhatsApp, Slack, etc."
+                            >
+                              <Share2 className="h-3 w-3" />
+                              <span>Rich Link</span>
+                            </button>
+                            <button
+                              onClick={(e) => handleCopyUrl(file, e)}
+                              className="flex items-center gap-1 text-[11px] font-medium text-zinc-400 hover:text-zinc-600 transition-colors"
+                              title="Copy direct CDN URL"
+                            >
+                              <Copy className="h-3 w-3" />
+                              <span>CDN</span>
+                            </button>
+                          </div>
 
                           <div className="flex items-center gap-1">
                             <button
@@ -912,18 +942,25 @@ export function FileManager() {
                           >
                             <div className="flex items-center justify-end gap-1">
                               <button
-                                onClick={(e) => handleCopyUrl(file, e)}
-                                className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
-                                title="Copy URL"
-                              >
-                                <Copy className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                onClick={(e) => handleShare(file, e)}
-                                className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
-                                title="Share"
+                                onClick={(e) => handleCopyRichLink(file, e)}
+                                className="flex h-7 w-7 items-center justify-center rounded-lg text-[#0073bc] hover:bg-blue-50 transition-colors"
+                                title="Copy Rich Link (WhatsApp / Social Preview)"
                               >
                                 <Share2 className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={(e) => handleWhatsAppShare(file, e)}
+                                className="flex h-7 w-7 items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors"
+                                title="Share directly on WhatsApp"
+                              >
+                                <MessageCircle className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={(e) => handleCopyUrl(file, e)}
+                                className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                                title="Copy Direct CDN URL"
+                              >
+                                <Copy className="h-3.5 w-3.5" />
                               </button>
                               <button
                                 onClick={(e) => {
@@ -1197,26 +1234,37 @@ export function FileManager() {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => handleCopyUrl(previewFile)}
-                  className="flex items-center gap-1.5 rounded-xl bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700 transition-colors"
+                  onClick={() => handleWhatsAppShare(previewFile)}
+                  className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 transition-colors shadow"
+                  title="Share directly to WhatsApp"
                 >
-                  <Copy className="h-3.5 w-3.5" />
-                  <span>Copy Link</span>
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  <span>WhatsApp</span>
                 </button>
 
                 <button
-                  onClick={() => handleShare(previewFile)}
-                  className="flex items-center gap-1.5 rounded-xl bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700 transition-colors"
+                  onClick={() => handleCopyRichLink(previewFile)}
+                  className="flex items-center gap-1.5 rounded-xl bg-[#0073bc] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#005f9e] transition-colors shadow"
+                  title="Copy Rich Link for WhatsApp, Slack, Social Previews"
                 >
                   <Share2 className="h-3.5 w-3.5" />
-                  <span>Share</span>
+                  <span>Copy Rich Link</span>
+                </button>
+
+                <button
+                  onClick={() => handleCopyUrl(previewFile)}
+                  className="flex items-center gap-1.5 rounded-xl bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700 transition-colors"
+                  title="Copy Direct CDN File URL"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  <span>CDN URL</span>
                 </button>
 
                 <a
                   href={previewFile.fileUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1.5 rounded-xl bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700 transition-colors"
+                  className="flex items-center gap-1.5 rounded-xl bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700 transition-colors"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   <span>Open Tab</span>
@@ -1224,7 +1272,7 @@ export function FileManager() {
 
                 <button
                   onClick={() => setPreviewFile(null)}
-                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors ml-1"
                 >
                   <X className="h-4 w-4" />
                 </button>
