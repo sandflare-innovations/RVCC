@@ -977,3 +977,42 @@ model ManagedFile {
   @@index([deletedAt])
 }
 
+// =========================================================================
+// 9. COMPANY DOCUMENTS & PUBLICATIONS (PDFs, Profiles, Standards)
+// =========================================================================
+
+enum DocumentCategory {
+  Profile
+  Standard
+  Report
+  Catalog
+}
+
+model CompanyDocument {
+  id           String           @id @default(cuid())
+  slug         String           @unique
+  title        String
+  category     DocumentCategory @default(Profile)
+  description  String           @default("")
+  fileSize     String           @default("0 MB")
+  sizeBytes    BigInt           @default(0)
+  pageCount    Int              @default(0)
+  fileUrl      String           // Cloudflare R2 Public CDN URL
+  storageKey   String           // R2 key e.g. "documents/rvcc-general-profile.pdf"
+  filePath     String?          // Fallback / legacy local path e.g. "/pdf/books/..."
+  coverImage   String           // Cloudflare R2 or webp image URL
+  sortOrder    Int              @default(0)
+  isPublished  Boolean          @default(true)
+  requiresAuth Boolean          @default(false)
+  pinCode      String?          // Optional custom 4-digit PIN for unlock download
+
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @default(now()) @updatedAt
+  deletedAt    DateTime?        // Soft deletion
+
+  @@index([slug])
+  @@index([isPublished, sortOrder])
+  @@index([deletedAt])
+}
+
+

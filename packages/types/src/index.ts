@@ -347,3 +347,47 @@ export interface ServiceInput {
   isActive?: boolean;
 }
 
+// ── Company Document Types ──────────────────────────────────────────────────
+
+export type DocumentCategory = "Profile" | "Standard" | "Report" | "Catalog";
+
+export interface CompanyDocumentDTO {
+  id: string;
+  slug: string;
+  title: string;
+  category: DocumentCategory;
+  description: string;
+  fileSize: string;
+  sizeBytes: number;
+  pageCount: number;
+  fileUrl: string;
+  storageKey: string;
+  filePath?: string | null;
+  coverImage: string;
+  sortOrder: number;
+  isPublished: boolean;
+  requiresAuth: boolean;
+  pinCode?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CompanyDocumentInput {
+  title: string;
+  slug?: string;
+  category?: DocumentCategory;
+  description?: string;
+  fileSize?: string;
+  sizeBytes?: number;
+  pageCount?: number;
+  fileUrl: string;
+  storageKey: string;
+  filePath?: string | null;
+  coverImage: string;
+  sortOrder?: number;
+  isPublished?: boolean;
+  requiresAuth?: boolean;
+  pinCode?: string | null;
+}
+
+
