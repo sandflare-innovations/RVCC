@@ -333,7 +333,7 @@ export async function putPublicAsset(
     return;
   }
 
-  const bucketName = "rvcc-public-assets";
+  const bucketName = env.R2_BUCKET_NAME || "rvcc-public-assets";
   if (!s3Configured(env)) {
     throw new Error(`Upload storage not configured for public assets (${bucketName})`);
   }
@@ -363,7 +363,7 @@ export async function deletePublicAsset(env: Env, key: string): Promise<void> {
     return;
   }
 
-  const bucketName = "rvcc-public-assets";
+  const bucketName = env.R2_BUCKET_NAME || "rvcc-public-assets";
   if (!s3Configured(env)) return;
 
   const client = new AwsClient({
