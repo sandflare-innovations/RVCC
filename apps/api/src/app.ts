@@ -77,6 +77,11 @@ export function createApp(env: Env) {
     return handlePublicGalleryRequest(c.req.raw, env);
   });
 
+  app.all("/media/:id", async (c) => {
+    const { handlePublicMediaRequest } = await import("./modules/public/media");
+    return handlePublicMediaRequest(c.req.raw, env, c.req.param("id"));
+  });
+
   app.all("/admin", (c) => handleAdminRequest(rewritePath(c.req.raw, "/admin"), env));
   app.all("/admin/*", (c) => handleAdminRequest(rewritePath(c.req.raw, "/admin"), env));
 
