@@ -212,6 +212,15 @@ export function FileManager() {
 
   // ── Actions: Copy URL & Share ──────────────────────────────────────────────
 
+  const getRichShareUrl = (file: ManagedFileDTO) => {
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (typeof window !== "undefined" && window.location.origin.includes(":3001")
+        ? window.location.origin.replace(":3001", ":3000")
+        : "https://rvcc-enquiry.vercel.app");
+    return `${siteUrl.replace(/\/$/, "")}/s/${file.id}`;
+  };
+
   const handleCopyUrl = async (file: ManagedFileDTO, e?: React.MouseEvent) => {
     e?.stopPropagation();
     try {
@@ -224,20 +233,26 @@ export function FileManager() {
 
   const handleShare = async (file: ManagedFileDTO, e?: React.MouseEvent) => {
     e?.stopPropagation();
+    const shareUrl = getRichShareUrl(file);
     if (navigator.share) {
       try {
         await navigator.share({
           title: file.name,
           text: file.description || `File: ${file.name}`,
-          url: file.fileUrl,
+          url: shareUrl,
         });
         return;
       } catch (err: any) {
         if (err.name === "AbortError") return;
       }
     }
-    // Fallback to copy
-    handleCopyUrl(file);
+    // Fallback: Copy the rich preview link
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      showToast("Rich preview link copied to clipboard!");
+    } catch {
+      showToast("Could not copy link");
+    }
   };
 
   // ── Actions: Create Folder ────────────────────────────────────────────────
