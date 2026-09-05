@@ -43,6 +43,7 @@ export const Navbar = () => {
   const isQualityPage = pathname?.startsWith("/quality-policy");
   const isAboutPage = pathname?.startsWith("/about");
   const isEnquirePage = pathname?.startsWith("/enquire");
+  const isSharePage = pathname?.startsWith("/s/") || pathname?.startsWith("/media/");
   const isLightPage =
     isGallaryPage ||
     isContactPage ||
@@ -50,7 +51,8 @@ export const Navbar = () => {
     isClientsPage ||
     isQualityPage ||
     isAboutPage ||
-    isEnquirePage;
+    isEnquirePage ||
+    isSharePage;
 
   useEffect(() => {
     const handleScroll = () => {
