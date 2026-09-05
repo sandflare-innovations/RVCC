@@ -9,7 +9,6 @@ import {
   FileText,
   Medal,
   RefreshCw,
-  Sparkles,
   Trophy,
 } from "lucide-react";
 import { useState } from "react";

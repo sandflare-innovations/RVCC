@@ -1,9 +1,7 @@
 "use client";
 
 import {
-  AlertCircle,
   ArrowRight,
-  Award,
   CheckCircle2,
   Clock,
   ExternalLink,

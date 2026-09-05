@@ -1,6 +1,6 @@
 "use client";
 
-import { Award, Sparkles, Trophy } from "lucide-react";
+import { Award, Sparkles } from "lucide-react";
 
 import { useVendorLiveBidding } from "@/hooks/use-vendor-live-bidding";
 

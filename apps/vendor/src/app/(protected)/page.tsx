@@ -1,16 +1,11 @@
 import {
-  ArrowRight,
   ArrowUpRight,
-  Bell,
   Calendar,
   CheckCircle2,
   Clock,
-  FileCheck,
   FileText,
   Flame,
   Inbox,
-  Layers,
-  Sparkles,
 } from "lucide-react";
 import { cookies } from "next/headers";
 import Link from "next/link";
@@ -19,7 +14,6 @@ import { redirect } from "next/navigation";
 import { VENDOR_COOKIE } from "@/lib/constants";
 import { describeDeadline, summariseVendorDashboard, type VendorRequirementRow } from "@/lib/rfq";
 import { getVendorFromSession } from "@/lib/session";
-import { cn } from "@/lib/utils";
 import { vendorApiFetch } from "@/lib/vendor-api";
 import { OverviewNextActions } from "@/sections/dashboard/OverviewNextActions";
 import { VendorHeroSearch } from "@/sections/dashboard/VendorHeroSearch";
