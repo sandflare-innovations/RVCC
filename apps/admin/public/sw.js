@@ -9,7 +9,7 @@
  * - Push notifications + Background sync support
  */
 
-const CACHE_VERSION = 'build-1788146540625';
+const CACHE_VERSION = 'build-1788609012839';
 const SHELL_CACHE = `rvcc-admin-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `rvcc-admin-runtime-${CACHE_VERSION}`;
 const FONT_CACHE = `rvcc-admin-fonts-${CACHE_VERSION}`;
