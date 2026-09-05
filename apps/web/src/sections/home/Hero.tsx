@@ -182,8 +182,7 @@ export const Hero = ({ slides }: HeroProps) => {
             alt={sideSlide1.title1}
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, 33vw"
-            loading="lazy"
+            sizes="(max-width: 768px) 100vw, 56vh"
           />
         </motion.div>
 
@@ -217,8 +216,7 @@ export const Hero = ({ slides }: HeroProps) => {
                 alt={content.title1}
                 fill
                 className="object-cover"
-                priority={currentIndex === 0}
-                loading={currentIndex === 0 ? "eager" : "lazy"}
+                priority
                 sizes="100vw"
               />
               <motion.div
@@ -253,8 +251,7 @@ export const Hero = ({ slides }: HeroProps) => {
             alt={sideSlide2.title1}
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, 33vw"
-            loading="lazy"
+            sizes="(max-width: 768px) 100vw, 56vh"
           />
         </motion.div>
       </div>
