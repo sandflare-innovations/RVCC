@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import {
   ADMIN_COOKIE,
+  ADMIN_HOME_PATH,
   ADMIN_LOGIN_PATH,
   ADMIN_PROFILE_COOKIE,
   ADMIN_SESSION_EXPIRED_PARAM,
