@@ -1,11 +1,38 @@
 "use client";
 
-import { CLIENT_IMAGES } from "@data/home/about";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-export const ClientLogos = () => {
-  const logos = [...CLIENT_IMAGES, ...CLIENT_IMAGES];
+export interface ClientLogoItem {
+  id?: string | number;
+  name?: string;
+  logoUrl?: string;
+  logo?: string;
+}
+
+export const ClientLogos = ({
+  initialLogos,
+}: {
+  initialLogos?: (string | ClientLogoItem)[];
+}) => {
+  const defaultLogos = [
+    "/images/clients/1.webp",
+    "/images/clients/2.webp",
+    "/images/clients/3.webp",
+    "/images/clients/4.webp",
+    "/images/clients/5.webp",
+  ];
+
+  const resolvedLogos: string[] =
+    initialLogos && initialLogos.length > 0
+      ? initialLogos
+          .map((item) =>
+            typeof item === "string" ? item : item.logoUrl || item.logo || ""
+          )
+          .filter(Boolean)
+      : defaultLogos;
+
+  const displayList = [...resolvedLogos, ...resolvedLogos];
 
   return (
     <div className="md:pt-element-gap w-full overflow-hidden pt-8">
@@ -14,17 +41,17 @@ export const ClientLogos = () => {
         animate={{ x: ["0%", "-50%"] }}
         transition={{ duration: 60, ease: "linear", repeat: Infinity }}
       >
-        {logos.map((src, i) => (
+        {displayList.map((src, i) => (
           <div
             key={i}
-            className="relative h-42 w-42 flex-shrink-0 transition-all duration-300 hover:scale-110"
+            className="relative h-28 w-40 flex-shrink-0 transition-all duration-300 hover:scale-110"
           >
             <Image
               src={src}
-              alt="Client logo"
+              alt="Client partner logo"
               fill
               className="object-contain"
-              sizes="(max-width: 768px) 100px, 200px"
+              sizes="(max-width: 768px) 120px, 180px"
             />
           </div>
         ))}
@@ -32,3 +59,4 @@ export const ClientLogos = () => {
     </div>
   );
 };
+

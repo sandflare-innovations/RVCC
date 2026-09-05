@@ -7,6 +7,7 @@ import { ProjectHero } from "@/sections/projects/ProjectHero";
 import { ProjectList } from "@/sections/projects/ProjectList";
 import { ProjectMetrics } from "@/sections/projects/ProjectMetrics";
 import { getProjects } from "@/lib/content/projects";
+import { getClientPartners } from "@/lib/content/clients";
 
 export const metadata: Metadata = {
   title: "Projects | RVCC - Our Architectural Portfolio",
@@ -15,16 +16,20 @@ export const metadata: Metadata = {
 };
 
 export default async function ProjectsPage() {
-  const projects = await getProjects();
+  const [projects, clients] = await Promise.all([
+    getProjects(),
+    getClientPartners(),
+  ]);
 
   return (
     <main className="relative min-h-screen">
       <ProjectHero />
       <ProjectMetrics />
-      <ClientLogos />
+      <ClientLogos initialLogos={clients} />
       <ProjectList initialProjects={projects} />
       <Footer />
       <FloatingContact />
     </main>
   );
 }
+

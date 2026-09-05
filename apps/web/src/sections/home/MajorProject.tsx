@@ -7,8 +7,27 @@ import { useRef } from "react";
 
 import { Button } from "@/components/ui/Button";
 
-export const MajorProject = () => {
+export interface MajorProjectPropItem {
+  id: string | number;
+  title: string;
+  location?: string;
+  image: string;
+  description: string;
+  slug?: string;
+}
+
+export const MajorProject = ({
+  initialProjects,
+}: {
+  initialProjects?: MajorProjectPropItem[];
+}) => {
+  const projectList: MajorProjectPropItem[] =
+    initialProjects && initialProjects.length >= 3
+      ? initialProjects.slice(0, 3)
+      : PROJECTS;
+
   const containerRef = useRef<HTMLDivElement>(null);
+
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -88,15 +107,18 @@ export const MajorProject = () => {
             >
               <div className="relative h-full w-full overflow-hidden">
                 <Image
-                  src={PROJECTS[1].image}
-                  alt="Grid Left"
+                  src={projectList[1]?.image || PROJECTS[1].image}
+                  alt={projectList[1]?.title || PROJECTS[1].title}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 33vw"
+                  sizes="(max-width: 1024px) 100vw, 33vw"
                 />
-                <div className="absolute inset-0 bg-black/10" />
+                <div className="absolute inset-0 bg-black/40" />
                 <div className="absolute bottom-8 left-8 text-white">
-                  <h3 className="text-2xl font-light">{PROJECTS[1].title}</h3>
+                  <span className="text-brand-blue mb-2 block text-xs font-bold tracking-widest uppercase">
+                    Project 02
+                  </span>
+                  <h3 className="text-2xl font-light">{projectList[1]?.title || PROJECTS[1].title}</h3>
                 </div>
               </div>
             </motion.div>
@@ -107,8 +129,8 @@ export const MajorProject = () => {
               className="relative flex items-center justify-center overflow-hidden bg-black"
             >
               <Image
-                src={PROJECTS[0].image}
-                alt={PROJECTS[0].title}
+                src={projectList[0]?.image || PROJECTS[0].image}
+                alt={projectList[0]?.title || PROJECTS[0].title}
                 fill
                 className="object-cover"
                 priority
@@ -128,14 +150,14 @@ export const MajorProject = () => {
                     Project 01
                   </span>
                   <h3 className="font-primary mb-content-gap text-[3.5rem] leading-[0.75] font-normal tracking-tighter text-white uppercase md:text-[5.5rem] lg:text-[7rem]">
-                    {PROJECTS[0].title.split(" ").map((word, i) => (
+                    {(projectList[0]?.title || PROJECTS[0].title).split(" ").map((word, i) => (
                       <span key={i} className="block">
                         {word}
                       </span>
                     ))}
                   </h3>
                   <p className="mb-content-gap max-w-md text-lg font-light text-zinc-300 md:text-xl">
-                    {PROJECTS[0].description}
+                    {projectList[0]?.description || PROJECTS[0].description}
                   </p>
                   <div className="gap-content-gap flex flex-col sm:flex-row">
                     <Button
@@ -166,7 +188,7 @@ export const MajorProject = () => {
                 style={{ opacity: useTransform(scrollYProgress, [0.25, 0.35], [1, 0]) }}
                 className="absolute bottom-8 left-8 z-20 text-white"
               >
-                <h3 className="text-2xl font-light">{PROJECTS[0].title}</h3>
+                <h3 className="text-2xl font-light">{projectList[0]?.title || PROJECTS[0].title}</h3>
               </motion.div>
             </motion.div>
 
@@ -177,47 +199,57 @@ export const MajorProject = () => {
             >
               <div className="relative h-full w-full overflow-hidden">
                 <Image
-                  src={PROJECTS[2].image}
-                  alt="Grid Right"
+                  src={projectList[2]?.image || PROJECTS[2].image}
+                  alt={projectList[2]?.title || PROJECTS[2].title}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 33vw"
+                  sizes="(max-width: 1024px) 100vw, 33vw"
                 />
-                <div className="absolute inset-0 bg-black/10" />
+                <div className="absolute inset-0 bg-black/40" />
                 <div className="absolute bottom-8 left-8 text-white">
-                  <h3 className="text-2xl font-light">{PROJECTS[2].title}</h3>
+                  <span className="text-brand-blue mb-2 block text-xs font-bold tracking-widest uppercase">
+                    Project 03
+                  </span>
+                  <h3 className="text-2xl font-light">{projectList[2]?.title || PROJECTS[2].title}</h3>
                 </div>
               </div>
             </motion.div>
           </motion.div>
 
-          {/* Stacking Layers (Full 100vh) */}
+          {/* PROJECT 02 - Full Screen Slide-over (Sticky Stacking) */}
           <motion.div
-            style={{ y: p2Y, zIndex: 50 }}
-            className="absolute inset-0 flex h-screen w-full items-center justify-center overflow-hidden border-t border-white/5 bg-black"
+            style={{ y: p2Y, zIndex: 30 }}
+            className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black"
           >
             <Image
-              src={PROJECTS[1].image}
-              alt={PROJECTS[1].title}
+              src={projectList[1]?.image || PROJECTS[1].image}
+              alt={projectList[1]?.title || PROJECTS[1].title}
               fill
               className="object-cover"
               sizes="100vw"
             />
-            <div className="absolute inset-0 z-10 bg-black/10" />
+            <motion.div
+              style={{ opacity: p2ContentOpacity }}
+              className="absolute inset-0 z-10 bg-black/10"
+            />
+
             <div className="relative z-20 container mx-auto md:px-8">
-              <motion.div style={{ opacity: p2ContentOpacity }} className="max-w-4xl text-left">
+              <motion.div
+                style={{ opacity: p2ContentOpacity, y: p1ContentY }}
+                className="max-w-4xl text-left"
+              >
                 <span className="text-brand-blue mb-4 block text-[10px] font-black tracking-widest uppercase">
                   Project 02
                 </span>
                 <h3 className="font-primary mb-content-gap text-[3.5rem] leading-[0.75] font-normal tracking-tighter text-white uppercase md:text-[5.5rem] lg:text-[7rem]">
-                  {PROJECTS[1].title.split(" ").map((word, i) => (
+                  {(projectList[1]?.title || PROJECTS[1].title).split(" ").map((word, i) => (
                     <span key={i} className="block">
                       {word}
                     </span>
                   ))}
                 </h3>
                 <p className="mb-content-gap max-w-md text-lg font-light text-zinc-300 md:text-xl">
-                  {PROJECTS[1].description}
+                  {projectList[1]?.description || PROJECTS[1].description}
                 </p>
                 <div className="gap-content-gap flex flex-col sm:flex-row">
                   <Button
@@ -245,32 +277,40 @@ export const MajorProject = () => {
             </div>
           </motion.div>
 
+          {/* PROJECT 03 - Full Screen Slide-over (Sticky Stacking) */}
           <motion.div
-            style={{ y: p3Y, zIndex: 60 }}
-            className="absolute inset-0 flex h-screen w-full items-center justify-center overflow-hidden border-t border-white/5 bg-black"
+            style={{ y: p3Y, zIndex: 40 }}
+            className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black"
           >
             <Image
-              src={PROJECTS[2].image}
-              alt={PROJECTS[2].title}
+              src={projectList[2]?.image || PROJECTS[2].image}
+              alt={projectList[2]?.title || PROJECTS[2].title}
               fill
               className="object-cover"
               sizes="100vw"
             />
-            <div className="absolute inset-0 z-10 bg-black/10" />
+            <motion.div
+              style={{ opacity: p3ContentOpacity }}
+              className="absolute inset-0 z-10 bg-black/10"
+            />
+
             <div className="relative z-20 container mx-auto md:px-8">
-              <motion.div style={{ opacity: p3ContentOpacity }} className="max-w-4xl text-left">
+              <motion.div
+                style={{ opacity: p3ContentOpacity, y: p1ContentY }}
+                className="max-w-4xl text-left"
+              >
                 <span className="text-brand-blue mb-4 block text-[10px] font-black tracking-widest uppercase">
                   Project 03
                 </span>
                 <h3 className="font-primary mb-content-gap text-[3.5rem] leading-[0.75] font-normal tracking-tighter text-white uppercase md:text-[5.5rem] lg:text-[7rem]">
-                  {PROJECTS[2].title.split(" ").map((word, i) => (
+                  {(projectList[2]?.title || PROJECTS[2].title).split(" ").map((word, i) => (
                     <span key={i} className="block">
                       {word}
                     </span>
                   ))}
                 </h3>
                 <p className="mb-content-gap max-w-md text-lg font-light text-zinc-300 md:text-xl">
-                  {PROJECTS[2].description}
+                  {projectList[2]?.description || PROJECTS[2].description}
                 </p>
                 <div className="gap-content-gap flex flex-col sm:flex-row">
                   <Button

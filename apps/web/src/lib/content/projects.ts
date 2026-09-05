@@ -6,8 +6,8 @@ import {
   PROJECTS_CACHE_TAG,
   PROJECTS_REVALIDATE_SECONDS,
 } from "@/lib/cache";
-import { PROJECTS as STATIC_PROJECTS, DetailedProject } from "@/data/projects/detailed";
-import { GALLARY_PROJECTS as STATIC_GALLERY, GallaryProject } from "@/data/gallary";
+import type { DetailedProject } from "@/data/projects/detailed";
+import type { GallaryProject } from "@/data/gallary";
 
 function apiBase(): string {
   return (process.env.API_URL || "https://rvcc-api.rvcc.workers.dev").replace(/\/$/, "");
@@ -15,7 +15,6 @@ function apiBase(): string {
 
 /**
  * Fetch all active projects from the backend with ISR revalidation.
- * Gracefully falls back to STATIC_PROJECTS if the backend is unavailable or empty.
  */
 export async function getProjects(): Promise<DetailedProject[]> {
   try {
@@ -24,18 +23,19 @@ export async function getProjects(): Promise<DetailedProject[]> {
     });
 
     if (!res.ok) {
-      return STATIC_PROJECTS;
+      console.warn(`[projects] API returned status ${res.status}`);
+      return [];
     }
 
     const data = (await res.json()) as { projects?: DetailedProject[] };
-    if (!data.projects || data.projects.length === 0) {
-      return STATIC_PROJECTS;
+    if (!data.projects || !Array.isArray(data.projects)) {
+      return [];
     }
 
     return data.projects;
   } catch (err) {
-    console.warn("[projects] Could not reach API, using static fallback", err);
-    return STATIC_PROJECTS;
+    console.error("[projects] Could not reach API:", err);
+    return [];
   }
 }
 
@@ -52,13 +52,11 @@ export async function getProjectBySlug(slug: string): Promise<DetailedProject | 
       const data = (await res.json()) as { project?: DetailedProject };
       if (data.project) return data.project;
     }
+    return null;
   } catch (err) {
-    console.warn(`[projects/${slug}] Could not reach API, falling back to static`, err);
+    console.error(`[projects/${slug}] Could not reach API:`, err);
+    return null;
   }
-
-  // Fallback to static
-  const found = STATIC_PROJECTS.find((p) => p.slug === slug || p.id === slug);
-  return found ?? null;
 }
 
 /**
@@ -71,17 +69,19 @@ export async function getGalleryCollections(): Promise<GallaryProject[]> {
     });
 
     if (!res.ok) {
-      return STATIC_GALLERY;
+      console.warn(`[gallery] API returned status ${res.status}`);
+      return [];
     }
 
     const data = (await res.json()) as { collections?: GallaryProject[] };
-    if (!data.collections || data.collections.length === 0) {
-      return STATIC_GALLERY;
+    if (!data.collections || !Array.isArray(data.collections)) {
+      return [];
     }
 
     return data.collections;
   } catch (err) {
-    console.warn("[gallery] Could not reach API, using static fallback", err);
-    return STATIC_GALLERY;
+    console.error("[gallery] Could not reach API:", err);
+    return [];
   }
 }
+

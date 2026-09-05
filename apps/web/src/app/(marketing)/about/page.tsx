@@ -10,8 +10,11 @@ import { AboutMissionValues } from "@/sections/about/AboutMissionValues";
 import { AboutOverview } from "@/sections/about/AboutOverview";
 import { AboutSafetySustainability } from "@/sections/about/AboutSafetySustainability";
 import { AboutStats } from "@/sections/about/AboutStats";
+import { getClientPartners } from "@/lib/content/clients";
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const clients = await getClientPartners();
+
   return (
     <main className="relative min-h-screen bg-white">
       {/* Uniform Blueprint Grid Background - Like Safety Page */}
@@ -32,7 +35,7 @@ export default function AboutPage() {
         <AboutStats />
         <AboutDivisions />
         <AboutCertifications />
-        <AboutClients />
+        <AboutClients initialClients={clients} />
         <AboutSafetySustainability />
         <AboutCTA />
       </div>
@@ -41,3 +44,4 @@ export default function AboutPage() {
     </main>
   );
 }
+

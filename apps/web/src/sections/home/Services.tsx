@@ -9,10 +9,36 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Icons } from "@/lib/icons";
 
-export const Services = () => {
-  const [activeId, setActiveId] = useState(SERVICES_DATA[0].id);
+export interface HomeServiceItem {
+  id: string | number;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  image: string;
+  slug?: string;
+}
 
-  const activeService = SERVICES_DATA.find((s) => s.id === activeId) || SERVICES_DATA[0];
+export const Services = ({
+  initialServices,
+}: {
+  initialServices?: HomeServiceItem[];
+}) => {
+  const servicesList =
+    initialServices && initialServices.length > 0
+      ? initialServices.map((s) => ({
+          id: String(s.id),
+          title: s.title,
+          subtitle: s.subtitle || s.description || "",
+          image: s.image || "/images/services/civil.webp",
+          slug: s.slug,
+        }))
+      : SERVICES_DATA;
+
+  const [activeId, setActiveId] = useState(servicesList[0]?.id || "civil");
+
+  const activeService =
+    servicesList.find((s) => s.id === activeId) || servicesList[0] || SERVICES_DATA[0];
+
 
   return (
     <section className="section-padding relative w-full overflow-hidden bg-gray-100" id="services">
@@ -54,7 +80,7 @@ export const Services = () => {
         <div className="md:gap-content-gap hidden md:grid md:grid-cols-12 md:items-stretch">
           {/* Left Column: Service Items */}
           <div className="flex h-full flex-col gap-2 md:col-span-7">
-            {SERVICES_DATA.map((service) => {
+            {servicesList.map((service) => {
               const isActive = activeId === service.id;
 
               return (
@@ -131,16 +157,16 @@ export const Services = () => {
 
         {/* Mobile Layout: Separate Cards */}
         <div className="flex flex-col gap-8 md:hidden">
-          {SERVICES_DATA.map((service, idx) => (
+          {servicesList.map((service, idx) => (
             <motion.div
               key={service.id}
               initial={{ opacity: 0, y: 100 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.1 }}
               transition={{ duration: 2, delay: idx * 0.1, ease: [0.19, 1, 0.22, 1] }}
-              className="overflow-hidden bg-white"
+              className="border-brand-blue/10 flex flex-col overflow-hidden border bg-white"
             >
-              <div className="relative aspect-video w-full">
+              <div className="relative h-64 w-full bg-zinc-200">
                 <Image
                   src={service.image}
                   alt={service.title}
@@ -151,13 +177,8 @@ export const Services = () => {
                 <div className="absolute inset-0 bg-black/20" />
               </div>
               <div className="p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <h3 className="text-brand-blue text-2xl leading-tight font-bold uppercase">
-                    {service.title}
-                  </h3>
-                  <Icons.ArrowRight className="text-brand-blue/30 h-8 w-8 -rotate-45" />
-                </div>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-500">{service.subtitle}</p>
+                <h3 className="text-brand-blue mb-2 text-2xl font-bold uppercase">{service.title}</h3>
+                <p className="text-xs leading-relaxed text-zinc-500">{service.subtitle}</p>
               </div>
             </motion.div>
           ))}

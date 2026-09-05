@@ -8,8 +8,40 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Icons } from "@/lib/icons";
 
-export const RecentProjects = () => {
+export interface ProjectListItem {
+  id?: string | number;
+  title: string;
+  location?: string;
+  year?: string;
+  category?: string;
+  type?: string;
+  description?: string;
+  image: string;
+  slug?: string;
+}
+
+export const RecentProjects = ({
+  initialProjects,
+}: {
+  initialProjects?: ProjectListItem[];
+}) => {
+  const projectList: ProjectListItem[] =
+    initialProjects && initialProjects.length > 0
+      ? initialProjects.map((p) => ({
+          id: p.id,
+          title: p.title,
+          location: p.location || "Riyadh, Saudi Arabia",
+          year: p.year || "2025",
+          category: p.category || "COMMERCIAL",
+          type: p.type || "LANDMARK",
+          description: p.description || "",
+          image: p.image || "/images/projects/4.webp",
+          slug: p.slug,
+        }))
+      : PROJECTS;
+
   const sectionRef = useRef<HTMLDivElement>(null);
+
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"],
@@ -54,7 +86,7 @@ export const RecentProjects = () => {
       const scrollLeft = scrollRef.current.scrollLeft;
       const width = scrollRef.current.offsetWidth;
       const newIndex = Math.round(scrollLeft / width);
-      if (newIndex !== mobileIndex && newIndex >= 0 && newIndex < PROJECTS.length) {
+      if (newIndex !== mobileIndex && newIndex >= 0 && newIndex < projectList.length) {
         setMobileIndex(newIndex);
       }
     }
@@ -65,13 +97,13 @@ export const RecentProjects = () => {
   const visibleItems = useMemo(() => {
     const items = [];
     const buffer = 3;
-    const len = PROJECTS.length;
+    const len = projectList.length;
 
     for (let i = -buffer; i < itemsPerView + buffer; i++) {
       const virtualIndex = startIndex + i;
       // Positive modulo formula for infinite array wrapping
       const actualIndex = ((virtualIndex % len) + len) % len;
-      const project = PROJECTS[actualIndex];
+      const project = projectList[actualIndex];
 
       if (project) {
         items.push({
@@ -81,7 +113,8 @@ export const RecentProjects = () => {
       }
     }
     return items;
-  }, [startIndex, itemsPerView]);
+  }, [startIndex, itemsPerView, projectList]);
+
 
   return (
     <section
@@ -131,13 +164,14 @@ export const RecentProjects = () => {
             onScroll={handleScroll}
             className="scrollbar-hide flex snap-x snap-mandatory overflow-x-auto"
           >
-            {PROJECTS.map((project, idx) => (
+            {projectList.map((project, idx) => (
               <div
                 key={idx}
                 className="relative flex w-full min-w-full flex-shrink-0 snap-center snap-always flex-col"
               >
                 {/* Image Container */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden shadow-sm">
+
                   <Image
                     src={project.image}
                     alt={project.title}

@@ -101,7 +101,12 @@ const InlineImage = ({ src }: { src: string }) => {
   );
 };
 
-export const AboutUs = () => {
+export const AboutUs = ({
+  initialClients,
+}: {
+  initialClients?: any[];
+}) => {
+
   const containerRef = useRef<HTMLDivElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -327,7 +332,8 @@ export const AboutUs = () => {
           </div>
         </div>
       </div>
-      <ClientLogos />
+      <ClientLogos initialLogos={initialClients} />
     </section>
   );
 };
+

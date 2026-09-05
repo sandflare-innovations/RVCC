@@ -1,7 +1,5 @@
 import "server-only";
 
-import { clients as FALLBACK_CLIENTS } from "@/data/clients";
-
 export interface ClientPartnerItem {
   id: string;
   name: string;
@@ -18,7 +16,6 @@ function apiBase(): string {
 
 /**
  * Fetch dynamic client partners from apps/api (`GET /clients`).
- * Falls back to static FALLBACK_CLIENTS if the API is offline or returns empty.
  */
 export async function getClientPartners(): Promise<ClientPartnerItem[]> {
   try {
@@ -27,38 +24,19 @@ export async function getClientPartners(): Promise<ClientPartnerItem[]> {
     });
 
     if (!res.ok) {
-      return FALLBACK_CLIENTS.map((c) => ({
-        id: String(c.id),
-        name: c.name,
-        logoUrl: c.logo,
-        industry: c.industry,
-        sortOrder: c.id,
-        isActive: true,
-      }));
+      console.warn(`[clients] API returned status ${res.status}`);
+      return [];
     }
 
     const data = (await res.json()) as { clients?: ClientPartnerItem[] };
-    if (!data.clients || data.clients.length === 0) {
-      return FALLBACK_CLIENTS.map((c) => ({
-        id: String(c.id),
-        name: c.name,
-        logoUrl: c.logo,
-        industry: c.industry,
-        sortOrder: c.id,
-        isActive: true,
-      }));
+    if (!data.clients || !Array.isArray(data.clients)) {
+      return [];
     }
 
     return data.clients;
   } catch (err) {
-    console.warn("[clients] Could not reach API, using static fallback clients", err);
-    return FALLBACK_CLIENTS.map((c) => ({
-      id: String(c.id),
-      name: c.name,
-      logoUrl: c.logo,
-      industry: c.industry,
-      sortOrder: c.id,
-      isActive: true,
-    }));
+    console.error("[clients] Could not reach API:", err);
+    return [];
   }
 }
+

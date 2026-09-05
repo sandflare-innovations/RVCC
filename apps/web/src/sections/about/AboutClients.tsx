@@ -1,9 +1,13 @@
 import React from "react";
 
-import { ClientLogos } from "@/components/common/ClientLogos";
+import { ClientLogos, ClientLogoItem } from "@/components/common/ClientLogos";
 import { Button } from "@/components/ui/Button";
 
-export const AboutClients = () => {
+export const AboutClients = ({
+  initialClients,
+}: {
+  initialClients?: ClientLogoItem[];
+}) => {
   return (
     <section className="bg-transparent py-24">
       <div className="container mx-auto px-6">
@@ -22,7 +26,7 @@ export const AboutClients = () => {
         </div>
 
         <div className="relative border-t border-zinc-100">
-          <ClientLogos />
+          <ClientLogos initialLogos={initialClients} />
           <div className="mt-10 flex flex-col items-center justify-center">
             <Button href="/clients" variant="brand-outline" className="min-w-[240px]">
               View All Clients
@@ -36,3 +40,4 @@ export const AboutClients = () => {
     </section>
   );
 };
+

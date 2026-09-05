@@ -6,6 +6,9 @@ import { FloatingContact } from "@/components/common/FloatingContact";
 import { Footer } from "@/components/layout/Footer";
 import { getHeroSlides } from "@/lib/content/hero";
 import { getSisterCompanies } from "@/lib/content/companies";
+import { getClientPartners } from "@/lib/content/clients";
+import { getServices } from "@/lib/content/services";
+import { getProjects } from "@/lib/content/projects";
 
 // Dynamically load heavy components below the fold
 const Leaders = dynamic(() => import("@sections/home/Leaders").then((mod) => mod.Leaders), {
@@ -50,9 +53,12 @@ const NewsAndEvents = dynamic(
 const Contact = dynamic(() => import("@components/common/Contact"), { ssr: true });
 
 export default async function Home() {
-  const [slides, sisterLogos] = await Promise.all([
+  const [slides, sisterLogos, clients, services, projects] = await Promise.all([
     getHeroSlides(),
     getSisterCompanies(),
+    getClientPartners(),
+    getServices(),
+    getProjects(),
   ]);
 
   return (
@@ -64,11 +70,11 @@ export default async function Home() {
 
       {/* Main Content Sections - Scroll over the Hero */}
       <div className="bg-background relative z-10 w-full shadow-[0_-20px_50px_rgba(0,0,0,0.1)]">
-        <AboutUs />
+        <AboutUs initialClients={clients} />
         <Leaders />
-        <Services />
-        <MajorProject />
-        <RecentProjects />
+        <Services initialServices={services} />
+        <MajorProject initialProjects={projects} />
+        <RecentProjects initialProjects={projects} />
         <ScrollingText />
         <OurWorks />
         <CSRSection initialLogos={sisterLogos} />
@@ -80,3 +86,4 @@ export default async function Home() {
     </div>
   );
 }
+
