@@ -84,10 +84,10 @@ export function CareersPanel({
   }, [jobs]);
 
   const SEARCH_PLACEHOLDERS = [
-    "Search by job title...",
-    "Search by department...",
-    "Search by location...",
-    "Search by slug...",
+    "job title...",
+    "department...",
+    "location...",
+    "slug...",
   ];
 
   // Key metrics calculation
@@ -193,9 +193,9 @@ export function CareersPanel({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Header & Search Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex min-h-0 w-full flex-1 flex-col">
+      {/* Top Header & Search Bar - Fixed at top */}
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
         <div className="flex items-center gap-3">
           <Link
             href="/content"
@@ -229,7 +229,7 @@ export function CareersPanel({
         </div>
       </div>
 
-      {/* KPI Stats Overview Cards Matching Admin Standard Style */}
+      {/* KPI Stats Overview Cards - Fixed */}
       <div className="mb-6 grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           {
@@ -281,9 +281,9 @@ export function CareersPanel({
         ))}
       </div>
 
-      {/* Filter Toolbar: Compact Search & Dropdowns in the SAME ROW */}
-      <div className="mb-6 flex shrink-0 flex-wrap items-center justify-between gap-4">
-        {/* Left: Small Search Bar matching Staff & Vendor pages */}
+      {/* Filter Toolbar: Compact Search & Dropdowns in the SAME ROW - Fixed */}
+      <div className="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-4">
+        {/* Left: Small Search Bar */}
         <div className="flex w-full max-w-sm items-center gap-3">
           <AnimatedSearchInput
             value={searchQuery}
@@ -295,7 +295,7 @@ export function CareersPanel({
 
         {/* Right: Department Dropdown, Status Switcher, View Toggles */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Department Dropdown in the Same Row */}
+          {/* Department Dropdown */}
           <div className="relative shrink-0">
             <button
               type="button"
@@ -402,9 +402,9 @@ export function CareersPanel({
         </div>
       </div>
 
-      {/* Results Count & Current Filter Indicator */}
-      <div className="flex items-center justify-between text-xs text-zinc-500">
-        {(searchQuery || selectedDepartment !== "ALL" || selectedStatus !== "ALL") && (
+      {/* Filter Reset Indicator - Fixed */}
+      {(searchQuery || selectedDepartment !== "ALL" || selectedStatus !== "ALL") && (
+        <div className="mb-3 flex shrink-0 items-center justify-end text-xs text-zinc-500">
           <button
             type="button"
             onClick={() => {
@@ -412,176 +412,181 @@ export function CareersPanel({
               setSelectedDepartment("ALL");
               setSelectedStatus("ALL");
             }}
-            className="font-semibold text-[#0073bc] hover:underline"
+            className="font-semibold text-[#0073bc] hover:underline cursor-pointer"
           >
             Reset all filters
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Content Area: Grid vs Table */}
+      {/* Content Area: Grid vs Table (Scrollable Only) */}
       {viewMode === "grid" ? (
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {/* Create New Role Card */}
-          <Link
-            href="/content/careers/new"
-            className="group relative flex min-h-[260px] flex-col justify-between rounded-3xl border-2 border-dashed border-zinc-200/90 bg-zinc-50/50 p-6 shadow-2xs transition-all duration-200 hover:border-[#0073bc] hover:bg-blue-50/20 hover:shadow-md cursor-pointer"
-          >
-            <div className="flex flex-col items-center justify-center text-center my-auto py-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-zinc-400 shadow-xs ring-1 ring-zinc-200/80 transition-all duration-300 group-hover:scale-110 group-hover:bg-[#0073bc] group-hover:text-white group-hover:ring-transparent">
-                <Plus className="h-7 w-7 stroke-[2.5]" />
-              </div>
-              <h3 className="mt-4 text-base font-bold text-zinc-800 transition-colors group-hover:text-[#0073bc]">
-                Create New Job Posting
-              </h3>
-              <p className="mt-1 text-xs text-zinc-400 max-w-[220px]">
-                Define job scope, department, location, remote status, requirements & benefits.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between border-t border-dashed border-zinc-200 pt-3.5">
-              <span className="text-xs font-semibold text-zinc-400 group-hover:text-[#0073bc] transition-colors">
-                + Open career opportunity
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-xl bg-white px-3 py-1 text-xs font-bold text-zinc-700 shadow-2xs ring-1 ring-zinc-200/60 group-hover:bg-[#0073bc] group-hover:text-white group-hover:ring-transparent transition-all">
-                Post Job
-              </span>
-            </div>
-          </Link>
-
-          {/* Job Cards */}
-          {filteredJobs.map((job) => {
-            const isBusy = busyJobId === job.id;
-            return (
-              <div
-                key={job.id}
-                onClick={() => router.push(`/content/careers/${job.id}`)}
-                className="group relative flex flex-col justify-between rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-2xs transition-all duration-200 hover:border-brand-blue/50 hover:shadow-md hover:ring-1 hover:ring-brand-blue/30 cursor-pointer"
-              >
-                <div>
-                  {/* Top Bar: Department & Status Badges */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-[#0073bc]">
-                      <Building2 className="h-3 w-3" />
-                      {job.department || "General"}
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        togglePublish(job);
-                      }}
-                      disabled={isBusy}
-                      title={job.isPublished ? "Click to set as Draft" : "Click to Publish live"}
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold transition-all cursor-pointer ${job.isPublished
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
-                        : "bg-zinc-100 text-zinc-600 border border-zinc-200 hover:bg-zinc-200"
-                        }`}
-                    >
-                      {isBusy ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <span
-                          className={`h-1.5 w-1.5 rounded-full ${job.isPublished ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"
-                            }`}
-                        />
-                      )}
-                      {job.isPublished ? "Published" : "Draft"}
-                    </button>
-                  </div>
-
-                  {/* Title & Slug */}
-                  <div className="mt-3.5">
-                    <h3 className="group-hover:text-brand-blue line-clamp-1 text-base font-bold text-zinc-950 transition-colors">
-                      {job.title}
-                    </h3>
-                    <div className="mt-1 flex items-center gap-1 text-xs text-zinc-400 font-mono">
-                      <span>/careers/{job.slug}</span>
-                    </div>
-                  </div>
-
-                  {/* Attributes: Location & Remote */}
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <div className="flex items-center gap-1 rounded-lg bg-zinc-50 px-2.5 py-1 text-xs font-medium text-zinc-600 border border-zinc-100">
-                      <MapPin className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
-                      <span className="truncate max-w-[130px]">{job.location || "Riyadh"}</span>
-                    </div>
-
-                    {job.isRemote && (
-                      <span className="inline-flex items-center gap-1 rounded-lg bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-700 border border-purple-100">
-                        <Globe className="h-3 w-3" />
-                        Remote
-                      </span>
-                    )}
-
-                    {job.employmentType && (
-                      <span className="rounded-lg bg-zinc-50 px-2.5 py-1 text-xs font-medium text-zinc-600 border border-zinc-100">
-                        {job.employmentType}
-                      </span>
-                    )}
-                  </div>
+        <div
+          data-lenis-prevent
+          className="min-h-0 flex-1 [scrollbar-width:none] overflow-y-auto pr-1 pb-4 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {/* Create New Role Card */}
+            <Link
+              href="/content/careers/new"
+              className="group relative flex min-h-[260px] flex-col justify-between rounded-3xl border-2 border-dashed border-zinc-200/90 bg-zinc-50/50 p-6 shadow-2xs transition-all duration-200 hover:border-[#0073bc] hover:bg-blue-50/20 hover:shadow-md cursor-pointer"
+            >
+              <div className="flex flex-col items-center justify-center text-center my-auto py-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-zinc-400 shadow-xs ring-1 ring-zinc-200/80 transition-all duration-300 group-hover:scale-110 group-hover:bg-[#0073bc] group-hover:text-white group-hover:ring-transparent">
+                  <Plus className="h-7 w-7 stroke-[2.5]" />
                 </div>
+                <h3 className="mt-4 text-base font-bold text-zinc-800 transition-colors group-hover:text-[#0073bc]">
+                  Create New Job Posting
+                </h3>
+                <p className="mt-1 text-xs text-zinc-400 max-w-[220px]">
+                  Define job scope, department, location, remote status, requirements & benefits.
+                </p>
+              </div>
 
-                {/* Footer Controls & Quick Actions */}
-                <div className="mt-5 flex items-center justify-between border-t border-zinc-100 pt-3.5">
-                  <div className="flex items-center gap-2">
-                    {/* View Applications */}
-                    <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-600 group-hover:text-brand-blue transition-colors">
-                      <Users className="h-3.5 w-3.5 text-zinc-400" />
-                      <span>
-                        {job.applicationCount !== undefined ? `${job.applicationCount} Applicants` : "Candidates"}
+              <div className="flex items-center justify-between border-t border-dashed border-zinc-200 pt-3.5">
+                <span className="text-xs font-semibold text-zinc-400 group-hover:text-[#0073bc] transition-colors">
+                  + Open career opportunity
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-xl bg-white px-3 py-1 text-xs font-bold text-zinc-700 shadow-2xs ring-1 ring-zinc-200/60 group-hover:bg-[#0073bc] group-hover:text-white group-hover:ring-transparent transition-all">
+                  Post Job
+                </span>
+              </div>
+            </Link>
+
+            {/* Job Cards */}
+            {filteredJobs.map((job) => {
+              const isBusy = busyJobId === job.id;
+              return (
+                <div
+                  key={job.id}
+                  onClick={() => router.push(`/content/careers/${job.id}`)}
+                  className="group relative flex flex-col justify-between rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-2xs transition-all duration-200 hover:border-brand-blue/50 hover:shadow-md hover:ring-1 hover:ring-brand-blue/30 cursor-pointer"
+                >
+                  <div>
+                    {/* Top Bar: Department & Status Badges */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-[#0073bc]">
+                        <Building2 className="h-3 w-3" />
+                        {job.department || "General"}
                       </span>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-1">
-                    {/* Direct link to public careers */}
-                    <a
-                      href={`/careers`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors"
-                      title="View public career page"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-
-                    {/* Edit button */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/content/careers/${job.id}`);
-                      }}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-blue-50 hover:text-[#0073bc] transition-colors cursor-pointer"
-                      title="Edit posting"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-
-                    {/* Delete button */}
-                    {canDelete && (
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setDeleteError(null);
-                          setConfirmSlug("");
-                          setJobToDelete(job);
+                          togglePublish(job);
                         }}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
-                        title="Delete posting"
+                        disabled={isBusy}
+                        title={job.isPublished ? "Click to set as Draft" : "Click to Publish live"}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold transition-all cursor-pointer ${job.isPublished
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                          : "bg-zinc-100 text-zinc-600 border border-zinc-200 hover:bg-zinc-200"
+                          }`}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        {isBusy ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${job.isPublished ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"
+                              }`}
+                          />
+                        )}
+                        {job.isPublished ? "Published" : "Draft"}
                       </button>
-                    )}
+                    </div>
+
+                    {/* Title & Slug */}
+                    <div className="mt-3.5">
+                      <h3 className="group-hover:text-brand-blue line-clamp-1 text-base font-bold text-zinc-950 transition-colors">
+                        {job.title}
+                      </h3>
+                      <div className="mt-1 flex items-center gap-1 text-xs text-zinc-400 font-mono">
+                        <span>/careers/{job.slug}</span>
+                      </div>
+                    </div>
+
+                    {/* Attributes: Location & Remote */}
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      <div className="flex items-center gap-1 rounded-lg bg-zinc-50 px-2.5 py-1 text-xs font-medium text-zinc-600 border border-zinc-100">
+                        <MapPin className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                        <span className="truncate max-w-[130px]">{job.location || "Riyadh"}</span>
+                      </div>
+
+                      {job.isRemote && (
+                        <span className="inline-flex items-center gap-1 rounded-lg bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-700 border border-purple-100">
+                          <Globe className="h-3 w-3" />
+                          Remote
+                        </span>
+                      )}
+
+                      {job.employmentType && (
+                        <span className="rounded-lg bg-zinc-50 px-2.5 py-1 text-xs font-medium text-zinc-600 border border-zinc-100">
+                          {job.employmentType}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Footer Controls & Quick Actions */}
+                  <div className="mt-5 flex items-center justify-between border-t border-zinc-100 pt-3.5">
+                    <div className="flex items-center gap-2">
+                      {/* View Applications */}
+                      <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-600 group-hover:text-brand-blue transition-colors">
+                        <Users className="h-3.5 w-3.5 text-zinc-400" />
+                        <span>
+                          {job.applicationCount !== undefined ? `${job.applicationCount} Applicants` : "Candidates"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      {/* Direct link to public careers */}
+                      <a
+                        href={`/careers`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors"
+                        title="View public career page"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+
+                      {/* Edit button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/content/careers/${job.id}`);
+                        }}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-blue-50 hover:text-[#0073bc] transition-colors cursor-pointer"
+                        title="Edit posting"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+
+                      {/* Delete button */}
+                      {canDelete && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteError(null);
+                            setConfirmSlug("");
+                            setJobToDelete(job);
+                          }}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
+                          title="Delete posting"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       ) : (
         /* Data Table View Matching Staff & Admin Table Pattern */
