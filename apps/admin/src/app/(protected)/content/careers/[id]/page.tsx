@@ -40,44 +40,54 @@ export default async function EditCareerPage({ params }: { params: Promise<{ id:
       `/careers/${encodeURIComponent(id)}/applications`
     ),
   ]);
+
   if (!result.ok) {
     if (result.status === 404) notFound();
     return (
-      <p className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-800">
         Could not load posting ({result.status}).
-      </p>
+      </div>
     );
   }
 
   const job = result.data;
-  const applications = appsResult.ok ? appsResult.data.applications : [];
+  const applications = appsResult.ok && Array.isArray(appsResult.data?.applications) ? appsResult.data.applications : [];
+
+  // Safely format requirements and benefits whether returned as array, string, or undefined
+  const safeRequirements = Array.isArray(job.requirements)
+    ? job.requirements.join("\n")
+    : typeof job.requirements === "string"
+    ? job.requirements
+    : "";
+
+  const safeBenefits = Array.isArray(job.benefits)
+    ? job.benefits.join("\n")
+    : typeof job.benefits === "string"
+    ? job.benefits
+    : "";
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link href="/content/careers" className="hover:text-brand-blue text-sm text-zinc-600">
-          ← Careers
-        </Link>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950">{job.title}</h1>
+    <div className="relative flex h-full min-h-0 w-full flex-col overflow-x-hidden">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 pb-12">
+        <CareerEditor
+          departments={DEPARTMENTS}
+          employmentTypes={EMPLOYMENT_TYPES}
+          initial={{
+            id: job.id,
+            title: job.title || "",
+            slug: job.slug || "",
+            department: job.department || "",
+            location: job.location || "",
+            employmentType: job.employmentType || "Full-time",
+            description: job.description || "",
+            requirements: safeRequirements,
+            benefits: safeBenefits,
+            isRemote: Boolean(job.isRemote),
+            isPublished: Boolean(job.isPublished),
+          }}
+        />
+        <CareerApplicationsPanel applications={applications} />
       </div>
-      <CareerEditor
-        departments={DEPARTMENTS}
-        employmentTypes={EMPLOYMENT_TYPES}
-        initial={{
-          id: job.id,
-          title: job.title,
-          slug: job.slug,
-          department: job.department,
-          location: job.location,
-          employmentType: job.employmentType,
-          description: job.description,
-          requirements: (job.requirements ?? []).join("\n"),
-          benefits: (job.benefits ?? []).join("\n"),
-          isRemote: job.isRemote,
-          isPublished: job.isPublished,
-        }}
-      />
-      <CareerApplicationsPanel applications={applications} />
     </div>
   );
 }
