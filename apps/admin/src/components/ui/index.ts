@@ -9,3 +9,4 @@ export * from "./points-chart";
 export * from "./sidebar";
 export * from "./skeleton";
 export * from "./SmoothScroll";
+export * from "./custom-select";
