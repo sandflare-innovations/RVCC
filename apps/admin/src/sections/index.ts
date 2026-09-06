@@ -32,3 +32,4 @@ export * from "./vendors/VendorRowActions";
 export * from "./careers/CareerApplicationsPanel";
 export * from "./careers/CareerEditor";
 export * from "./careers/CareerRowActions";
+export * from "./careers/CareersPanel";
