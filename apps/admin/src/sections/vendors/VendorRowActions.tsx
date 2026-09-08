@@ -9,15 +9,17 @@ import {
   KeyRound,
   Lock,
   MoreVertical,
+  Trash2,
   Unlock,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect,useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
+import { clearVendorCache } from "@/lib/vendor-cache";
 
 export type VendorSummary = {
   id: string;
@@ -60,8 +62,10 @@ export function VendorRowActions({
   const [showDetails, setShowDetails] = useState(false);
   const [showAccess, setShowAccess] = useState(false);
   const [showReset, setShowReset] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [issued, setIssued] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [accessIssued, setAccessIssued] = useState<string | null>(null);
@@ -76,12 +80,22 @@ export function VendorRowActions({
         onDropdownOpen?.(false);
       }
     }
+    function handleScrollOrResize() {
+      setShowDropdown(false);
+      onDropdownOpen?.(false);
+    }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
+    };
+  }, [onDropdownOpen]);
 
   const v = vendor;
-  const held = v.portalAccess !== "RELEASED";
+  const held = v.portalAccess !== "RELEASED" || v.isActive === false;
 
   const copyPassword = async (text: string, setCopied: (v: boolean) => void) => {
     try {
@@ -101,7 +115,11 @@ export function VendorRowActions({
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ portalAccess, notifyEmail }),
+        body: JSON.stringify({
+          portalAccess,
+          isActive: portalAccess === "RELEASED",
+          notifyEmail,
+        }),
       });
       if (!res.ok) {
         setError(await readApiError(res, "Could not update portal access."));
@@ -109,6 +127,7 @@ export function VendorRowActions({
       }
       const data = await res.json().catch(() => ({}));
       if (data.tempPassword) setAccessIssued(data.tempPassword);
+      clearVendorCache();
       if (onUpdated) onUpdated();
       else router.refresh();
     } catch {
@@ -132,10 +151,34 @@ export function VendorRowActions({
       }
       const data = await res.json().catch(() => ({}));
       setIssued(data.tempPassword);
+      clearVendorCache();
       if (onUpdated) onUpdated();
       else router.refresh();
     } catch {
       setError("Network error — please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteVendor = async () => {
+    setBusy(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`/api/vendors/${v.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        setDeleteError(await readApiError(res, "Could not delete vendor."));
+        return;
+      }
+      clearVendorCache();
+      setShowDelete(false);
+      if (onUpdated) onUpdated();
+      else router.refresh();
+    } catch {
+      setDeleteError("Network error — please try again.");
     } finally {
       setBusy(false);
     }
@@ -162,52 +205,76 @@ export function VendorRowActions({
         {showDropdown &&
           dropdownRef.current &&
           createPortal(
-            <div
-              className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
-              style={{
-                top: dropdownRef.current.getBoundingClientRect().bottom + 4,
-                right: window.innerWidth - dropdownRef.current.getBoundingClientRect().right,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDropdown(false);
-                  setShowDetails(true);
-                }}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
-              >
-                <Eye className="h-4 w-4" />
-                View details
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDropdown(false);
-                  setIssued(null);
-                  setError(null);
-                  setShowReset(true);
-                }}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
-              >
-                <KeyRound className="h-4 w-4" />
-                Reset password
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDropdown(false);
-                  setError(null);
-                  setAccessIssued(null);
-                  setAccessCopied(false);
-                  setShowAccess(true);
-                }}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
-              >
-                {held ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                {held ? "Release access" : "Block access"}
-              </button>
-            </div>,
+            (() => {
+              const rect = dropdownRef.current.getBoundingClientRect();
+              const spaceBelow = window.innerHeight - rect.bottom;
+              const spaceAbove = rect.top;
+              const opensUp = spaceBelow < 230 && spaceAbove > spaceBelow;
+
+              return (
+                <div
+                  className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
+                  style={{
+                    ...(opensUp
+                      ? { bottom: Math.max(8, window.innerHeight - rect.top + 4) }
+                      : { top: Math.min(window.innerHeight - 40, rect.bottom + 4) }),
+                    right: Math.max(8, window.innerWidth - rect.right),
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDropdown(false);
+                      setShowDetails(true);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+                  >
+                    <Eye className="h-4 w-4" />
+                    View details
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDropdown(false);
+                      setIssued(null);
+                      setError(null);
+                      setShowReset(true);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+                  >
+                    <KeyRound className="h-4 w-4" />
+                    Reset password
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDropdown(false);
+                      setError(null);
+                      setAccessIssued(null);
+                      setAccessCopied(false);
+                      setShowAccess(true);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+                  >
+                    {held ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                    {held ? "Release access" : "Block access"}
+                  </button>
+                  <div className="my-1 h-px bg-zinc-100" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDropdown(false);
+                      setDeleteError(null);
+                      setShowDelete(true);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-red-600 hover:bg-red-50 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete vendor
+                  </button>
+                </div>
+              );
+            })(),
             document.body
           )}
       </div>
@@ -482,6 +549,56 @@ export function VendorRowActions({
             be signed out and cannot use vendor pages until you release access again.
           </p>
         )}
+      </Modal>
+
+      {/* Delete Vendor Confirmation Modal */}
+      <Modal
+        open={showDelete}
+        onClose={() => !busy && setShowDelete(false)}
+        title="Delete vendor account"
+        description={v.email}
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setShowDelete(false)}
+              disabled={busy}
+              className="h-10 rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-55"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void deleteVendor()}
+              disabled={busy}
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-red-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-55"
+            >
+              <Trash2 className="h-4 w-4" />
+              {busy ? "Deleting…" : "Yes, Delete Vendor"}
+            </button>
+          </>
+        }
+      >
+        {deleteError && (
+          <div
+            role="alert"
+            className="mb-4 flex items-start gap-2.5 border-l-4 border-red-500 bg-red-50 px-3.5 py-3 text-sm font-medium text-red-900"
+          >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-hidden="true" />
+            <span>{deleteError}</span>
+          </div>
+        )}
+        <div className="space-y-3">
+          <p className="text-sm text-zinc-700">
+            Are you sure you want to delete the vendor account for{" "}
+            <strong className="text-zinc-950">{v.name || v.email}</strong>
+            {v.companyName && v.companyName !== "—" ? ` (${v.companyName})` : ""}?
+          </p>
+          <div className="rounded-lg border border-red-100 bg-red-50/70 p-3 text-xs text-red-800">
+            <strong>Warning:</strong> All active sessions will be terminated immediately. The vendor
+            will be removed from the active vendor list.
+          </div>
+        </div>
       </Modal>
     </>
   );

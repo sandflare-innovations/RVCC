@@ -1,11 +1,12 @@
 "use client";
 
-import { AlertCircle, Check,Copy, KeyRound, Lock, Unlock } from "lucide-react";
+import { AlertCircle, Check, Copy, KeyRound, Lock, Trash2, Unlock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
+import { clearVendorCache } from "@/lib/vendor-cache";
 
 export function VendorProfileActions({
   vendor,
@@ -13,20 +14,25 @@ export function VendorProfileActions({
   vendor: {
     id: string;
     email: string;
+    name?: string | null;
+    companyName?: string | null;
+    isActive?: boolean;
     portalAccess: "HELD" | "RELEASED";
   };
 }) {
   const router = useRouter();
   const [showAccess, setShowAccess] = useState(false);
   const [showReset, setShowReset] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [issued, setIssued] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [accessIssued, setAccessIssued] = useState<string | null>(null);
   const [accessCopied, setAccessCopied] = useState(false);
 
-  const held = vendor.portalAccess !== "RELEASED";
+  const isBlocked = vendor.isActive === false || vendor.portalAccess === "HELD";
 
   const copyToClipboard = async (text: string, setCopiedFn: (v: boolean) => void) => {
     try {
@@ -46,14 +52,24 @@ export function VendorProfileActions({
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ portalAccess, notifyEmail }),
+        body: JSON.stringify({
+          portalAccess,
+          isActive: portalAccess === "RELEASED",
+          notifyEmail,
+        }),
       });
       if (!res.ok) {
-        setError(await readApiError(res, "Could not update portal access."));
+        setError(await readApiError(res, "Could not update vendor status."));
         return;
       }
       const data = await res.json().catch(() => ({}));
-      if (data.tempPassword) setAccessIssued(data.tempPassword);
+      if (data.tempPassword) {
+        setAccessIssued(data.tempPassword);
+      } else {
+        setShowAccess(false);
+      }
+      clearVendorCache();
+      router.refresh();
     } catch {
       setError("Network error — please try again.");
     } finally {
@@ -75,6 +91,7 @@ export function VendorProfileActions({
       }
       const data = await res.json().catch(() => ({}));
       setIssued(data.tempPassword);
+      clearVendorCache();
       router.refresh();
     } catch {
       setError("Network error — please try again.");
@@ -83,9 +100,32 @@ export function VendorProfileActions({
     }
   };
 
+  const deleteVendor = async () => {
+    setBusy(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`/api/vendors/${vendor.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        setDeleteError(await readApiError(res, "Could not delete vendor account."));
+        return;
+      }
+      clearVendorCache();
+      setShowDelete(false);
+      router.push("/vendors");
+      router.refresh();
+    } catch {
+      setDeleteError("Network error — please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2.5">
         <button
           type="button"
           onClick={() => {
@@ -93,11 +133,12 @@ export function VendorProfileActions({
             setError(null);
             setShowReset(true);
           }}
-          className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-zinc-700 shadow-sm ring-1 ring-zinc-300 transition-colors ring-inset hover:bg-zinc-50"
+          className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 shadow-sm ring-1 ring-zinc-200/80 transition-all hover:bg-zinc-50 hover:text-zinc-950 active:scale-[0.98]"
         >
           <KeyRound className="h-4 w-4 text-zinc-500" />
           Reset Password
         </button>
+
         <button
           type="button"
           onClick={() => {
@@ -106,12 +147,26 @@ export function VendorProfileActions({
             setAccessCopied(false);
             setShowAccess(true);
           }}
-          className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors ${
-            held ? "bg-brand-blue hover:bg-brand-blue/90" : "bg-red-600 hover:bg-red-700"
+          className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
+            isBlocked
+              ? "bg-emerald-600 hover:bg-emerald-700"
+              : "bg-amber-600 hover:bg-amber-700"
           }`}
         >
-          {held ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-          {held ? "Release Access" : "Block Access"}
+          {isBlocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+          {isBlocked ? "Unblock Vendor" : "Block Vendor"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setDeleteError(null);
+            setShowDelete(true);
+          }}
+          className="inline-flex items-center gap-2 rounded-xl border border-red-200/80 bg-red-50/80 px-4 py-2.5 text-sm font-semibold text-red-700 shadow-sm transition-all hover:bg-red-100 hover:border-red-300 active:scale-[0.98]"
+        >
+          <Trash2 className="h-4 w-4 text-red-600" />
+          Delete Vendor
         </button>
       </div>
 
@@ -164,9 +219,9 @@ export function VendorProfileActions({
         {error && (
           <div
             role="alert"
-            className="mb-4 flex items-start gap-2.5 border-l-4 border-zinc-900 bg-zinc-100 px-3.5 py-3 text-sm font-medium text-zinc-900"
+            className="mb-4 flex items-start gap-2.5 border-l-4 border-red-500 bg-red-50 px-3.5 py-3 text-sm font-medium text-red-900"
           >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-hidden="true" />
             <span>{error}</span>
           </div>
         )}
@@ -217,7 +272,7 @@ export function VendorProfileActions({
         )}
       </Modal>
 
-      {/* Access Modal */}
+      {/* Block / Unblock Modal */}
       <Modal
         open={showAccess}
         onClose={() => {
@@ -225,7 +280,7 @@ export function VendorProfileActions({
           setAccessIssued(null);
           setAccessCopied(false);
         }}
-        title={held ? "Release portal access" : "Block portal access"}
+        title={isBlocked ? "Unblock vendor" : "Block vendor"}
         description={vendor.email}
         footer={
           accessIssued ? (
@@ -252,12 +307,16 @@ export function VendorProfileActions({
               </button>
               <button
                 type="button"
-                onClick={() => void setPortalAccess(held ? "RELEASED" : "HELD", true)}
+                onClick={() => void setPortalAccess(isBlocked ? "RELEASED" : "HELD", true)}
                 disabled={busy}
-                className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-semibold text-white transition-colors disabled:opacity-55"
+                className={`inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-semibold text-white transition-colors disabled:opacity-55 ${
+                  isBlocked
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-amber-600 hover:bg-amber-700"
+                }`}
               >
-                {held ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                {busy ? "Updating…" : held ? "Release & Notify" : "Block Access"}
+                {isBlocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                {busy ? "Updating…" : isBlocked ? "Unblock & Release" : "Confirm Block"}
               </button>
             </>
           )
@@ -266,9 +325,9 @@ export function VendorProfileActions({
         {error && (
           <div
             role="alert"
-            className="mb-4 flex items-start gap-2.5 border-l-4 border-zinc-900 bg-zinc-100 px-3.5 py-3 text-sm font-medium text-zinc-900"
+            className="mb-4 flex items-start gap-2.5 border-l-4 border-red-500 bg-red-50 px-3.5 py-3 text-sm font-medium text-red-900"
           >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-hidden="true" />
             <span>{error}</span>
           </div>
         )}
@@ -312,14 +371,65 @@ export function VendorProfileActions({
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <p className="text-sm text-zinc-700">
-              {held
-                ? "Releasing access allows the vendor to sign in. If their password was previously reset or they must change it, a new temporary password will be issued and emailed to them."
-                : "Blocking access immediately signs the vendor out of all active sessions and prevents future logins."}
+              {isBlocked
+                ? "Unblocking this vendor will activate their account and grant them access to the vendor portal. They will be notified via email."
+                : "Blocking this vendor will deactivate their account, revoke all active sessions immediately, and prevent any logins."}
             </p>
           </div>
         )}
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={showDelete}
+        onClose={() => !busy && setShowDelete(false)}
+        title="Delete Vendor Account"
+        description={vendor.email}
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setShowDelete(false)}
+              disabled={busy}
+              className="h-10 rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-55"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void deleteVendor()}
+              disabled={busy}
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-red-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-55"
+            >
+              <Trash2 className="h-4 w-4" />
+              {busy ? "Deleting…" : "Yes, Delete Vendor"}
+            </button>
+          </>
+        }
+      >
+        {deleteError && (
+          <div
+            role="alert"
+            className="mb-4 flex items-start gap-2.5 border-l-4 border-red-500 bg-red-50 px-3.5 py-3 text-sm font-medium text-red-900"
+          >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-hidden="true" />
+            <span>{deleteError}</span>
+          </div>
+        )}
+        <div className="space-y-3">
+          <p className="text-sm text-zinc-700">
+            Are you sure you want to delete the vendor account for{" "}
+            <strong className="text-zinc-950">{vendor.name || vendor.email}</strong>
+            {vendor.companyName && vendor.companyName !== "—" ? ` (${vendor.companyName})` : ""}?
+          </p>
+          <div className="rounded-lg border border-red-100 bg-red-50/70 p-3 text-xs text-red-800">
+            <strong>Warning:</strong> All active sessions will be terminated immediately. The vendor
+            will be removed from the active vendor list. Existing quotes and invites will be
+            preserved for audit history.
+          </div>
+        </div>
       </Modal>
     </>
   );
