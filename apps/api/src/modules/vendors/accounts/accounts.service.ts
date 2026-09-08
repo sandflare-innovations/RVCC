@@ -93,8 +93,21 @@ export class VendorAccountsService {
       lastLoginAt: r.lastLoginAt ? r.lastLoginAt.toISOString() : null,
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
+      lockedUntil: r.lockedUntil ? r.lockedUntil.toISOString() : null,
+      registrationId: r.registrationId,
       companyName: r.registration?.company?.legalName ?? null,
+      referenceNumber: r.registration?.referenceNumber ?? null,
+      registrationStatus: r.registration?.status ?? null,
+      registrationComplete: Boolean(r.registration?.registrationComplete) || r.registrationId == null,
       activeSessions: r.sessions.length,
+      registration: r.registration
+        ? {
+            id: r.registration.id,
+            referenceNumber: r.registration.referenceNumber,
+            status: r.registration.status,
+            company: r.registration.company,
+          }
+        : null,
     }));
   }
 
@@ -102,8 +115,8 @@ export class VendorAccountsService {
    * Get single vendor detail with full graph
    */
   static async getVendorById(id: string) {
-    const vendor = await prisma.vendorUser.findUnique({
-      where: { id },
+    const vendor = await prisma.vendorUser.findFirst({
+      where: { id, deletedAt: null },
       include: {
         industries: true,
         registration: {
@@ -167,7 +180,7 @@ export class VendorAccountsService {
 
     if (!vendor) return null;
 
-    return {
+    const vendorObj = {
       id: vendor.id,
       email: vendor.email,
       name: vendor.name,
@@ -177,13 +190,14 @@ export class VendorAccountsService {
       lastLoginAt: vendor.lastLoginAt ? vendor.lastLoginAt.toISOString() : null,
       createdAt: vendor.createdAt.toISOString(),
       updatedAt: vendor.updatedAt.toISOString(),
+      lockedUntil: vendor.lockedUntil ? vendor.lockedUntil.toISOString() : null,
+      registrationId: vendor.registrationId,
+      companyName: vendor.registration?.company?.legalName ?? null,
+      referenceNumber: vendor.registration?.referenceNumber ?? null,
+      registrationStatus: vendor.registration?.status ?? null,
+      registrationComplete: Boolean(vendor.registration?.registrationComplete) || vendor.registrationId == null,
+      activeSessions: vendor.sessions.length,
       industries: vendor.industries.map((i) => ({ id: i.id, name: i.name, slug: i.slug })),
-      activeSessions: vendor.sessions.map((s) => ({
-        id: s.id,
-        userAgent: s.userAgent,
-        createdAt: s.createdAt.toISOString(),
-        expiresAt: s.expiresAt.toISOString(),
-      })),
       loginHistory: vendor.loginHistory.map((h) => ({
         id: h.id,
         ipAddress: h.ipAddress,
@@ -205,22 +219,67 @@ export class VendorAccountsService {
             attachments: vendor.registration.attachments,
           }
         : null,
-      quotes: vendor.quotes.map((q) => ({
-        id: q.id,
-        newPrice: q.newPrice ? String(q.newPrice) : null,
-        amountSar: q.amountSar ? String(q.amountSar) : null,
-        currency: q.currency,
-        status: q.status,
-        submittedAt: q.submittedAt ? q.submittedAt.toISOString() : null,
-        requirement: q.requirement,
-      })),
-      invites: vendor.invites.map((i) => ({
-        id: i.id,
-        emailStatus: i.emailStatus,
-        createdAt: i.createdAt.toISOString(),
-        requirement: i.requirement,
-      })),
     };
+
+    const quotes = vendor.quotes.map((q) => ({
+      id: q.id,
+      newPrice: q.newPrice ? String(q.newPrice) : null,
+      amountSar: q.amountSar ? String(q.amountSar) : null,
+      currency: q.currency,
+      status: q.status,
+      submittedAt: q.submittedAt ? q.submittedAt.toISOString() : null,
+      requirementProject: q.requirement.project,
+      requirementRef: q.requirement.referenceNumber,
+      requirementId: q.requirement.id,
+      requirement: q.requirement,
+    }));
+
+    const invites = vendor.invites.map((i) => ({
+      id: i.id,
+      emailStatus: i.emailStatus,
+      emailedAt: i.createdAt.toISOString(),
+      createdAt: i.createdAt.toISOString(),
+      requirementProject: i.requirement.project,
+      requirementRef: i.requirement.referenceNumber,
+      requirementId: i.requirement.id,
+      requirement: i.requirement,
+    }));
+
+    return {
+      vendor: vendorObj,
+      quotes,
+      invites,
+    };
+  }
+
+  /**
+   * Delete vendor account (soft-delete)
+   */
+  static async deleteVendor(id: string) {
+    const existing = await prisma.vendorUser.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true, email: true, name: true },
+    });
+
+    if (!existing) return null;
+
+    await prisma.$transaction([
+      prisma.vendorUser.update({
+        where: { id },
+        data: {
+          deletedAt: new Date(),
+          isActive: false,
+          portalAccess: "HELD",
+        },
+      }),
+      prisma.vendorSession.updateMany({
+        where: { vendorId: id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
+
+    return existing;
+
   }
 
   /**

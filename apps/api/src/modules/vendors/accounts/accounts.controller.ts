@@ -156,3 +156,27 @@ export async function handleVendorResetPassword(
 
   return json(env, request, { ok: true, email: result.email });
 }
+
+export async function handleVendorDelete(
+  sql: unknown,
+  env: Env,
+  request: Request,
+  id: string
+): Promise<Response> {
+  const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
+  if (deny) return deny;
+
+  const deleted = await VendorAccountsService.deleteVendor(id);
+  if (!deleted) return json(env, request, { error: "Vendor not found." }, 404);
+
+  await writeAudit(sql, {
+    adminId: admin.id,
+    action: "vendor.deleted",
+    entityType: "VendorUser",
+    entityId: id,
+    metadata: { email: deleted.email, name: deleted.name },
+  });
+
+  return json(env, request, { ok: true, deletedId: id });
+}
+

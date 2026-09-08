@@ -9,6 +9,7 @@ import {
 } from "./registrations/registrations.controller";
 import {
   handleVendorCreate,
+  handleVendorDelete,
   handleVendorGet,
   handleVendorPatch,
   handleVendorResetPassword,
@@ -42,6 +43,7 @@ export function createVendorsAdminRouter(env: Env) {
   router.post("/vendors", (c) => handleVendorCreate(null, env, c.req.raw));
   router.get("/vendors/:id", (c) => handleVendorGet(null, env, c.req.raw, c.req.param("id")));
   router.patch("/vendors/:id", (c) => handleVendorPatch(null, env, c.req.raw, c.req.param("id")));
+  router.delete("/vendors/:id", (c) => handleVendorDelete(null, env, c.req.raw, c.req.param("id")));
   router.post("/vendors/:id/reset-password", (c) => handleVendorResetPassword(null, env, c.req.raw, c.req.param("id")));
 
   return router;

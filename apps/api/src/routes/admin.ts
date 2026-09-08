@@ -49,6 +49,7 @@ import {
   handleVendorsList,
   handleVendorGet,
   handleVendorPatch,
+  handleVendorDelete,
   handleVendorResetPassword,
   handleVendorCreate,
 } from "../modules/vendors/accounts/accounts.controller";
@@ -223,6 +224,9 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       }
       if (request.method === "PATCH") {
         return await handleVendorPatch(sql, env, request, decodeURIComponent(vendorOne[1]!));
+      }
+      if (request.method === "DELETE") {
+        return await handleVendorDelete(sql, env, request, decodeURIComponent(vendorOne[1]!));
       }
     }
 
