@@ -32,9 +32,19 @@ export function CareerRowActions({
         onDropdownOpen?.(false);
       }
     }
+    function handleScrollOrResize() {
+      setShowDropdown(false);
+      onDropdownOpen?.(false);
+    }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
+    };
+  }, [onDropdownOpen]);
 
   const togglePublished = async () => {
     setBusy(true);
@@ -93,13 +103,22 @@ export function CareerRowActions({
         {showDropdown &&
           dropdownRef.current &&
           createPortal(
-            <div
-              className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
-              style={{
-                top: dropdownRef.current.getBoundingClientRect().bottom + 4,
-                right: window.innerWidth - dropdownRef.current.getBoundingClientRect().right,
-              }}
-            >
+            (() => {
+              const rect = dropdownRef.current.getBoundingClientRect();
+              const spaceBelow = window.innerHeight - rect.bottom;
+              const spaceAbove = rect.top;
+              const opensUp = spaceBelow < 180 && spaceAbove > spaceBelow;
+
+              return (
+                <div
+                  className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
+                  style={{
+                    ...(opensUp
+                      ? { bottom: Math.max(8, window.innerHeight - rect.top + 4) }
+                      : { top: Math.min(window.innerHeight - 40, rect.bottom + 4) }),
+                    right: Math.max(8, window.innerWidth - rect.right),
+                  }}
+                >
               <button
                 type="button"
                 onClick={() => {
@@ -138,9 +157,11 @@ export function CareerRowActions({
                   Delete
                 </button>
               )}
-            </div>,
-            document.body
-          )}
+            </div>
+          );
+        })(),
+        document.body
+      )}
       </div>
 
       <Modal

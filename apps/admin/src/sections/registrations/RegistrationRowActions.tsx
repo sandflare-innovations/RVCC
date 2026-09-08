@@ -46,9 +46,19 @@ export function RegistrationRowActions({
         onDropdownOpen?.(false);
       }
     }
+    function handleScrollOrResize() {
+      setShowDropdown(false);
+      onDropdownOpen?.(false);
+    }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
+    };
+  }, [onDropdownOpen]);
 
   const r = registration;
   const label = r.companyName?.trim() || r.email;
@@ -98,37 +108,48 @@ export function RegistrationRowActions({
         {showDropdown &&
           dropdownRef.current &&
           createPortal(
-            <div
-              className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
-              style={{
-                top: dropdownRef.current.getBoundingClientRect().bottom + 4,
-                right: window.innerWidth - dropdownRef.current.getBoundingClientRect().right,
-              }}
-            >
-              <Link
-                href={`/registrations/${r.id}`}
-                onClick={() => setShowDropdown(false)}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
-              >
-                <Eye className="h-4 w-4" />
-                View details
-              </Link>
-              {canDelete && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowDropdown(false);
-                    setConfirmText("");
-                    setError(null);
-                    setShowDelete(true);
+            (() => {
+              const rect = dropdownRef.current.getBoundingClientRect();
+              const spaceBelow = window.innerHeight - rect.bottom;
+              const spaceAbove = rect.top;
+              const opensUp = spaceBelow < 180 && spaceAbove > spaceBelow;
+
+              return (
+                <div
+                  className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
+                  style={{
+                    ...(opensUp
+                      ? { bottom: Math.max(8, window.innerHeight - rect.top + 4) }
+                      : { top: Math.min(window.innerHeight - 40, rect.bottom + 4) }),
+                    right: Math.max(8, window.innerWidth - rect.right),
                   }}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
                 >
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </button>
-              )}
-            </div>,
+                  <Link
+                    href={`/registrations/${r.id}`}
+                    onClick={() => setShowDropdown(false)}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+                  >
+                    <Eye className="h-4 w-4" />
+                    View details
+                  </Link>
+                  {canDelete && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setConfirmText("");
+                        setError(null);
+                        setShowDelete(true);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </button>
+                  )}
+                </div>
+              );
+            })(),
             document.body
           )}
       </div>
