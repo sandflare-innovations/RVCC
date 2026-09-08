@@ -40,6 +40,17 @@ function getFirstDayOfMonth(year: number, month: number) {
 
 // MiniSelect removed as per user request to simplify header
 
+function parseDate(val: string): Date | null {
+  if (!val) return null;
+  const clean = val.split("T")[0];
+  const parts = clean.split("-").map(Number);
+  if (parts.length === 3 && !parts.some(isNaN)) {
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+  }
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 export function DatePicker({
   value,
   onChange,
@@ -49,9 +60,28 @@ export function DatePicker({
 }: DatePickerProps) {
   const [open, setOpen] = useState(false);
 
-  const parsedDate = value ? new Date(value) : new Date();
-  const [currentMonth, setCurrentMonth] = useState(parsedDate.getMonth());
-  const [currentYear, setCurrentYear] = useState(parsedDate.getFullYear());
+  let minDateObj: Date | null = null;
+  if (minDate) {
+    if (minDate === "today") {
+      minDateObj = new Date();
+      minDateObj.setHours(0, 0, 0, 0);
+    } else {
+      const d = parseDate(minDate);
+      if (d) {
+        d.setHours(0, 0, 0, 0);
+        minDateObj = d;
+      }
+    }
+  }
+
+  const parsedVal = parseDate(value);
+  const initialDate =
+    parsedVal && (!minDateObj || parsedVal >= minDateObj)
+      ? parsedVal
+      : minDateObj || new Date();
+
+  const [currentMonth, setCurrentMonth] = useState(initialDate.getMonth());
+  const [currentYear, setCurrentYear] = useState(initialDate.getFullYear());
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -65,7 +95,27 @@ export function DatePicker({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (value) {
+      const p = parseDate(value);
+      if (p && (!minDateObj || p >= minDateObj)) {
+        setCurrentMonth(p.getMonth());
+        setCurrentYear(p.getFullYear());
+      }
+    }
+  }, [value]);
+
+  let prevDisabled = false;
+  if (minDateObj) {
+    if (currentYear < minDateObj.getFullYear()) {
+      prevDisabled = true;
+    } else if (currentYear === minDateObj.getFullYear() && currentMonth <= minDateObj.getMonth()) {
+      prevDisabled = true;
+    }
+  }
+
   const handlePrevMonth = () => {
+    if (prevDisabled) return;
     if (currentMonth === 0) {
       setCurrentMonth(11);
       setCurrentYear((y) => y - 1);
@@ -93,35 +143,13 @@ export function DatePicker({
   const daysInMonth = getDaysInMonth(currentYear, currentMonth);
   const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
 
-  const displayValue = value
-    ? new Date(value).toLocaleDateString("en-US", {
+  const displayValue = parsedVal
+    ? parsedVal.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
       })
     : "";
-
-  let minDateObj: Date | null = null;
-  if (minDate) {
-    if (minDate === "today") {
-      minDateObj = new Date();
-      minDateObj.setHours(0, 0, 0, 0);
-    } else {
-      const [y, m, d] = minDate.split("-").map(Number);
-      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-        minDateObj = new Date(y, m - 1, d);
-      }
-    }
-  }
-
-  let prevDisabled = false;
-  if (minDateObj) {
-    if (currentYear < minDateObj.getFullYear()) {
-      prevDisabled = true;
-    } else if (currentYear === minDateObj.getFullYear() && currentMonth <= minDateObj.getMonth()) {
-      prevDisabled = true;
-    }
-  }
 
   return (
     <div className={cn("peer relative w-full", className)} ref={ref}>
@@ -129,12 +157,14 @@ export function DatePicker({
         type="button"
         onClick={() => setOpen(!open)}
         className={cn(
-          "focus:border-brand-blue focus:ring-brand-blue flex h-[52px] w-full items-center justify-between rounded-xl border border-zinc-200 bg-transparent px-4 py-2 text-sm transition-colors hover:bg-zinc-50 focus:ring-1 focus:outline-none",
-          displayValue ? "text-zinc-900" : "text-transparent"
+          "focus:border-brand-blue focus:ring-brand-blue/20 flex h-[46px] w-full items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm transition-colors hover:bg-white focus:bg-white focus:ring-[3px] focus:outline-none",
+          className
         )}
       >
-        <span className="truncate">{displayValue || " "}</span>
-        <CalendarIcon className="h-4 w-4 shrink-0 text-zinc-500" />
+        <span className={cn("truncate", displayValue ? "font-medium text-zinc-900" : "text-zinc-400")}>
+          {displayValue || placeholder}
+        </span>
+        <CalendarIcon className="h-4 w-4 shrink-0 text-zinc-400" />
       </button>
 
       <AnimatePresence>
@@ -144,29 +174,31 @@ export function DatePicker({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 mt-1 w-full min-w-[280px] overflow-hidden rounded-xl border border-zinc-200 bg-white p-3 shadow-lg"
+            className="absolute z-50 mt-1 w-full min-w-[290px] overflow-hidden rounded-2xl border border-zinc-200 bg-white p-3.5 shadow-xl"
           >
             <div className="mb-4 flex items-center justify-between">
               <button
                 type="button"
-                onClick={() => !prevDisabled && handlePrevMonth()}
+                onClick={handlePrevMonth}
                 disabled={prevDisabled}
                 className={cn(
-                  "rounded p-1 transition-colors",
+                  "rounded-lg p-1.5 transition-colors",
                   prevDisabled
-                    ? "cursor-not-allowed text-zinc-300"
-                    : "text-zinc-600 hover:bg-zinc-100"
+                    ? "invisible opacity-0 pointer-events-none"
+                    : "text-zinc-600 hover:bg-zinc-100 active:scale-95"
                 )}
+                aria-label="Previous month"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <div className="flex items-center text-sm font-semibold text-zinc-900">
+              <div className="flex items-center text-sm font-bold text-zinc-900">
                 {MONTHS[currentMonth]} {currentYear}
               </div>
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="rounded p-1 text-zinc-600 transition-colors hover:bg-zinc-100"
+                className="rounded-lg p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100 active:scale-95"
+                aria-label="Next month"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
@@ -174,7 +206,7 @@ export function DatePicker({
 
             <div className="mb-2 grid grid-cols-7">
               {DAYS.map((d) => (
-                <div key={d} className="py-1 text-center text-xs font-medium text-zinc-500">
+                <div key={d} className="py-1 text-center text-xs font-semibold text-zinc-400">
                   {d}
                 </div>
               ))}
@@ -189,15 +221,25 @@ export function DatePicker({
                 const formattedMonth = String(currentMonth + 1).padStart(2, "0");
                 const formattedDay = String(day).padStart(2, "0");
                 const thisDateStr = `${currentYear}-${formattedMonth}-${formattedDay}`;
-                const isSelected = value === thisDateStr;
+                const isSelected = value ? (value === thisDateStr || value.startsWith(thisDateStr)) : false;
 
                 let disabled = false;
                 if (minDateObj) {
                   const thisDateObj = new Date(currentYear, currentMonth, day);
+                  thisDateObj.setHours(0, 0, 0, 0);
                   if (thisDateObj < minDateObj) {
                     disabled = true;
                   }
                 }
+
+                const isToday = (() => {
+                  const now = new Date();
+                  return (
+                    now.getFullYear() === currentYear &&
+                    now.getMonth() === currentMonth &&
+                    now.getDate() === day
+                  );
+                })();
 
                 return (
                   <button
@@ -206,15 +248,20 @@ export function DatePicker({
                     onClick={() => !disabled && selectDate(day)}
                     disabled={disabled}
                     className={cn(
-                      "flex h-8 items-center justify-center rounded-md text-sm transition-colors",
+                      "relative flex h-8 items-center justify-center rounded-lg text-sm transition-all",
                       isSelected
-                        ? "bg-brand-blue font-semibold text-white"
+                        ? "bg-brand-blue font-semibold text-white shadow-xs"
                         : disabled
-                          ? "cursor-not-allowed text-zinc-300"
-                          : "text-zinc-700 hover:bg-zinc-100"
+                          ? "cursor-not-allowed text-zinc-300 opacity-30 select-none pointer-events-none line-through"
+                          : isToday
+                            ? "font-bold text-brand-blue bg-brand-blue/10 hover:bg-brand-blue/20"
+                            : "text-zinc-700 hover:bg-zinc-100"
                     )}
                   >
                     {day}
+                    {isToday && !isSelected && !disabled && (
+                      <span className="absolute bottom-1 h-1 w-1 rounded-full bg-brand-blue" />
+                    )}
                   </button>
                 );
               })}

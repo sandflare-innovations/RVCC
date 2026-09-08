@@ -10,6 +10,7 @@ import {
   DollarSign,
   FileText,
   Globe,
+  Plus,
   Search,
   Tag,
   UploadCloud,
@@ -18,7 +19,7 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { SubmitLoader } from "@/components/ui";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -38,6 +39,16 @@ export type RequirementInitialData = {
   closesAt: string;
   invitedVendorIds: string[];
 };
+
+const CURRENCY_OPTIONS = [
+  { value: "SAR", label: "SAR — Saudi Riyal (Default)" },
+  { value: "USD", label: "USD — US Dollar ($)" },
+  { value: "AED", label: "AED — UAE Dirham" },
+  { value: "EUR", label: "EUR — Euro (€)" },
+  { value: "INR", label: "INR — Indian Rupee (₹)" },
+];
+
+type SelectOption = string | { value: string; label: string };
 
 function FieldWrapper({
   label,
@@ -71,24 +82,88 @@ const inputClass =
 
 function CustomSelect({
   name,
-  options,
+  options: initialOptions,
   placeholder,
   defaultValue,
+  creatable = false,
+  creatablePlaceholder = "Search or type new category...",
 }: {
   name: string;
-  options: string[];
+  options: SelectOption[];
   placeholder: string;
   defaultValue?: string;
+  creatable?: boolean;
+  creatablePlaceholder?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(defaultValue || "");
+  const [optionsList, setOptionsList] = useState<SelectOption[]>(initialOptions);
+  const [searchQuery, setSearchQuery] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (defaultValue) setSelected(defaultValue);
+    if (defaultValue) {
+      setSelected(defaultValue);
+      setOptionsList((prev) => {
+        const exists = prev.some((o) =>
+          (typeof o === "string" ? o : o.value).toLowerCase() === defaultValue.toLowerCase()
+        );
+        if (!exists) {
+          return [...prev, defaultValue];
+        }
+        return prev;
+      });
+    }
   }, [defaultValue]);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+        setSearchQuery("");
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (open && creatable && searchInputRef.current) {
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+    }
+  }, [open, creatable]);
+
+  const normalizedOptions = optionsList.map((opt) =>
+    typeof opt === "string" ? { value: opt, label: opt } : opt
+  );
+
+  const currentLabel =
+    normalizedOptions.find((o) => o.value === selected)?.label || selected || placeholder;
+
+  const filteredOptions = creatable && searchQuery.trim()
+    ? normalizedOptions.filter((opt) =>
+        opt.label.toLowerCase().includes(searchQuery.trim().toLowerCase())
+      )
+    : normalizedOptions;
+
+  const exactMatchExists = normalizedOptions.some(
+    (opt) => opt.value.toLowerCase() === searchQuery.trim().toLowerCase()
+  );
+
+  const handleAddNew = (val: string) => {
+    const trimmed = val.trim();
+    if (!trimmed) return;
+    if (!normalizedOptions.some((o) => o.value.toLowerCase() === trimmed.toLowerCase())) {
+      setOptionsList((prev) => [...prev, trimmed]);
+    }
+    setSelected(trimmed);
+    setSearchQuery("");
+    setOpen(false);
+  };
+
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <input type="hidden" name={name} value={selected} />
       <button
         type="button"
@@ -96,7 +171,7 @@ function CustomSelect({
         className={`${inputClass} flex items-center justify-between text-left`}
       >
         <span className={selected ? "font-medium text-zinc-900" : "text-zinc-400"}>
-          {selected || placeholder}
+          {currentLabel}
         </span>
         <ChevronDown
           className={`h-4 w-4 text-zinc-400 transition-transform ${open ? "rotate-180" : ""}`}
@@ -104,32 +179,88 @@ function CustomSelect({
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 z-30 mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-zinc-200 bg-white py-2 shadow-xl">
-          <button
-            type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              setSelected("");
-              setOpen(false);
-            }}
-            className="w-full px-4 py-2 text-left text-sm text-zinc-500 hover:bg-zinc-50"
-          >
-            {placeholder}
-          </button>
-          {options.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                setSelected(opt);
-                setOpen(false);
-              }}
-              className={`w-full px-4 py-2 text-left text-sm hover:bg-zinc-50 ${selected === opt ? "bg-brand-blue/5 text-brand-blue font-semibold" : "text-zinc-700"}`}
-            >
-              {opt}
-            </button>
-          ))}
+        <div className="absolute top-full left-0 z-30 mt-2 max-h-72 w-full overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl flex flex-col">
+          {creatable && (
+            <div className="border-b border-zinc-100 p-2 bg-zinc-50/80">
+              <div className="relative flex items-center">
+                <Search className="absolute left-2.5 h-3.5 w-3.5 text-zinc-400" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (searchQuery.trim()) {
+                        handleAddNew(searchQuery);
+                      }
+                    }
+                  }}
+                  placeholder={creatablePlaceholder}
+                  className="w-full rounded-lg border border-zinc-200 bg-white pl-8 pr-3 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="max-h-56 overflow-y-auto py-1">
+            {creatable && searchQuery.trim() && !exactMatchExists && (
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleAddNew(searchQuery);
+                }}
+                className="flex items-center gap-2 w-full px-4 py-2 text-left text-xs font-semibold text-brand-blue bg-brand-blue/5 hover:bg-brand-blue/10 transition-colors border-b border-zinc-100"
+              >
+                <Plus className="h-3.5 w-3.5 shrink-0" />
+                <span>
+                  Add &quot;<span className="underline">{searchQuery.trim()}</span>&quot; as new category
+                </span>
+              </button>
+            )}
+
+            {placeholder && !searchQuery && (
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setSelected("");
+                  setOpen(false);
+                }}
+                className="w-full px-4 py-2 text-left text-sm text-zinc-400 hover:bg-zinc-50 transition-colors"
+              >
+                {placeholder}
+              </button>
+            )}
+
+            {filteredOptions.length === 0 && !searchQuery.trim() && (
+              <div className="px-4 py-3 text-center text-xs text-zinc-400">No categories found</div>
+            )}
+
+            {filteredOptions.map((opt) => {
+              const isCurrent = selected === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setSelected(opt.value);
+                    setOpen(false);
+                    setSearchQuery("");
+                  }}
+                  className={`flex items-center justify-between w-full px-4 py-2 text-left text-sm transition-colors hover:bg-zinc-50 ${
+                    isCurrent ? "bg-brand-blue/5 text-brand-blue font-semibold" : "text-zinc-700"
+                  }`}
+                >
+                  <span>{opt.label}</span>
+                  {isCurrent && <Check className="h-4 w-4 text-brand-blue" />}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
@@ -145,16 +276,18 @@ function CustomDatePickerInput({
   required?: boolean;
   defaultValue?: string;
 }) {
-  const [date, setDate] = useState(defaultValue ? new Date(defaultValue).toISOString() : "");
+  const initialDate = defaultValue ? defaultValue.split("T")[0] : "";
+  const [date, setDate] = useState(initialDate);
 
   return (
     <div className="relative">
       <input type="hidden" name={name} value={date} required={required} />
       <DatePicker
         value={date}
-        onChange={(iso) => setDate(iso)}
+        onChange={(selected) => setDate(selected)}
         placeholder="Select a closing deadline"
         className="w-full"
+        minDate="today"
       />
     </div>
   );
@@ -236,6 +369,24 @@ export function PostRequirementForm({
       vendorUserIds = Array.from(selectedVendors);
     }
 
+    const rawClosesAt = form.get("closesAt");
+    if (!rawClosesAt || !String(rawClosesAt).trim()) {
+      setError("Please select a closing deadline.");
+      setBusy(false);
+      return;
+    }
+
+    const [cYear, cMonth, cDay] = String(rawClosesAt).split("T")[0].split("-").map(Number);
+    const closesAtDate = new Date(cYear, cMonth - 1, cDay, 23, 59, 59);
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+
+    if (closesAtDate < todayMidnight) {
+      setError("Closing deadline cannot be in the past. Please choose today or a future date.");
+      setBusy(false);
+      return;
+    }
+
     try {
       const isEdit = !!initialData?.id;
       const url = isEdit
@@ -251,7 +402,7 @@ export function PostRequirementForm({
           project: form.get("project"),
           sellingPrice: form.get("sellingPrice") || null,
           currency: form.get("currency") || "SAR",
-          closesAt: new Date(String(form.get("closesAt"))).toISOString(),
+          closesAt: closesAtDate.toISOString(),
           vendorUserIds,
           post,
         }),
@@ -443,15 +594,18 @@ export function PostRequirementForm({
                       "Construction & Civil",
                     ]}
                     defaultValue={initialData?.category}
+                    creatable
+                    creatablePlaceholder="Search or type a new category..."
                   />
                 </FieldWrapper>
 
                 <div className="flex-1 space-y-6">
-                  <FieldWrapper label="Currency">
-                    <input
+                  <FieldWrapper label="Currency" icon={DollarSign}>
+                    <CustomSelect
                       name="currency"
+                      placeholder="Select currency"
+                      options={CURRENCY_OPTIONS}
                       defaultValue={initialData?.currency || "SAR"}
-                      className={inputClass}
                     />
                   </FieldWrapper>
 
