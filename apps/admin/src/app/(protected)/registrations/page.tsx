@@ -10,7 +10,7 @@ import {
 /** Shell is static; registration rows load client-side for instant filter switching. */
 export default async function RegistrationsPage() {
   const admin = await getAdminFromSession();
-  const canDelete = Boolean(admin && hasRole(admin.role, "SUPER_ADMIN"));
+  const canDelete = Boolean(admin && (!admin.role || hasRole(admin.role, "ADMIN")));
 
   return (
     <Suspense fallback={<RegistrationsSkeleton />}>
