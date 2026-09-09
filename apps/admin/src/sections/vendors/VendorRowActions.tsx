@@ -209,16 +209,92 @@ export function VendorRowActions({
               const rect = dropdownRef.current.getBoundingClientRect();
               const spaceBelow = window.innerHeight - rect.bottom;
               const spaceAbove = rect.top;
-              const opensUp = spaceBelow < 230 && spaceAbove > spaceBelow;
+              const dropdownHeight = 180;
+              const fitsBelow = spaceBelow >= dropdownHeight + 12;
+              const opensUp =
+                !fitsBelow && (spaceAbove >= dropdownHeight + 12 || spaceAbove > spaceBelow);
 
+              const right = Math.max(8, window.innerWidth - rect.right);
+
+              if (opensUp) {
+                const bottom = Math.max(8, window.innerHeight - rect.top + 4);
+                return (
+                  <div
+                    className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl animate-in fade-in zoom-in-95 duration-100"
+                    style={{
+                      bottom,
+                      right,
+                      maxHeight: Math.max(80, Math.min(spaceAbove - 12, 320)),
+                      overflowY: "auto",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setShowDetails(true);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+                    >
+                      <Eye className="h-4 w-4" />
+                      View details
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setIssued(null);
+                        setError(null);
+                        setShowReset(true);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+                    >
+                      <KeyRound className="h-4 w-4" />
+                      Reset password
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setError(null);
+                        setAccessIssued(null);
+                        setAccessCopied(false);
+                        setShowAccess(true);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+                    >
+                      {held ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                      {held ? "Release access" : "Block access"}
+                    </button>
+                    <div className="my-1 h-px bg-zinc-100" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setDeleteError(null);
+                        setShowDelete(true);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-red-600 hover:bg-red-50 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete vendor
+                    </button>
+                  </div>
+                );
+              }
+
+              const top = Math.max(
+                8,
+                Math.min(window.innerHeight - dropdownHeight - 12, rect.bottom + 4)
+              );
               return (
                 <div
-                  className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
+                  className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl animate-in fade-in zoom-in-95 duration-100"
                   style={{
-                    ...(opensUp
-                      ? { bottom: Math.max(8, window.innerHeight - rect.top + 4) }
-                      : { top: Math.min(window.innerHeight - 40, rect.bottom + 4) }),
-                    right: Math.max(8, window.innerWidth - rect.right),
+                    top,
+                    right,
+                    maxHeight: Math.max(80, Math.min(spaceBelow - 12, 320)),
+                    overflowY: "auto",
                   }}
                 >
                   <button
@@ -555,6 +631,7 @@ export function VendorRowActions({
       <Modal
         open={showDelete}
         onClose={() => !busy && setShowDelete(false)}
+        closeOnBackdropClick={false}
         title="Delete vendor account"
         description={v.email}
         footer={
@@ -563,7 +640,7 @@ export function VendorRowActions({
               type="button"
               onClick={() => setShowDelete(false)}
               disabled={busy}
-              className="h-10 rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-55"
+              className="h-10 rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition-colors hover:border-brand-blue/50 hover:bg-brand-blue/5 hover:text-brand-blue disabled:opacity-55"
             >
               Cancel
             </button>
@@ -571,7 +648,7 @@ export function VendorRowActions({
               type="button"
               onClick={() => void deleteVendor()}
               disabled={busy}
-              className="inline-flex h-10 items-center gap-2 rounded-md bg-red-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-55"
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-brand-blue px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-blue/90 focus-visible:ring-2 focus-visible:ring-brand-blue/30 disabled:opacity-55"
             >
               <Trash2 className="h-4 w-4" />
               {busy ? "Deleting…" : "Yes, Delete Vendor"}
