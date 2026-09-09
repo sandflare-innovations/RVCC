@@ -14,6 +14,7 @@ export interface ModalProps {
   children: React.ReactNode;
   maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
   unmount?: boolean;
+  closeOnBackdropClick?: boolean;
 }
 
 const MAX_WIDTHS = {
@@ -35,6 +36,7 @@ export function Modal({
   children,
   maxWidth = "lg",
   unmount = true,
+  closeOnBackdropClick = true,
 }: ModalProps) {
   useEffect(() => {
     if (open) {
@@ -67,7 +69,15 @@ export function Modal({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-md"
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (closeOnBackdropClick) {
+                onClose();
+              }
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+            }}
             aria-hidden="true"
           />
 
