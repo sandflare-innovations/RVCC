@@ -13,7 +13,9 @@ export class DashboardService {
       byStatus[group.status] = group._count.status;
     }
 
-    const vendorsCount = await prisma.vendorUser.count({ where: { isActive: true } });
+    const vendorsCount = await prisma.vendorUser.count({
+      where: { isActive: true, deletedAt: null },
+    });
     const publishedJobs = await prisma.jobPosting.count({ where: { isPublished: true } });
     const totalJobs = await prisma.jobPosting.count();
 
