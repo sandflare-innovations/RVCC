@@ -97,7 +97,7 @@ export async function handleRegistrationDelete(
   request: Request,
   id: string
 ): Promise<Response> {
-  const { admin, deny } = await requireAdmin(sql, env, request, "SUPER_ADMIN");
+  const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
   if (deny) return deny;
 
   const deleted = await RegistrationsService.deleteRegistration(id);
