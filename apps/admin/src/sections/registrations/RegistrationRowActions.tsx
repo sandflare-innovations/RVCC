@@ -1,9 +1,9 @@
 "use client";
 
-import { AlertCircle, ExternalLink, Eye, MoreVertical,Trash2 } from "lucide-react";
+import { AlertCircle, Eye, MoreVertical, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect,useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { Modal } from "@/components/ui/modal";
@@ -20,28 +20,31 @@ export type RegistrationSummary = {
 
 export function RegistrationRowActions({
   registration,
-  canDelete,
+  canDelete = true,
   onDeleted,
   onUpdated,
   onDropdownOpen,
 }: {
   registration: RegistrationSummary;
-  canDelete: boolean;
+  canDelete?: boolean;
   onDeleted?: () => void;
   onUpdated?: () => void;
   onDropdownOpen?: (open: boolean) => void;
 }) {
   const router = useRouter();
   const [showDelete, setShowDelete] = useState(false);
-  const [confirmText, setConfirmText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const insideTrigger = dropdownRef.current?.contains(target);
+      const insideMenu = menuRef.current?.contains(target);
+      if (!insideTrigger && !insideMenu) {
         setShowDropdown(false);
         onDropdownOpen?.(false);
       }
@@ -62,7 +65,6 @@ export function RegistrationRowActions({
 
   const r = registration;
   const label = r.companyName?.trim() || r.email;
-  const confirmTarget = r.referenceNumber || r.email;
 
   const remove = async () => {
     setBusy(true);
@@ -100,7 +102,13 @@ export function RegistrationRowActions({
             setShowDropdown(next);
             onDropdownOpen?.(next);
           }}
-          className="hover:text-brand-blue rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
+          className={`rounded-md p-1.5 transition-colors ${
+            showDropdown
+              ? "bg-brand-blue/10 text-brand-blue ring-1 ring-brand-blue/30"
+              : "text-zinc-600 hover:bg-brand-blue/10 hover:text-brand-blue"
+          }`}
+          aria-label="Registration actions"
+          aria-expanded={showDropdown}
         >
           <MoreVertical className="h-4 w-4" />
         </button>
@@ -112,40 +120,95 @@ export function RegistrationRowActions({
               const rect = dropdownRef.current.getBoundingClientRect();
               const spaceBelow = window.innerHeight - rect.bottom;
               const spaceAbove = rect.top;
-              const opensUp = spaceBelow < 180 && spaceAbove > spaceBelow;
+              const dropdownHeight = 96; // 2 items + divider + padding
+              const fitsBelow = spaceBelow >= dropdownHeight + 12;
+              const opensUp =
+                !fitsBelow && (spaceAbove >= dropdownHeight + 12 || spaceAbove > spaceBelow);
 
+              const right = Math.max(8, window.innerWidth - rect.right);
+
+              if (opensUp) {
+                const bottom = Math.max(8, window.innerHeight - rect.top + 4);
+                return (
+                  <div
+                    ref={menuRef}
+                    className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl animate-in fade-in zoom-in-95 duration-100"
+                    style={{
+                      bottom,
+                      right,
+                      maxHeight: Math.max(80, Math.min(spaceAbove - 12, 320)),
+                      overflowY: "auto",
+                    }}
+                  >
+                    <Link
+                      href={`/registrations/${r.id}`}
+                      onClick={() => setShowDropdown(false)}
+                      className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-brand-blue/10 hover:text-brand-blue"
+                    >
+                      <Eye className="h-4 w-4 text-brand-blue" />
+                      View details
+                    </Link>
+                    {canDelete && (
+                      <>
+                        <div className="my-1 h-px bg-zinc-100" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDropdown(false);
+                            setError(null);
+                            setShowDelete(true);
+                          }}
+                          className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-brand-blue/10 hover:text-brand-blue"
+                        >
+                          <Trash2 className="h-4 w-4 text-brand-blue" />
+                          Delete registration
+                        </button>
+                      </>
+                    )}
+                  </div>
+                );
+              }
+
+              // Opens downward — clamp top so it never hides below screen edge
+              const top = Math.max(
+                8,
+                Math.min(window.innerHeight - dropdownHeight - 12, rect.bottom + 4)
+              );
               return (
                 <div
-                  className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl"
+                  ref={menuRef}
+                  className="fixed z-[9999] w-48 rounded-md border border-zinc-200 bg-white p-1 shadow-xl animate-in fade-in zoom-in-95 duration-100"
                   style={{
-                    ...(opensUp
-                      ? { bottom: Math.max(8, window.innerHeight - rect.top + 4) }
-                      : { top: Math.min(window.innerHeight - 40, rect.bottom + 4) }),
-                    right: Math.max(8, window.innerWidth - rect.right),
+                    top,
+                    right,
+                    maxHeight: Math.max(80, Math.min(spaceBelow - 12, 320)),
+                    overflowY: "auto",
                   }}
                 >
                   <Link
                     href={`/registrations/${r.id}`}
                     onClick={() => setShowDropdown(false)}
-                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+                    className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-brand-blue/10 hover:text-brand-blue"
                   >
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4 text-brand-blue" />
                     View details
                   </Link>
                   {canDelete && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowDropdown(false);
-                        setConfirmText("");
-                        setError(null);
-                        setShowDelete(true);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
-                    </button>
+                    <>
+                      <div className="my-1 h-px bg-zinc-100" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowDropdown(false);
+                          setError(null);
+                          setShowDelete(true);
+                        }}
+                        className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-brand-blue/10 hover:text-brand-blue"
+                      >
+                        <Trash2 className="h-4 w-4 text-brand-blue" />
+                        Delete registration
+                      </button>
+                    </>
                   )}
                 </div>
               );
@@ -156,8 +219,9 @@ export function RegistrationRowActions({
 
       <Modal
         open={showDelete}
-        onClose={() => setShowDelete(false)}
-        title="Delete registration"
+        onClose={() => !busy && setShowDelete(false)}
+        closeOnBackdropClick={false}
+        title="Delete vendor registration"
         description="This cannot be undone."
         footer={
           <>
@@ -165,18 +229,18 @@ export function RegistrationRowActions({
               type="button"
               onClick={() => setShowDelete(false)}
               disabled={busy}
-              className="h-10 rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-55"
+              className="h-10 rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition-colors hover:border-brand-blue/50 hover:bg-brand-blue/5 hover:text-brand-blue disabled:opacity-55"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={() => void remove()}
-              disabled={busy || confirmText.trim() !== confirmTarget}
-              className="inline-flex h-10 items-center gap-2 rounded-md bg-zinc-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-black disabled:pointer-events-none disabled:opacity-40"
+              disabled={busy}
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-brand-blue px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-blue/90 focus-visible:ring-2 focus-visible:ring-brand-blue/30 disabled:opacity-55"
             >
-              <Trash2 className="h-4 w-4" />
-              {busy ? "Deleting…" : "Delete permanently"}
+              <Trash2 className="h-4 w-4 text-white" />
+              {busy ? "Deleting…" : "Yes, Delete Registration"}
             </button>
           </>
         }
@@ -185,43 +249,32 @@ export function RegistrationRowActions({
           {error && (
             <div
               role="alert"
-              className="flex items-start gap-2.5 border-l-4 border-zinc-900 bg-zinc-100 px-3.5 py-3 text-sm font-medium text-zinc-900"
+              className="flex items-start gap-2.5 border-l-4 border-brand-blue bg-brand-blue/5 px-3.5 py-3 text-sm font-medium text-zinc-900"
             >
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-brand-blue" aria-hidden="true" />
               <span>{error}</span>
             </div>
           )}
 
-          <p className="text-sm text-zinc-700">
-            Deleting <strong className="text-zinc-950">{label}</strong> also removes its company
-            profile, contacts, addresses, bank accounts, questionnaire answers, attachments, and any
-            portal logins linked to this registration.
-          </p>
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
+              <Trash2 className="h-5 w-5 text-brand-blue" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-zinc-900">
+                Are you sure you want to delete this vendor registration?
+              </p>
+              <p className="mt-1 text-sm text-zinc-600">
+                Registration for <strong className="text-zinc-950">{label}</strong>
+                {r.referenceNumber ? ` (${r.referenceNumber})` : ""} will be removed permanently.
+              </p>
+            </div>
+          </div>
 
-          <p className="text-sm text-zinc-600">
-            Prefer the full record?{" "}
-            <Link
-              href={`/registrations/${r.id}`}
-              className="text-brand-blue inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline"
-            >
-              Open <ExternalLink className="h-3.5 w-3.5" />
-            </Link>
-          </p>
-
-          <div>
-            <label
-              htmlFor="confirm-delete"
-              className="block text-xs font-bold tracking-[0.14em] text-zinc-600 uppercase"
-            >
-              Type <span className="font-mono normal-case">{confirmTarget}</span> to confirm
-            </label>
-            <input
-              id="confirm-delete"
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-              autoComplete="off"
-              className="focus-visible:border-brand-blue focus-visible:ring-brand-blue/25 mt-1.5 w-full rounded-md border border-zinc-300 px-3.5 py-2.5 text-base outline-none focus-visible:ring-[3px]"
-            />
+          <div className="rounded-xl border border-brand-blue/20 bg-brand-blue/5 p-3.5 text-xs text-zinc-700">
+            <strong className="font-semibold text-brand-blue">Warning:</strong> This will permanently delete the company profile, contacts,
+            addresses, bank accounts, questionnaire answers, attachments, and any linked vendor
+            portal accounts.
           </div>
         </div>
       </Modal>
