@@ -25,6 +25,9 @@ export function useAdminLiveBidding(
           setStatus("live");
           setErrorMsg(null);
         }
+      } else {
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        if (err?.error) setErrorMsg(err.error);
       }
     } catch {
       // Ignored on initial mount
@@ -36,7 +39,7 @@ export function useAdminLiveBidding(
     setStatus("connecting");
 
     // Fetch initial snapshot once on page load
-    fetchSnapshot();
+    void fetchSnapshot();
 
     // Open persistent SSE stream (0 polling requests while idle)
     const url = `/api/requirements/${encodeURIComponent(requirementId)}/live`;
@@ -50,7 +53,7 @@ export function useAdminLiveBidding(
       }
     };
 
-    es.onmessage = (event) => {
+    const onMessageEvent = (event: MessageEvent) => {
       if (unmounted) return;
       try {
         const payload = JSON.parse(event.data) as AdminLiveBidsPayload;
@@ -64,6 +67,10 @@ export function useAdminLiveBidding(
       }
     };
 
+    es.onmessage = onMessageEvent;
+    es.addEventListener("snapshot", onMessageEvent);
+    es.addEventListener("update", onMessageEvent);
+
     es.onerror = () => {
       if (unmounted) return;
       setStatus("offline");
@@ -72,7 +79,7 @@ export function useAdminLiveBidding(
     // When the admin switches back to the tab, sync once
     const handleVisibility = () => {
       if (document.visibilityState === "visible" && !unmounted) {
-        fetchSnapshot();
+        void fetchSnapshot();
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
@@ -81,6 +88,8 @@ export function useAdminLiveBidding(
       unmounted = true;
       document.removeEventListener("visibilitychange", handleVisibility);
       if (eventSourceRef.current) {
+        eventSourceRef.current.removeEventListener("snapshot", onMessageEvent);
+        eventSourceRef.current.removeEventListener("update", onMessageEvent);
         eventSourceRef.current.close();
         eventSourceRef.current = null;
       }
