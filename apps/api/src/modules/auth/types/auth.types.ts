@@ -63,6 +63,17 @@ export const staffListItemSchema = z.object({
 });
 export type StaffListItem = z.infer<typeof staffListItemSchema>;
 
+export const roleItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  isSystem: z.boolean(),
+  adminCount: z.number().int(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type RoleItem = z.infer<typeof roleItemSchema>;
+
 export const auditLogEntrySchema = createAuditLogSchema.extend({
   adminId: z.string().nullable().optional(),
   vendorId: z.string().nullable().optional(),

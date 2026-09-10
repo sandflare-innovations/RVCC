@@ -17,20 +17,22 @@ import {
   Shield,
   ShieldCheck,
   Table as TableIcon,
+  Plus,
   Trash2,
   UserPlus,
   Users,
+  X,
   XCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import { AnimatedSearchInput } from "@/lib/ui";
-import { AdminRoleName,StaffMember } from "@/types/staff";
+import { AdminRoleName, StaffMember, StaffRoleItem } from "@/types/staff";
 
 const SEARCH_PLACEHOLDERS = ["staff name...", "email address...", "job position...", "role..."];
 
 const ROLE_INFO: Record<
-  AdminRoleName,
+  string,
   { label: string; bgClass: string; textClass: string; borderClass: string; desc: string }
 > = {
   SUPER_ADMIN: {
@@ -77,6 +79,29 @@ const ROLE_INFO: Record<
   },
 };
 
+export function getRoleBadgeInfo(
+  roleName: string,
+  dynamicRoles?: StaffRoleItem[]
+): { label: string; bgClass: string; textClass: string; borderClass: string; desc: string } {
+  if (ROLE_INFO[roleName]) {
+    return ROLE_INFO[roleName];
+  }
+  const match = dynamicRoles?.find((r) => r.name === roleName);
+  const formattedLabel = roleName
+    .toLowerCase()
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+
+  return {
+    label: formattedLabel,
+    bgClass: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    textClass: "text-indigo-700",
+    borderClass: "border-indigo-200",
+    desc: match?.description || `${formattedLabel} Custom Role`,
+  };
+}
+
 export function StaffPanel() {
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,6 +112,8 @@ export function StaffPanel() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   // Modal States
+  const [roles, setRoles] = useState<StaffRoleItem[]>([]);
+  const [roleModalOpen, setRoleModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalTarget, setEditModalTarget] = useState<StaffMember | null>(null);
   const [passwordModalTarget, setPasswordModalTarget] = useState<StaffMember | null>(null);
@@ -126,8 +153,21 @@ export function StaffPanel() {
     }
   };
 
+  const fetchRoles = async () => {
+    try {
+      const res = await fetch("/api/staff/roles", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        setRoles(data);
+      }
+    } catch (err) {
+      console.error("Failed to load roles", err);
+    }
+  };
+
   useEffect(() => {
     fetchStaff();
+    fetchRoles();
   }, []);
 
   // OTP Countdown Timer
@@ -443,6 +483,16 @@ export function StaffPanel() {
             </span>
           </button>
 
+          {/* Manage Roles Button */}
+          <button
+            type="button"
+            onClick={() => setRoleModalOpen(true)}
+            className="border-brand-blue text-brand-blue hover:bg-brand-blue/5 focus-visible:ring-brand-blue/25 inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-full border bg-white px-4 py-2.5 text-xs font-semibold shadow-2xs transition-all outline-none focus-visible:ring-[3px]"
+          >
+            <Shield className="h-4 w-4" />
+            <span>Roles ({roles.length})</span>
+          </button>
+
           {/* Add Staff Button */}
           <button
             type="button"
@@ -490,7 +540,7 @@ export function StaffPanel() {
               </div>
             )}
             {displayedStaff.map((staff) => {
-              const roleBadge = ROLE_INFO[staff.role] || ROLE_INFO.ADMIN;
+              const roleBadge = getRoleBadgeInfo(staff.role, roles);
 
               return (
                 <div
@@ -608,7 +658,7 @@ export function StaffPanel() {
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {displayedStaff.map((staff) => {
-              const roleBadge = ROLE_INFO[staff.role] || ROLE_INFO.ADMIN;
+              const roleBadge = getRoleBadgeInfo(staff.role, roles);
 
               return (
                 <div
@@ -714,6 +764,8 @@ export function StaffPanel() {
           onClose={() => setCreateModalOpen(false)}
           onSubmit={handleInitiateCreate}
           isLoading={isRequestingOtp}
+          roles={roles}
+          onOpenRoleModal={() => setRoleModalOpen(true)}
         />
       )}
 
@@ -724,8 +776,24 @@ export function StaffPanel() {
           onClose={() => setEditModalTarget(null)}
           onSubmit={handleInitiateUpdate}
           isLoading={isRequestingOtp}
+          roles={roles}
+          onOpenRoleModal={() => setRoleModalOpen(true)}
         />
       )}
+
+      {/* ROLE MANAGEMENT MODAL */}
+      <RoleManagementModal
+        open={roleModalOpen}
+        onClose={() => setRoleModalOpen(false)}
+        roles={roles}
+        onRoleCreated={(newRole) => {
+          setRoles((prev) => {
+            const exists = prev.some((r) => r.id === newRole.id || r.name === newRole.name);
+            if (exists) return prev;
+            return [...prev, newRole];
+          });
+        }}
+      />
 
       {/* CHANGE PASSWORD MODAL */}
       {passwordModalTarget && (
@@ -768,10 +836,14 @@ function CreateStaffModal({
   onClose,
   onSubmit,
   isLoading,
+  roles,
+  onOpenRoleModal,
 }: {
   onClose: () => void;
   onSubmit: (formData: any) => void;
   isLoading: boolean;
+  roles: StaffRoleItem[];
+  onOpenRoleModal: () => void;
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -783,6 +855,12 @@ function CreateStaffModal({
 
   // Custom Dropdown Open State
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+
+  const allRoleKeys = useMemo(() => {
+    const keys = new Set<string>(Object.keys(ROLE_INFO));
+    roles.forEach((r) => keys.add(r.name));
+    return Array.from(keys);
+  }, [roles]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -798,7 +876,7 @@ function CreateStaffModal({
     onSubmit({ name, email, position, role, password });
   };
 
-  const currentRoleInfo = ROLE_INFO[role] || ROLE_INFO.ADMIN;
+  const currentRoleInfo = getRoleBadgeInfo(role, roles);
 
   return (
     <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs duration-150">
@@ -873,9 +951,19 @@ function CreateStaffModal({
 
           {/* Custom Role Dropdown */}
           <div className="relative">
-            <label className="mb-1 block text-xs font-semibold text-zinc-700">
-              Access Role & Scope
-            </label>
+            <div className="mb-1 flex items-center justify-between">
+              <label className="text-xs font-semibold text-zinc-700">
+                Access Role & Scope
+              </label>
+              <button
+                type="button"
+                onClick={() => onOpenRoleModal()}
+                className="text-[11px] font-semibold text-brand-blue hover:underline cursor-pointer flex items-center gap-1"
+              >
+                <Plus className="h-3 w-3" />
+                <span>New Role</span>
+              </button>
+            </div>
             <button
               type="button"
               onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
@@ -894,8 +982,8 @@ function CreateStaffModal({
 
             {roleDropdownOpen && (
               <div className="animate-in fade-in zoom-in-95 absolute top-full left-0 z-50 mt-1.5 max-h-64 w-full divide-y divide-zinc-100 overflow-y-auto rounded-2xl border border-zinc-200 bg-white py-2 shadow-xl duration-100">
-                {(Object.keys(ROLE_INFO) as AdminRoleName[]).map((rKey) => {
-                  const rInfo = ROLE_INFO[rKey];
+                {allRoleKeys.map((rKey) => {
+                  const rInfo = getRoleBadgeInfo(rKey, roles);
                   const isSelected = role === rKey;
 
                   return (
@@ -904,7 +992,7 @@ function CreateStaffModal({
                       type="button"
                       onMouseDown={(e) => {
                         e.preventDefault();
-                        setRole(rKey);
+                        setRole(rKey as AdminRoleName);
                         setRoleDropdownOpen(false);
                       }}
                       className={`flex w-full cursor-pointer items-start justify-between gap-3 p-3 text-left transition-colors ${
@@ -928,6 +1016,20 @@ function CreateStaffModal({
                     </button>
                   );
                 })}
+                <div className="p-1.5 border-t border-zinc-100 bg-zinc-50/60">
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setRoleDropdownOpen(false);
+                      onOpenRoleModal();
+                    }}
+                    className="text-brand-blue hover:bg-brand-blue/10 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition-colors"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Create New Role</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -993,11 +1095,15 @@ function EditStaffModal({
   onClose,
   onSubmit,
   isLoading,
+  roles,
+  onOpenRoleModal,
 }: {
   staff: StaffMember;
   onClose: () => void;
   onSubmit: (formData: any) => void;
   isLoading: boolean;
+  roles: StaffRoleItem[];
+  onOpenRoleModal: () => void;
 }) {
   const [name, setName] = useState(staff.name || "");
   const [position, setPosition] = useState(staff.position || "");
@@ -1006,12 +1112,18 @@ function EditStaffModal({
 
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
+  const allRoleKeys = useMemo(() => {
+    const keys = new Set<string>(Object.keys(ROLE_INFO));
+    roles.forEach((r) => keys.add(r.name));
+    return Array.from(keys);
+  }, [roles]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({ id: staff.id, name, position, role, isActive });
   };
 
-  const currentRoleInfo = ROLE_INFO[role] || ROLE_INFO.ADMIN;
+  const currentRoleInfo = getRoleBadgeInfo(role, roles);
 
   return (
     <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs duration-150">
@@ -1062,9 +1174,19 @@ function EditStaffModal({
 
           {/* Custom Role Dropdown */}
           <div className="relative">
-            <label className="mb-1 block text-xs font-semibold text-zinc-700">
-              Access Role & Permissions
-            </label>
+            <div className="mb-1 flex items-center justify-between">
+              <label className="text-xs font-semibold text-zinc-700">
+                Access Role & Permissions
+              </label>
+              <button
+                type="button"
+                onClick={() => onOpenRoleModal()}
+                className="text-[11px] font-semibold text-brand-blue hover:underline cursor-pointer flex items-center gap-1"
+              >
+                <Plus className="h-3 w-3" />
+                <span>New Role</span>
+              </button>
+            </div>
             <button
               type="button"
               onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
@@ -1083,8 +1205,8 @@ function EditStaffModal({
 
             {roleDropdownOpen && (
               <div className="animate-in fade-in zoom-in-95 absolute top-full left-0 z-50 mt-1.5 max-h-64 w-full divide-y divide-zinc-100 overflow-y-auto rounded-2xl border border-zinc-200 bg-white py-2 shadow-xl duration-100">
-                {(Object.keys(ROLE_INFO) as AdminRoleName[]).map((rKey) => {
-                  const rInfo = ROLE_INFO[rKey];
+                {allRoleKeys.map((rKey) => {
+                  const rInfo = getRoleBadgeInfo(rKey, roles);
                   const isSelected = role === rKey;
 
                   return (
@@ -1093,7 +1215,7 @@ function EditStaffModal({
                       type="button"
                       onMouseDown={(e) => {
                         e.preventDefault();
-                        setRole(rKey);
+                        setRole(rKey as AdminRoleName);
                         setRoleDropdownOpen(false);
                       }}
                       className={`flex w-full cursor-pointer items-start justify-between gap-3 p-3 text-left transition-colors ${
@@ -1117,6 +1239,20 @@ function EditStaffModal({
                     </button>
                   );
                 })}
+                <div className="p-1.5 border-t border-zinc-100 bg-zinc-50/60">
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setRoleDropdownOpen(false);
+                      onOpenRoleModal();
+                    }}
+                    className="text-brand-blue hover:bg-brand-blue/10 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition-colors"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Create New Role</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -1505,6 +1641,243 @@ function OtpVerificationModal({
               )}
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// -------------------------------------------------------------
+// ROLE MANAGEMENT MODAL
+// -------------------------------------------------------------
+
+function RoleManagementModal({
+  open,
+  onClose,
+  roles,
+  onRoleCreated,
+}: {
+  open: boolean;
+  onClose: () => void;
+  roles: StaffRoleItem[];
+  onRoleCreated: (role: StaffRoleItem) => void;
+}) {
+  const [nameInput, setNameInput] = useState("");
+  const [descInput, setDescInput] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const formattedKey = nameInput
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9_]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formattedKey || formattedKey.length < 2) {
+      setError("Please provide a valid role name (at least 2 characters).");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const res = await fetch("/api/staff/roles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formattedKey,
+          description: descInput.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create role.");
+      }
+      onRoleCreated(data);
+      setNameInput("");
+      setDescInput("");
+      setSuccess(`Role "${data.name}" created successfully!`);
+      setTimeout(() => setSuccess(null), 3500);
+    } catch (err: any) {
+      setError(err.message || "An error occurred while creating role.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs duration-150">
+      <div className="animate-in zoom-in-95 max-h-[92vh] w-full max-w-xl overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-2xl flex flex-col duration-150">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-zinc-100 p-6 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-brand-blue/10 text-brand-blue flex h-10 w-10 items-center justify-center rounded-2xl">
+              <Shield className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-zinc-950">Manage Roles & Scopes</h3>
+              <p className="text-xs text-zinc-400">
+                Create and review administrative roles for staff accounts
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-zinc-400 hover:text-zinc-600 rounded-full p-1.5 transition-colors cursor-pointer"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto p-6 space-y-6 flex-1">
+          {/* Create Form */}
+          <form
+            onSubmit={handleSubmit}
+            className="rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-4 space-y-3.5"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-zinc-900 flex items-center gap-1.5">
+                <Plus className="h-3.5 w-3.5 text-brand-blue" />
+                Create New Role
+              </span>
+              {formattedKey && (
+                <span className="text-[10px] font-mono font-bold text-brand-blue bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+                  KEY: {formattedKey}
+                </span>
+              )}
+            </div>
+
+            {error && (
+              <div className="rounded-xl border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-700 flex items-center gap-2">
+                <XCircle className="h-4 w-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {success && (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs text-emerald-700 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 shrink-0" />
+                <span>{success}</span>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold text-zinc-700">
+                  Role Title / Name
+                </label>
+                <input
+                  type="text"
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder="e.g. Finance Auditor, Quality Inspector, Logistics Manager"
+                  className="focus:ring-brand-blue/30 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs text-zinc-900 shadow-2xs focus:ring-2 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold text-zinc-700">
+                  Description / Responsibilities
+                </label>
+                <input
+                  type="text"
+                  value={descInput}
+                  onChange={(e) => setDescInput(e.target.value)}
+                  placeholder="e.g. Handles invoice verification and audit reports"
+                  className="focus:ring-brand-blue/30 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs text-zinc-900 shadow-2xs focus:ring-2 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <button
+                  type="submit"
+                  disabled={submitting || !nameInput.trim()}
+                  className="bg-brand-blue hover:bg-brand-blue/90 inline-flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-white shadow-xs transition-all disabled:opacity-50"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>Add Role</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
+
+          {/* Existing Roles List */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold text-zinc-900">
+                Configured Roles ({roles.length})
+              </h4>
+              <span className="text-[11px] text-zinc-400">Available across all staff forms</span>
+            </div>
+
+            <div className="space-y-2">
+              {roles.map((r) => {
+                const info = getRoleBadgeInfo(r.name, roles);
+                return (
+                  <div
+                    key={r.id || r.name}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-zinc-100 bg-white p-3.5 shadow-2xs hover:border-zinc-200 transition-colors"
+                  >
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${info.bgClass}`}
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                          {info.label}
+                        </span>
+                        {r.isSystem ? (
+                          <span className="text-[10px] text-zinc-400 font-medium">System Role</span>
+                        ) : (
+                          <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-medium">
+                            Custom
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-zinc-500 truncate max-w-sm">
+                        {r.description || info.desc}
+                      </p>
+                    </div>
+
+                    <div className="shrink-0 text-right">
+                      <span className="text-xs font-bold text-zinc-900 tabular-nums">
+                        {r.adminCount}
+                      </span>
+                      <span className="text-[11px] text-zinc-400 ml-1">staff</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-zinc-100 p-4 px-6 flex justify-end bg-zinc-50/50">
+          <button
+            type="button"
+            onClick={onClose}
+            className="cursor-pointer rounded-full border border-zinc-200 bg-white px-5 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

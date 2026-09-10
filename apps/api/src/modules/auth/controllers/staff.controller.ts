@@ -170,6 +170,46 @@ export class StaffController {
 
     return json(env, request, { success: true, deletedId: res.deletedId });
   }
+
+  static async handleRoleList(
+    sql: unknown,
+    env: Env,
+    request: Request
+  ): Promise<Response> {
+    const auth = await requireAdmin(sql, env, request);
+    if (auth.deny) return auth.deny;
+
+    const roles = await StaffService.listRoles();
+    return json(env, request, roles);
+  }
+
+  static async handleRoleCreate(
+    sql: unknown,
+    env: Env,
+    request: Request
+  ): Promise<Response> {
+    const auth = await requireAdmin(sql, env, request, "ADMIN");
+    if (auth.deny) return auth.deny;
+
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return json(env, request, { error: "Invalid JSON" }, 400);
+    }
+
+    const { name, description } = body || {};
+    const res = await StaffService.createRole(sql, auth.admin.id, {
+      name,
+      description,
+    });
+
+    if ("error" in res) {
+      return json(env, request, { error: res.error }, res.status || 400);
+    }
+
+    return json(env, request, res.role, 201);
+  }
 }
 
 export const handleStaffOtpRequest = StaffController.handleStaffOtpRequest;
@@ -178,3 +218,5 @@ export const handleStaffCreate = StaffController.handleStaffCreate;
 export const handleStaffUpdate = StaffController.handleStaffUpdate;
 export const handleStaffPasswordReset = StaffController.handleStaffPasswordReset;
 export const handleStaffDelete = StaffController.handleStaffDelete;
+export const handleRoleList = StaffController.handleRoleList;
+export const handleRoleCreate = StaffController.handleRoleCreate;

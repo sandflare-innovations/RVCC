@@ -20,6 +20,7 @@ import { adminSessionJson } from "@/lib/admin-data";
 import { summariseVendorPerformance } from "@/lib/rfq";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -252,13 +253,14 @@ async function HeroKpiData() {
 
   const { activeVendors, openCount, closingSoon, byStatus } = result.data;
   const counts = byStatus ?? {};
+  const pendingReviews = (counts["SUBMITTED"] ?? 0) + (counts["PENDING"] ?? 0);
 
   return (
     <div className="relative z-10 mt-8 grid grid-cols-2 gap-6 border-t border-white/10 pt-6 md:gap-8 lg:mt-0 lg:grid-cols-4">
       {[
         { label: "Active Vendors", value: activeVendors ?? 0 },
         { label: "Open Requirements", value: openCount ?? 0 },
-        { label: "Pending Reviews", value: counts["SUBMITTED"] ?? 0 },
+        { label: "Pending Reviews", value: pendingReviews },
         { label: "Closing Soon", value: closingSoon ?? 0, valueClass: "text-amber-300" },
       ].map((kpi) => (
         <div key={kpi.label} className="flex flex-col gap-1">
@@ -418,6 +420,7 @@ async function DashboardBodyData() {
     recentQuotes,
   } = result.data;
   const counts = byStatus ?? {};
+  const pendingCount = (counts["SUBMITTED"] ?? 0) + (counts["PENDING"] ?? 0);
   const rows = summariseVendorPerformance(performance ?? []);
   const quotes = recentQuotes ?? [];
 
@@ -425,24 +428,28 @@ async function DashboardBodyData() {
     {
       key: "SUBMITTED",
       label: "Awaiting review",
+      value: pendingCount,
       href: "/registrations?status=SUBMITTED",
       icon: <FileClock className="h-4 w-4" />,
     },
     {
       key: "APPROVED",
       label: "Approved",
+      value: counts["APPROVED"] ?? 0,
       href: "/registrations?status=APPROVED",
       icon: <CheckCircle2 className="h-4 w-4" />,
     },
     {
       key: "REJECTED",
       label: "Rejected",
+      value: counts["REJECTED"] ?? 0,
       href: "/registrations?status=REJECTED",
       icon: <AlertCircle className="h-4 w-4" />,
     },
     {
       key: "DRAFT",
       label: "In progress",
+      value: counts["DRAFT"] ?? 0,
       href: "/registrations?status=DRAFT",
       icon: <FileText className="h-4 w-4" />,
     },
@@ -505,7 +512,7 @@ async function DashboardBodyData() {
                 <KpiCard
                   key={c.key}
                   label={c.label}
-                  value={counts[c.key] ?? 0}
+                  value={c.value}
                   href={c.href}
                   icon={c.icon}
                   className="min-h-[148px] py-7"
@@ -593,7 +600,7 @@ async function DashboardBodyData() {
           title="Registration Pipeline"
           data={[
             { name: "Approved", value: counts["APPROVED"] ?? 0, color: "#0073bc" },
-            { name: "Pending", value: counts["SUBMITTED"] ?? 0, color: "#4aa3d8" },
+            { name: "Pending", value: pendingCount, color: "#4aa3d8" },
             { name: "Rejected", value: counts["REJECTED"] ?? 0, color: "#a6a6a6" },
             { name: "Draft", value: counts["DRAFT"] ?? 0, color: "#cfe4f3" },
           ].filter((d) => d.value > 0)}

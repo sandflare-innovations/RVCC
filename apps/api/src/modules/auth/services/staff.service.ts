@@ -2,7 +2,7 @@ import { randomInt } from "node:crypto";
 import { hashPassword } from "../../../lib/password";
 import { prisma } from "../../../lib/prisma";
 import { cuid, hashSha256 } from "../../../lib/sql";
-import type { AdminRoleName, StaffListItem } from "../types/auth.types";
+import type { AdminRoleName, RoleItem, StaffListItem } from "../types/auth.types";
 import { writeAudit } from "./admin-auth.service";
 
 const OTP_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -102,6 +102,85 @@ export class StaffService {
     return { code, expiresAt };
   }
 
+  static async listRoles(): Promise<RoleItem[]> {
+    const roles = await prisma.role.findMany({
+      where: { deletedAt: null },
+      include: {
+        _count: {
+          select: { admins: true },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    return roles.map((r) => ({
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      isSystem: Boolean(r.isSystem),
+      adminCount: r._count.admins,
+      createdAt: r.createdAt.toISOString(),
+      updatedAt: r.updatedAt.toISOString(),
+    }));
+  }
+
+  static async createRole(
+    sql: unknown,
+    creatorAdminId: string,
+    data: { name: string; description?: string }
+  ): Promise<{ role?: RoleItem; error?: string; status: number }> {
+    const rawName = (data.name || "")
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9_]/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_|_$/g, "");
+
+    if (!rawName || rawName.length < 2) {
+      return { error: "Role name must contain at least 2 alphanumeric characters.", status: 400 };
+    }
+
+    const existing = await prisma.role.findUnique({
+      where: { name: rawName },
+    });
+    if (existing) {
+      return { error: `Role '${rawName}' already exists.`, status: 409 };
+    }
+
+    const created = await prisma.role.create({
+      data: {
+        name: rawName,
+        description: data.description?.trim() || `${rawName} Role`,
+        isSystem: false,
+      },
+      include: {
+        _count: { select: { admins: true } },
+      },
+    });
+
+    void writeAudit(sql, {
+      adminId: creatorAdminId,
+      action: "staff.role.create",
+      entityType: "Role",
+      entityId: created.id,
+      newStatus: created.name,
+      note: `Created custom role ${created.name}`,
+    });
+
+    return {
+      role: {
+        id: created.id,
+        name: created.name,
+        description: created.description,
+        isSystem: created.isSystem,
+        adminCount: created._count.admins,
+        createdAt: created.createdAt.toISOString(),
+        updatedAt: created.updatedAt.toISOString(),
+      },
+      status: 201,
+    };
+  }
+
   static async listStaff(): Promise<StaffListItem[]> {
     const rows = await prisma.adminUser.findMany({
       include: { role: true },
@@ -173,25 +252,28 @@ export class StaffService {
 
     const passwordHash = await hashPassword(data.password);
     const staffId = cuid();
-    const validRoles = [
-      "SUPER_ADMIN",
-      "ADMIN",
-      "PROCUREMENT_ADMIN",
-      "VENDOR_ADMIN",
-      "WEBSITE_ADMIN",
-      "REVIEWER",
-    ];
-    const validRole = (validRoles.includes(data.role || "") ? data.role : "ADMIN") as AdminRoleName;
+    const requestedRole = (data.role || "ADMIN").trim().toUpperCase();
 
     let roleRecord = await prisma.role.findUnique({
-      where: { name: validRole },
+      where: { name: requestedRole },
     });
 
     if (!roleRecord) {
-      roleRecord = await prisma.role.create({
-        data: {
-          name: validRole,
-          description: `${validRole} Role`,
+      const validRoles = [
+        "SUPER_ADMIN",
+        "ADMIN",
+        "PROCUREMENT_ADMIN",
+        "VENDOR_ADMIN",
+        "WEBSITE_ADMIN",
+        "REVIEWER",
+      ];
+      const roleToCreate = validRoles.includes(requestedRole) ? requestedRole : "ADMIN";
+      roleRecord = await prisma.role.upsert({
+        where: { name: roleToCreate },
+        update: {},
+        create: {
+          name: roleToCreate,
+          description: `${roleToCreate} Role`,
           isSystem: true,
         },
       });
@@ -219,7 +301,7 @@ export class StaffService {
       metadata: {
         email: normalizedEmail,
         name: data.name,
-        role: validRole,
+        role: roleRecord.name,
         position: data.position,
         department: data.department,
       },
@@ -274,28 +356,34 @@ export class StaffService {
     const nextPosition = typeof data.position === "string" ? data.position : target.position;
     const nextDepartment = typeof data.department === "string" ? data.department : target.department;
     const nextPhone = typeof data.phone === "string" ? data.phone : target.phone;
-    const validRoles = [
-      "SUPER_ADMIN",
-      "ADMIN",
-      "PROCUREMENT_ADMIN",
-      "VENDOR_ADMIN",
-      "WEBSITE_ADMIN",
-      "REVIEWER",
-    ];
-    const nextRoleName =
-      typeof data.role === "string" && validRoles.includes(data.role)
-        ? (data.role as AdminRoleName)
-        : (currentRoleName as AdminRoleName);
     const nextIsActive = typeof data.isActive === "boolean" ? data.isActive : Boolean(target.isActive);
 
     let nextRoleId = target.roleId;
+    let nextRoleName = currentRoleName;
     if (data.role !== undefined && data.role !== currentRoleName) {
-      const roleRecord = await prisma.role.upsert({
-        where: { name: nextRoleName },
-        update: {},
-        create: { name: nextRoleName, description: `${nextRoleName} Role`, isSystem: true },
+      const requestedRole = data.role.trim().toUpperCase();
+      let roleRecord = await prisma.role.findUnique({
+        where: { name: requestedRole },
       });
-      nextRoleId = roleRecord.id;
+      if (!roleRecord) {
+        const validRoles = [
+          "SUPER_ADMIN",
+          "ADMIN",
+          "PROCUREMENT_ADMIN",
+          "VENDOR_ADMIN",
+          "WEBSITE_ADMIN",
+          "REVIEWER",
+        ];
+        if (validRoles.includes(requestedRole)) {
+          roleRecord = await prisma.role.create({
+            data: { name: requestedRole, description: `${requestedRole} Role`, isSystem: true },
+          });
+        }
+      }
+      if (roleRecord) {
+        nextRoleId = roleRecord.id;
+        nextRoleName = roleRecord.name as AdminRoleName;
+      }
     }
 
     await prisma.adminUser.update({

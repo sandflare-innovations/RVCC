@@ -32,7 +32,13 @@ export class DashboardService {
       },
     });
     const awaitingAward = await prisma.requirement.count({
-      where: { status: "OPEN", closesAt: { lte: now } },
+      where: {
+        awardedQuoteId: null,
+        OR: [
+          { status: "OPEN", closesAt: { lte: now } },
+          { status: "EVALUATING" },
+        ],
+      },
     });
 
     const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
@@ -93,7 +99,7 @@ export class DashboardService {
     }));
 
     return {
-      pendingRegistrations: byStatus.SUBMITTED ?? 0,
+      pendingRegistrations: (byStatus.SUBMITTED ?? 0) + (byStatus.PENDING ?? 0),
       activeVendors: vendorsCount,
       vendors: vendorsCount,
       publishedJobs,

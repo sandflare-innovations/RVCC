@@ -1,6 +1,16 @@
 import type { AdminRoleNameEnum } from "@rvcc/schemas";
 
-export type AdminRoleName = AdminRoleNameEnum;
+export type AdminRoleName = AdminRoleNameEnum | (string & {});
+
+export interface StaffRoleItem {
+  id: string;
+  name: string;
+  description: string;
+  isSystem: boolean;
+  adminCount: number;
+  createdAt: string;
+  updatedAt?: string;
+}
 
 export interface StaffMember {
   id: string;

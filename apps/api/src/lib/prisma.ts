@@ -23,6 +23,13 @@ function createBaseClient() {
   });
 }
 
+function hasDeletedAt(basePrisma: any, model: string): boolean {
+  const delegate =
+    (basePrisma as any)[model] ||
+    (basePrisma as any)[model.charAt(0).toLowerCase() + model.slice(1)];
+  return "deletedAt" in (delegate?.fields ?? {});
+}
+
 function buildExtendedClient(basePrisma: ReturnType<typeof createBaseClient>) {
   return basePrisma.$extends({
     name: "soft-delete-extension",
@@ -37,8 +44,11 @@ function buildExtendedClient(basePrisma: ReturnType<typeof createBaseClient>) {
           args: any;
           query: (args: any) => Promise<any>;
         }) {
-          if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
-            return ((basePrisma as any)[model] as any).update({
+          if (hasDeletedAt(basePrisma, model)) {
+            const delegate =
+              (basePrisma as any)[model] ||
+              (basePrisma as any)[model.charAt(0).toLowerCase() + model.slice(1)];
+            return delegate.update({
               where: args.where,
               data: { deletedAt: new Date() },
             });
@@ -55,8 +65,11 @@ function buildExtendedClient(basePrisma: ReturnType<typeof createBaseClient>) {
           args: any;
           query: (args: any) => Promise<any>;
         }) {
-          if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
-            return ((basePrisma as any)[model] as any).updateMany({
+          if (hasDeletedAt(basePrisma, model)) {
+            const delegate =
+              (basePrisma as any)[model] ||
+              (basePrisma as any)[model.charAt(0).toLowerCase() + model.slice(1)];
+            return delegate.updateMany({
               where: args?.where,
               data: { deletedAt: new Date() },
             });
@@ -73,7 +86,7 @@ function buildExtendedClient(basePrisma: ReturnType<typeof createBaseClient>) {
           args: any;
           query: (args: any) => Promise<any>;
         }) {
-          if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
+          if (hasDeletedAt(basePrisma, model)) {
             const result = await query(args);
             if (result && Boolean((result as any).deletedAt)) {
               return null;
@@ -92,8 +105,11 @@ function buildExtendedClient(basePrisma: ReturnType<typeof createBaseClient>) {
           args: any;
           query: (args: any) => Promise<any>;
         }) {
-          if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
-            args.where = { ...(args.where || {}), deletedAt: null };
+          if (hasDeletedAt(basePrisma, model)) {
+            args = args ? { ...args } : {};
+            if (args.where?.deletedAt === undefined) {
+              args.where = { ...(args.where || {}), deletedAt: null };
+            }
           }
           return query(args);
         },
@@ -107,8 +123,65 @@ function buildExtendedClient(basePrisma: ReturnType<typeof createBaseClient>) {
           args: any;
           query: (args: any) => Promise<any>;
         }) {
-          if ("deletedAt" in ((basePrisma as any)[model]?.fields ?? {})) {
-            args.where = { ...(args.where || {}), deletedAt: null };
+          if (hasDeletedAt(basePrisma, model)) {
+            args = args ? { ...args } : {};
+            if (args.where?.deletedAt === undefined) {
+              args.where = { ...(args.where || {}), deletedAt: null };
+            }
+          }
+          return query(args);
+        },
+
+        async count({
+          model,
+          args,
+          query,
+        }: {
+          model: string;
+          args: any;
+          query: (args: any) => Promise<any>;
+        }) {
+          if (hasDeletedAt(basePrisma, model)) {
+            args = args ? { ...args } : {};
+            if (args.where?.deletedAt === undefined) {
+              args.where = { ...(args.where || {}), deletedAt: null };
+            }
+          }
+          return query(args);
+        },
+
+        async groupBy({
+          model,
+          args,
+          query,
+        }: {
+          model: string;
+          args: any;
+          query: (args: any) => Promise<any>;
+        }) {
+          if (hasDeletedAt(basePrisma, model)) {
+            args = args ? { ...args } : {};
+            if (args.where?.deletedAt === undefined) {
+              args.where = { ...(args.where || {}), deletedAt: null };
+            }
+          }
+          return query(args);
+        },
+
+        async aggregate({
+          model,
+          args,
+          query,
+        }: {
+          model: string;
+          args: any;
+          query: (args: any) => Promise<any>;
+        }) {
+          if (hasDeletedAt(basePrisma, model)) {
+            args = args ? { ...args } : {};
+            if (args.where?.deletedAt === undefined) {
+              args.where = { ...(args.where || {}), deletedAt: null };
+            }
           }
           return query(args);
         },

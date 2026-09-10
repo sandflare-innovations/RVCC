@@ -15,7 +15,7 @@ export class DashboardAdminController {
     try {
       const payload = await DashboardService.getDashboardMetrics();
       return json(env, request, payload, 200, {
-        "Cache-Control": "private, max-age=15",
+        "Cache-Control": "no-store, no-cache, must-revalidate",
       });
     } catch (err) {
       console.error("[admin dashboard failed]", err);

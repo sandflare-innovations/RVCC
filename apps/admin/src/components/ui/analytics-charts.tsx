@@ -48,48 +48,50 @@ export function DonutChart({ data, title, height = 320, className, ...props }: D
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={data}
+              data={total > 0 ? data : [{ name: "None", value: 1, color: "#f1f5f9" }]}
               cx="50%"
               cy="50%"
               innerRadius={82}
               outerRadius={114}
-              paddingAngle={3}
-              cornerRadius={10}
+              paddingAngle={total > 0 ? 3 : 0}
+              cornerRadius={total > 0 ? 10 : 0}
               dataKey="value"
               stroke="none"
             >
-              {data.map((entry, index) => (
+              {(total > 0 ? data : [{ color: "#f1f5f9" }]).map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
-            <Tooltip
-              isAnimationActive={false}
-              animationDuration={0}
-              allowEscapeViewBox={{ x: true, y: true }}
-              position={mousePos ?? undefined}
-              wrapperStyle={{ outline: "none", zIndex: 20 }}
-              content={({ active, payload }) => {
-                if (!active || !payload?.length) return null;
-                const item = payload[0].payload as { name: string; value: number; color: string };
-                const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
-                return (
-                  <div className={tooltipClass}>
-                    <p className="flex items-center gap-2 font-medium text-zinc-900">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      {item.name}
-                    </p>
-                    <p className="mt-1 text-xs text-zinc-500">
-                      <span className="font-semibold text-zinc-900 tabular-nums">{item.value}</span>
-                      {" · "}
-                      {pct}%
-                    </p>
-                  </div>
-                );
-              }}
-            />
+            {total > 0 && (
+              <Tooltip
+                isAnimationActive={false}
+                animationDuration={0}
+                allowEscapeViewBox={{ x: true, y: true }}
+                position={mousePos ?? undefined}
+                wrapperStyle={{ outline: "none", zIndex: 20 }}
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null;
+                  const item = payload[0].payload as { name: string; value: number; color: string };
+                  const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
+                  return (
+                    <div className={tooltipClass}>
+                      <p className="flex items-center gap-2 font-medium text-zinc-900">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{ backgroundColor: item.color }}
+                        />
+                        {item.name}
+                      </p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        <span className="font-semibold text-zinc-900 tabular-nums">{item.value}</span>
+                        {" · "}
+                        {pct}%
+                      </p>
+                    </div>
+                  );
+                }}
+              />
+            )}
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">

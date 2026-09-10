@@ -11,6 +11,8 @@ import {
   handleAdminChangePasswordWithCurrent,
 } from "./controllers/password.controller";
 import {
+  handleRoleCreate,
+  handleRoleList,
   handleStaffCreate,
   handleStaffDelete,
   handleStaffList,
@@ -47,6 +49,8 @@ export function createAdminAuthRouter(env: Env) {
   // Admin staff management routes
   router.get("/staff", (c) => handleStaffList(null, env, c.req.raw));
   router.post("/staff", (c) => handleStaffCreate(null, env, c.req.raw));
+  router.get("/staff/roles", (c) => handleRoleList(null, env, c.req.raw));
+  router.post("/staff/roles", (c) => handleRoleCreate(null, env, c.req.raw));
   router.post("/staff/otp/request", (c) =>
     handleStaffOtpRequest(null, env, c.req.raw)
   );
