@@ -46,7 +46,7 @@ function syncUrl(filter: RequirementFilterValue, search: string) {
   window.history.replaceState(null, "", url);
 }
 
-function formatDateTime(d: string | null) {
+function formatDateTime(d: string | null | undefined) {
   if (!d) return "—";
   const date = new Date(d);
   if (isNaN(date.getTime())) return "—";
@@ -63,75 +63,37 @@ function statusIcon(status: string, closesAt: string | null) {
   if (status === "OPEN" && closesAt) {
     const date = new Date(closesAt);
     if (!isNaN(date.getTime()) && date.getTime() <= Date.now()) {
-      return <Lock className="mr-2 h-4 w-4 text-purple-500" />;
+      return <Lock className="h-4 w-4 text-purple-500" />;
     }
     return (
-      <div className="relative mr-2 flex h-4 w-4 items-center justify-center">
+      <div className="relative flex h-4 w-4 items-center justify-center">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
         <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
       </div>
     );
   }
 
-  if (status === "DRAFT") return <CircleDashed className="mr-2 h-4 w-4 text-amber-500" />;
-  if (status === "AWARDED") return <Trophy className="text-brand-blue mr-2 h-4 w-4" />;
-  if (status === "CANCELLED") return <XCircle className="mr-2 h-4 w-4 text-rose-500" />;
+  if (status === "DRAFT") return <CircleDashed className="h-4 w-4 text-amber-500" />;
+  if (status === "AWARDED") return <Trophy className="text-brand-blue h-4 w-4" />;
+  if (status === "CANCELLED") return <XCircle className="h-4 w-4 text-rose-500" />;
 
-  return <Clock className="mr-2 h-4 w-4 text-zinc-400" />;
+  return <Clock className="h-4 w-4 text-zinc-400" />;
 }
 
-function statusLabel(status: string, closesAt: string | null) {
+function statusTitle(status: string, closesAt: string | null) {
   if (status === "OPEN" && closesAt) {
     const date = new Date(closesAt);
     if (!isNaN(date.getTime()) && date.getTime() <= Date.now()) {
-      return (
-        <span className="inline-flex items-center font-medium text-purple-700">
-          {statusIcon(status, closesAt)}
-          Closed
-        </span>
-      );
+      return "Closed";
     }
-    return (
-      <span className="inline-flex items-center font-medium text-emerald-700">
-        {statusIcon(status, closesAt)}
-        Open
-      </span>
-    );
+    return "Open & Live";
   }
 
-  if (status === "DRAFT") {
-    return (
-      <span className="inline-flex items-center font-medium text-amber-700">
-        {statusIcon(status, closesAt)}
-        Draft
-      </span>
-    );
-  }
+  if (status === "DRAFT") return "Draft";
+  if (status === "AWARDED") return "Awarded";
+  if (status === "CANCELLED") return "Cancelled";
 
-  if (status === "AWARDED") {
-    return (
-      <span className="text-brand-blue inline-flex items-center font-medium">
-        {statusIcon(status, closesAt)}
-        Awarded
-      </span>
-    );
-  }
-
-  if (status === "CANCELLED") {
-    return (
-      <span className="inline-flex items-center font-medium text-rose-700">
-        {statusIcon(status, closesAt)}
-        Cancelled
-      </span>
-    );
-  }
-
-  return (
-    <span className="inline-flex items-center font-medium text-zinc-700">
-      {statusIcon(status, closesAt)}
-      {status.charAt(0) + status.slice(1).toLowerCase()}
-    </span>
-  );
+  return status.charAt(0) + status.slice(1).toLowerCase();
 }
 
 const SEARCH_PLACEHOLDERS = ["reference ID", "project name"];
@@ -368,8 +330,8 @@ export function RequirementsPanel() {
         {/* Fixed Top Header */}
         <div className="bg-brand-blue mb-2 shrink-0 rounded-2xl px-6 py-3.5 text-white shadow-xs">
           <div className="grid grid-cols-12 items-center gap-3 text-xs font-semibold">
-            <div className="col-span-3 min-w-0">Project</div>
-            <div className="col-span-2 min-w-0">Status</div>
+            <div className="col-span-1 min-w-0 text-center">Status</div>
+            <div className="col-span-4 min-w-0">Project</div>
             <div className="col-span-2 min-w-0">Reference</div>
             <div
               className="col-span-2 flex min-w-0 cursor-pointer items-center gap-1 transition-colors select-none hover:text-white/80"
@@ -431,10 +393,16 @@ export function RequirementsPanel() {
               className="group hover:ring-brand-blue/40 grid cursor-pointer grid-cols-12 items-center gap-3 rounded-2xl bg-white p-4 text-sm ring-1 ring-zinc-100 transition-all ring-inset"
               onClick={() => (window.location.href = `/requirements/${r.id}`)}
             >
-              <div className="col-span-3 min-w-0 truncate font-medium text-zinc-900">
+              <div
+                className="col-span-1 flex min-w-0 items-center justify-center"
+                title={statusTitle(r.status, r.closesAt)}
+                aria-label={statusTitle(r.status, r.closesAt)}
+              >
+                {statusIcon(r.status, r.closesAt)}
+              </div>
+              <div className="col-span-4 min-w-0 truncate font-medium text-zinc-900">
                 {r.project}
               </div>
-              <div className="col-span-2 min-w-0 truncate">{statusLabel(r.status, r.closesAt)}</div>
               <div className="text-brand-blue col-span-2 min-w-0 truncate font-mono text-xs font-medium tabular-nums group-hover:underline">
                 {r.referenceNumber ?? "— draft —"}
               </div>
@@ -446,7 +414,7 @@ export function RequirementsPanel() {
               </div>
               <div className="col-span-1 flex min-w-0 items-center justify-end gap-2 text-right">
                 <span className="font-mono text-xs text-zinc-600 tabular-nums">
-                  {r.submitted} ({r.invited})
+                  {r.submitted ?? (r as any).quotesCount ?? 0} ({r.invited ?? (r as any).invitedCount ?? 0})
                 </span>
                 <button
                   type="button"
@@ -528,21 +496,20 @@ export function RequirementsSkeleton() {
             <thead>
               <tr className="text-white">
                 {[
-                  "Project",
                   "Status",
+                  "Project",
                   "Reference",
                   "Posted Date",
                   "Closes Date",
-                  "Invited",
                   "Quotes",
                 ].map((h, i) => (
                   <th
                     key={h}
-                    className={`bg-zinc-100 px-8 py-3.5 font-semibold whitespace-nowrap ${i === 0 ? "rounded-l-2xl" : ""} ${i === 6 ? "rounded-r-2xl" : ""}`}
+                    className={`bg-zinc-100 px-8 py-3.5 font-semibold whitespace-nowrap ${i === 0 ? "rounded-l-2xl" : ""} ${i === 5 ? "rounded-r-2xl" : ""}`}
                   >
                     <div
                       className="h-3 rounded bg-zinc-200"
-                      style={{ width: h === "Project" ? "80px" : h === "Status" ? "48px" : "64px" }}
+                      style={{ width: h === "Status" ? "32px" : h === "Project" ? "80px" : "64px" }}
                     />
                   </th>
                 ))}
@@ -552,10 +519,10 @@ export function RequirementsSkeleton() {
               {Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="rounded-2xl bg-white ring-1 ring-zinc-100 ring-inset">
                   <td className="sticky left-0 z-10 rounded-l-2xl bg-white px-8 py-4 whitespace-nowrap ring-1 ring-zinc-100 ring-inset">
-                    <div className="h-4 w-36 rounded bg-zinc-100" />
+                    <div className="h-4 w-4 rounded-full bg-zinc-200" />
                   </td>
                   <td className="px-8 py-4 whitespace-nowrap">
-                    <div className="h-4 w-20 rounded bg-zinc-100" />
+                    <div className="h-4 w-36 rounded bg-zinc-100" />
                   </td>
                   <td className="px-8 py-4 whitespace-nowrap">
                     <div className="h-4 w-24 rounded bg-zinc-100" />
@@ -565,9 +532,6 @@ export function RequirementsSkeleton() {
                   </td>
                   <td className="px-8 py-4 whitespace-nowrap">
                     <div className="h-4 w-32 rounded bg-zinc-100" />
-                  </td>
-                  <td className="px-8 py-4 whitespace-nowrap">
-                    <div className="h-4 w-8 rounded bg-zinc-100" />
                   </td>
                   <td className="rounded-r-2xl px-8 py-4 whitespace-nowrap">
                     <div className="h-4 w-8 rounded bg-zinc-100" />
