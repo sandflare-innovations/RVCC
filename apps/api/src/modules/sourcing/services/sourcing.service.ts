@@ -91,9 +91,12 @@ export class SourcingService {
       scopeOfWork: r.scopeOfWork,
       currency: r.currency,
       closesAt: r.closesAt.toISOString(),
+      createdAt: r.createdAt.toISOString(),
       status: r.status,
       awardedQuoteId: r.awardedQuoteId,
       awardedAt: r.awardedAt ? r.awardedAt.toISOString() : null,
+      invited: r._count.invites,
+      submitted: r._count.quotes,
       invitedCount: r._count.invites,
       quotesCount: r._count.quotes,
     }));
