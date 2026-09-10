@@ -253,33 +253,77 @@ export class VendorAccountsService {
   }
 
   /**
-   * Delete vendor account (soft-delete)
+   * Delete vendor account (soft-delete) and associated registrations
    */
   static async deleteVendor(id: string) {
     const existing = await prisma.vendorUser.findFirst({
       where: { id, deletedAt: null },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, name: true, registrationId: true },
     });
 
     if (!existing) return null;
 
-    await prisma.$transaction([
-      prisma.vendorUser.update({
+    const now = new Date();
+
+    // Identify all linked/matching registration IDs for this vendor
+    const regIds = new Set<string>();
+    if (existing.registrationId) {
+      regIds.add(existing.registrationId);
+    }
+    if (existing.email) {
+      const emailMatches = await prisma.supplierRegistration.findMany({
+        where: { email: { equals: existing.email, mode: "insensitive" }, deletedAt: null },
+        select: { id: true },
+      });
+      for (const m of emailMatches) {
+        regIds.add(m.id);
+      }
+    }
+
+    const regIdList = Array.from(regIds);
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Soft-delete vendor
+      await tx.vendorUser.update({
         where: { id },
         data: {
-          deletedAt: new Date(),
+          deletedAt: now,
           isActive: false,
           portalAccess: "HELD",
         },
-      }),
-      prisma.vendorSession.updateMany({
+      });
+
+      // 2. Revoke active sessions
+      await tx.vendorSession.updateMany({
         where: { vendorId: id, revokedAt: null },
-        data: { revokedAt: new Date() },
-      }),
-    ]);
+        data: { revokedAt: now },
+      });
+
+      // 3. Soft-delete associated registrations and related records
+      if (regIdList.length > 0) {
+        await tx.supplierRegistration.updateMany({
+          where: { id: { in: regIdList } },
+          data: { deletedAt: now },
+        });
+
+        await tx.companyProfile.updateMany({
+          where: { registrationId: { in: regIdList } },
+          data: { deletedAt: now },
+        });
+
+        await tx.supplierContact.updateMany({
+          where: { registrationId: { in: regIdList } },
+          data: { deletedAt: now },
+        });
+
+        await tx.supplierAddress.updateMany({
+          where: { registrationId: { in: regIdList } },
+          data: { deletedAt: now },
+        });
+      }
+    });
 
     return existing;
-
   }
 
   /**

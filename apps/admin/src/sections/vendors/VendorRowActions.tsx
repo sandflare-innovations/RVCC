@@ -19,6 +19,7 @@ import { createPortal } from "react-dom";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
+import { clearRegistrationCache } from "@/lib/registration-cache";
 import { clearVendorCache } from "@/lib/vendor-cache";
 
 export type VendorSummary = {
@@ -174,6 +175,7 @@ export function VendorRowActions({
         return;
       }
       clearVendorCache();
+      clearRegistrationCache();
       setShowDelete(false);
       if (onUpdated) onUpdated();
       else router.refresh();

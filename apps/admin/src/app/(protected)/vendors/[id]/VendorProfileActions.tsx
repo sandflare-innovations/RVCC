@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
+import { clearRegistrationCache } from "@/lib/registration-cache";
 import { clearVendorCache } from "@/lib/vendor-cache";
 
 export function VendorProfileActions({
@@ -113,6 +114,7 @@ export function VendorProfileActions({
         return;
       }
       clearVendorCache();
+      clearRegistrationCache();
       setShowDelete(false);
       router.push("/vendors");
       router.refresh();
