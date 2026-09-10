@@ -375,19 +375,19 @@ export function StaffPanel() {
           {
             label: "Super Admins",
             value: metrics.superAdmins,
-            icon: <ShieldCheck className="h-4 w-4 text-purple-600" />,
+            icon: <ShieldCheck className="h-4 w-4" />,
             roleVal: "SUPER_ADMIN" as const,
           },
           {
             label: "Operational Admins",
             value: metrics.admins,
-            icon: <Shield className="text-brand-blue h-4 w-4" />,
+            icon: <Shield className="h-4 w-4" />,
             roleVal: "ADMIN" as const,
           },
           {
             label: "Active Accounts",
             value: metrics.active,
-            icon: <CheckCircle className="h-4 w-4 text-emerald-500" />,
+            icon: <CheckCircle className="h-4 w-4" />,
             roleVal: "ALL" as const,
           },
         ].map((card, idx) => (
