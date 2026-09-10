@@ -483,15 +483,6 @@ export function StaffPanel() {
             </span>
           </button>
 
-          {/* Manage Roles Button */}
-          <button
-            type="button"
-            onClick={() => setRoleModalOpen(true)}
-            className="border-brand-blue text-brand-blue hover:bg-brand-blue/5 focus-visible:ring-brand-blue/25 inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-full border bg-white px-4 py-2.5 text-xs font-semibold shadow-2xs transition-all outline-none focus-visible:ring-[3px]"
-          >
-            <Shield className="h-4 w-4" />
-            <span>Roles ({roles.length})</span>
-          </button>
 
           {/* Add Staff Button */}
           <button
