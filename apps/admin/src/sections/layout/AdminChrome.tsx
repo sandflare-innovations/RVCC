@@ -85,7 +85,7 @@ function SidebarContents({
   const allowWebsite = role === "SUPER_ADMIN" || role === "ADMIN" || role === "WEBSITE_ADMIN";
   const allowProcurement =
     role === "SUPER_ADMIN" || role === "ADMIN" || role === "PROCUREMENT_ADMIN";
-  const allowStaff = role === "SUPER_ADMIN" || role === "ADMIN";
+  const allowStaff = role === "SUPER_ADMIN";
 
   // Filter VENDOR_NAV according to permissions
   const filteredVendorNav = VENDOR_NAV.filter((item) => {

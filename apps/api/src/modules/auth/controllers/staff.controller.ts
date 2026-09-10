@@ -9,7 +9,7 @@ export class StaffController {
     env: Env,
     request: Request
   ): Promise<Response> {
-    const auth = await requireAdmin(sql, env, request);
+    const auth = await requireAdmin(sql, env, request, "SUPER_ADMIN");
     if (auth.deny) return auth.deny;
 
     let body: any;
@@ -41,7 +41,7 @@ export class StaffController {
     env: Env,
     request: Request
   ): Promise<Response> {
-    const auth = await requireAdmin(sql, env, request);
+    const auth = await requireAdmin(sql, env, request, "SUPER_ADMIN");
     if (auth.deny) return auth.deny;
 
     const staff = await StaffService.listStaff();
@@ -176,7 +176,7 @@ export class StaffController {
     env: Env,
     request: Request
   ): Promise<Response> {
-    const auth = await requireAdmin(sql, env, request);
+    const auth = await requireAdmin(sql, env, request, "SUPER_ADMIN");
     if (auth.deny) return auth.deny;
 
     const roles = await StaffService.listRoles();
@@ -188,7 +188,7 @@ export class StaffController {
     env: Env,
     request: Request
   ): Promise<Response> {
-    const auth = await requireAdmin(sql, env, request, "ADMIN");
+    const auth = await requireAdmin(sql, env, request, "SUPER_ADMIN");
     if (auth.deny) return auth.deny;
 
     let body: any;
