@@ -83,6 +83,12 @@ export async function handleAdminLiveBids(
     return json(env, request, { error: "Requirement not found" }, 404);
   }
 
+  // If the client requested JSON (e.g. initial snapshot fetch)
+  const isSse = request.headers.get("Accept")?.includes("text/event-stream");
+  if (!isSse) {
+    return json(env, request, initialPayload);
+  }
+
   let subscriber: BidSubscriber | null = null;
   const subs = getSubscribersFor(requirementId);
 
@@ -157,6 +163,12 @@ export async function handleVendorLiveBids(
   const initialPayload = await buildVendorLiveBidsPayload(requirementId, vendor.id);
   if (!initialPayload) {
     return json(env, request, { error: "Requirement not found" }, 404);
+  }
+
+  // If the client requested JSON (e.g. initial snapshot fetch)
+  const isSse = request.headers.get("Accept")?.includes("text/event-stream");
+  if (!isSse) {
+    return json(env, request, initialPayload);
   }
 
   let subscriber: BidSubscriber | null = null;
