@@ -77,6 +77,11 @@ export function LiveMarketCard({
               <Loader2 className="h-2.5 w-2.5 animate-spin" />
               Connecting
             </span>
+          ) : status === "offline" && !liveData ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-[10px] font-bold text-zinc-600">
+              <AlertCircle className="h-2.5 w-2.5" />
+              Offline
+            </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
               <span className="relative flex h-1.5 w-1.5">
