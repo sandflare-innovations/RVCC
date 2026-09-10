@@ -20,9 +20,11 @@ export function useVendorLiveBidding(
       });
       if (res.ok) {
         const json = (await res.json()) as VendorLiveBidsPayload;
-        setData(json);
-        setLastUpdated(new Date());
-        setStatus("live");
+        if (json?.requirementId) {
+          setData(json);
+          setLastUpdated(new Date());
+          setStatus("live");
+        }
       }
     } catch {
       // Ignored
@@ -34,7 +36,7 @@ export function useVendorLiveBidding(
     setStatus("connecting");
 
     // Fetch initial snapshot once on page load
-    fetchSnapshot();
+    void fetchSnapshot();
 
     // Open persistent SSE stream (0 polling requests while idle)
     const url = `/api/requirements/${encodeURIComponent(requirementId)}/live`;
@@ -45,7 +47,7 @@ export function useVendorLiveBidding(
       if (!unmounted) setStatus("live");
     };
 
-    es.onmessage = (event) => {
+    const onMessageEvent = (event: MessageEvent) => {
       if (unmounted) return;
       try {
         const payload = JSON.parse(event.data) as VendorLiveBidsPayload;
@@ -59,22 +61,28 @@ export function useVendorLiveBidding(
       }
     };
 
+    es.onmessage = onMessageEvent;
+    es.addEventListener("snapshot", onMessageEvent);
+    es.addEventListener("update", onMessageEvent);
+
     es.onerror = () => {
       if (!unmounted) setStatus("offline");
     };
 
     // When the vendor switches back to this tab, sync once
-    const onVisibilityChange = () => {
+    const handleVisibility = () => {
       if (document.visibilityState === "visible" && !unmounted) {
-        fetchSnapshot();
+        void fetchSnapshot();
       }
     };
-    document.addEventListener("visibilitychange", onVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
       unmounted = true;
-      document.removeEventListener("visibilitychange", onVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibility);
       if (eventSourceRef.current) {
+        eventSourceRef.current.removeEventListener("snapshot", onMessageEvent);
+        eventSourceRef.current.removeEventListener("update", onMessageEvent);
         eventSourceRef.current.close();
         eventSourceRef.current = null;
       }
