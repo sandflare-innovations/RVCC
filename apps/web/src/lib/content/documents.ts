@@ -1,104 +1,66 @@
 import "server-only";
 
 import type { DocumentItem } from "@/data/documents";
-
-function apiBase(): string {
-  const envUrl = process.env.API_URL;
-  if (envUrl) return envUrl.replace(/\/$/, "");
-  return "";
-}
+import { apiFetch } from "@/lib/api-fetch";
+import { DOCUMENTS_CACHE_TAG, DOCUMENTS_REVALIDATE_SECONDS } from "@/lib/cache";
 
 export type WebDocumentItem = DocumentItem;
+
+function mapDocumentItem(d: any): WebDocumentItem {
+  return {
+    id: d.id,
+    slug: d.slug,
+    title: d.title,
+    category: (d.category || "Profile") as DocumentItem["category"],
+    description: d.description || "",
+    fileSize: d.fileSize || "0 MB",
+    sizeBytes: d.sizeBytes,
+    pageCount: d.pageCount,
+    filePath: d.filePath || d.fileUrl,
+    fileUrl: d.fileUrl,
+    image: d.coverImage || "/images/books/company-profile.webp",
+    requiresAuth: Boolean(d.requiresAuth),
+    updatedAt: d.updatedAt
+      ? new Date(d.updatedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })
+      : "March 2026",
+  };
+}
 
 /**
  * Fetch all published company documents dynamically from the API.
  */
 export async function getDocuments(): Promise<WebDocumentItem[]> {
-  const base = apiBase();
-  if (!base) return [];
+  const data = await apiFetch<{ documents?: any[] }>(
+    "/documents",
+    {
+      next: { revalidate: DOCUMENTS_REVALIDATE_SECONDS, tags: [DOCUMENTS_CACHE_TAG] },
+    },
+    "documents"
+  );
 
-  try {
-    const res = await fetch(`${base}/documents`, {
-      next: { revalidate: 60 },
-      signal: AbortSignal.timeout(2000),
-    });
-
-    if (!res.ok) {
-      console.warn(`[getDocuments] API returned status ${res.status}`);
-      return [];
-    }
-
-    const data = await res.json();
-    if (!Array.isArray(data.documents)) {
-      return [];
-    }
-
-    return data.documents.map((d: any) => ({
-      id: d.id,
-      slug: d.slug,
-      title: d.title,
-      category: (d.category || "Profile") as DocumentItem["category"],
-      description: d.description || "",
-      fileSize: d.fileSize || "0 MB",
-      sizeBytes: d.sizeBytes,
-      pageCount: d.pageCount,
-      filePath: d.filePath || d.fileUrl,
-      fileUrl: d.fileUrl,
-      image: d.coverImage || "/images/books/company-profile.webp",
-      requiresAuth: Boolean(d.requiresAuth),
-      updatedAt: d.updatedAt
-        ? new Date(d.updatedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })
-        : "March 2026",
-    }));
-  } catch (err) {
-    console.error("[getDocuments] Fetch failed:", err);
+  if (!data?.documents || !Array.isArray(data.documents)) {
     return [];
   }
+
+  return data.documents.map(mapDocumentItem);
 }
 
 /**
  * Fetch a single company document dynamically by slug from the API.
  */
 export async function getDocumentBySlug(slug: string): Promise<WebDocumentItem | null> {
-  const base = apiBase();
-  if (!base) return null;
+  const data = await apiFetch<{ document?: any }>(
+    `/documents/${encodeURIComponent(slug)}`,
+    {
+      next: { revalidate: DOCUMENTS_REVALIDATE_SECONDS, tags: [DOCUMENTS_CACHE_TAG] },
+    },
+    `documents/${slug}`
+  );
 
-  try {
-    const res = await fetch(`${base}/documents/${encodeURIComponent(slug)}`, {
-      next: { revalidate: 60 },
-      signal: AbortSignal.timeout(2000),
-    });
-
-    if (!res.ok) {
-      return null;
-    }
-
-    const data = await res.json();
-    if (!data.document) {
-      return null;
-    }
-
-    const d = data.document;
-    return {
-      id: d.id,
-      slug: d.slug,
-      title: d.title,
-      category: (d.category || "Profile") as DocumentItem["category"],
-      description: d.description || "",
-      fileSize: d.fileSize || "0 MB",
-      sizeBytes: d.sizeBytes,
-      pageCount: d.pageCount,
-      filePath: d.filePath || d.fileUrl,
-      fileUrl: d.fileUrl,
-      image: d.coverImage || "/images/books/company-profile.webp",
-      requiresAuth: Boolean(d.requiresAuth),
-      updatedAt: d.updatedAt
-        ? new Date(d.updatedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })
-        : "March 2026",
-    };
-  } catch (err) {
-    console.error(`[getDocumentBySlug/${slug}] Fetch failed:`, err);
+  if (!data?.document) {
     return null;
   }
+
+  return mapDocumentItem(data.document);
 }
 

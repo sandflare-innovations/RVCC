@@ -118,7 +118,7 @@ export const ProjectCard = ({ project }: { project: DetailedProject }) => {
 };
 
 export const ProjectList = ({ initialProjects }: { initialProjects?: DetailedProject[] }) => {
-  if (!initialProjects || initialProjects.length === 0) {
+  if (initialProjects === undefined) {
     return <ProjectListSkeleton />;
   }
 

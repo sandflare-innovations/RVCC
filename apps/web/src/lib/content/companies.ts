@@ -1,6 +1,7 @@
 import "server-only";
 
 import { apiFetch } from "@/lib/api-fetch";
+import { COMPANIES_CACHE_TAG, COMPANIES_REVALIDATE_SECONDS } from "@/lib/cache";
 
 export interface SisterCompanyItem {
   id: string;
@@ -25,7 +26,7 @@ export async function getSisterCompanies(): Promise<SisterCompanyItem[]> {
   const data = await apiFetch<{ companies?: SisterCompanyItem[] }>(
     "/sister-companies",
     {
-      next: { revalidate: 60, tags: ["sister-companies"] },
+      next: { revalidate: COMPANIES_REVALIDATE_SECONDS, tags: [COMPANIES_CACHE_TAG] },
     },
     "sister-companies"
   );

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { apiFetch } from "@/lib/api-fetch";
+import { CLIENTS_CACHE_TAG, CLIENTS_REVALIDATE_SECONDS } from "@/lib/cache";
 
 export interface ClientPartnerItem {
   id: string;
@@ -19,7 +20,7 @@ export async function getClientPartners(): Promise<ClientPartnerItem[]> {
   const data = await apiFetch<{ clients?: ClientPartnerItem[] }>(
     "/clients",
     {
-      next: { revalidate: 60, tags: ["clients"] },
+      next: { revalidate: CLIENTS_REVALIDATE_SECONDS, tags: [CLIENTS_CACHE_TAG] },
     },
     "clients"
   );

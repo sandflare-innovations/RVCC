@@ -375,8 +375,12 @@ export const MajorProject = ({
 }: {
   initialProjects?: MajorProjectPropItem[];
 }) => {
-  if (!initialProjects || initialProjects.length < 3) {
+  if (initialProjects === undefined) {
     return <MajorProjectSkeleton />;
+  }
+
+  if (initialProjects.length === 0) {
+    return null;
   }
 
   const projectList: MajorProjectPropItem[] = initialProjects.slice(0, 3);

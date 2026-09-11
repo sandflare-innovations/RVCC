@@ -44,7 +44,7 @@ export const ServicesGridSkeleton = () => {
 };
 
 export const ServicesGrid = ({ initialServices }: { initialServices?: Service[] }) => {
-  if (!initialServices || initialServices.length === 0) {
+  if (initialServices === undefined) {
     return <ServicesGridSkeleton />;
   }
 
@@ -66,7 +66,12 @@ export const ServicesGrid = ({ initialServices }: { initialServices?: Service[] 
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+        {displayServices.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <p className="text-muted/80 text-sm">No services currently listed. Please check back shortly.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           {displayServices.map((service, index) => (
             <motion.div
               key={service.id}
@@ -115,6 +120,7 @@ export const ServicesGrid = ({ initialServices }: { initialServices?: Service[] 
             </motion.div>
           ))}
         </div>
+        )}
       </div>
     </section>
   );

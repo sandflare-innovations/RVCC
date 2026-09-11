@@ -9,7 +9,10 @@ export interface ApiFetchOptions extends RequestInit {
     revalidate?: number;
     tags?: string[];
   };
+  timeoutMs?: number;
 }
+
+const DEFAULT_TIMEOUT_MS = 10_000;
 
 /**
  * Server-side fetch with API reachability check.
@@ -30,11 +33,17 @@ export async function apiFetch<T>(
 
   const normalizedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   const targetUrl = `${configuredBase}${normalizedEndpoint}`;
+  const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
   try {
+    const timeoutSignal = AbortSignal.timeout(timeoutMs);
+    const signal = options?.signal
+      ? AbortSignal.any([options.signal, timeoutSignal])
+      : timeoutSignal;
+
     const res = await fetch(targetUrl, {
       ...options,
-      signal: AbortSignal.timeout(2000),
+      signal,
     });
 
     if (res.ok) {
@@ -45,7 +54,7 @@ export async function apiFetch<T>(
   }
 
   console.warn(
-    `\x1b[33m[API Offline: ${label}]\x1b[0m Could not connect to API at ${targetUrl}. Returning empty state.`
+    `\x1b[33m[API Offline: ${label}]\x1b[0m Could not connect to API at ${targetUrl} within ${timeoutMs}ms. Returning empty state.`
   );
   return null;
 }
