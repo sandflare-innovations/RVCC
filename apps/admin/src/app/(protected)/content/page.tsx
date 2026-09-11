@@ -7,6 +7,7 @@ import {
   Globe,
   Image as ImageIcon,
   Info,
+  Newspaper,
   ShieldCheck,
   SlidersHorizontal,
   UserCheck,
@@ -54,6 +55,14 @@ const SECTIONS = [
     icon: Wrench,
     color: "bg-emerald-50 text-emerald-600",
     borderColor: "hover:border-emerald-400",
+  },
+  {
+    href: "/content/news",
+    label: "News & Events",
+    description: "Manage press releases, community outreach, sports sponsorships, and milestones.",
+    icon: Newspaper,
+    color: "bg-orange-50 text-orange-600",
+    borderColor: "hover:border-orange-400",
   },
   {
     href: "/content/about",
