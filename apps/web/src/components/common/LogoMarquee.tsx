@@ -6,10 +6,15 @@ import Image from "next/image";
 
 interface LogoMarqueeProps {
   className?: string;
+  logos?: string[];
 }
 
-export const LogoMarquee = ({ className }: LogoMarqueeProps) => {
-  const logos = [1, 2, 3, 4, 5, 6, 7];
+export const LogoMarquee = ({ className, logos }: LogoMarqueeProps) => {
+  if (!logos || logos.length === 0) {
+    return null;
+  }
+
+  const marqueeList = logos.concat(logos);
 
   return (
     <div
@@ -30,11 +35,11 @@ export const LogoMarquee = ({ className }: LogoMarqueeProps) => {
           }}
           className="flex w-max items-center gap-12 md:gap-16"
         >
-          {logos.concat(logos).map((i, index) => (
-            <div key={index} className="relative h-20 w-20 brightness-0 invert transition-opacity">
+          {marqueeList.map((logoUrl, index) => (
+            <div key={index} className="relative h-16 w-24 brightness-0 invert transition-opacity">
               <Image
-                src={`/images/clients/${i}.webp`}
-                alt={`Partner Logo ${i}`}
+                src={logoUrl}
+                alt={`Partner Logo ${index + 1}`}
                 fill
                 className="object-contain"
                 loading="lazy"

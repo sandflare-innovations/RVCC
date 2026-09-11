@@ -15,6 +15,48 @@ interface HeroProps {
   slides?: HeroSlideItem[];
 }
 
+export const HeroSkeleton = () => {
+  return (
+    <section className="relative h-screen w-full overflow-hidden bg-white">
+      {/* Ambient white & brand blue background shimmer */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-white via-brand-blue/10 to-white animate-pulse" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-blue/5 to-white/80 pointer-events-none" />
+
+      <div className="container relative z-10 mx-auto flex h-full flex-col justify-between px-6 pt-32 pb-24 md:px-12">
+        {/* Top Header Placeholder */}
+        <div className="flex items-center gap-3">
+          <div className="h-2.5 w-2.5 rounded-full bg-brand-blue animate-ping" />
+          <div className="h-4 w-44 rounded-full bg-gradient-to-r from-brand-blue/20 via-brand-blue/10 to-brand-blue/20 animate-pulse" />
+        </div>
+
+        {/* Center Big Headline Placeholders */}
+        <div className="flex flex-col gap-4">
+          <div className="h-16 w-3/4 max-w-xl bg-gradient-to-r from-brand-blue/25 via-brand-blue/10 to-brand-blue/20 animate-pulse md:h-28" />
+          <div className="h-16 w-1/2 max-w-md bg-gradient-to-r from-brand-blue/20 via-brand-blue/5 to-brand-blue/15 animate-pulse md:h-28" />
+          <div className="mt-4 h-4 w-full max-w-lg bg-gradient-to-r from-zinc-200 via-brand-blue/10 to-zinc-200 animate-pulse" />
+          <div className="h-4 w-3/4 max-w-md bg-gradient-to-r from-zinc-200 via-brand-blue/10 to-zinc-200 animate-pulse" />
+
+          {/* Action Button Outlines */}
+          <div className="mt-8 flex flex-wrap gap-4">
+            <div className="h-14 w-44 border-2 border-brand-blue/40 bg-brand-blue/10 animate-pulse" />
+            <div className="h-14 w-52 border border-brand-blue/20 bg-white shadow-sm animate-pulse" />
+          </div>
+        </div>
+
+        {/* Bottom Indicators Skeleton */}
+        <div className="flex items-center justify-between border-t border-brand-blue/15 pt-6">
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 w-12 bg-brand-blue" />
+            <div className="h-1.5 w-8 bg-brand-blue/25" />
+            <div className="h-1.5 w-8 bg-brand-blue/25" />
+          </div>
+          <div className="h-3 w-32 bg-gradient-to-r from-brand-blue/20 to-transparent animate-pulse" />
+        </div>
+      </div>
+    </section>
+  );
+};
+
 export const Hero = ({ slides }: HeroProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const enquireHref = enquireVerifyUrl();
@@ -23,59 +65,12 @@ export const Hero = ({ slides }: HeroProps) => {
   const [progress, setProgress] = useState(0);
   const PROGRESS_DURATION = 5000;
 
-  const activeSlides = slides && slides.length > 0 ? slides : [
-    {
-      id: "fallback-1",
-      badge: "Architecture & Design",
-      title1: "Building",
-      title2: "Legacy",
-      description:
-        "Redefining the architectural landscape through precision engineering and visionary design. We build structures that define generations.",
-      imageUrl: "/images/projects/13.webp",
-      primaryBtnText: "Explore Works",
-      primaryBtnLink: "#projects",
-      secondaryBtnText: "E-Vendor Registration",
-      secondaryBtnLink: "/enquire/verify",
-      sortOrder: 0,
-      isActive: true,
-      createdAt: "",
-      updatedAt: "",
-    },
-    {
-      id: "fallback-2",
-      badge: "Architecture & Design",
-      title1: "Shaping",
-      title2: "Reality",
-      description:
-        "Turning ambitious concepts into solid architectural achievements with unparalleled technical expertise and innovative construction methods.",
-      imageUrl: "/images/projects/4.webp",
-      primaryBtnText: "Explore Works",
-      primaryBtnLink: "#projects",
-      secondaryBtnText: "E-Vendor Registration",
-      secondaryBtnLink: "/enquire/verify",
-      sortOrder: 1,
-      isActive: true,
-      createdAt: "",
-      updatedAt: "",
-    },
-    {
-      id: "fallback-3",
-      badge: "Architecture & Design",
-      title1: "Beyond",
-      title2: "Limits",
-      description:
-        "Creating iconic environments that inspire and endure. Our commitment to quality ensures every project becomes a landmark of excellence.",
-      imageUrl: "/images/projects/2.webp",
-      primaryBtnText: "Explore Works",
-      primaryBtnLink: "#projects",
-      secondaryBtnText: "E-Vendor Registration",
-      secondaryBtnLink: "/enquire/verify",
-      sortOrder: 2,
-      isActive: true,
-      createdAt: "",
-      updatedAt: "",
-    },
-  ];
+  const hasSlides = !!(slides && slides.length > 0);
+  const activeSlides = slides || [];
+
+  if (!hasSlides) {
+    return <HeroSkeleton />;
+  }
 
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollY } = useScroll();
@@ -154,7 +149,7 @@ export const Hero = ({ slides }: HeroProps) => {
   return (
     <section
       ref={sectionRef}
-      className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-black"
+      className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-white"
     >
       {/* Background & Growth Layer */}
       <div className="relative flex h-full w-full items-center justify-center">
