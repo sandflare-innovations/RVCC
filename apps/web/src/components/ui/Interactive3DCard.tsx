@@ -19,7 +19,7 @@ export const Interactive3DCard = ({
   children,
   className,
   rotationFactor = 0.6,
-  autoAnimate = true,
+  autoAnimate = false,
   initialOffset = { x: 0, y: 0 }, // Offset from center for auto-animation
 }: {
   children: React.ReactNode;
@@ -32,8 +32,8 @@ export const Interactive3DCard = ({
   const [isHovered, setIsHovered] = useState(false);
 
   // Raw motion values for mouse position (0 to 1)
-  const mouseX = useMotionValue(0.5 + initialOffset.x);
-  const mouseY = useMotionValue(0.5 + initialOffset.y);
+  const mouseX = useMotionValue(0.5 + (autoAnimate ? initialOffset.x : 0));
+  const mouseY = useMotionValue(0.5 + (autoAnimate ? initialOffset.y : 0));
 
   // Smooth springs for tracking the mouse position
   const springConfig = { stiffness: 100, damping: 30, mass: 0.5 };
