@@ -52,6 +52,7 @@ const NewsAndEvents = dynamic(
 );
 const Contact = dynamic(() => import("@components/common/Contact"), { ssr: true });
 
+// Dynamic page fetch with resilient fallback
 export default async function Home() {
   const [slides, sisterLogos, clients, services, projects] = await Promise.all([
     getHeroSlides(),
@@ -64,7 +65,7 @@ export default async function Home() {
   return (
     <div className="relative min-h-screen">
       {/* Sticky Hero Section */}
-      <div className="sticky top-0 z-0 h-screen w-full">
+      <div className="sticky top-0 z-0 h-screen w-full bg-white">
         <Hero slides={slides} />
       </div>
 
@@ -76,7 +77,7 @@ export default async function Home() {
         <MajorProject initialProjects={projects} />
         <RecentProjects initialProjects={projects} />
         <ScrollingText />
-        <OurWorks />
+        <OurWorks initialProjects={projects} />
         <CSRSection initialLogos={sisterLogos} />
         <NewsAndEvents />
         <Contact />

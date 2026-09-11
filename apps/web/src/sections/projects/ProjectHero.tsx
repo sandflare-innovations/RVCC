@@ -5,15 +5,15 @@ import { motion } from "framer-motion";
 
 import { LogoMarquee } from "@/components/common/LogoMarquee";
 import { AngledSlider } from "@/components/ui/angled-slider";
-import { PROJECTS } from "@/data/projects/detailed";
+import type { DetailedProject } from "@/data/projects/detailed";
 
-export const ProjectHero = () => {
-  const sliderItems = PROJECTS.map((p) => ({
-    id: p.id,
-    url: p.image,
+export const ProjectHero = ({ initialProjects }: { initialProjects?: DetailedProject[] }) => {
+  const sliderItems = (initialProjects || []).map((p) => ({
+    id: String(p.id),
+    url: p.image || p.coverImage || "",
     alt: p.title,
     title: p.title,
-  }));
+  })).filter((item) => Boolean(item.url));
 
   return (
     <section
@@ -36,29 +36,17 @@ export const ProjectHero = () => {
           </motion.div>
         </div>
 
-        {/* Dynamic 3D Slider Section - Layered on Top and Centered */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 1 }}
-          className="absolute top-1/2 left-1/2 z-10 w-full -translate-x-1/2 -translate-y-1/2"
-        >
-          <AngledSlider
-            items={sliderItems}
-            speed={25}
-            containerHeight="500px"
-            cardWidth="400px"
-            angle={60}
-            className="bg-transparent"
-          />
-        </motion.div>
+        {/* Dynamic Project Slider Cards */}
+        {sliderItems.length > 0 && (
+          <div className="relative z-10 mx-auto -mt-36 max-w-[120vw] px-4 md:-mt-64">
+            <AngledSlider items={sliderItems} />
+          </div>
+        )}
       </div>
 
-      {/* Decorative background element */}
-      <div className="bg-brand-blue/5 pointer-events-none absolute top-1/2 left-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 blur-[120px]" />
-
-      {/* Client Logos - Bottom Center */}
-      <LogoMarquee />
+      <div className="absolute bottom-0 z-20 w-full">
+        <LogoMarquee />
+      </div>
     </section>
   );
 };

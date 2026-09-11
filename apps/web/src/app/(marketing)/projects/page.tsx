@@ -23,7 +23,7 @@ export default async function ProjectsPage() {
 
   return (
     <main className="relative min-h-screen">
-      <ProjectHero />
+      <ProjectHero initialProjects={projects} />
       <ProjectMetrics />
       <ClientLogos initialLogos={clients} />
       <ProjectList initialProjects={projects} />

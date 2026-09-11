@@ -47,5 +47,3 @@ export const ABOUT_STATS: AboutStat[] = [
   { value: 15, label: "GOVERNMENT PROJECTS", suffix: "+" },
   { value: 100, label: "SATISFIED CLIENTS", suffix: "%" },
 ];
-
-export const CLIENT_IMAGES = Array.from({ length: 18 }, (_, i) => `/images/clients/${i + 1}.webp`);
