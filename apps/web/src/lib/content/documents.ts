@@ -5,10 +5,7 @@ import type { DocumentItem } from "@/data/documents";
 function apiBase(): string {
   const envUrl = process.env.API_URL;
   if (envUrl) return envUrl.replace(/\/$/, "");
-  if (process.env.NODE_ENV !== "production") {
-    return "http://127.0.0.1:4000";
-  }
-  return "https://rvcc-api.rvcc.workers.dev";
+  return "";
 }
 
 export type WebDocumentItem = DocumentItem;
@@ -17,9 +14,13 @@ export type WebDocumentItem = DocumentItem;
  * Fetch all published company documents dynamically from the API.
  */
 export async function getDocuments(): Promise<WebDocumentItem[]> {
+  const base = apiBase();
+  if (!base) return [];
+
   try {
-    const res = await fetch(`${apiBase()}/documents`, {
+    const res = await fetch(`${base}/documents`, {
       next: { revalidate: 60 },
+      signal: AbortSignal.timeout(2000),
     });
 
     if (!res.ok) {
@@ -59,9 +60,13 @@ export async function getDocuments(): Promise<WebDocumentItem[]> {
  * Fetch a single company document dynamically by slug from the API.
  */
 export async function getDocumentBySlug(slug: string): Promise<WebDocumentItem | null> {
+  const base = apiBase();
+  if (!base) return null;
+
   try {
-    const res = await fetch(`${apiBase()}/documents/${encodeURIComponent(slug)}`, {
+    const res = await fetch(`${base}/documents/${encodeURIComponent(slug)}`, {
       next: { revalidate: 60 },
+      signal: AbortSignal.timeout(2000),
     });
 
     if (!res.ok) {

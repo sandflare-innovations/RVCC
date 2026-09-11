@@ -7,7 +7,7 @@ export const DEPARTMENTS = ["Architecture", "Engineering", "Management", "Operat
 export const EMPLOYMENT_TYPES = ["Full-time", "Contract", "Internship"] as const;
 
 function apiBase(): string {
-  return (process.env.API_URL || "https://rvcc-api.rvcc.workers.dev").replace(/\/$/, "");
+  return (process.env.API_URL || "").replace(/\/$/, "");
 }
 
 /**
@@ -17,9 +17,13 @@ function apiBase(): string {
  * should degrade the careers section, not take down the page around it.
  */
 export async function getPublishedJobs(): Promise<JobPosition[]> {
+  const base = apiBase();
+  if (!base) return [];
+
   try {
-    const res = await fetch(`${apiBase()}/careers`, {
+    const res = await fetch(`${base}/careers`, {
       next: { revalidate: CAREERS_REVALIDATE_SECONDS, tags: [CAREERS_CACHE_TAG] },
+      signal: AbortSignal.timeout(2000),
     });
     if (!res.ok) {
       console.error("[careers] API returned", res.status);

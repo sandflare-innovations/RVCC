@@ -21,16 +21,17 @@ export type PublicMediaFile = {
 function apiBase(): string {
   const envUrl = process.env.API_URL;
   if (envUrl) return envUrl.replace(/\/$/, "");
-  if (process.env.NODE_ENV !== "production") {
-    return "http://127.0.0.1:4000";
-  }
-  return "https://rvcc-api.rvcc.workers.dev";
+  return "";
 }
 
 export async function getPublicMedia(id: string): Promise<PublicMediaFile | null> {
+  const base = apiBase();
+  if (!base) return null;
+
   try {
-    const res = await fetch(`${apiBase()}/media/${encodeURIComponent(id)}`, {
+    const res = await fetch(`${base}/media/${encodeURIComponent(id)}`, {
       next: { revalidate: 300 },
+      signal: AbortSignal.timeout(2000),
     });
 
     if (!res.ok) {
