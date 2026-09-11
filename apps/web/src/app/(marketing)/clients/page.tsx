@@ -16,7 +16,7 @@ export default async function ClientsPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      <ClientsHero />
+      <ClientsHero initialClients={dynamicClients} />
 
       <ClientsGrid clients={dynamicClients} />
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { clients as fallbackClients } from "@data/clients";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import React, { useEffect, useRef } from "react";
@@ -13,18 +12,36 @@ export interface ClientItemProp {
   industry?: string;
 }
 
-export const ClientsGrid = ({ clients: initialClients }: { clients?: ClientItemProp[] }) => {
-  const displayClients: ClientItemProp[] = (initialClients && initialClients.length > 0)
-    ? initialClients
-    : fallbackClients.map((c) => ({
-        id: c.id,
-        name: c.name,
-        logoUrl: c.logo,
-        logo: c.logo,
-        industry: c.industry,
-      }));
-  const hoverSoundRef = useRef<HTMLAudioElement | null>(null);
+export const ClientsGridSkeleton = () => {
+  return (
+    <section className="bg-white py-24">
+      <div className="container mx-auto px-6">
+        <div className="mb-20 flex flex-col items-start justify-between gap-8 md:flex-row md:items-end">
+          <div className="max-w-2xl">
+            <div className="h-14 w-80 bg-zinc-200 animate-pulse mb-6" />
+            <div className="h-5 w-full max-w-lg bg-zinc-100 animate-pulse" />
+          </div>
+          <div className="mb-6 hidden h-px flex-1 bg-zinc-100 md:block" />
+        </div>
 
+        <div className="grid grid-cols-1 gap-px border border-zinc-100 bg-zinc-100 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div
+              key={i}
+              className="relative flex aspect-[2/2] flex-col items-center justify-center bg-white p-8 md:p-12 animate-pulse"
+            >
+              <div className="h-20 w-36 bg-zinc-200/80 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export const ClientsGrid = ({ clients: initialClients }: { clients?: ClientItemProp[] }) => {
+  const displayClients: ClientItemProp[] = initialClients || [];
+  const hoverSoundRef = useRef<HTMLAudioElement | null>(null);
   const speakTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -99,6 +116,10 @@ export const ClientsGrid = ({ clients: initialClients }: { clients?: ClientItemP
     }
   };
 
+  if (!initialClients || initialClients.length === 0) {
+    return <ClientsGridSkeleton />;
+  }
+
   return (
     <section className="bg-white py-24">
       <div className="container mx-auto px-6">
@@ -118,7 +139,7 @@ export const ClientsGrid = ({ clients: initialClients }: { clients?: ClientItemP
         <div className="grid grid-cols-1 gap-px border border-zinc-100 bg-zinc-100 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {displayClients.map((client, index) => (
             <motion.div
-              key={client.id}
+              key={client.id || index}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
