@@ -13,11 +13,11 @@ export interface ClientLogoItem {
 export const ClientLogosSkeleton = () => {
   return (
     <div className="md:pt-element-gap w-full overflow-hidden pt-8">
-      <div className="flex w-full items-center justify-center gap-12 px-8 py-4 opacity-70">
+      <div className="flex w-full items-center justify-center gap-14 px-8 py-4 opacity-70">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div
             key={i}
-            className="h-14 w-32 rounded border border-brand-blue/15 bg-gradient-to-r from-white via-brand-blue/10 to-white animate-pulse flex-shrink-0 shadow-sm"
+            className="h-20 w-44 sm:h-24 sm:w-52 rounded border border-brand-blue/15 bg-gradient-to-r from-white via-brand-blue/10 to-white animate-pulse flex-shrink-0 shadow-sm"
           />
         ))}
       </div>
@@ -48,21 +48,21 @@ export const ClientLogos = ({
   return (
     <div className="md:pt-element-gap w-full overflow-hidden pt-8">
       <motion.div
-        className="flex w-max items-center gap-16 px-8"
+        className="flex w-max items-center gap-20 px-8 sm:gap-24"
         animate={{ x: ["0%", "-50%"] }}
         transition={{ duration: 60, ease: "linear", repeat: Infinity }}
       >
         {displayList.map((src, i) => (
           <div
             key={i}
-            className="relative h-28 w-40 flex-shrink-0 transition-all duration-300 hover:scale-110"
+            className="relative h-36 w-52 sm:h-40 sm:w-60 flex-shrink-0 transition-all duration-300 hover:scale-105"
           >
             <Image
               src={src}
               alt="Client partner logo"
               fill
               className="object-contain"
-              sizes="(max-width: 768px) 120px, 180px"
+              sizes="(max-width: 768px) 210px, 260px"
             />
           </div>
         ))}
