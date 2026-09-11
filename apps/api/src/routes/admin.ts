@@ -491,6 +491,34 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       if (request.method === "DELETE") return await handleAdminServiceDelete(sql, env, request, id);
     }
 
+    // News & Events Content Routes
+    if (path === "/news" && request.method === "GET") {
+      const { handleAdminNewsList } = await import("../modules/content/news/news.controller");
+      return await handleAdminNewsList(sql, env, request);
+    }
+    if (path === "/news" && request.method === "POST") {
+      const { handleAdminNewsCreate } = await import("../modules/content/news/news.controller");
+      return await handleAdminNewsCreate(sql, env, request);
+    }
+    if (path === "/news/reorder" && (request.method === "PUT" || request.method === "POST")) {
+      const { handleAdminNewsReorder } = await import("../modules/content/news/news.controller");
+      return await handleAdminNewsReorder(sql, env, request);
+    }
+    const newsOne = path.match(/^\/news\/([^/]+)$/);
+    if (newsOne) {
+      const id = decodeURIComponent(newsOne[1]!);
+      const {
+        handleAdminNewsGet,
+        handleAdminNewsUpdate,
+        handleAdminNewsDelete,
+      } = await import("../modules/content/news/news.controller");
+      if (request.method === "GET") return await handleAdminNewsGet(sql, env, request, id);
+      if (request.method === "PUT" || request.method === "PATCH") {
+        return await handleAdminNewsUpdate(sql, env, request, id);
+      }
+      if (request.method === "DELETE") return await handleAdminNewsDelete(sql, env, request, id);
+    }
+
     // Public Media Upload for Admin Content (Gallery, Hero, Projects, Services, etc.)
     if (path === "/content/upload" && request.method === "POST") {
       const { handleAdminContentMediaUpload } = await import("../modules/content/media/media.controller");

@@ -46,6 +46,15 @@ import {
   handlePublicServicesRequest,
 } from "./services/services.controller";
 import {
+  handleAdminNewsCreate,
+  handleAdminNewsDelete,
+  handleAdminNewsGet,
+  handleAdminNewsList,
+  handleAdminNewsReorder,
+  handleAdminNewsUpdate,
+} from "./news/news.controller";
+
+import {
   handleAdminGalleryImageCreate,
   handleAdminGalleryImageDelete,
   handleAdminGalleryImageGet,
@@ -128,6 +137,14 @@ export function createContentAdminRouter(env: Env) {
   router.get("/gallery/:id", (c) => handleAdminGalleryImageGet(null, env, c.req.raw, c.req.param("id")));
   router.put("/gallery/:id", (c) => handleAdminGalleryImageUpdate(null, env, c.req.raw, c.req.param("id")));
   router.delete("/gallery/:id", (c) => handleAdminGalleryImageDelete(null, env, c.req.raw, c.req.param("id")));
+
+  // News & Events
+  router.get("/news", (c) => handleAdminNewsList(null, env, c.req.raw));
+  router.post("/news", (c) => handleAdminNewsCreate(null, env, c.req.raw));
+  router.post("/news/reorder", (c) => handleAdminNewsReorder(null, env, c.req.raw));
+  router.get("/news/:id", (c) => handleAdminNewsGet(null, env, c.req.raw, c.req.param("id")));
+  router.put("/news/:id", (c) => handleAdminNewsUpdate(null, env, c.req.raw, c.req.param("id")));
+  router.delete("/news/:id", (c) => handleAdminNewsDelete(null, env, c.req.raw, c.req.param("id")));
 
   return router;
 }

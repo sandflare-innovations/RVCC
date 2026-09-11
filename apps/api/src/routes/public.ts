@@ -9,6 +9,10 @@ import { handlePublicServicesRequest } from "../modules/content/services/service
 import { handlePublicGalleryRequest } from "../modules/content/gallery/gallery.controller";
 import { handlePublicMediaRequest } from "../modules/content/media/media.controller";
 import { handlePublicDocumentsRequest } from "../modules/documents/controllers/documents.public.controller";
+import {
+  handlePublicNewsGet,
+  handlePublicNewsList,
+} from "../modules/content/news/news.controller";
 
 export function createPublicRouter(env: Env) {
   const router = new Hono();
@@ -31,6 +35,12 @@ export function createPublicRouter(env: Env) {
   router.all("/gallery", (c) => handlePublicGalleryRequest(c.req.raw, env));
 
   router.all("/media/:id", (c) => handlePublicMediaRequest(c.req.raw, env, c.req.param("id")));
+
+  router.all("/news", (c) => handlePublicNewsList(c.req.raw, env));
+  router.all("/news/*", (c) => {
+    const slug = c.req.path.replace(/^\/news\/?/, "");
+    return handlePublicNewsGet(c.req.raw, env, slug);
+  });
 
   router.all("/documents", (c) => handlePublicDocumentsRequest(c.req.raw, env));
   router.all("/documents/*", (c) => {

@@ -13,3 +13,6 @@ export * from "./gallery/gallery.service";
 export * from "./gallery/gallery.controller";
 export * from "./media/media.service";
 export * from "./media/media.controller";
+export * from "./news/news.service";
+export * from "./news/news.controller";
+
