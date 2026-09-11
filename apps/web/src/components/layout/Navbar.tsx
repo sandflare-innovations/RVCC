@@ -93,6 +93,13 @@ export const Navbar = () => {
   }, [isLightPage]);
 
   useEffect(() => {
+    setIsOpen(false);
+    setIsVisible(true);
+    setIsScrolled(false);
+    lastScrollY.current = 0;
+  }, [pathname]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
 
     const body = document.body;
