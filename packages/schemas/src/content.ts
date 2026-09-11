@@ -239,3 +239,37 @@ export const companyDocumentInputSchema = z.object({
   pinCode: z.string().nullable().optional(),
 });
 export type CompanyDocumentInput = z.infer<typeof companyDocumentInputSchema>;
+
+// ── News & Events Schemas ───────────────────────────────────────────────────
+
+export const newsEventSchema = z.object({
+  id: z.string(),
+  slug: z.string(),
+  title: z.string(),
+  date: z.string(),
+  excerpt: z.string(),
+  content: z.string().nullable().optional(),
+  imageUrl: z.string(),
+  category: z.string(),
+  edition: z.string(),
+  sortOrder: z.number().int(),
+  isActive: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type NewsEventDTO = z.infer<typeof newsEventSchema>;
+
+export const newsEventInputSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  slug: z.string().optional(),
+  date: z.string().optional(),
+  excerpt: z.string().optional(),
+  content: z.string().nullable().optional(),
+  imageUrl: z.string().min(1, "Image URL is required"),
+  category: z.string().optional(),
+  edition: z.string().optional(),
+  sortOrder: z.number().int().optional(),
+  isActive: z.boolean().optional(),
+});
+export type NewsEventInput = z.infer<typeof newsEventInputSchema>;
+
