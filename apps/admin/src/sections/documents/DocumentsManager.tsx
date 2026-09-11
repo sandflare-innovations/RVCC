@@ -369,7 +369,7 @@ export function DocumentsManager({ initialDocuments, canDelete }: DocumentsManag
                   </div>
 
                   {/* Document Title */}
-                  <h3 className="font-heading group-hover:text-[#0073bc] text-2xl leading-[0.9em] text-zinc-900 uppercase transition-colors mb-2">
+                  <h3 className="font-semibold text-lg text-zinc-900 group-hover:text-brand-blue transition-colors line-clamp-2 mb-2 leading-snug">
                     {doc.title}
                   </h3>
 

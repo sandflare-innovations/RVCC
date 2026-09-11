@@ -44,7 +44,7 @@ export default async function AdminLoginPage() {
             <p className="text-brand-blue mb-4 w-fit rounded-sm bg-white px-3 py-1 text-xs font-black tracking-[0.2em] uppercase shadow-sm">
               Administration
             </p>
-            <h1 className="font-heading text-6xl leading-[0.6] tracking-tight text-white uppercase xl:text-8xl">
+            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl xl:text-6xl leading-tight">
               Manage Procurement Excellence
             </h1>
           </div>
@@ -69,7 +69,7 @@ export default async function AdminLoginPage() {
 
         <div className="mx-auto w-full max-w-md pt-16 md:pt-0">
           <div className="mb-10 space-y-3 text-center">
-            <h2 className="font-heading text-brand-blue text-5xl tracking-tight uppercase md:text-6xl">
+            <h2 className="text-3xl font-bold tracking-tight text-zinc-950 md:text-4xl">
               Sign In
             </h2>
             <p className="text-sm leading-relaxed text-zinc-500">

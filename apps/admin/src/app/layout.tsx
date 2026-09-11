@@ -10,7 +10,7 @@ import { PwaSplash } from "./pwa-splash";
 import { PwaUpdateBanner } from "./pwa-update-banner";
 import { ServiceWorkerRegistrar } from "./sw-registrar";
 
-const adminSans = Inter({ subsets: ["latin"], display: "swap", variable: "--font-enquire-sans" });
+const adminSans = Inter({ subsets: ["latin"], display: "swap", variable: "--font-sans" });
 
 export const viewport: Viewport = {
   themeColor: "#fafafa",
@@ -48,7 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         data-admin
         suppressHydrationWarning
-        className={`${adminSans.variable} font-enquire min-h-screen bg-zinc-50 antialiased`}
+        className={`${adminSans.variable} font-sans min-h-screen bg-zinc-50 antialiased`}
       >
         <PwaSplash />
         <PwaUpdateBanner />
