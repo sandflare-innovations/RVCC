@@ -209,7 +209,7 @@ export const AngledSlider = ({
   return (
     <div
       className={cn(
-        "bg-background perspective-1000 relative flex w-full items-center justify-center overflow-hidden py-10",
+        "perspective-1000 relative flex w-full items-center justify-center overflow-hidden py-10",
         className
       )}
       style={{
