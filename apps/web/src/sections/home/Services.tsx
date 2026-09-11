@@ -1,6 +1,5 @@
 "use client";
 
-import { SERVICES_DATA } from "@data/home/services";
 import { cn } from "@lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
@@ -8,7 +7,6 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
-import { services as STATIC_SERVICES } from "@/data/services";
 import { Icons } from "@/lib/icons";
 
 export interface HomeServiceItem {
@@ -32,85 +30,128 @@ interface CuratedService {
   features: string[];
 }
 
-// Premier fallback disciplines if data is missing or incomplete
-const DEFAULT_FLAGSHIP_SERVICES: CuratedService[] = [
-  {
-    id: "building-projects",
-    slug: "building-projects",
-    title: "Civil Construction & Building Projects",
-    category: "Civil & Commercial",
-    description:
-      "Turnkey commercial developments, residential complexes, and specialized civil structures engineered to the highest international standards.",
-    image: "/images/services/civil.webp",
-    features: ["Turnkey Solutions", "Quality Assurance", "Structural Engineering"],
-  },
-  {
-    id: "architectural-service",
-    slug: "architectural-service",
-    title: "Architectural Design & Planning",
-    category: "Design & Engineering",
-    description:
-      "Innovative architectural concepts and comprehensive technical planning harmonizing aesthetic brilliance with sustainable functional performance.",
-    image: "/images/services/service_architectural_design_1778183639684.webp",
-    features: ["Conceptual Design", "Technical Planning", "Urban Integration"],
-  },
-  {
-    id: "land-development",
-    slug: "land-development",
-    title: "Infrastructure & Land Development",
-    category: "Earthworks & Utilities",
-    description:
-      "Foundational engineering, deep site preparation, road networks, and resilient utility infrastructure for the Kingdom's mega-developments.",
-    image: "/images/services/infrastructure.webp",
-    features: ["Infrastructure Planning", "Site Leveling", "Utility Networks"],
-  },
-  {
-    id: "landscape-works",
-    slug: "landscape-works",
-    title: "Landscape & Public Environments",
-    category: "Master Landscaping",
-    description:
-      "Creating sustainable, flourishing green environments and high-end civic spaces that elevate community living and natural biodiversity.",
-    image: "/images/services/landscaping.webp",
-    features: ["Landscape Architecture", "Public Plazas", "Sustainable Greenery"],
-  },
-  {
-    id: "steel-metal-works",
-    slug: "steel-metal-works",
-    title: "Steel Works & Custom Fabrication",
-    category: "Architectural Metals",
-    description:
-      "Precision structural steel fabrication, bespoke ornamental metalwork, and durable architectural fixtures engineered for longevity.",
-    image: "/images/services/service_steel_works_metal_1778184492685.webp",
-    features: ["Custom Fabrication", "Structural Steel", "Architectural Metal"],
-  },
-];
-
 const PRIORITY_SLUGS = [
   "building-projects",
   "civil",
   "architectural-service",
   "land-development",
   "infrastructure",
-  "landscape-works",
   "hardscaping-works",
   "steel-metal-works",
 ];
+
+export const ServicesSkeleton = () => {
+  return (
+    <section className="section-padding relative w-full overflow-hidden bg-white" id="services">
+      <div className="container mx-auto">
+        {/* Section Header Skeleton */}
+        <div className="header-margin flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex-1">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="h-2 w-2 rounded-full bg-brand-blue animate-ping" />
+              <div className="h-3 w-32 rounded-full bg-gradient-to-r from-brand-blue/20 to-brand-blue/10 animate-pulse" />
+            </div>
+            <div className="h-20 w-80 bg-gradient-to-r from-brand-blue/20 via-brand-blue/10 to-brand-blue/15 animate-pulse md:h-32" />
+          </div>
+          <div className="flex flex-col items-start gap-4 lg:max-w-md lg:items-end">
+            <div className="h-4 w-72 bg-gradient-to-r from-zinc-200 via-brand-blue/10 to-zinc-200 animate-pulse" />
+            <div className="h-4 w-56 bg-zinc-200/80 animate-pulse" />
+            <div className="h-12 w-48 border border-brand-blue/30 bg-brand-blue/5 animate-pulse" />
+          </div>
+        </div>
+
+        {/* Large Screen: 5 Expandable Skeleton Monolith Columns */}
+        <div className="hidden md:flex md:flex-col md:gap-6">
+          <div className="relative flex h-[620px] w-full gap-3 overflow-hidden">
+            {[1, 2, 3, 4, 5].map((idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "relative h-full overflow-hidden transition-all duration-700",
+                  idx === 1
+                    ? "flex-[3.5] bg-gradient-to-br from-brand-blue/10 via-white to-brand-blue/5 border-2 border-brand-blue/30 shadow-lg lg:flex-[4]"
+                    : "flex-[1] bg-gradient-to-b from-white to-brand-blue/[0.04] border border-brand-blue/15"
+                )}
+              >
+                {/* Shimmer overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-blue/10 via-transparent to-white/70 animate-pulse" />
+
+                {idx === 1 ? (
+                  <div className="relative z-10 flex h-full flex-col justify-between p-8 lg:p-12">
+                    <div className="flex items-center justify-between">
+                      <div className="h-5 w-40 rounded-full bg-brand-blue/20 animate-pulse" />
+                      <div className="h-2 w-2 rounded-full bg-brand-blue animate-ping" />
+                    </div>
+                    <div className="flex flex-col gap-4">
+                      <div className="h-10 w-3/4 bg-gradient-to-r from-brand-blue/30 via-brand-blue/15 to-brand-blue/25 animate-pulse" />
+                      <div className="h-4 w-full max-w-lg bg-zinc-200 animate-pulse" />
+                      <div className="h-4 w-2/3 bg-zinc-200/80 animate-pulse" />
+                      <div className="mt-2 flex gap-2">
+                        <div className="h-6 w-24 border border-brand-blue/20 bg-brand-blue/5" />
+                        <div className="h-6 w-28 border border-brand-blue/20 bg-brand-blue/5" />
+                      </div>
+                      <div className="mt-4 h-12 w-44 border border-brand-blue/40 bg-brand-blue/15 animate-pulse" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative z-10 flex h-full flex-col justify-between p-6">
+                    <span className="text-2xl font-black text-brand-blue/25">
+                      {String(idx).padStart(2, "0")}
+                    </span>
+                    <div className="flex flex-col gap-2">
+                      <div className="h-2 w-16 bg-brand-blue/30" />
+                      <div className="h-4 w-24 bg-zinc-200 animate-pulse" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom Navigator Skeleton */}
+          <div className="flex items-center justify-between border-t border-brand-blue/15 pt-4">
+            <div className="flex items-center gap-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-8 w-16 border border-brand-blue/15 bg-brand-blue/5 animate-pulse" />
+              ))}
+            </div>
+            <div className="h-4 w-20 bg-brand-blue/20 animate-pulse" />
+          </div>
+        </div>
+
+        {/* Mobile Skeleton */}
+        <div className="flex flex-col gap-6 md:hidden">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="overflow-hidden border border-brand-blue/20 bg-white shadow-sm">
+              <div className="h-60 w-full bg-gradient-to-br from-brand-blue/10 via-white to-brand-blue/5 animate-pulse" />
+              <div className="flex flex-col gap-3 p-6">
+                <div className="h-6 w-48 bg-gradient-to-r from-brand-blue/25 to-brand-blue/10 animate-pulse" />
+                <div className="h-4 w-full bg-zinc-100 animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 export const Services = ({
   initialServices,
 }: {
   initialServices?: HomeServiceItem[];
 }) => {
+  const hasServices = !!(initialServices && initialServices.length > 0);
+
+  if (!hasServices) {
+    return <ServicesSkeleton />;
+  }
+
   // Total services count across the company
-  const totalCount = initialServices?.length || STATIC_SERVICES.length || 12;
+  const totalCount = initialServices.length;
 
   // Curate top 5 flagship services for the home page showcase
   const featuredServices: CuratedService[] = useMemo(() => {
-    if (!initialServices || initialServices.length === 0) {
-      return DEFAULT_FLAGSHIP_SERVICES;
-    }
-
     const matched: CuratedService[] = [];
     const usedSlugs = new Set<string>();
 
@@ -126,9 +167,6 @@ export const Services = ({
       if (found && !usedSlugs.has(found.slug || String(found.id))) {
         const slug = found.slug || String(found.id);
         usedSlugs.add(slug);
-
-        // Find static fallback metadata if needed
-        const staticMatch = STATIC_SERVICES.find((st) => st.slug === slug);
 
         matched.push({
           id: String(found.id),
@@ -148,12 +186,10 @@ export const Services = ({
           description:
             found.subtitle ||
             found.description ||
-            staticMatch?.description ||
             "Specialized contracting and engineering capability delivering highest standards.",
-          image: found.image || staticMatch?.image || "/images/services/civil.webp",
+          image: found.image || "/images/services/civil.webp",
           features:
-            found.features ||
-            staticMatch?.features?.slice(0, 3) || [
+            found.features || [
               "Turnkey Solutions",
               "Quality Assurance",
               "Precision Execution",
@@ -165,12 +201,11 @@ export const Services = ({
     }
 
     // 2. Supplement if we haven't reached 4-5 items
-    if (matched.length < 4) {
+    if (matched.length < 5) {
       for (const s of initialServices) {
         const slug = s.slug || String(s.id);
         if (!usedSlugs.has(slug)) {
           usedSlugs.add(slug);
-          const staticMatch = STATIC_SERVICES.find((st) => st.slug === slug);
           matched.push({
             id: String(s.id),
             slug,
@@ -179,12 +214,10 @@ export const Services = ({
             description:
               s.subtitle ||
               s.description ||
-              staticMatch?.description ||
               "Specialized engineering and construction solutions.",
-            image: s.image || staticMatch?.image || "/images/services/civil.webp",
+            image: s.image || "/images/services/civil.webp",
             features:
-              s.features ||
-              staticMatch?.features?.slice(0, 3) || [
+              s.features || [
                 "Quality Assurance",
                 "Advanced Engineering",
               ],
@@ -194,13 +227,17 @@ export const Services = ({
       }
     }
 
-    return matched.length > 0 ? matched : DEFAULT_FLAGSHIP_SERVICES;
+    return matched;
   }, [initialServices]);
 
-  const [activeId, setActiveId] = useState<string>(featuredServices[0]?.id || "building-projects");
+  const [activeId, setActiveId] = useState<string>(featuredServices[0]?.id || "");
 
-  const activeIndex = featuredServices.findIndex((s) => s.id === activeId);
-  const currentActive = featuredServices[activeIndex >= 0 ? activeIndex : 0];
+  const activeIndex = Math.max(
+    0,
+    featuredServices.findIndex((s) => s.id === activeId)
+  );
+  const currentActive = featuredServices[activeIndex] || featuredServices[0];
+  const effectiveActiveId = currentActive?.id;
 
   const handlePrev = () => {
     const prevIndex = (activeIndex - 1 + featuredServices.length) % featuredServices.length;
@@ -263,7 +300,7 @@ export const Services = ({
         <div className="hidden md:flex md:flex-col md:gap-6">
           <div className="relative flex h-[620px] w-full gap-3 overflow-hidden">
             {featuredServices.map((service, index) => {
-              const isActive = service.id === activeId;
+              const isActive = service.id === effectiveActiveId;
               const formattedIndex = String(index + 1).padStart(2, "0");
 
               return (
@@ -411,7 +448,7 @@ export const Services = ({
             {/* Step Selector Pills */}
             <div className="flex items-center gap-3">
               {featuredServices.map((service, idx) => {
-                const isActive = service.id === activeId;
+                const isActive = service.id === effectiveActiveId;
                 return (
                   <button
                     key={service.id}

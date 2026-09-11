@@ -10,7 +10,31 @@ import { Icons } from "@/lib/icons";
 import { useProjectFilters } from "../../hooks/useProjectFilters";
 import { ProjectFilters } from "./ProjectFilters";
 
+export const ProjectListSkeleton = () => {
+  return (
+    <div className="container mx-auto min-h-[400px] px-6 pb-20 pt-8">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-5 lg:gap-y-10">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="flex flex-col border border-brand-blue/15 bg-white overflow-hidden shadow-xs">
+            <div className="aspect-[4/3] w-full bg-gradient-to-br from-brand-blue/10 via-white to-brand-blue/5 animate-pulse" />
+            <div className="p-8 flex flex-col gap-4">
+              <div className="h-3 w-28 bg-brand-blue/30" />
+              <div className="h-7 w-3/4 bg-gradient-to-r from-brand-blue/20 to-brand-blue/10 animate-pulse" />
+              <div className="h-4 w-full bg-zinc-100 animate-pulse" />
+              <div className="h-4 w-2/3 bg-zinc-100 animate-pulse" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export const ProjectList = ({ initialProjects }: { initialProjects?: DetailedProject[] }) => {
+  if (!initialProjects) {
+    return <ProjectListSkeleton />;
+  }
+
   const {
     searchQuery,
     setSearchQuery,

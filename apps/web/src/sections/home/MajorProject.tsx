@@ -1,6 +1,5 @@
 "use client";
 
-import { MAJOR_PROJECTS as PROJECTS } from "@data/projects/major";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useRef } from "react";
@@ -16,15 +15,47 @@ export interface MajorProjectPropItem {
   slug?: string;
 }
 
+export const MajorProjectSkeleton = () => {
+  return (
+    <section className="pt-20 pb-20 bg-white overflow-hidden">
+      <div className="container mx-auto">
+        <div className="header-margin gap-element-gap flex flex-col items-center text-center">
+          <div className="h-4 w-36 rounded-full bg-gradient-to-r from-brand-blue/20 to-brand-blue/10 animate-pulse" />
+          <div className="h-20 w-80 bg-gradient-to-r from-brand-blue/20 via-brand-blue/10 to-brand-blue/15 animate-pulse md:h-28" />
+          <div className="h-4 w-96 max-w-full bg-gradient-to-r from-zinc-200 via-brand-blue/10 to-zinc-200 animate-pulse" />
+          <div className="h-12 w-48 border border-brand-blue/30 bg-brand-blue/5 animate-pulse mt-4" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="aspect-[4/5] w-full bg-gradient-to-br from-brand-blue/10 via-white to-brand-blue/5 border border-brand-blue/20 shadow-md overflow-hidden relative animate-pulse"
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-brand-blue/5 to-transparent" />
+              <div className="absolute bottom-8 left-8 right-8 flex flex-col gap-3">
+                <div className="h-3 w-24 bg-brand-blue/40" />
+                <div className="h-8 w-3/4 bg-gradient-to-r from-brand-blue/30 via-brand-blue/15 to-brand-blue/25" />
+                <div className="h-4 w-full bg-zinc-200" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 export const MajorProject = ({
   initialProjects,
 }: {
   initialProjects?: MajorProjectPropItem[];
 }) => {
-  const projectList: MajorProjectPropItem[] =
-    initialProjects && initialProjects.length >= 3
-      ? initialProjects.slice(0, 3)
-      : PROJECTS;
+  if (!initialProjects || initialProjects.length < 3) {
+    return <MajorProjectSkeleton />;
+  }
+
+  const projectList: MajorProjectPropItem[] = initialProjects.slice(0, 3);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -107,8 +138,8 @@ export const MajorProject = ({
             >
               <div className="relative h-full w-full overflow-hidden">
                 <Image
-                  src={projectList[1]?.image || PROJECTS[1].image}
-                  alt={projectList[1]?.title || PROJECTS[1].title}
+                  src={projectList[1]?.image || "/images/placeholder.jpg"}
+                  alt={projectList[1]?.title || "Project 02"}
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 33vw"
@@ -118,7 +149,7 @@ export const MajorProject = ({
                   <span className="text-brand-blue mb-2 block text-xs font-bold tracking-widest uppercase">
                     Project 02
                   </span>
-                  <h3 className="text-2xl font-light">{projectList[1]?.title || PROJECTS[1].title}</h3>
+                  <h3 className="text-2xl font-light">{projectList[1]?.title || "Project 02"}</h3>
                 </div>
               </div>
             </motion.div>
@@ -129,8 +160,8 @@ export const MajorProject = ({
               className="relative flex items-center justify-center overflow-hidden bg-black"
             >
               <Image
-                src={projectList[0]?.image || PROJECTS[0].image}
-                alt={projectList[0]?.title || PROJECTS[0].title}
+                src={projectList[0]?.image || "/images/placeholder.jpg"}
+                alt={projectList[0]?.title || "Project 01"}
                 fill
                 className="object-cover"
                 priority
@@ -150,14 +181,14 @@ export const MajorProject = ({
                     Project 01
                   </span>
                   <h3 className="font-primary mb-content-gap text-[3.5rem] leading-[0.75] font-normal tracking-tighter text-white uppercase md:text-[5.5rem] lg:text-[7rem]">
-                    {(projectList[0]?.title || PROJECTS[0].title).split(" ").map((word, i) => (
+                    {(projectList[0]?.title || "Project 01").split(" ").map((word: string, i: number) => (
                       <span key={i} className="block">
                         {word}
                       </span>
                     ))}
                   </h3>
                   <p className="mb-content-gap max-w-md text-lg font-light text-zinc-300 md:text-xl">
-                    {projectList[0]?.description || PROJECTS[0].description}
+                    {projectList[0]?.description || ""}
                   </p>
                   <div className="gap-content-gap flex flex-col sm:flex-row">
                     <Button
@@ -167,6 +198,7 @@ export const MajorProject = ({
                       hoverFillColor="bg-brand-blue"
                       hoverTextColor="group-hover:text-background"
                       className="h-16 rounded-none px-10"
+                      href={projectList[0]?.slug ? `/projects/${projectList[0].slug}` : "/projects"}
                     >
                       Explore Work
                     </Button>
@@ -177,6 +209,7 @@ export const MajorProject = ({
                       hoverFillColor="bg-white"
                       hoverTextColor="group-hover:text-brand-blue"
                       className="h-16 rounded-none px-10"
+                      href="/projects"
                     >
                       View Portfolio
                     </Button>
@@ -188,7 +221,7 @@ export const MajorProject = ({
                 style={{ opacity: useTransform(scrollYProgress, [0.25, 0.35], [1, 0]) }}
                 className="absolute bottom-8 left-8 z-20 text-white"
               >
-                <h3 className="text-2xl font-light">{projectList[0]?.title || PROJECTS[0].title}</h3>
+                <h3 className="text-2xl font-light">{projectList[0]?.title || "Project 01"}</h3>
               </motion.div>
             </motion.div>
 
@@ -199,8 +232,8 @@ export const MajorProject = ({
             >
               <div className="relative h-full w-full overflow-hidden">
                 <Image
-                  src={projectList[2]?.image || PROJECTS[2].image}
-                  alt={projectList[2]?.title || PROJECTS[2].title}
+                  src={projectList[2]?.image || "/images/placeholder.jpg"}
+                  alt={projectList[2]?.title || "Project 03"}
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 33vw"
@@ -210,7 +243,7 @@ export const MajorProject = ({
                   <span className="text-brand-blue mb-2 block text-xs font-bold tracking-widest uppercase">
                     Project 03
                   </span>
-                  <h3 className="text-2xl font-light">{projectList[2]?.title || PROJECTS[2].title}</h3>
+                  <h3 className="text-2xl font-light">{projectList[2]?.title || "Project 03"}</h3>
                 </div>
               </div>
             </motion.div>
@@ -222,8 +255,8 @@ export const MajorProject = ({
             className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black"
           >
             <Image
-              src={projectList[1]?.image || PROJECTS[1].image}
-              alt={projectList[1]?.title || PROJECTS[1].title}
+              src={projectList[1]?.image || "/images/placeholder.jpg"}
+              alt={projectList[1]?.title || "Project 02"}
               fill
               className="object-cover"
               sizes="100vw"
@@ -242,14 +275,14 @@ export const MajorProject = ({
                   Project 02
                 </span>
                 <h3 className="font-primary mb-content-gap text-[3.5rem] leading-[0.75] font-normal tracking-tighter text-white uppercase md:text-[5.5rem] lg:text-[7rem]">
-                  {(projectList[1]?.title || PROJECTS[1].title).split(" ").map((word, i) => (
+                  {(projectList[1]?.title || "Project 02").split(" ").map((word: string, i: number) => (
                     <span key={i} className="block">
                       {word}
                     </span>
                   ))}
                 </h3>
                 <p className="mb-content-gap max-w-md text-lg font-light text-zinc-300 md:text-xl">
-                  {projectList[1]?.description || PROJECTS[1].description}
+                  {projectList[1]?.description || ""}
                 </p>
                 <div className="gap-content-gap flex flex-col sm:flex-row">
                   <Button
@@ -259,6 +292,7 @@ export const MajorProject = ({
                     hoverFillColor="bg-brand-blue"
                     hoverTextColor="group-hover:text-background"
                     className="h-16 rounded-none px-10"
+                    href={projectList[1]?.slug ? `/projects/${projectList[1].slug}` : "/projects"}
                   >
                     Explore Work
                   </Button>
@@ -269,6 +303,7 @@ export const MajorProject = ({
                     hoverFillColor="bg-white"
                     hoverTextColor="group-hover:text-brand-blue"
                     className="h-16 rounded-none px-10"
+                    href="/projects"
                   >
                     View Portfolio
                   </Button>
@@ -283,8 +318,8 @@ export const MajorProject = ({
             className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black"
           >
             <Image
-              src={projectList[2]?.image || PROJECTS[2].image}
-              alt={projectList[2]?.title || PROJECTS[2].title}
+              src={projectList[2]?.image || "/images/placeholder.jpg"}
+              alt={projectList[2]?.title || "Project 03"}
               fill
               className="object-cover"
               sizes="100vw"
@@ -303,14 +338,14 @@ export const MajorProject = ({
                   Project 03
                 </span>
                 <h3 className="font-primary mb-content-gap text-[3.5rem] leading-[0.75] font-normal tracking-tighter text-white uppercase md:text-[5.5rem] lg:text-[7rem]">
-                  {(projectList[2]?.title || PROJECTS[2].title).split(" ").map((word, i) => (
+                  {(projectList[2]?.title || "Project 03").split(" ").map((word: string, i: number) => (
                     <span key={i} className="block">
                       {word}
                     </span>
                   ))}
                 </h3>
                 <p className="mb-content-gap max-w-md text-lg font-light text-zinc-300 md:text-xl">
-                  {projectList[2]?.description || PROJECTS[2].description}
+                  {projectList[2]?.description || ""}
                 </p>
                 <div className="gap-content-gap flex flex-col sm:flex-row">
                   <Button
@@ -320,6 +355,7 @@ export const MajorProject = ({
                     hoverFillColor="bg-brand-blue"
                     hoverTextColor="group-hover:text-background"
                     className="h-16 rounded-none px-10"
+                    href={projectList[2]?.slug ? `/projects/${projectList[2].slug}` : "/projects"}
                   >
                     Explore Work
                   </Button>
@@ -330,6 +366,7 @@ export const MajorProject = ({
                     hoverFillColor="bg-white"
                     hoverTextColor="group-hover:text-brand-blue"
                     className="h-16 rounded-none px-10"
+                    href="/projects"
                   >
                     View Portfolio
                   </Button>

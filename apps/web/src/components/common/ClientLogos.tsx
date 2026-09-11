@@ -10,19 +10,26 @@ export interface ClientLogoItem {
   logo?: string;
 }
 
+export const ClientLogosSkeleton = () => {
+  return (
+    <div className="md:pt-element-gap w-full overflow-hidden pt-8">
+      <div className="flex w-full items-center justify-center gap-12 px-8 py-4 opacity-70">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div
+            key={i}
+            className="h-14 w-32 rounded border border-brand-blue/15 bg-gradient-to-r from-white via-brand-blue/10 to-white animate-pulse flex-shrink-0 shadow-sm"
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export const ClientLogos = ({
   initialLogos,
 }: {
   initialLogos?: (string | ClientLogoItem)[];
 }) => {
-  const defaultLogos = [
-    "/images/clients/1.webp",
-    "/images/clients/2.webp",
-    "/images/clients/3.webp",
-    "/images/clients/4.webp",
-    "/images/clients/5.webp",
-  ];
-
   const resolvedLogos: string[] =
     initialLogos && initialLogos.length > 0
       ? initialLogos
@@ -30,7 +37,11 @@ export const ClientLogos = ({
             typeof item === "string" ? item : item.logoUrl || item.logo || ""
           )
           .filter(Boolean)
-      : defaultLogos;
+      : [];
+
+  if (resolvedLogos.length === 0) {
+    return <ClientLogosSkeleton />;
+  }
 
   const displayList = [...resolvedLogos, ...resolvedLogos];
 

@@ -4,10 +4,51 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
-import { Service, services as STATIC_SERVICES } from "@/data/services";
+import { Service } from "@/data/services";
+
+export const ServicesGridSkeleton = () => {
+  return (
+    <section id="services-grid" className="section-padding bg-background">
+      <div className="container">
+        <div className="mb-20 flex flex-col items-center text-center">
+          <div className="mb-6 flex items-center space-x-3">
+            <div className="bg-brand-blue h-1.5 w-1.5" />
+            <span className="text-brand-blue text-[10px] font-bold tracking-[0.5em] uppercase">
+              SERVICES
+            </span>
+          </div>
+          <div className="h-12 w-96 max-w-full bg-zinc-200 animate-pulse mb-4" />
+        </div>
+
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex flex-col border border-brand-blue/15 bg-white shadow-xs overflow-hidden md:flex-row h-80 animate-pulse"
+            >
+              <div className="flex flex-1 flex-col justify-between p-10 md:p-12">
+                <div className="h-8 w-48 bg-gradient-to-r from-brand-blue/20 to-brand-blue/10 rounded" />
+                <div className="space-y-3">
+                  <div className="h-4 w-full bg-zinc-100" />
+                  <div className="h-4 w-3/4 bg-zinc-100" />
+                </div>
+                <div className="h-4 w-28 bg-brand-blue/30" />
+              </div>
+              <div className="w-full md:w-5/12 bg-gradient-to-br from-brand-blue/10 via-white to-brand-blue/5" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 export const ServicesGrid = ({ initialServices }: { initialServices?: Service[] }) => {
-  const displayServices = initialServices && initialServices.length > 0 ? initialServices : STATIC_SERVICES;
+  if (!initialServices || initialServices.length === 0) {
+    return <ServicesGridSkeleton />;
+  }
+
+  const displayServices = initialServices;
 
   return (
     <section id="services-grid" className="section-padding bg-background">

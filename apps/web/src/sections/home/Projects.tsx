@@ -1,6 +1,5 @@
 "use client";
 
-import { RECENT_PROJECTS as PROJECTS } from "@data/projects/recent";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -20,25 +19,58 @@ export interface ProjectListItem {
   slug?: string;
 }
 
+export const RecentProjectsSkeleton = () => {
+  return (
+    <section className="section-padding overflow-hidden bg-white">
+      <div className="container mx-auto">
+        <div className="header-margin gap-element-gap flex flex-col items-center justify-between md:flex-row md:items-end">
+          <div className="flex-1">
+            <div className="h-4 w-32 rounded-full bg-gradient-to-r from-brand-blue/20 to-brand-blue/10 animate-pulse mb-3" />
+            <div className="h-20 w-80 bg-gradient-to-r from-brand-blue/20 via-brand-blue/10 to-brand-blue/15 animate-pulse md:h-28" />
+          </div>
+          <div className="flex flex-col items-end gap-3">
+            <div className="h-4 w-72 bg-gradient-to-r from-zinc-200 via-brand-blue/10 to-zinc-200 animate-pulse" />
+            <div className="h-12 w-40 border border-brand-blue/30 bg-brand-blue/5 animate-pulse" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex flex-col border border-brand-blue/15 bg-white shadow-sm overflow-hidden">
+              <div className="aspect-[4/3] w-full bg-gradient-to-br from-brand-blue/10 via-white to-brand-blue/5 animate-pulse" />
+              <div className="p-6 flex flex-col gap-3">
+                <div className="h-3 w-28 bg-brand-blue/30" />
+                <div className="h-6 w-3/4 bg-gradient-to-r from-brand-blue/20 to-brand-blue/10 animate-pulse" />
+                <div className="h-4 w-full bg-zinc-100 animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 export const RecentProjects = ({
   initialProjects,
 }: {
   initialProjects?: ProjectListItem[];
 }) => {
-  const projectList: ProjectListItem[] =
-    initialProjects && initialProjects.length > 0
-      ? initialProjects.map((p) => ({
-          id: p.id,
-          title: p.title,
-          location: p.location || "Riyadh, Saudi Arabia",
-          year: p.year || "2025",
-          category: p.category || "COMMERCIAL",
-          type: p.type || "LANDMARK",
-          description: p.description || "",
-          image: p.image || "/images/projects/4.webp",
-          slug: p.slug,
-        }))
-      : PROJECTS;
+  if (!initialProjects || initialProjects.length === 0) {
+    return <RecentProjectsSkeleton />;
+  }
+
+  const projectList: ProjectListItem[] = initialProjects.map((p) => ({
+    id: p.id,
+    title: p.title,
+    location: p.location || "Riyadh, Saudi Arabia",
+    year: p.year || "2025",
+    category: p.category || "COMMERCIAL",
+    type: p.type || "LANDMARK",
+    description: p.description || "",
+    image: p.image || "/images/projects/4.webp",
+    slug: p.slug,
+  }));
 
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -143,7 +175,7 @@ export const RecentProjects = ({
             </p>
             <div className="hidden lg:block">
               <Button
-                href="#contact"
+                href="/projects"
                 borderColor="border-brand-blue"
                 textColor="text-brand-blue"
                 bgColor="bg-transparent"
@@ -203,6 +235,7 @@ export const RecentProjects = ({
                     hoverFillColor="bg-brand-blue"
                     hoverTextColor="group-hover:text-white"
                     className="h-12 px-8 text-[10px] font-bold tracking-widest"
+                    href={project.slug ? `/projects/${project.slug}` : "/projects"}
                   >
                     LEARN MORE
                   </Button>
@@ -216,7 +249,7 @@ export const RecentProjects = ({
             <div className="relative h-1 w-48 overflow-hidden bg-zinc-100">
               <motion.div
                 className="bg-brand-blue absolute inset-y-0"
-                style={{ width: `${100 / PROJECTS.length}%` }}
+                style={{ width: `${100 / (projectList.length || 1)}%` }}
                 animate={{ x: `${mobileIndex * 100}%` }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
               />
@@ -230,7 +263,7 @@ export const RecentProjects = ({
             className="mt-12"
           >
             <Button
-              href="#contact"
+              href="/projects"
               borderColor="border-brand-blue"
               textColor="text-brand-blue"
               bgColor="bg-transparent"
@@ -323,6 +356,7 @@ export const RecentProjects = ({
                               hoverFillColor="bg-background"
                               hoverTextColor="group-hover:text-brand-blue"
                               className="mt-2 h-12 w-full text-[10px] font-bold"
+                              href={project.slug ? `/projects/${project.slug}` : "/projects"}
                             >
                               VIEW IN DETAIL
                             </Button>
