@@ -1,20 +1,20 @@
 import { useMemo, useState } from "react";
 
-import { DetailedProject,PROJECTS as DEFAULT_PROJECTS } from "../data/projects/detailed";
+import { DetailedProject } from "../data/projects/detailed";
 
 export const useProjectFilters = (initialProjects?: DetailedProject[]) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const sourceProjects = initialProjects && initialProjects.length > 0 ? initialProjects : DEFAULT_PROJECTS;
+  const sourceProjects = initialProjects || [];
 
   const categories = useMemo(() => {
-    const cats = new Set(sourceProjects.map((p) => p.category));
+    const cats = new Set(sourceProjects.map((p) => p.category).filter(Boolean));
     return ["All", ...Array.from(cats)];
   }, [sourceProjects]);
 
   const filteredProjects = useMemo(() => {
-    const allProjects = sourceProjects || [];
+    const allProjects = sourceProjects;
     let result = [...allProjects];
 
     // Search
@@ -22,9 +22,9 @@ export const useProjectFilters = (initialProjects?: DetailedProject[]) => {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (p) =>
-          p.title.toLowerCase().includes(query) ||
-          p.description.toLowerCase().includes(query) ||
-          p.location.toLowerCase().includes(query)
+          p.title?.toLowerCase().includes(query) ||
+          p.description?.toLowerCase().includes(query) ||
+          p.location?.toLowerCase().includes(query)
       );
     }
 
@@ -34,7 +34,7 @@ export const useProjectFilters = (initialProjects?: DetailedProject[]) => {
     }
 
     return result;
-  }, [searchQuery, selectedCategory]);
+  }, [sourceProjects, searchQuery, selectedCategory]);
 
   return {
     searchQuery,

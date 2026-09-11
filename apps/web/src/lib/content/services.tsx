@@ -15,41 +15,50 @@ import {
   HiOutlineWrench,
 } from "react-icons/hi2";
 
-import { Service,services as STATIC_SERVICES } from "@/data/services";
+import { type Service } from "@/data/services";
+import { apiFetch } from "@/lib/api-fetch";
 import {
   SERVICES_CACHE_TAG,
   SERVICES_REVALIDATE_SECONDS,
 } from "@/lib/cache";
 
-function apiBase(): string {
-  return (process.env.API_URL || "https://rvcc-api.rvcc.workers.dev").replace(/\/$/, "");
-}
-
-function resolveIcon(iconName: string): React.ReactNode {
+function resolveIcon(iconName?: string): React.ReactNode {
   switch (iconName) {
     case "HiOutlineSparkles":
+    case "Sparkles":
       return <HiOutlineSparkles className="h-6 w-6" />;
     case "HiOutlinePencilSquare":
+    case "PencilSquare":
       return <HiOutlinePencilSquare className="h-6 w-6" />;
     case "FaWater":
+    case "Water":
       return <FaWater className="h-6 w-6" />;
     case "HiOutlineSquares2X2":
+    case "Squares2X2":
       return <HiOutlineSquares2X2 className="h-6 w-6" />;
     case "FaDroplet":
+    case "Droplet":
       return <FaDroplet className="h-6 w-6" />;
     case "HiOutlineSquare3Stack3D":
+    case "Square3Stack3D":
       return <HiOutlineSquare3Stack3D className="h-6 w-6" />;
     case "FaTree":
+    case "Tree":
       return <FaTree className="h-6 w-6" />;
     case "HiOutlineGlobeAlt":
+    case "GlobeAlt":
       return <HiOutlineGlobeAlt className="h-6 w-6" />;
     case "HiOutlineHome":
+    case "Home":
       return <HiOutlineHome className="h-6 w-6" />;
     case "HiOutlineCpuChip":
+    case "CpuChip":
       return <HiOutlineCpuChip className="h-6 w-6" />;
     case "HiOutlineTruck":
+    case "Truck":
       return <HiOutlineTruck className="h-6 w-6" />;
     case "HiOutlineBuildingOffice2":
+    case "BuildingOffice2":
       return <HiOutlineBuildingOffice2 className="h-6 w-6" />;
     default:
       return <HiOutlineWrench className="h-6 w-6" />;
@@ -58,42 +67,34 @@ function resolveIcon(iconName: string): React.ReactNode {
 
 /**
  * Fetch all active services from backend with ISR revalidation.
- * Falls back to static services on failure.
+ * Returns empty array and logs to terminal if API is unreachable.
  */
 export async function getServices(): Promise<Service[]> {
-  try {
-    const res = await fetch(`${apiBase()}/services`, {
+  const data = await apiFetch<{ services?: any[] }>(
+    "/services",
+    {
       next: { revalidate: SERVICES_REVALIDATE_SECONDS, tags: [SERVICES_CACHE_TAG] },
-    });
+    },
+    "services"
+  );
 
-    if (!res.ok) {
-      return STATIC_SERVICES;
-    }
-
-    const data = (await res.json()) as { services?: any[] };
-    if (!data.services || data.services.length === 0) {
-      return STATIC_SERVICES;
-    }
-
-    return data.services.map((s, index) => {
-      // Find static fallback to retain icon & projectIds if needed
-      const staticMatch = STATIC_SERVICES.find((st) => st.slug === s.slug);
-      return {
-        id: index + 1,
-        slug: s.slug,
-        title: s.title,
-        description: s.description,
-        longDescription: s.longDescription,
-        image: s.image || staticMatch?.image || "/images/services/civil.webp",
-        icon: resolveIcon(s.iconName) || staticMatch?.icon,
-        features: s.features || staticMatch?.features || [],
-        projectIds: staticMatch?.projectIds || [],
-      };
-    });
-  } catch (err) {
-    console.warn("[services] Could not reach API, using static fallback", err);
-    return STATIC_SERVICES;
+  if (!data || !data.services || data.services.length === 0) {
+    return [];
   }
+
+  return data.services.map((s, index) => {
+    return {
+      id: s.sortOrder || index + 1,
+      slug: s.slug,
+      title: s.title,
+      description: s.description || "",
+      longDescription: s.longDescription || s.description || "",
+      image: s.image || "",
+      icon: resolveIcon(s.iconName),
+      features: Array.isArray(s.features) ? s.features : [],
+      projectIds: s.projectIds || [],
+    };
+  });
 }
 
 /**
@@ -102,40 +103,34 @@ export async function getServices(): Promise<Service[]> {
 export async function getServiceBySlug(
   slug: string
 ): Promise<(Service & { dynamicGalleryImages?: string[]; dynamicProjects?: any[] }) | null> {
-  try {
-    const res = await fetch(`${apiBase()}/services/${encodeURIComponent(slug)}`, {
+  const data = await apiFetch<{ service?: any }>(
+    `/services/${encodeURIComponent(slug)}`,
+    {
       next: { revalidate: SERVICES_REVALIDATE_SECONDS, tags: [SERVICES_CACHE_TAG] },
-    });
+    },
+    `services/${slug}`
+  );
 
-    if (res.ok) {
-      const data = (await res.json()) as { service?: any };
-      if (data.service) {
-        const s = data.service;
-        const staticMatch = STATIC_SERVICES.find((st) => st.slug === s.slug);
-        const galleryImages: string[] = Array.isArray(s.galleryImages)
-          ? s.galleryImages.map((g: any) => g.imageUrl).filter(Boolean)
-          : [];
+  if (data && data.service) {
+    const s = data.service;
+    const galleryImages: string[] = Array.isArray(s.galleryImages)
+      ? s.galleryImages.map((g: any) => g.imageUrl).filter(Boolean)
+      : [];
 
-        return {
-          id: s.sortOrder || staticMatch?.id || 1,
-          slug: s.slug,
-          title: s.title,
-          description: s.description,
-          longDescription: s.longDescription,
-          image: s.image || staticMatch?.image || "/images/services/civil.webp",
-          icon: resolveIcon(s.iconName) || staticMatch?.icon,
-          features: s.features || staticMatch?.features || [],
-          projectIds: staticMatch?.projectIds || [],
-          dynamicGalleryImages: galleryImages,
-          dynamicProjects: s.projects || [],
-        };
-      }
-    }
-  } catch (err) {
-    console.warn(`[services/${slug}] Could not reach API, using static fallback`, err);
+    return {
+      id: s.sortOrder || 1,
+      slug: s.slug,
+      title: s.title,
+      description: s.description || "",
+      longDescription: s.longDescription || s.description || "",
+      image: s.image || "",
+      icon: resolveIcon(s.iconName),
+      features: Array.isArray(s.features) ? s.features : [],
+      projectIds: s.projectIds || [],
+      dynamicGalleryImages: galleryImages,
+      dynamicProjects: s.projects || [],
+    };
   }
 
-  // Fallback to static
-  const found = STATIC_SERVICES.find((s) => s.slug === slug);
-  return found || null;
+  return null;
 }
