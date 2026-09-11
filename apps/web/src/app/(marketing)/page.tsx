@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { getClientPartners } from "@/lib/content/clients";
 import { getSisterCompanies } from "@/lib/content/companies";
 import { getHeroSlides } from "@/lib/content/hero";
+import { getNews } from "@/lib/content/news";
 import { getProjects } from "@/lib/content/projects";
 import { getServices } from "@/lib/content/services";
 
@@ -54,12 +55,13 @@ const Contact = dynamic(() => import("@components/common/Contact"), { ssr: true 
 
 // Dynamic page fetch with resilient fallback
 export default async function Home() {
-  const [slides, sisterLogos, clients, services, projects] = await Promise.all([
+  const [slides, sisterLogos, clients, services, projects, news] = await Promise.all([
     getHeroSlides(),
     getSisterCompanies(),
     getClientPartners(),
     getServices(),
     getProjects(),
+    getNews(),
   ]);
 
   return (
@@ -79,7 +81,7 @@ export default async function Home() {
         <ScrollingText />
         <OurWorks initialProjects={projects} />
         <CSRSection initialLogos={sisterLogos} />
-        <NewsAndEvents />
+        <NewsAndEvents initialNews={news} />
         <Contact />
         <Footer />
       </div>

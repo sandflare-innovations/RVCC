@@ -42,6 +42,7 @@ export const Navbar = () => {
   const isClientsPage = pathname?.startsWith("/clients");
   const isQualityPage = pathname?.startsWith("/quality-policy");
   const isAboutPage = pathname?.startsWith("/about");
+  const isNewsPage = pathname?.startsWith("/news");
   const isEnquirePage = pathname?.startsWith("/enquire");
   const isSharePage = pathname?.startsWith("/s/") || pathname?.startsWith("/media/");
   const isLightPage =
@@ -51,6 +52,7 @@ export const Navbar = () => {
     isClientsPage ||
     isQualityPage ||
     isAboutPage ||
+    isNewsPage ||
     isEnquirePage ||
     isSharePage;
 
@@ -140,6 +142,7 @@ export const Navbar = () => {
     "SERVICES",
     "PROJECTS",
     "CLIENTS",
+    "NEWS",
     "GALLERY",
     "CAREERS",
     "DOCUMENTS",

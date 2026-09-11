@@ -24,6 +24,7 @@ export const Footer = () => {
     { name: t.header.about, href: "/about" },
     { name: t.header.services, href: "/services" },
     { name: t.header.projects, href: "/projects" },
+    { name: "News & Events", href: "/news" },
     { name: t.header.contacts, href: "/contact" },
   ];
 
