@@ -175,7 +175,39 @@ export async function handlePublicGalleryRequest(request: Request, env: Env): Pr
 
   try {
     const images = await GalleryService.listPublicImages();
-    return json(env, request, { images }, 200, {
+
+    // Group images into project-based collections for web clients
+    const collectionsMap = new Map<string, any>();
+    for (const img of images) {
+      const slug = img.projectSlug || img.projectId;
+      if (!slug) continue;
+      if (!collectionsMap.has(slug)) {
+        collectionsMap.set(slug, {
+          id: img.projectId,
+          slug,
+          title: img.projectTitle || slug,
+          description: img.caption || "",
+          thumbnail: img.imageUrl,
+          images: [] as string[],
+          serviceSlugs: Array.isArray(img.serviceSlugs) ? [...img.serviceSlugs] : [],
+        });
+      }
+      const col = collectionsMap.get(slug);
+      col.images.push(img.imageUrl);
+      if (img.isCover) {
+        col.thumbnail = img.imageUrl;
+      }
+      if (Array.isArray(img.serviceSlugs)) {
+        for (const s of img.serviceSlugs) {
+          if (!col.serviceSlugs.includes(s)) {
+            col.serviceSlugs.push(s);
+          }
+        }
+      }
+    }
+    const collections = Array.from(collectionsMap.values());
+
+    return json(env, request, { images, collections }, 200, {
       "Cache-Control": "public, s-maxage=300, stale-while-revalidate=86400",
     });
   } catch (err) {

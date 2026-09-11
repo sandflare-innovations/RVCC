@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { HiOutlineArrowRight } from "react-icons/hi2";
 
-import { GALLARY_PROJECTS } from "@/data/gallary";
 import { Service } from "@/data/services";
 
 interface ServiceDetailProjectsProps {
@@ -14,14 +13,14 @@ interface ServiceDetailProjectsProps {
 }
 
 export const ServiceDetailProjects = ({ service }: ServiceDetailProjectsProps) => {
-  // Get linked projects from static or dynamic
-  const relatedProjects = GALLARY_PROJECTS.filter((p) => service.projectIds?.includes(p.id));
+  // Use dynamic projects connected from backend
+  const relatedProjects = service.dynamicProjects || [];
 
   // Flatten images from dynamic gallery images or project images
   const allImages =
     service.dynamicGalleryImages && service.dynamicGalleryImages.length > 0
       ? service.dynamicGalleryImages
-      : relatedProjects.flatMap((p) => p.images);
+      : relatedProjects.flatMap((p) => p.gallery || (p.image ? [p.image] : []));
 
   // Take only 3 images for the vertical sidebar
   const displayImages = allImages.slice(0, 3);

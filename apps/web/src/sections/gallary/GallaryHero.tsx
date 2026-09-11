@@ -4,11 +4,16 @@ import { cn } from "@lib/utils";
 import { motion } from "framer-motion";
 
 import { MarqueeImage, ThreeDMarquee } from "@/components/ui/3d-marquee";
-import { GALLARY_PROJECTS } from "@/data/gallary";
+import { GallaryProject } from "@/data/gallary";
 
-export const GallaryHero = () => {
-  // Collect all images from all projects for the marquee
-  const marqueeImages: MarqueeImage[] = GALLARY_PROJECTS.flatMap((project) =>
+export const GallaryHero = ({
+  initialCollections,
+}: {
+  initialCollections?: GallaryProject[];
+}) => {
+  // Collect images from dynamic collections for the marquee
+  const collections = initialCollections || [];
+  const marqueeImages: MarqueeImage[] = collections.flatMap((project) =>
     project.images.slice(0, 3).map((img) => ({
       src: img,
       alt: project.title,
@@ -19,9 +24,11 @@ export const GallaryHero = () => {
   return (
     <section className="relative h-screen w-full overflow-hidden bg-black pt-32 pb-20">
       {/* 3D Marquee Background */}
-      <div className={cn("pointer-events-auto absolute inset-0 z-0 opacity-50")}>
-        <ThreeDMarquee images={marqueeImages} cols={4} className="h-full" />
-      </div>
+      {marqueeImages.length > 0 && (
+        <div className={cn("pointer-events-auto absolute inset-0 z-0 opacity-50")}>
+          <ThreeDMarquee images={marqueeImages} cols={4} className="h-full" />
+        </div>
+      )}
 
       <div
         className={cn(

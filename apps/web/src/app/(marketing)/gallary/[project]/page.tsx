@@ -3,9 +3,9 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FloatingContact } from "@/components/common/FloatingContact";
-import { GALLARY_PROJECTS, GallaryProject } from "@/data/gallary";
-import { services } from "@/data/services";
-import { getGalleryCollections } from "@/lib/content/projects";
+import { GallaryProject } from "@/data/gallary";
+import { getGalleryCollections, getProjectBySlug } from "@/lib/content/projects";
+import { getServiceBySlug } from "@/lib/content/services";
 
 import ProjectClient from "./ProjectClient";
 
@@ -16,19 +16,42 @@ interface Props {
 async function getGalleryItem(slug: string): Promise<GallaryProject | null> {
   const dynamicCollections = await getGalleryCollections();
 
-  // 1. Try to find a specific project
+  // 1. Try to find a specific project in dynamic collections
   const project = dynamicCollections.find((p) => p.slug === slug || p.id === slug);
   if (project) return project;
 
-  // Fallback check in static gallery
-  const staticFound = GALLARY_PROJECTS.find((p) => p.slug === slug || p.id === slug);
-  if (staticFound) return staticFound;
+  // 2. Try to fetch project directly by slug
+  const directProject = await getProjectBySlug(slug);
+  if (directProject) {
+    const images =
+      Array.isArray(directProject.gallery) && directProject.gallery.length > 0
+        ? directProject.gallery
+        : [directProject.coverImage || directProject.image || "/images/projects/13.webp"];
 
-  // 2. Try to find a service and aggregate its project images
-  const service = services.find((s) => s.slug === slug);
+    return {
+      id: String(directProject.id),
+      slug: directProject.slug,
+      title: directProject.title,
+      description: directProject.description || "",
+      thumbnail: directProject.coverImage || directProject.image || images[0],
+      images,
+      serviceSlugs: Array.isArray(directProject.serviceSlugs) ? directProject.serviceSlugs : [],
+    };
+  }
+
+  // 3. Try to find a service and aggregate its project images
+  const service = await getServiceBySlug(slug);
   if (service) {
-    const relatedProjects = dynamicCollections.filter((p) => p.serviceSlugs.includes(service.slug));
-    const allImages = relatedProjects.flatMap((p) => p.images);
+    const relatedProjects = dynamicCollections.filter(
+      (p) => Array.isArray(p.serviceSlugs) && p.serviceSlugs.includes(service.slug)
+    );
+    const allImages = Array.from(
+      new Set([
+        ...(service.dynamicGalleryImages || []),
+        ...relatedProjects.flatMap((p) => p.images),
+        service.image,
+      ].filter(Boolean))
+    );
 
     if (allImages.length === 0) return null;
 

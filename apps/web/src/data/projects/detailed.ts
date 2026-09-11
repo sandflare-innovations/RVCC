@@ -9,6 +9,7 @@ export interface DetailedProject extends MajorProjectItem {
   gallery: string[];
   scope: string[];
   coverImage?: string;
+  serviceSlugs?: string[];
 }
 
 /**

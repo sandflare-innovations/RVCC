@@ -1,11 +1,15 @@
 import { Footer } from "@layout/Footer";
-import { GallaryCollections } from "@sections/gallary/GallaryCollections";
+import {
+  GallaryCollections,
+  GallaryCollectionsSkeleton,
+} from "@sections/gallary/GallaryCollections";
 import { GallaryHero } from "@sections/gallary/GallaryHero";
 import { Metadata } from "next";
 import { Suspense } from "react";
 
 import { FloatingContact } from "@/components/common/FloatingContact";
 import { getGalleryCollections } from "@/lib/content/projects";
+import { getServices } from "@/lib/content/services";
 
 export const metadata: Metadata = {
   title: "Gallery | RVCC - Visualizing Excellence",
@@ -20,13 +24,19 @@ export const metadata: Metadata = {
 };
 
 export default async function GallaryPage() {
-  const collections = await getGalleryCollections();
+  const [collections, services] = await Promise.all([
+    getGalleryCollections(),
+    getServices(),
+  ]);
 
   return (
     <div className="relative min-h-screen">
-      <GallaryHero />
-      <Suspense fallback={<div className="container py-24 text-center">Loading gallery...</div>}>
-        <GallaryCollections initialCollections={collections} />
+      <GallaryHero initialCollections={collections} />
+      <Suspense fallback={<GallaryCollectionsSkeleton />}>
+        <GallaryCollections
+          initialCollections={collections}
+          initialServices={services}
+        />
       </Suspense>
       <Footer />
       <FloatingContact />

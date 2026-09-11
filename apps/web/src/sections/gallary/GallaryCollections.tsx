@@ -6,20 +6,59 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-import { GALLARY_PROJECTS as STATIC_GALLERY, GallaryProject } from "@/data/gallary";
-import { services } from "@/data/services";
+import { GallaryProject } from "@/data/gallary";
+import { Service } from "@/data/services";
 import { Icons } from "@/lib/icons";
+
+export const GallaryCollectionsSkeleton = () => {
+  return (
+    <section className="bg-white py-24">
+      <div className="container mx-auto px-6">
+        {/* Control Bar Skeleton */}
+        <div className="mb-20 flex flex-col items-center justify-between gap-8 border-b border-brand-blue/15 pb-8 lg:flex-row">
+          <div className="h-12 w-48 border border-brand-blue/20 bg-brand-blue/5 animate-pulse" />
+          <div className="h-12 w-full lg:w-[400px] border border-brand-blue/20 bg-white shadow-sm animate-pulse" />
+        </div>
+
+        {/* Collections Grid Skeleton */}
+        <div className="grid grid-cols-1 gap-6 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="border border-brand-blue/15 bg-white p-6 shadow-sm overflow-hidden animate-pulse">
+              <div className="mb-8 space-y-3">
+                <div className="aspect-[16/10] w-full bg-gradient-to-br from-brand-blue/10 via-white to-brand-blue/5" />
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="aspect-square bg-brand-blue/5" />
+                  <div className="aspect-square bg-brand-blue/5" />
+                  <div className="aspect-square bg-brand-blue/5" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="h-7 w-3/4 bg-gradient-to-r from-brand-blue/20 to-brand-blue/10 rounded" />
+                <div className="h-10 w-10 bg-brand-blue/15" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 export const GallaryCollections = ({
   initialCollections,
+  initialServices,
 }: {
   initialCollections?: GallaryProject[];
+  initialServices?: Service[];
 }) => {
   const searchParams = useSearchParams();
   const initialService = searchParams.get("service");
 
-  const gallerySource =
-    initialCollections && initialCollections.length > 0 ? initialCollections : STATIC_GALLERY;
+  if (!initialCollections || initialCollections.length === 0) {
+    return <GallaryCollectionsSkeleton />;
+  }
+
+  const gallerySource = initialCollections;
 
   const [viewMode, setViewMode] = useState<"projects" | "services">(
     initialService ? "services" : "projects"
@@ -27,10 +66,13 @@ export const GallaryCollections = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Prepare Service-based collections
-  const serviceCollections = services
+  // Prepare Service-based collections from dynamic services
+  const servicesList = initialServices || [];
+  const serviceCollections = servicesList
     .map((service) => {
-      const relatedProjects = gallerySource.filter((p) => p.serviceSlugs.includes(service.slug));
+      const relatedProjects = gallerySource.filter(
+        (p) => Array.isArray(p.serviceSlugs) && p.serviceSlugs.includes(service.slug)
+      );
       const allImages = relatedProjects.flatMap((p) => p.images);
 
       return {
