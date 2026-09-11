@@ -4,11 +4,12 @@ import { ReactLenis, useLenis } from "lenis/react";
 import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useRef } from "react";
 
+// Module-level map to preserve individual page scroll positions across unmounts
+const pageScrollPositions = new Map<string, number>();
+
 function LenisScrollManager() {
   const lenis = useLenis();
   const pathname = usePathname();
-  const prevPathname = useRef(pathname);
-  const scrollPositions = useRef<Map<string, number>>(new Map());
   const isPopState = useRef(false);
 
   // Configure manual scroll restoration so browser does not fight Lenis
@@ -27,14 +28,23 @@ function LenisScrollManager() {
     };
   }, []);
 
-  // Isolate scroll per page on route transitions
+  // Track live scroll position for the current page
   useEffect(() => {
     if (!lenis) return;
 
-    // Save previous route's scroll position
-    if (prevPathname.current) {
-      scrollPositions.current.set(prevPathname.current, lenis.scroll);
-    }
+    const unsubscribe = lenis.on("scroll", (e: { scroll: number }) => {
+      pageScrollPositions.set(pathname, e.scroll);
+    });
+
+    return () => {
+      unsubscribe();
+      pageScrollPositions.set(pathname, lenis.scroll);
+    };
+  }, [pathname, lenis]);
+
+  // Isolate scroll per page on route transitions
+  useEffect(() => {
+    if (!lenis) return;
 
     const hash = typeof window !== "undefined" ? window.location.hash : "";
 
@@ -44,11 +54,13 @@ function LenisScrollManager() {
       if (target) {
         lenis.scrollTo(target as HTMLElement, { immediate: true });
       } else {
+        window.scrollTo(0, 0);
         lenis.scrollTo(0, { immediate: true });
       }
     } else if (isPopState.current) {
-      // Browser back/forward: restore the previous scroll position for this specific page
-      const savedY = scrollPositions.current.get(pathname) ?? 0;
+      // Browser back/forward: restore the specific scroll position for this page
+      const savedY = pageScrollPositions.get(pathname) ?? 0;
+      window.scrollTo(0, savedY);
       lenis.scrollTo(savedY, { immediate: true });
       isPopState.current = false;
     } else {
@@ -56,8 +68,6 @@ function LenisScrollManager() {
       window.scrollTo(0, 0);
       lenis.scrollTo(0, { immediate: true });
     }
-
-    prevPathname.current = pathname;
 
     // Immediately recalculate dimensions for the new page layout
     lenis.resize();
