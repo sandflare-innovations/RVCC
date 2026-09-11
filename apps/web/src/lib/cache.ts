@@ -22,3 +22,7 @@ export const COMPANIES_CACHE_TAG = "sister-companies";
 
 export const DOCUMENTS_REVALIDATE_SECONDS = 60;
 export const DOCUMENTS_CACHE_TAG = "documents";
+
+export const NEWS_REVALIDATE_SECONDS = 60;
+export const NEWS_CACHE_TAG = "news";
+
