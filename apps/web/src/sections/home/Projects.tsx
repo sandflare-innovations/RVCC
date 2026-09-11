@@ -51,26 +51,7 @@ export const RecentProjectsSkeleton = () => {
   );
 };
 
-export const RecentProjects = ({
-  initialProjects,
-}: {
-  initialProjects?: ProjectListItem[];
-}) => {
-  if (!initialProjects || initialProjects.length === 0) {
-    return <RecentProjectsSkeleton />;
-  }
-
-  const projectList: ProjectListItem[] = initialProjects.map((p) => ({
-    id: p.id,
-    title: p.title,
-    location: p.location || "Riyadh, Saudi Arabia",
-    year: p.year || "2025",
-    category: p.category || "COMMERCIAL",
-    type: p.type || "LANDMARK",
-    description: p.description || "",
-    image: p.image || "/images/projects/4.webp",
-    slug: p.slug,
-  }));
+const RecentProjectsContent = ({ projectList }: { projectList: ProjectListItem[] }) => {
 
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -377,3 +358,28 @@ export const RecentProjects = ({
     </section>
   );
 };
+
+export const RecentProjects = ({
+  initialProjects,
+}: {
+  initialProjects?: ProjectListItem[];
+}) => {
+  if (!initialProjects || initialProjects.length === 0) {
+    return <RecentProjectsSkeleton />;
+  }
+
+  const projectList: ProjectListItem[] = initialProjects.map((p) => ({
+    id: p.id,
+    title: p.title,
+    location: p.location || "Riyadh, Saudi Arabia",
+    year: p.year || "2025",
+    category: p.category || "COMMERCIAL",
+    type: p.type || "LANDMARK",
+    description: p.description || "",
+    image: p.image || "/images/projects/4.webp",
+    slug: p.slug,
+  }));
+
+  return <RecentProjectsContent projectList={projectList} />;
+};
+

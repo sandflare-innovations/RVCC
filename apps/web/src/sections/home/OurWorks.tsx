@@ -133,26 +133,9 @@ export const OurWorksSkeleton = () => {
   );
 };
 
-export const OurWorks = ({ initialProjects }: { initialProjects?: any[] }) => {
+const OurWorksContent = ({ worksList }: { worksList: OurWorkItem[] }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [[index, direction], setPage] = useState([0, 0]);
-
-  const worksList: OurWorkItem[] = useMemo(() => {
-    if (!initialProjects || initialProjects.length === 0) return [];
-    return initialProjects.map((p, i) => {
-      const words = (p.title || "").split(" ");
-      return {
-        id: p.id || i,
-        title1: words[0] || "Featured",
-        title2: words.slice(1).join(" ") || "Project",
-        description: p.description || "",
-        image: p.image || p.coverImage || "",
-        number: String(i + 1).padStart(2, "0"),
-        cta: "Explore project",
-        slug: p.slug,
-      };
-    });
-  }, [initialProjects]);
 
   useEffect(() => {
     if (worksList.length === 0) return;
@@ -195,14 +178,13 @@ export const OurWorks = ({ initialProjects }: { initialProjects?: any[] }) => {
     setPage([(index - 1 + worksList.length) % worksList.length, -1]);
   };
 
-  if (worksList.length === 0) {
-    return <OurWorksSkeleton />;
-  }
-
   const currentWork = worksList[index] || worksList[0];
 
   return (
-    <div className="bg-background relative flex w-full flex-col items-center overflow-hidden">
+    <div
+      ref={containerRef}
+      className="bg-background relative flex w-full flex-col items-center overflow-hidden"
+    >
       {/* Mobile View - Special Card Design */}
       <section className="section-padding container md:hidden">
         <motion.div
@@ -271,7 +253,6 @@ export const OurWorks = ({ initialProjects }: { initialProjects?: any[] }) => {
       {/* Desktop View - Existing Slider */}
       <motion.section
         id="works"
-        ref={containerRef}
         onMouseMove={handleMouseMove}
         style={{ width: containerWidth, borderRadius: radius }}
         className="bg-brand-black relative z-20 mx-auto hidden h-screen min-h-[700px] flex-col items-center overflow-hidden md:flex"
@@ -388,3 +369,29 @@ export const OurWorks = ({ initialProjects }: { initialProjects?: any[] }) => {
     </div>
   );
 };
+
+export const OurWorks = ({ initialProjects }: { initialProjects?: any[] }) => {
+  const worksList: OurWorkItem[] = useMemo(() => {
+    if (!initialProjects || initialProjects.length === 0) return [];
+    return initialProjects.map((p, i) => {
+      const words = (p.title || "").split(" ");
+      return {
+        id: p.id || i,
+        title1: words[0] || "Featured",
+        title2: words.slice(1).join(" ") || "Project",
+        description: p.description || "",
+        image: p.image || p.coverImage || "",
+        number: String(i + 1).padStart(2, "0"),
+        cta: "Explore project",
+        slug: p.slug,
+      };
+    });
+  }, [initialProjects]);
+
+  if (worksList.length === 0) {
+    return <OurWorksSkeleton />;
+  }
+
+  return <OurWorksContent worksList={worksList} />;
+};
+

@@ -46,17 +46,7 @@ export const MajorProjectSkeleton = () => {
   );
 };
 
-export const MajorProject = ({
-  initialProjects,
-}: {
-  initialProjects?: MajorProjectPropItem[];
-}) => {
-  if (!initialProjects || initialProjects.length < 3) {
-    return <MajorProjectSkeleton />;
-  }
-
-  const projectList: MajorProjectPropItem[] = initialProjects.slice(0, 3);
-
+const MajorProjectContent = ({ projectList }: { projectList: MajorProjectPropItem[] }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
 
@@ -379,3 +369,18 @@ export const MajorProject = ({
     </div>
   );
 };
+
+export const MajorProject = ({
+  initialProjects,
+}: {
+  initialProjects?: MajorProjectPropItem[];
+}) => {
+  if (!initialProjects || initialProjects.length < 3) {
+    return <MajorProjectSkeleton />;
+  }
+
+  const projectList: MajorProjectPropItem[] = initialProjects.slice(0, 3);
+
+  return <MajorProjectContent projectList={projectList} />;
+};
+
