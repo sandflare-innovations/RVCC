@@ -125,3 +125,26 @@ model Service {
   @@index([isActive, sortOrder])
   @@index([deletedAt])
 }
+
+model NewsEvent {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  date        String    // e.g. "April 15, 2024"
+  excerpt     String    @default("")
+  content     String?   // optional full article body
+  imageUrl    String
+  category    String    @default("General")
+  edition     String    @default("Vol. 24")
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+  deletedAt   DateTime? // Soft Deletion
+
+  @@index([slug])
+  @@index([isActive, sortOrder])
+  @@index([deletedAt])
+}
+
