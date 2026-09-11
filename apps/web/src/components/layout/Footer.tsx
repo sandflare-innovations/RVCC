@@ -119,7 +119,7 @@ export const Footer = () => {
         <div className="absolute -bottom-20 right-10 h-80 w-80 rounded-full bg-black/15 blur-[100px]" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6 pt-20 pb-16 sm:px-8 lg:px-12 lg:pt-24">
+      <div className="relative z-10 mx-auto max-w-8xl px-6 pt-20 pb-16 sm:px-8 lg:px-12 lg:pt-24">
         {/* ── TOP CONTACT & HEADQUARTERS BAR ─────────────────────────────────── */}
         <div className="mb-16 grid grid-cols-1 gap-4 border-b border-white/15 pb-12 sm:grid-cols-2 lg:grid-cols-3">
           {/* Location */}
@@ -381,25 +381,6 @@ export const Footer = () => {
           </div>
         </div>
 
-        {/* ── LARGE REVEAL LOGO AT BOTTOM ────────────────────────────────────── */}
-        <div className="pointer-events-none absolute bottom-0 left-1/2 w-full max-w-5xl -translate-x-1/2 overflow-hidden">
-          <motion.div
-            initial={{ y: "100%" }}
-            whileInView={{ y: "25%" }}
-            transition={{ duration: 1.5, ease: [0.19, 1, 0.22, 1] }}
-            viewport={{ once: true }}
-            className="relative aspect-[3/1] w-full opacity-20"
-            style={{ filter: "brightness(0) invert(1)" }}
-          >
-            <Image
-              src="/images/logo/logo.webp"
-              alt="RVCC Large Logo"
-              fill
-              className="object-contain"
-              sizes="(max-width: 768px) 100vw, 1200px"
-            />
-          </motion.div>
-        </div>
       </div>
     </footer>
   );
