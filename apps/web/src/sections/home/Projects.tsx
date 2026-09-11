@@ -202,8 +202,8 @@ export const RecentProjects = ({
                 className="relative flex w-full min-w-full flex-shrink-0 snap-center snap-always flex-col"
               >
                 {/* Image Container */}
-                <div className="relative aspect-[4/3] w-full overflow-hidden shadow-sm">
-
+                <div className="relative aspect-[4/3] w-full overflow-hidden shadow-sm bg-gradient-to-br from-brand-blue/10 via-white to-brand-blue/5">
+                  <div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-brand-blue/15 to-transparent animate-pulse" />
                   <Image
                     src={project.image}
                     alt={project.title}
@@ -321,7 +321,8 @@ export const RecentProjects = ({
                   >
                     <div className="px-1">
                       {/* Image Container with Hover Overlay */}
-                      <div className="relative aspect-[4/5] w-full overflow-hidden bg-gray-100">
+                      <div className="relative aspect-[4/5] w-full overflow-hidden bg-gradient-to-br from-brand-blue/10 via-white to-brand-blue/5">
+                        <div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-brand-blue/15 to-transparent animate-pulse" />
                         <Image
                           src={project.image}
                           alt={project.title}
