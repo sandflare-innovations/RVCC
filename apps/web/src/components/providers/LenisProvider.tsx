@@ -53,6 +53,7 @@ function LenisScrollManager() {
       isPopState.current = false;
     } else {
       // Normal navigation: always start cleanly at the top of the new page
+      window.scrollTo(0, 0);
       lenis.scrollTo(0, { immediate: true });
     }
 
@@ -95,8 +96,11 @@ function LenisScrollManager() {
 }
 
 export function LenisProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+
   return (
     <ReactLenis
+      key={pathname}
       root
       options={{
         lerp: 0.1,
