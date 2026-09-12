@@ -7,7 +7,7 @@ import { LuCheck as Check } from "react-icons/lu";
 import { ENQUIRE_STEPS, type EnquireStep } from "@/lib/enquire-constants";
 
 const LABELS: Record<string, string> = {
-  company: "Personal Details", // The reference image says "Personal Details" for the first step, we'll keep "Company"
+  company: "Company",
   contacts: "Contacts",
   addresses: "Addresses",
   classifications: "Classify",
@@ -15,12 +15,8 @@ const LABELS: Record<string, string> = {
   products: "Products",
   questionnaire: "Questions",
   attachments: "Docs",
-  review: "Summary", // "Review" matched "Summary" from image somewhat
+  review: "Review",
 };
-
-// I will keep the original LABELS mapping for consistency with the rest of the app:
-LABELS.company = "Company";
-LABELS.review = "Review";
 
 const VISIBLE = ENQUIRE_STEPS.filter((s) => s !== "done" && s !== "verify");
 
