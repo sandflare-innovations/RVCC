@@ -404,7 +404,7 @@ export function GalleryGrid({
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((proj) => {
             const projImages = images.filter((img) => img.projectId === proj.id);
-            const mainThumb = projImages[0]?.imageUrl || proj.coverImage || "/images/projects/1.webp";
+            const mainThumb = projImages[0]?.imageUrl || proj.coverImage || "";
             const secondaryThumbs = projImages.slice(1, 4);
 
             return (
@@ -418,15 +418,19 @@ export function GalleryGrid({
                     {/* Main Big Thumbnail */}
                     <div
                       onClick={() => setSelectedProjectId(proj.id)}
-                      className="relative aspect-16/10 w-full overflow-hidden rounded-2xl bg-zinc-100 shadow-inner cursor-pointer"
+                      className="relative aspect-16/10 w-full overflow-hidden rounded-2xl bg-zinc-100 shadow-inner cursor-pointer flex items-center justify-center text-zinc-400"
                     >
-                      <Image
-                        src={mainThumb}
-                        alt={proj.title}
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-105"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                      />
+                      {mainThumb ? (
+                        <Image
+                          src={mainThumb}
+                          alt={proj.title}
+                          fill
+                          className="object-cover transition-transform duration-700 group-hover:scale-105"
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                        />
+                      ) : (
+                        <ImageIcon className="h-8 w-8 text-zinc-300" />
+                      )}
                       <div className="absolute inset-x-3 top-3 flex items-center justify-between">
                         <span className="rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold tracking-wider text-zinc-800 uppercase shadow-xs backdrop-blur-md">
                           {proj.category}
@@ -526,7 +530,7 @@ export function GalleryGrid({
               const slugs = img.serviceSlugs?.length ? img.serviceSlugs : proj?.serviceSlugs ?? [];
               return slugs.includes(srv.slug);
             });
-            const mainThumb = srvImages[0]?.imageUrl || "/images/projects/1.webp";
+            const mainThumb = srvImages[0]?.imageUrl || "";
             const secondaryThumbs = srvImages.slice(1, 4);
 
             return (
@@ -540,15 +544,19 @@ export function GalleryGrid({
                     {/* Main Big Thumbnail */}
                     <div
                       onClick={() => setSelectedServiceSlug(srv.slug)}
-                      className="relative aspect-16/10 w-full overflow-hidden rounded-2xl bg-zinc-100 shadow-inner cursor-pointer"
+                      className="relative aspect-16/10 w-full overflow-hidden rounded-2xl bg-zinc-100 shadow-inner cursor-pointer flex items-center justify-center text-zinc-400"
                     >
-                      <Image
-                        src={mainThumb}
-                        alt={srv.label}
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-105"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                      />
+                      {mainThumb ? (
+                        <Image
+                          src={mainThumb}
+                          alt={srv.label}
+                          fill
+                          className="object-cover transition-transform duration-700 group-hover:scale-105"
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                        />
+                      ) : (
+                        <ImageIcon className="h-8 w-8 text-zinc-300" />
+                      )}
                       <div className="absolute inset-x-3 top-3 flex items-center justify-between">
                         <span className="rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold tracking-wider text-zinc-800 uppercase shadow-xs backdrop-blur-md">
                           Service
