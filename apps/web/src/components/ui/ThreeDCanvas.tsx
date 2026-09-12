@@ -180,11 +180,15 @@ function InteractiveRig({ children }: { children: React.ReactNode }) {
   return <group ref={groupRef}>{children}</group>;
 }
 
+export const HELMET_MODEL_URL =
+  "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/file-manager/3d-objects/safty-helmet-3D.glb";
+
+
 interface ThreeDCanvasProps {
-  modelUrl: string;
+  modelUrl?: string;
 }
 
-export const ThreeDCanvas: React.FC<ThreeDCanvasProps> = ({ modelUrl }) => {
+export const ThreeDCanvas: React.FC<ThreeDCanvasProps> = ({ modelUrl = HELMET_MODEL_URL }) => {
   return (
     <div className="h-full w-full">
       <Canvas dpr={[1, 2]} camera={{ fov: 45 }} shadows={false}>
@@ -202,3 +206,6 @@ export const ThreeDCanvas: React.FC<ThreeDCanvasProps> = ({ modelUrl }) => {
     </div>
   );
 };
+
+useGLTF.preload(HELMET_MODEL_URL);
+

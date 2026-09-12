@@ -63,9 +63,10 @@ export const QualityHero = () => {
             transition={{ duration: 1.5, delay: 0.2, ease: "easeOut" }}
             className="relative h-[400px] w-full lg:h-[600px] lg:w-1/2"
           >
-            <ThreeDCanvas modelUrl="/3D-Objects/safty-helmet-3D.glb" />
+            <ThreeDCanvas />
 
             {/* Subtle technical overlay for 3D section */}
+
             <div className="pointer-events-none absolute inset-0 scale-110 rounded-full border border-zinc-100/50 opacity-20" />
             <div className="pointer-events-none absolute top-1/2 left-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2">
               <div className="border-brand-blue/30 absolute top-0 left-0 h-8 w-8 border-t border-l" />

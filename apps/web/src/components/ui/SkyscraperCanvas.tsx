@@ -50,6 +50,9 @@ interface SkyscraperCanvasProps {
   positionY: MotionValue<number>;
 }
 
+const SKYSCRAPER_MODEL_URL =
+  "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/file-manager/3d-objects/skyscraper.glb";
+
 export const SkyscraperCanvas: React.FC<SkyscraperCanvasProps> = ({
   rotationY,
   rotationX,
@@ -64,7 +67,7 @@ export const SkyscraperCanvas: React.FC<SkyscraperCanvasProps> = ({
           <pointLight position={[-10, -10, -10]} intensity={0.5} />
 
           <Model
-            url="/3D-Objects/skyscraper.glb"
+            url={SKYSCRAPER_MODEL_URL}
             rotationY={rotationY}
             rotationX={rotationX}
             positionY={positionY}
@@ -87,3 +90,6 @@ export const SkyscraperCanvas: React.FC<SkyscraperCanvasProps> = ({
     </div>
   );
 };
+
+useGLTF.preload(SKYSCRAPER_MODEL_URL);
+
