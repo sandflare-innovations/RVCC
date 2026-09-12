@@ -338,6 +338,12 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       const { handleAdminHeroSlidesReorder } = await import("../modules/content/hero/hero.controller");
       return await handleAdminHeroSlidesReorder(sql, env, request);
     }
+    const heroPageMatch = path.match(/^\/hero-slides\/page\/([^/]+)$/);
+    if (heroPageMatch && (request.method === "PUT" || request.method === "POST")) {
+      const page = decodeURIComponent(heroPageMatch[1]!);
+      const { handleAdminPageHeroUpsert } = await import("../modules/content/hero/hero.controller");
+      return await handleAdminPageHeroUpsert(sql, env, request, page);
+    }
     const heroOne = path.match(/^\/hero-slides\/([^/]+)$/);
     if (heroOne) {
       const id = decodeURIComponent(heroOne[1]!);

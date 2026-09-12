@@ -5,7 +5,7 @@ import { Check, GripVertical, Loader2, Pencil, Plus, Trash2, X } from "lucide-re
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Modal } from "@/components/ui/modal";
 import { readApiError } from "@/lib/read-error";
@@ -19,6 +19,10 @@ export function HeroSlidesGrid({
 }) {
   const router = useRouter();
   const [slides, setSlides] = useState<HeroSlideDTO[]>(initialSlides);
+
+  useEffect(() => {
+    setSlides(initialSlides);
+  }, [initialSlides]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isSavingOrder, setIsSavingOrder] = useState(false);

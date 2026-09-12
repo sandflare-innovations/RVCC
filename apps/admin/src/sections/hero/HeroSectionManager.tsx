@@ -158,12 +158,41 @@ interface HeroSectionManagerProps {
   canDelete?: boolean;
 }
 
-export function HeroSectionManager({ initialSlides, canDelete = true }: HeroSectionManagerProps) {
+export function HeroSectionManager({ initialSlides = [], canDelete = true }: HeroSectionManagerProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<PageHeroKey>("home");
+  const [slides, setSlides] = useState<HeroSlideDTO[]>(initialSlides);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchSlides = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch("/api/hero-slides?page=all", { credentials: "include" });
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json.slides)) {
+          setSlides(json.slides);
+        }
+      }
+    } catch (err) {
+      console.error("[HeroSectionManager] failed to fetch slides:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSlides();
+  }, []);
+
+  useEffect(() => {
+    if (initialSlides && initialSlides.length > 0) {
+      setSlides(initialSlides);
+    }
+  }, [initialSlides]);
 
   // Multi-slide home slides state
-  const homeSlides = initialSlides.filter((s) => !s.page || s.page === "home");
+  const homeSlides = slides.filter((s) => !s.page || s.page === "home");
 
   // Page-specific hero forms mapped by page key
   const [pageForms, setPageForms] = useState<Record<string, HeroSlideInput>>(() => {
@@ -187,6 +216,34 @@ export function HeroSectionManager({ initialSlides, canDelete = true }: HeroSect
     }
     return map;
   });
+
+  useEffect(() => {
+    if (slides && slides.length > 0) {
+      setPageForms((prev) => {
+        const map: Record<string, HeroSlideInput> = { ...prev };
+        for (const cfg of PAGE_HERO_CONFIGS) {
+          if (cfg.key === "home") continue;
+          const found = slides.find((s) => s.page === cfg.key);
+          if (found) {
+            map[cfg.key] = {
+              page: cfg.key,
+              badge: found.badge ?? cfg.defaultBadge,
+              title1: found.title1 ?? cfg.defaultTitle1,
+              title2: found.title2 ?? cfg.defaultTitle2,
+              description: found.description ?? cfg.defaultDescription,
+              imageUrl: found.imageUrl ?? cfg.defaultImageUrl,
+              primaryBtnText: found.primaryBtnText ?? undefined,
+              primaryBtnLink: found.primaryBtnLink ?? undefined,
+              secondaryBtnText: found.secondaryBtnText ?? undefined,
+              secondaryBtnLink: found.secondaryBtnLink ?? undefined,
+              isActive: found.isActive ?? true,
+            };
+          }
+        }
+        return map;
+      });
+    }
+  }, [slides]);
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -251,6 +308,7 @@ export function HeroSectionManager({ initialSlides, canDelete = true }: HeroSect
 
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
+      await fetchSlides();
       router.refresh();
     } catch (err: any) {
       setError(err.message || "An error occurred while saving hero section.");
