@@ -1,5 +1,25 @@
+import type { Env } from "../../../config/env";
 import { prisma } from "../../../lib/prisma";
 import { cuid } from "../../../lib/sql";
+import { deletePublicAsset } from "../../../lib/storage";
+
+export function extractR2Key(url?: string | null): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (trimmed.startsWith("hero/") || trimmed.startsWith("content/")) {
+    return trimmed;
+  }
+  try {
+    const parsed = new URL(trimmed);
+    const pathname = parsed.pathname.replace(/^\//, "");
+    if (pathname.startsWith("hero/") || pathname.startsWith("content/")) {
+      return decodeURIComponent(pathname);
+    }
+  } catch {
+    // not a full URL
+  }
+  return null;
+}
 
 export class HeroService {
   static async listAdminSlides(page?: string) {
@@ -168,13 +188,26 @@ export class HeroService {
       secondaryBtnText?: string;
       secondaryBtnLink?: string;
       isActive?: boolean;
-    }
+    },
+    env?: Env
   ) {
     const existing = await prisma.heroSlide.findFirst({
       where: { page, deletedAt: null } as any,
     });
 
     if (existing) {
+      // If image is being changed and old image is an R2 asset, delete obsolete asset
+      if (existing.imageUrl && existing.imageUrl !== data.imageUrl && env) {
+        const oldKey = extractR2Key(existing.imageUrl);
+        if (oldKey) {
+          try {
+            await deletePublicAsset(env, oldKey);
+          } catch (err) {
+            console.warn("[HeroService] failed to delete old public asset from R2:", err);
+          }
+        }
+      }
+
       const updated = await prisma.heroSlide.update({
         where: { id: existing.id },
         data: {
@@ -213,7 +246,23 @@ export class HeroService {
     });
   }
 
-  static async updateSlide(id: string, data: Record<string, unknown>) {
+  static async updateSlide(id: string, data: Record<string, unknown>, env?: Env) {
+    if (data.imageUrl && env) {
+      const existing = await prisma.heroSlide.findFirst({
+        where: { id, deletedAt: null },
+      });
+      if (existing?.imageUrl && existing.imageUrl !== data.imageUrl) {
+        const oldKey = extractR2Key(existing.imageUrl);
+        if (oldKey) {
+          try {
+            await deletePublicAsset(env, oldKey);
+          } catch (err) {
+            console.warn("[HeroService] failed to delete old public asset from R2:", err);
+          }
+        }
+      }
+    }
+
     const slide = await prisma.heroSlide.update({
       where: { id },
       data: data as any,
@@ -226,11 +275,22 @@ export class HeroService {
     };
   }
 
-  static async deleteSlide(id: string) {
+  static async deleteSlide(id: string, env?: Env) {
     const existing = await prisma.heroSlide.findFirst({
       where: { id, deletedAt: null },
     });
     if (!existing) return null;
+
+    if (existing.imageUrl && env) {
+      const oldKey = extractR2Key(existing.imageUrl);
+      if (oldKey) {
+        try {
+          await deletePublicAsset(env, oldKey);
+        } catch (err) {
+          console.warn("[HeroService] failed to delete asset on slide delete:", err);
+        }
+      }
+    }
 
     await prisma.heroSlide.update({
       where: { id },
@@ -249,5 +309,31 @@ export class HeroService {
         })
       )
     );
+  }
+
+  static async cleanupUnusedPageHeroes(env?: Env) {
+    const UNUSED_PAGES = ["about", "projects", "clients", "gallery", "gallary"];
+    const found = await prisma.heroSlide.findMany({
+      where: {
+        page: { in: UNUSED_PAGES },
+      } as any,
+    });
+
+    if (found.length > 0) {
+      if (env) {
+        for (const s of found) {
+          const key = extractR2Key(s.imageUrl);
+          if (key) {
+            await deletePublicAsset(env, key).catch(() => undefined);
+          }
+        }
+      }
+
+      await prisma.heroSlide.deleteMany({
+        where: {
+          page: { in: UNUSED_PAGES },
+        } as any,
+      });
+    }
   }
 }

@@ -20,6 +20,8 @@ export async function handleAdminHeroSlidesList(
   const { deny } = await requireAdmin(null, env, request, "REVIEWER");
   if (deny) return deny;
 
+  await HeroService.cleanupUnusedPageHeroes(env).catch(() => undefined);
+
   const url = new URL(request.url);
   const page = url.searchParams.get("page") || undefined;
   const slides = await HeroService.listAdminSlides(page);
@@ -95,18 +97,22 @@ export async function handleAdminPageHeroUpsert(
     return json(env, request, { error: parsed.error.issues[0]?.message || "Invalid payload" }, 400);
   }
 
-  const slide = await HeroService.upsertPageHero(page, {
-    title1: parsed.data.title1.trim(),
-    title2: parsed.data.title2.trim(),
-    imageUrl: parsed.data.imageUrl.trim(),
-    description: (parsed.data.description ?? "").trim(),
-    badge: (parsed.data.badge ?? "").trim(),
-    primaryBtnText: parsed.data.primaryBtnText ? parsed.data.primaryBtnText.trim() : undefined,
-    primaryBtnLink: parsed.data.primaryBtnLink ? parsed.data.primaryBtnLink.trim() : undefined,
-    secondaryBtnText: parsed.data.secondaryBtnText ? parsed.data.secondaryBtnText.trim() : undefined,
-    secondaryBtnLink: parsed.data.secondaryBtnLink ? parsed.data.secondaryBtnLink.trim() : undefined,
-    isActive: parsed.data.isActive,
-  });
+  const slide = await HeroService.upsertPageHero(
+    page,
+    {
+      title1: parsed.data.title1.trim(),
+      title2: parsed.data.title2.trim(),
+      imageUrl: parsed.data.imageUrl.trim(),
+      description: (parsed.data.description ?? "").trim(),
+      badge: (parsed.data.badge ?? "").trim(),
+      primaryBtnText: parsed.data.primaryBtnText ? parsed.data.primaryBtnText.trim() : undefined,
+      primaryBtnLink: parsed.data.primaryBtnLink ? parsed.data.primaryBtnLink.trim() : undefined,
+      secondaryBtnText: parsed.data.secondaryBtnText ? parsed.data.secondaryBtnText.trim() : undefined,
+      secondaryBtnLink: parsed.data.secondaryBtnLink ? parsed.data.secondaryBtnLink.trim() : undefined,
+      isActive: parsed.data.isActive,
+    },
+    env
+  );
 
   await writeAudit(sql, {
     adminId: admin.id,
@@ -151,7 +157,7 @@ export async function handleAdminHeroSlideUpdate(
   if (parsed.data.sortOrder !== undefined) data.sortOrder = parsed.data.sortOrder;
   if (parsed.data.isActive !== undefined) data.isActive = parsed.data.isActive;
 
-  const slide = await HeroService.updateSlide(id, data);
+  const slide = await HeroService.updateSlide(id, data, env);
 
   await writeAudit(sql, {
     adminId: admin.id,
@@ -173,7 +179,7 @@ export async function handleAdminHeroSlideDelete(
   const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
   if (deny) return deny;
 
-  const deleted = await HeroService.deleteSlide(id);
+  const deleted = await HeroService.deleteSlide(id, env);
   if (!deleted) return json(env, request, { error: "Slide not found." }, 404);
 
   await writeAudit(sql, {
