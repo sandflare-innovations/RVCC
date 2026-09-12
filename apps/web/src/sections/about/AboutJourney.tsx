@@ -18,7 +18,7 @@ const MILESTONES: Milestone[] = [
     title: "SAGIA Secured Foundation",
     description:
       "RVCC secured 100% foreign investment status under the Ministry of Investment (SAGIA), establishing a robust foundation for long-term growth in the Kingdom.",
-    image: "/images/journey/sagia.webp",
+    image: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/file-manager/journey/2006-sagia-foundation-g827.webp",
     align: "left",
   },
   {
@@ -26,7 +26,7 @@ const MILESTONES: Milestone[] = [
     title: "Class A Contractor Status",
     description:
       "Achieved the prestigious Class A Contractor Badge, a testament to our technical excellence and capability in executing monumental infrastructure projects.",
-    image: "/images/journey/2016.webp",
+    image: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/file-manager/journey/2016-class-a-contractor-t937.webp",
     align: "right",
   },
   {
@@ -34,7 +34,7 @@ const MILESTONES: Milestone[] = [
     title: "ISO Excellence & Identity",
     description:
       "Attained ISO 9001:2018 and ISO 14001:2015 certifications while undergoing a complete corporate identity uplift and UAF/IAF accreditation.",
-    image: "/images/journey/iso.webp",
+    image: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/file-manager/journey/2023-iso-excellence-qbbx.webp",
     align: "left",
   },
   {
@@ -42,7 +42,7 @@ const MILESTONES: Milestone[] = [
     title: "Vision 2030 Engineering",
     description:
       "Engineering the future in full alignment with Saudi Vision 2030, focusing on sustainable urban development and trusted client partnerships.",
-    image: "/images/journey/vision-2030.webp",
+    image: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/file-manager/journey/2030-saudi-vision-g7n3.webp",
     align: "right",
   },
 ];
