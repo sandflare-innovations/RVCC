@@ -27,13 +27,12 @@ export async function getProjects(): Promise<DetailedProject[]> {
   }
 
   return data.projects.map((p) => {
-    const fallbackImage = "/images/projects/13.webp";
     const image =
       (p as any).image ||
       (p as any).coverImage ||
       (p.gallery?.[0] as any)?.imageUrl ||
       (typeof p.gallery?.[0] === "string" ? p.gallery[0] : null) ||
-      fallbackImage;
+      "";
     const gallery = Array.isArray(p.gallery)
       ? p.gallery
           .map((g: any) => (typeof g === "string" ? g : g?.imageUrl))
@@ -44,7 +43,7 @@ export async function getProjects(): Promise<DetailedProject[]> {
       ...p,
       image,
       coverImage: (p as any).coverImage || image,
-      gallery: gallery.length > 0 ? gallery : [image],
+      gallery: gallery.length > 0 ? gallery : image ? [image] : [],
     };
   });
 }
@@ -66,13 +65,12 @@ export async function getProjectBySlug(slug: string): Promise<DetailedProject | 
   }
 
   const p = data.project;
-  const fallbackImage = "/images/projects/13.webp";
   const image =
     (p as any).image ||
     (p as any).coverImage ||
     (p.gallery?.[0] as any)?.imageUrl ||
     (typeof p.gallery?.[0] === "string" ? p.gallery[0] : null) ||
-    fallbackImage;
+    "";
   const gallery = Array.isArray(p.gallery)
     ? p.gallery
         .map((g: any) => (typeof g === "string" ? g : g?.imageUrl))
@@ -83,7 +81,7 @@ export async function getProjectBySlug(slug: string): Promise<DetailedProject | 
     ...p,
     image,
     coverImage: (p as any).coverImage || image,
-    gallery: gallery.length > 0 ? gallery : [image],
+    gallery: gallery.length > 0 ? gallery : image ? [image] : [],
   };
 }
 
@@ -138,14 +136,14 @@ export async function getGalleryCollections(): Promise<GallaryProject[]> {
         const images =
           Array.isArray(p.gallery) && p.gallery.length > 0
             ? p.gallery
-            : [p.coverImage || p.image || "/images/projects/13.webp"];
+            : (p.coverImage || p.image ? [p.coverImage || p.image] : []);
 
         return {
           id: String(p.id),
           slug: p.slug,
           title: p.title,
           description: p.description || "",
-          thumbnail: p.coverImage || p.image || images[0],
+          thumbnail: p.coverImage || p.image || images[0] || "",
           images,
           serviceSlugs: Array.isArray(p.serviceSlugs) ? p.serviceSlugs : [],
         };
