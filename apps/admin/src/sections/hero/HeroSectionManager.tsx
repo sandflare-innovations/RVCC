@@ -5,6 +5,7 @@ import {
   Briefcase,
   Building2,
   Check,
+  ChevronDown,
   FileText,
   Home,
   Image as ImageIcon,
@@ -22,7 +23,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { HeroSlidesGrid } from "./HeroSlidesGrid";
 
@@ -194,7 +195,21 @@ export function HeroSectionManager({ initialSlides, canDelete = true }: HeroSect
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const currentConfig = PAGE_HERO_CONFIGS.find((c) => c.key === activeTab) || PAGE_HERO_CONFIGS[0];
+  const CurrentIcon = currentConfig.icon;
   const currentForm = pageForms[activeTab] || {
     page: activeTab,
     badge: currentConfig.defaultBadge,
@@ -278,33 +293,99 @@ export function HeroSectionManager({ initialSlides, canDelete = true }: HeroSect
 
   return (
     <div className="space-y-6">
-      {/* Top Tab Bar & Action Controls (Matching About Content Design) */}
+      {/* Top Header Bar with Custom Page Selector Dropdown & Action Controls */}
       <div className="flex flex-col gap-4 border-b border-zinc-200/80 bg-white pb-4 sm:flex-row sm:items-center sm:justify-between">
-        {/* Scrollable Tab Strip */}
-        <div className="flex flex-wrap gap-2 [scrollbar-width:none] overflow-x-auto">
-          {PAGE_HERO_CONFIGS.map((cfg) => {
-            const Icon = cfg.icon;
-            const isActive = activeTab === cfg.key;
-
-            return (
-              <button
-                key={cfg.key}
-                type="button"
-                onClick={() => {
-                  setActiveTab(cfg.key);
-                  setError(null);
-                }}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
-                  isActive
-                    ? "bg-[#0073bc] text-white shadow-sm"
-                    : "border border-zinc-200/80 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+        {/* Custom Page Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden sm:inline-block">
+              Page:
+            </span>
+            <button
+              type="button"
+              onClick={() => setDropdownOpen((prev) => !prev)}
+              className={`flex items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-all cursor-pointer shadow-xs ${
+                dropdownOpen
+                  ? "border-[#0073bc] ring-2 ring-[#0073bc]/20 bg-white text-zinc-900"
+                  : "border-zinc-200 bg-white text-zinc-800 hover:border-zinc-300 hover:bg-zinc-50"
+              }`}
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0073bc]/10 text-[#0073bc]">
+                <CurrentIcon className="h-4 w-4" />
+              </div>
+              <div className="flex flex-col text-left">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-zinc-900">{currentConfig.label}</span>
+                  <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600">
+                    {currentConfig.key === "home" ? "Multi-Slide" : "Hero Banner"}
+                  </span>
+                </div>
+              </div>
+              <ChevronDown
+                className={`ml-2 h-4 w-4 text-zinc-400 transition-transform duration-200 ${
+                  dropdownOpen ? "rotate-180 text-[#0073bc]" : ""
                 }`}
-              >
-                <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-zinc-500"}`} />
-                <span>{cfg.label}</span>
-              </button>
-            );
-          })}
+              />
+            </button>
+          </div>
+
+          {/* Dropdown Menu Popup */}
+          {dropdownOpen && (
+            <div className="absolute left-0 top-full z-50 mt-2 w-72 sm:w-80 rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3 py-2 border-b border-zinc-100 mb-1">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                  Select Page Hero Section
+                </p>
+              </div>
+              <div className="max-h-[340px] overflow-y-auto space-y-1 [scrollbar-width:thin]">
+                {PAGE_HERO_CONFIGS.map((cfg) => {
+                  const Icon = cfg.icon;
+                  const isSelected = activeTab === cfg.key;
+
+                  return (
+                    <button
+                      key={cfg.key}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(cfg.key);
+                        setDropdownOpen(false);
+                        setError(null);
+                      }}
+                      className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
+                        isSelected
+                          ? "bg-[#0073bc]/10 text-[#0073bc]"
+                          : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                            isSelected
+                              ? "bg-[#0073bc] text-white"
+                              : "bg-zinc-100 text-zinc-600"
+                          }`}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="flex flex-col text-left">
+                          <span className="font-bold">{cfg.label}</span>
+                          <span className="text-[10px] text-zinc-400 font-normal">
+                            {cfg.key === "home" ? "Multi-slide carousel" : "Single hero banner"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {isSelected && (
+                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0073bc] text-white">
+                          <Check className="h-3 w-3 stroke-[3]" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Top Action Button */}
@@ -312,7 +393,7 @@ export function HeroSectionManager({ initialSlides, canDelete = true }: HeroSect
           {activeTab === "home" ? (
             <Link
               href="/content/hero/new"
-              className="flex items-center gap-2 rounded-xl bg-[#0073bc] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#005fa0] transition-colors cursor-pointer"
+              className="flex items-center gap-2 rounded-xl bg-[#0073bc] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#005fa0] transition-colors cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               <span>Add Slide</span>
@@ -322,7 +403,7 @@ export function HeroSectionManager({ initialSlides, canDelete = true }: HeroSect
               type="button"
               onClick={handleSavePageHero}
               disabled={isSaving}
-              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors disabled:opacity-50 cursor-pointer"
             >
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
