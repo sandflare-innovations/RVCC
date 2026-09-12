@@ -272,7 +272,7 @@ export function HeroSlideEditor({ initial }: { initial: Partial<HeroSlideDTO> })
                   <input
                     type="text"
                     required
-                    value={form.title1}
+                    value={form.title1 ?? ""}
                     onChange={(e) => setField("title1", e.target.value)}
                     placeholder="e.g. Building"
                     className="mt-1.5 w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 transition-colors focus:border-[#0073bc] focus:outline-hidden"
@@ -285,7 +285,7 @@ export function HeroSlideEditor({ initial }: { initial: Partial<HeroSlideDTO> })
                   <input
                     type="text"
                     required
-                    value={form.title2}
+                    value={form.title2 ?? ""}
                     onChange={(e) => setField("title2", e.target.value)}
                     placeholder="e.g. Legacy"
                     className="mt-1.5 w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 transition-colors focus:border-[#0073bc] focus:outline-hidden"
@@ -300,7 +300,7 @@ export function HeroSlideEditor({ initial }: { initial: Partial<HeroSlideDTO> })
                 <textarea
                   required
                   rows={3}
-                  value={form.description}
+                  value={form.description ?? ""}
                   onChange={(e) => setField("description", e.target.value)}
                   placeholder="Describe your architectural mastery, engineering commitment, or vision..."
                   className="mt-1.5 w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 transition-colors focus:border-[#0073bc] focus:outline-hidden"
