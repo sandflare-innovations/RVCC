@@ -124,7 +124,7 @@ export default function ContactPage() {
         <div className="relative flex min-h-[700px] w-full flex-col justify-end overflow-hidden bg-white p-8 md:p-16 lg:h-auto lg:w-1/2 lg:p-24">
           <div className="absolute inset-0 z-0">
             <Image
-              src="/images/projects/7.webp"
+              src="https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-2.webp"
               alt="Architecture"
               fill
               className="object-cover"

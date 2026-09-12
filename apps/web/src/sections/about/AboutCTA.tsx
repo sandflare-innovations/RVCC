@@ -10,7 +10,7 @@ export const AboutCTA = () => {
   return (
     <section className="relative overflow-hidden py-24 lg:py-24">
       {/* Background with Overlay */}
-      <div className="absolute inset-0 z-0 bg-[url('/images/projects/4.webp')] bg-cover bg-fixed bg-center" />
+      <div className="absolute inset-0 z-0 bg-[url('https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-1.webp')] bg-cover bg-fixed bg-center" />
       <div className="absolute inset-0 z-10 bg-zinc-900/80 backdrop-blur-[2px]" />
 
       <div className="relative z-20 container mx-auto px-6 text-center">

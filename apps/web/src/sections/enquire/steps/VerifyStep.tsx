@@ -157,9 +157,9 @@ function HeldView({
 const HERO_IMAGES = [
   "/images/hero-bg.webp",
   "/images/home-hero.webp",
-  "/images/projects/13.webp",
-  "/images/projects/4.webp",
-  "/images/projects/2.webp",
+  "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-1.webp",
+  "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-2.webp",
+  "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-3.webp",
 ];
 
 export function VerifyStep() {
