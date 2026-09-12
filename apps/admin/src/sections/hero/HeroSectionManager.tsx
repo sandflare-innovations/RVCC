@@ -29,15 +29,11 @@ import { HeroSlidesGrid } from "./HeroSlidesGrid";
 
 export type PageHeroKey =
   | "home"
-  | "about"
   | "services"
-  | "projects"
   | "careers"
-  | "clients"
   | "documents"
   | "quality-policy"
-  | "contact"
-  | "gallery";
+  | "contact";
 
 interface PageHeroConfig {
   key: PageHeroKey;
@@ -62,16 +58,6 @@ export const PAGE_HERO_CONFIGS: PageHeroConfig[] = [
     defaultImageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-1.webp",
   },
   {
-    key: "about",
-    label: "About",
-    icon: Info,
-    defaultBadge: "Architecture & Design",
-    defaultTitle1: "THE ART OF",
-    defaultTitle2: "STRUCTURAL PERFECTION",
-    defaultDescription: "For nearly two decades, Riyadh Villas Contracting Company (RVCC) has stood as a beacon of refined engineering and timeless structural design.",
-    defaultImageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-1.webp",
-  },
-  {
     key: "services",
     label: "Services",
     icon: Wrench,
@@ -82,16 +68,6 @@ export const PAGE_HERO_CONFIGS: PageHeroConfig[] = [
     defaultImageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-2.webp",
   },
   {
-    key: "projects",
-    label: "Projects",
-    icon: Briefcase,
-    defaultBadge: "PORTFOLIO",
-    defaultTitle1: "LANDMARK",
-    defaultTitle2: "DEVELOPMENTS",
-    defaultDescription: "Explore our portfolio of premier commercial, residential, and infrastructure achievements across the Kingdom.",
-    defaultImageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-3.webp",
-  },
-  {
     key: "careers",
     label: "Careers",
     icon: Building2,
@@ -100,16 +76,6 @@ export const PAGE_HERO_CONFIGS: PageHeroConfig[] = [
     defaultTitle2: "THE FUTURE",
     defaultDescription: "Join a team of visionaries and creators dedicated to reshaping the skyline of the Kingdom through monumental design and engineering.",
     defaultImageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-4.webp",
-  },
-  {
-    key: "clients",
-    label: "Clients",
-    icon: UserCheck,
-    defaultBadge: "PARTNERSHIPS",
-    defaultTitle1: "TRUSTED BY",
-    defaultTitle2: "INDUSTRY LEADERS",
-    defaultDescription: "Proudly collaborating with the Kingdom's leading enterprises, ministries, and developers to deliver iconic infrastructure.",
-    defaultImageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-1.webp",
   },
   {
     key: "documents",
@@ -140,16 +106,6 @@ export const PAGE_HERO_CONFIGS: PageHeroConfig[] = [
     defaultTitle2: "WITH RVCC",
     defaultDescription: "Reach out to our engineering and executive teams in Riyadh to initiate your next landmark development.",
     defaultImageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-2.webp",
-  },
-  {
-    key: "gallery",
-    label: "Gallery",
-    icon: ImageIcon,
-    defaultBadge: "VISUAL CHRONICLES",
-    defaultTitle1: "CURATED",
-    defaultTitle2: "WORKS & MEDIA",
-    defaultDescription: "Immerse in detailed architectural captures showcasing our craft, materiality, and structural execution.",
-    defaultImageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-4.webp",
   },
 ];
 
@@ -327,9 +283,10 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
     try {
       const data = new FormData();
       data.append("file", file);
-      data.append("folder", `hero/${activeTab}`);
+      data.append("folder", "hero");
+      data.append("label", `hero-${activeTab}`);
 
-      const res = await fetch("/api/about/upload", {
+      const res = await fetch("/api/content/upload", {
         method: "POST",
         body: data,
       });
@@ -339,8 +296,12 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
         throw new Error(json.error || "Failed to upload image to storage.");
       }
 
-      const { url } = await res.json();
-      handleFieldChange("imageUrl", url);
+      const json = await res.json();
+      const uploadedUrl = json.fileUrl || json.url || "";
+      if (!uploadedUrl) {
+        throw new Error("Failed to retrieve image URL from upload response.");
+      }
+      handleFieldChange("imageUrl", uploadedUrl);
     } catch (err: any) {
       setError(err.message || "Image upload failed. Please try again.");
     } finally {
@@ -535,7 +496,7 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
                   <input
                     type="text"
                     required
-                    value={currentForm.title1}
+                    value={currentForm.title1 ?? ""}
                     onChange={(e) => handleFieldChange("title1", e.target.value)}
                     placeholder="e.g. SHAPING"
                     className="mt-1.5 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs font-medium text-zinc-900 shadow-2xs focus:border-[#0073bc] focus:outline-hidden"
@@ -549,7 +510,7 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
                   <input
                     type="text"
                     required
-                    value={currentForm.title2}
+                    value={currentForm.title2 ?? ""}
                     onChange={(e) => handleFieldChange("title2", e.target.value)}
                     placeholder="e.g. THE FUTURE"
                     className="mt-1.5 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs font-medium text-zinc-900 shadow-2xs focus:border-[#0073bc] focus:outline-hidden"
@@ -565,7 +526,7 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
                 <textarea
                   rows={3}
                   required
-                  value={currentForm.description}
+                  value={currentForm.description ?? ""}
                   onChange={(e) => handleFieldChange("description", e.target.value)}
                   placeholder="Enter high-level page introduction..."
                   className="mt-1.5 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs font-medium text-zinc-900 shadow-2xs focus:border-[#0073bc] focus:outline-hidden"
@@ -581,7 +542,7 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
                   <div className="flex items-center gap-3">
                     <input
                       type="text"
-                      value={currentForm.imageUrl}
+                      value={currentForm.imageUrl ?? ""}
                       onChange={(e) => handleFieldChange("imageUrl", e.target.value)}
                       placeholder="https://pub-....r2.dev/hero/..."
                       className="flex-1 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-medium text-zinc-800 shadow-2xs focus:border-[#0073bc] focus:outline-hidden"
@@ -629,6 +590,7 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
                     src={currentForm.imageUrl}
                     alt={currentForm.title1 || "Hero background"}
                     fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-cover opacity-60"
                   />
                 ) : (
