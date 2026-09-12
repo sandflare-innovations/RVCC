@@ -18,7 +18,7 @@ function mapDocumentItem(d: any): WebDocumentItem {
     pageCount: d.pageCount,
     filePath: d.filePath || d.fileUrl,
     fileUrl: d.fileUrl,
-    image: d.coverImage || "/images/books/company-profile.webp",
+    image: d.coverImage || "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/documents/covers/company-profile.webp",
     requiresAuth: Boolean(d.requiresAuth),
     updatedAt: d.updatedAt
       ? new Date(d.updatedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })
