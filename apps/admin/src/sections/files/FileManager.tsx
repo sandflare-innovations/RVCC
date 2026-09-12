@@ -2,6 +2,7 @@
 
 import {
   AlertCircle,
+  Box,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -29,10 +30,24 @@ import {
   Video,
   X,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import React, { useEffect, useMemo, useRef,useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { optimizeImageForUpload } from "@/lib/image-optimizer";
+
+const Model3DPreview = dynamic(
+  () => import("./Model3DPreview").then((mod) => mod.Model3DPreview),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[60vh] min-h-[440px] w-full items-center justify-center rounded-2xl bg-zinc-950">
+        <Loader2 className="h-8 w-8 animate-spin text-[#0073bc]" />
+      </div>
+    ),
+  }
+);
+
 
 export type ManagedFolderDTO = {
   id: string;
@@ -101,7 +116,28 @@ function formatDate(dateStr: string) {
   }
 }
 
+
+function is3DModel(file?: ManagedFileDTO | null): boolean {
+
+  if (!file) return false;
+  const ext = (file.extension || "").toLowerCase().replace(/^\./, "");
+  const mime = (file.mimeType || "").toLowerCase();
+  const name = (file.name || file.originalName || "").toLowerCase();
+  const url = (file.fileUrl || "").toLowerCase();
+  return (
+    ext === "glb" ||
+    ext === "gltf" ||
+    mime.includes("gltf") ||
+    mime.includes("model/") ||
+    name.endsWith(".glb") ||
+    name.endsWith(".gltf") ||
+    url.includes(".glb") ||
+    url.includes(".gltf")
+  );
+}
+
 export function FileManager() {
+
   const [folders, setFolders] = useState<ManagedFolderDTO[]>([]);
   const [files, setFiles] = useState<ManagedFileDTO[]>([]);
   const [currentFolder, setCurrentFolder] = useState<ManagedFolderDTO | null>(null);
@@ -454,7 +490,10 @@ export function FileManager() {
         f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         f.description?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType =
-        selectedTypeFilter === "ALL" || f.fileType === selectedTypeFilter;
+        selectedTypeFilter === "ALL" ||
+        (selectedTypeFilter === "3D"
+          ? is3DModel(f)
+          : f.fileType === selectedTypeFilter);
       return matchesSearch && matchesType;
     });
   }, [files, searchQuery, selectedTypeFilter]);
@@ -466,7 +505,14 @@ export function FileManager() {
   }, [folders, searchQuery]);
 
   // Render Icon for file
-  const getFileIcon = (type: string, ext: string, size = "w-6 h-6") => {
+  const getFileIcon = (type: string, ext: string, size = "w-6 h-6", file?: ManagedFileDTO) => {
+    if (file && is3DModel(file)) {
+      return <Box className={`${size} text-indigo-500`} />;
+    }
+    const cleanExt = (ext || "").toLowerCase().replace(/^\./, "");
+    if (cleanExt === "glb" || cleanExt === "gltf") {
+      return <Box className={`${size} text-indigo-500`} />;
+    }
     switch (type) {
       case "IMAGE":
         return <ImageIcon className={`${size} text-blue-500`} />;
@@ -480,6 +526,7 @@ export function FileManager() {
         return <GenericFileIcon className={`${size} text-zinc-400`} />;
     }
   };
+
 
   return (
     <div className="relative flex flex-col h-full min-h-0 w-full">
@@ -614,9 +661,11 @@ export function FileManager() {
               <option value="ALL">All Types</option>
               <option value="IMAGE">Images</option>
               <option value="VIDEO">Videos</option>
+              <option value="3D">3D Models</option>
               <option value="DOCUMENT">Documents</option>
               <option value="AUDIO">Audio</option>
             </select>
+
 
             {/* View Mode Toggle matching Gallery tabs */}
             <div className="flex items-center rounded-2xl bg-zinc-100 p-1 shrink-0">
@@ -758,6 +807,7 @@ export function FileManager() {
                   {filteredFiles.map((file) => {
                     const isImg = file.fileType === "IMAGE";
                     const isVid = file.fileType === "VIDEO";
+                    const is3D = is3DModel(file);
 
                     return (
                       <div
@@ -783,14 +833,25 @@ export function FileManager() {
                               />
                               <Video className="absolute h-8 w-8 text-white/90 drop-shadow" />
                             </div>
+                          ) : is3D ? (
+                            <div className="relative flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-indigo-950/90 via-zinc-900 to-black text-white p-3 select-none">
+                              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 mb-1.5 group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/10">
+                                <Box className="h-5 w-5 stroke-[2]" />
+                              </div>
+                              <span className="text-[11px] font-bold text-zinc-100">Interactive 3D</span>
+                              <span className="text-[9px] font-mono uppercase tracking-widest text-indigo-400">
+                                {file.extension || "GLB"}
+                              </span>
+                            </div>
                           ) : (
                             <div className="flex flex-col items-center justify-center gap-1 text-zinc-400">
-                              {getFileIcon(file.fileType, file.extension, "w-10 h-10")}
+                              {getFileIcon(file.fileType, file.extension, "w-10 h-10", file)}
                               <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
                                 {file.extension || file.fileType}
                               </span>
                             </div>
                           )}
+
 
                           {/* Quick Hover Action Overlays */}
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -927,7 +988,7 @@ export function FileManager() {
                         >
                           <td className="py-3 px-4 font-medium text-zinc-900">
                             <div className="flex items-center gap-2.5">
-                              {getFileIcon(file.fileType, file.extension, "w-4 h-4 shrink-0")}
+                              {getFileIcon(file.fileType, file.extension, "w-4 h-4 shrink-0", file)}
                               <span className="truncate max-w-xs">{file.name}</span>
                             </div>
                           </td>
@@ -1215,11 +1276,11 @@ export function FileManager() {
       {/* ── Modal: Preview File ─────────────────────────────────────────── */}
       {previewFile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in">
-          <div className="relative flex flex-col w-full max-w-4xl max-h-[90vh] rounded-3xl bg-zinc-950 text-white shadow-2xl overflow-hidden">
+          <div className={`relative flex flex-col w-full ${is3DModel(previewFile) ? "max-w-5xl" : "max-w-4xl"} max-h-[92vh] rounded-3xl bg-zinc-950 text-white shadow-2xl overflow-hidden`}>
             {/* Top Toolbar */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-zinc-900/60">
               <div className="flex items-center gap-3 min-w-0">
-                {getFileIcon(previewFile.fileType, previewFile.extension, "w-5 h-5 shrink-0")}
+                {getFileIcon(previewFile.fileType, previewFile.extension, "w-5 h-5 shrink-0", previewFile)}
                 <div className="min-w-0">
                   <h3 className="truncate font-semibold text-sm text-white" title={previewFile.name}>
                     {previewFile.name}
@@ -1278,7 +1339,7 @@ export function FileManager() {
             </div>
 
             {/* Media Body */}
-            <div className="flex-1 flex items-center justify-center p-6 bg-zinc-950 overflow-auto min-h-[360px]">
+            <div className={`flex-1 flex items-center justify-center ${is3DModel(previewFile) ? "p-3" : "p-6"} bg-zinc-950 overflow-auto min-h-[360px]`}>
               {previewFile.fileType === "IMAGE" ? (
                 <img
                   src={previewFile.fileUrl}
@@ -1297,6 +1358,15 @@ export function FileManager() {
                   <Music className="h-16 w-16 text-blue-400 mb-4" />
                   <p className="font-medium text-sm mb-4">{previewFile.name}</p>
                   <audio src={previewFile.fileUrl} controls className="w-full" />
+                </div>
+              ) : is3DModel(previewFile) ? (
+                <div className="w-full flex-1">
+                  <Model3DPreview
+                    url={previewFile.fileUrl}
+                    name={previewFile.name}
+                    originalName={previewFile.originalName}
+                    sizeBytes={previewFile.sizeBytes}
+                  />
                 </div>
               ) : previewFile.mimeType.includes("pdf") ? (
                 <iframe
@@ -1324,6 +1394,7 @@ export function FileManager() {
                 </div>
               )}
             </div>
+
 
             {/* Bottom Meta Bar */}
             <div className="flex items-center justify-between px-6 py-3 border-t border-zinc-800/80 bg-zinc-900/60 text-xs text-zinc-400">
