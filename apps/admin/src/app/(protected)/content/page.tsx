@@ -26,8 +26,8 @@ type DashboardJobs = { publishedJobs: number; totalJobs: number };
 const SECTIONS = [
   {
     href: "/content/hero",
-    label: "Hero Slides",
-    description: "Manage homepage interactive hero slides, titles, badges, and background media.",
+    label: "Hero Section",
+    description: "Manage hero banners, titles, badges, and media across all website pages.",
     icon: SlidersHorizontal,
     color: "bg-amber-50 text-amber-600",
     borderColor: "hover:border-amber-400",

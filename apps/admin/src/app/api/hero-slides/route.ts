@@ -4,13 +4,15 @@ import { NextResponse } from "next/server";
 import { adminWorkerFetch } from "@/lib/admin-api";
 import { ADMIN_COOKIE } from "@/lib/constants";
 
-export async function GET() {
+export async function GET(request: Request) {
   const jar = await cookies();
   const token = jar.get(ADMIN_COOKIE)?.value;
   if (!token) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
   try {
-    const res = await adminWorkerFetch("/hero-slides", {
+    const url = new URL(request.url);
+    const path = url.search ? `/hero-slides${url.search}` : "/hero-slides";
+    const res = await adminWorkerFetch(path, {
       method: "GET",
       sessionToken: token,
     });
