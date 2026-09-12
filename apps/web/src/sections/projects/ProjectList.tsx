@@ -66,16 +66,18 @@ export const ProjectCard = ({ project }: { project: DetailedProject }) => {
             imageLoaded ? "opacity-0 pointer-events-none" : "opacity-100 animate-pulse"
           }`}
         />
-        <Image
-          src={project.image || (project as any).coverImage || "/images/projects/13.webp"}
-          alt={project.title || "Project"}
-          fill
-          onLoad={() => setImageLoaded(true)}
-          className={`object-cover transition-all duration-700 group-hover:scale-105 ${
-            imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
-          }`}
-          sizes="(max-width: 768px) 100vw, 50vw"
-        />
+        {(project.image || (project as any).coverImage) && (
+          <Image
+            src={project.image || (project as any).coverImage}
+            alt={project.title || "Project"}
+            fill
+            onLoad={() => setImageLoaded(true)}
+            className={`object-cover transition-all duration-700 group-hover:scale-105 ${
+              imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
+            }`}
+            sizes="(max-width: 768px) 100vw, 50vw"
+          />
+        )}
       </div>
 
       {/* Middle: Architectural Data Bar */}

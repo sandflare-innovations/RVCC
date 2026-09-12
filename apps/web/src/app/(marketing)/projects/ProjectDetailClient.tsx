@@ -23,13 +23,15 @@ export const ProjectDetailClient: React.FC<ProjectDetailClientProps> = ({ projec
           transition={{ duration: 1.5, ease: "easeOut" }}
           className="absolute inset-0 z-0"
         >
-          <Image
-            src={project.image || (project as any).coverImage || "/images/projects/13.webp"}
-            alt={project.title}
-            fill
-            priority
-            className="object-cover opacity-60 grayscale-[20%]"
-          />
+          {(project.image || (project as any).coverImage) && (
+            <Image
+              src={project.image || (project as any).coverImage}
+              alt={project.title}
+              fill
+              priority
+              className="object-cover opacity-60 grayscale-[20%]"
+            />
+          )}
           <div className="absolute inset-0 bg-black/30 md:bg-black/10" />
         </motion.div>
 

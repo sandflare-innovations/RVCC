@@ -26,14 +26,14 @@ async function getGalleryItem(slug: string): Promise<GallaryProject | null> {
     const images =
       Array.isArray(directProject.gallery) && directProject.gallery.length > 0
         ? directProject.gallery
-        : [directProject.coverImage || directProject.image || "/images/projects/13.webp"];
+        : (directProject.coverImage || directProject.image ? [directProject.coverImage || directProject.image] : []);
 
     return {
       id: String(directProject.id),
       slug: directProject.slug,
       title: directProject.title,
       description: directProject.description || "",
-      thumbnail: directProject.coverImage || directProject.image || images[0],
+      thumbnail: directProject.coverImage || directProject.image || images[0] || "",
       images,
       serviceSlugs: Array.isArray(directProject.serviceSlugs) ? directProject.serviceSlugs : [],
     };
