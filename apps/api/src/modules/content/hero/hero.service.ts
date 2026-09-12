@@ -312,7 +312,15 @@ export class HeroService {
   }
 
   static async cleanupUnusedPageHeroes(env?: Env) {
-    const UNUSED_PAGES = ["about", "projects", "clients", "gallery", "gallary"];
+    const UNUSED_PAGES = [
+      "about",
+      "projects",
+      "clients",
+      "gallery",
+      "gallary",
+      "quality-policy",
+      "contact",
+    ];
     const found = await prisma.heroSlide.findMany({
       where: {
         page: { in: UNUSED_PAGES },
