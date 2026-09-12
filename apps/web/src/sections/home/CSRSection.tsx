@@ -328,7 +328,7 @@ export const CSRSection = ({ initialLogos }: CSRSectionProps = {}) => {
               <div className="absolute inset-0 z-10 bg-black/40 transition-colors group-hover:bg-black/20" />
               <div className="absolute inset-0 transition-all duration-1000">
                 <Image
-                  src="/images/social/daya-trust.webp"
+                  src="https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/file-manager/corporate-social-responsibility/daya-trust-5ftv.webp"
                   alt="Daya Charitable Trust"
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-105"
@@ -371,7 +371,7 @@ export const CSRSection = ({ initialLogos }: CSRSectionProps = {}) => {
               <div className="absolute inset-0 z-10 bg-black/40 transition-colors group-hover:bg-black/20" />
               <div className="absolute inset-0 transition-all duration-1000">
                 <Image
-                  src="/images/social/daya-academy.webp"
+                  src="https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/file-manager/corporate-social-responsibility/daya-academy-vwr2.webp"
                   alt="Daya Academy"
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-105"

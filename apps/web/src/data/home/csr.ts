@@ -28,15 +28,15 @@ export const certificates: Certificate[] = [
 export const sisterCompanies: SisterCompany[] = [
   {
     name: "Paanayil Heavy",
-    img: "/images/concern-companies/paanayil-heavy.webp",
+    img: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/file-manager/sister-concerns/paanayil-heavy-8dci.webp",
   },
   {
     name: "Paanayil Builder",
-    img: "/images/concern-companies/panayil-builder.webp",
+    img: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/file-manager/sister-concerns/panayil-builder-l5gr.webp",
   },
   {
     name: "South Pacific General",
-    img: "/images/concern-companies/south-pacific-general.webp",
+    img: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/file-manager/sister-concerns/south-pacific-general-pnpm.webp",
   },
 ];
 
