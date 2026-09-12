@@ -13,7 +13,7 @@ export interface ClientLogoItem {
 export const ClientLogosSkeleton = () => {
   return (
     <div className="md:pt-element-gap w-full overflow-hidden pt-8">
-      <div className="flex w-full items-center justify-center gap-14 px-8 py-4 opacity-70">
+      <div className="flex w-full items-center justify-center gap-4 px-6 py-4 opacity-70 sm:gap-6">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div
             key={i}
@@ -48,7 +48,7 @@ export const ClientLogos = ({
   return (
     <div className="md:pt-element-gap w-full overflow-hidden pt-8">
       <motion.div
-        className="flex w-max items-center gap-20 px-8 sm:gap-24"
+        className="flex w-max items-center gap-4 px-6 sm:gap-6"
         animate={{ x: ["0%", "-50%"] }}
         transition={{ duration: 60, ease: "linear", repeat: Infinity }}
       >

@@ -115,7 +115,7 @@ const MajorProjectContent = ({ projectList }: { projectList: MajorProjectPropIte
       </section>
 
       {/* 2. Unified Animation Frame - Takes 100vh for full-screen imagery */}
-      <section id="works" ref={containerRef} className="relative -mt-40 h-[600vh]">
+      <section id="works" ref={containerRef} className="relative -mt-70 h-[600vh]">
         <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
           <motion.div
             style={{ y: cardsY }}
