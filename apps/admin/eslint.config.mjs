@@ -35,6 +35,7 @@ export default defineConfig([
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error",
       "@next/next/no-img-element": "warn",
+      "no-console": ["warn", { allow: ["warn", "error"] }],
     },
   },
   prettierConfig,
