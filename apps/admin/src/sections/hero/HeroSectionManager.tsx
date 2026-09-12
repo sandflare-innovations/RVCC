@@ -2,23 +2,18 @@
 
 import type { HeroSlideDTO, HeroSlideInput } from "@rvcc/schemas";
 import {
-  Briefcase,
+  AlertCircle,
   Building2,
   Check,
   ChevronDown,
   FileText,
   Home,
-  Image as ImageIcon,
-  Info,
   Loader2,
-  Phone,
   Plus,
   Save,
-  ShieldCheck,
-  SlidersHorizontal,
   UploadCloud,
-  UserCheck,
   Wrench,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -27,13 +22,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { HeroSlidesGrid } from "./HeroSlidesGrid";
 
-export type PageHeroKey =
-  | "home"
-  | "services"
-  | "careers"
-  | "documents"
-  | "quality-policy"
-  | "contact";
+export type PageHeroKey = "home" | "services" | "careers" | "documents";
 
 interface PageHeroConfig {
   key: PageHeroKey;
@@ -87,26 +76,6 @@ export const PAGE_HERO_CONFIGS: PageHeroConfig[] = [
     defaultDescription: "Access official documentation, corporate brochures, and pre-qualification credentials.",
     defaultImageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-2.webp",
   },
-  {
-    key: "quality-policy",
-    label: "Quality Policy",
-    icon: ShieldCheck,
-    defaultBadge: "STANDARDS & EXCELLENCE",
-    defaultTitle1: "SAFETY &",
-    defaultTitle2: "QUALITY ASSURANCE",
-    defaultDescription: "Certified excellence under ISO standards, upholding uncompromised safety and precision across every construction site.",
-    defaultImageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-3.webp",
-  },
-  {
-    key: "contact",
-    label: "Contact",
-    icon: Phone,
-    defaultBadge: "COMMUNICATION",
-    defaultTitle1: "CONNECT",
-    defaultTitle2: "WITH RVCC",
-    defaultDescription: "Reach out to our engineering and executive teams in Riyadh to initiate your next landmark development.",
-    defaultImageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-2.webp",
-  },
 ];
 
 interface HeroSectionManagerProps {
@@ -119,6 +88,19 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
   const [activeTab, setActiveTab] = useState<PageHeroKey>("home");
   const [slides, setSlides] = useState<HeroSlideDTO[]>(initialSlides);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Status popup toast state
+  const [toast, setToast] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const fetchSlides = async () => {
     try {
@@ -173,30 +155,60 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
     return map;
   });
 
+  // Track pristine/saved state per page for dirty checking
+  const [savedForms, setSavedForms] = useState<Record<string, HeroSlideInput>>(() => {
+    const map: Record<string, HeroSlideInput> = {};
+    for (const cfg of PAGE_HERO_CONFIGS) {
+      if (cfg.key === "home") continue;
+      const found = initialSlides.find((s) => s.page === cfg.key);
+      map[cfg.key] = {
+        page: cfg.key,
+        badge: found?.badge ?? cfg.defaultBadge,
+        title1: found?.title1 ?? cfg.defaultTitle1,
+        title2: found?.title2 ?? cfg.defaultTitle2,
+        description: found?.description ?? cfg.defaultDescription,
+        imageUrl: found?.imageUrl ?? cfg.defaultImageUrl,
+        primaryBtnText: found?.primaryBtnText ?? undefined,
+        primaryBtnLink: found?.primaryBtnLink ?? undefined,
+        secondaryBtnText: found?.secondaryBtnText ?? undefined,
+        secondaryBtnLink: found?.secondaryBtnLink ?? undefined,
+        isActive: found?.isActive ?? true,
+      };
+    }
+    return map;
+  });
+
   useEffect(() => {
     if (slides && slides.length > 0) {
+      const updatedMap: Record<string, HeroSlideInput> = {};
+      for (const cfg of PAGE_HERO_CONFIGS) {
+        if (cfg.key === "home") continue;
+        const found = slides.find((s) => s.page === cfg.key);
+        if (found) {
+          updatedMap[cfg.key] = {
+            page: cfg.key,
+            badge: found.badge ?? cfg.defaultBadge,
+            title1: found.title1 ?? cfg.defaultTitle1,
+            title2: found.title2 ?? cfg.defaultTitle2,
+            description: found.description ?? cfg.defaultDescription,
+            imageUrl: found.imageUrl ?? cfg.defaultImageUrl,
+            primaryBtnText: found.primaryBtnText ?? undefined,
+            primaryBtnLink: found.primaryBtnLink ?? undefined,
+            secondaryBtnText: found.secondaryBtnText ?? undefined,
+            secondaryBtnLink: found.secondaryBtnLink ?? undefined,
+            isActive: found.isActive ?? true,
+          };
+        }
+      }
+      setSavedForms((prev) => ({ ...prev, ...updatedMap }));
       setPageForms((prev) => {
-        const map: Record<string, HeroSlideInput> = { ...prev };
-        for (const cfg of PAGE_HERO_CONFIGS) {
-          if (cfg.key === "home") continue;
-          const found = slides.find((s) => s.page === cfg.key);
-          if (found) {
-            map[cfg.key] = {
-              page: cfg.key,
-              badge: found.badge ?? cfg.defaultBadge,
-              title1: found.title1 ?? cfg.defaultTitle1,
-              title2: found.title2 ?? cfg.defaultTitle2,
-              description: found.description ?? cfg.defaultDescription,
-              imageUrl: found.imageUrl ?? cfg.defaultImageUrl,
-              primaryBtnText: found.primaryBtnText ?? undefined,
-              primaryBtnLink: found.primaryBtnLink ?? undefined,
-              secondaryBtnText: found.secondaryBtnText ?? undefined,
-              secondaryBtnLink: found.secondaryBtnLink ?? undefined,
-              isActive: found.isActive ?? true,
-            };
+        const merged = { ...prev };
+        for (const [k, v] of Object.entries(updatedMap)) {
+          if (!merged[k]) {
+            merged[k] = v;
           }
         }
-        return map;
+        return merged;
       });
     }
   }, [slides]);
@@ -233,6 +245,25 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
     isActive: true,
   };
 
+  const savedForm = savedForms[activeTab] || {
+    page: activeTab,
+    badge: currentConfig.defaultBadge,
+    title1: currentConfig.defaultTitle1,
+    title2: currentConfig.defaultTitle2,
+    description: currentConfig.defaultDescription,
+    imageUrl: currentConfig.defaultImageUrl,
+    isActive: true,
+  };
+
+  // Determine if active form has uncommitted changes
+  const isDirty =
+    (currentForm.badge ?? "") !== (savedForm.badge ?? "") ||
+    (currentForm.title1 ?? "") !== (savedForm.title1 ?? "") ||
+    (currentForm.title2 ?? "") !== (savedForm.title2 ?? "") ||
+    (currentForm.description ?? "") !== (savedForm.description ?? "") ||
+    (currentForm.imageUrl ?? "") !== (savedForm.imageUrl ?? "") ||
+    Boolean(currentForm.isActive) !== Boolean(savedForm.isActive);
+
   const handleFieldChange = <K extends keyof HeroSlideInput>(field: K, value: HeroSlideInput[K]) => {
     setPageForms((prev) => ({
       ...prev,
@@ -263,11 +294,24 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
       }
 
       setSaveSuccess(true);
+      setSavedForms((prev) => ({
+        ...prev,
+        [activeTab]: { ...currentForm },
+      }));
+      setToast({
+        type: "success",
+        message: `${currentConfig.label} hero section saved successfully.`,
+      });
       setTimeout(() => setSaveSuccess(false), 3000);
       await fetchSlides();
       router.refresh();
     } catch (err: any) {
-      setError(err.message || "An error occurred while saving hero section.");
+      const msg = err.message || "An error occurred while saving hero section.";
+      setError(msg);
+      setToast({
+        type: "error",
+        message: msg,
+      });
     } finally {
       setIsSaving(false);
     }
@@ -302,8 +346,17 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
         throw new Error("Failed to retrieve image URL from upload response.");
       }
       handleFieldChange("imageUrl", uploadedUrl);
+      setToast({
+        type: "success",
+        message: "New backdrop image uploaded. Click 'Save Changes' to apply.",
+      });
     } catch (err: any) {
-      setError(err.message || "Image upload failed. Please try again.");
+      const msg = err.message || "Image upload failed. Please try again.";
+      setError(msg);
+      setToast({
+        type: "error",
+        message: msg,
+      });
     } finally {
       setIsUploadingImage(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -311,7 +364,39 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Floating Status Pop-up Message Notification */}
+      {toast && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-zinc-200/90 bg-white px-5 py-3.5 shadow-2xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-4 duration-200">
+          <div
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
+              toast.type === "success"
+                ? "bg-emerald-100 text-emerald-600"
+                : "bg-red-100 text-red-600"
+            }`}
+          >
+            {toast.type === "success" ? (
+              <Check className="h-4 w-4 stroke-[3]" />
+            ) : (
+              <AlertCircle className="h-4 w-4" />
+            )}
+          </div>
+          <div className="flex flex-col pr-2">
+            <span className="text-xs font-bold text-zinc-900">
+              {toast.type === "success" ? "Update Status" : "Error Occurred"}
+            </span>
+            <span className="text-[11px] font-medium text-zinc-600">{toast.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setToast(null)}
+            className="ml-2 rounded-lg p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors cursor-pointer"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* Top Header Bar with Custom Page Selector Dropdown & Action Controls */}
       <div className="flex flex-col gap-4 border-b border-zinc-200/80 bg-white pb-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Custom Page Dropdown */}
@@ -412,7 +497,7 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
           {activeTab === "home" ? (
             <Link
               href="/content/hero/new"
-              className="flex items-center gap-2 rounded-xl bg-[#0073bc] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#005fa0] transition-colors cursor-pointer"
+              className="flex items-center gap-2 rounded-full bg-[#0073bc] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#005fa0] transition-colors cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               <span>Add Slide</span>
@@ -421,13 +506,13 @@ export function HeroSectionManager({ initialSlides = [], canDelete = true }: Her
             <button
               type="button"
               onClick={handleSavePageHero}
-              disabled={isSaving}
-              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors disabled:opacity-50 cursor-pointer"
+              disabled={isSaving || !isDirty}
+              className="flex items-center gap-2 rounded-full bg-[#0073bc] px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#005fa0] transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#0073bc] cursor-pointer"
             >
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : saveSuccess ? (
-                <Check className="h-4 w-4" />
+                <Check className="h-4 w-4 stroke-[3]" />
               ) : (
                 <Save className="h-4 w-4" />
               )}
