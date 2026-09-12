@@ -320,6 +320,7 @@ export class HeroService {
       "gallary",
       "quality-policy",
       "contact",
+      "documents",
     ];
     const found = await prisma.heroSlide.findMany({
       where: {
