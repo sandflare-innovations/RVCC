@@ -2,14 +2,20 @@ import { prisma } from "../../../lib/prisma";
 import { cuid } from "../../../lib/sql";
 
 export class HeroService {
-  static async listAdminSlides() {
+  static async listAdminSlides(page?: string) {
+    const where: Record<string, unknown> = { deletedAt: null };
+    if (page && page !== "all") {
+      where.page = page;
+    }
+
     const slides = await prisma.heroSlide.findMany({
-      where: { deletedAt: null },
+      where: where as any,
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     });
 
     return slides.map((s) => ({
       id: s.id,
+      page: (s as any).page || "home",
       badge: s.badge,
       title1: s.title1,
       title2: s.title2,
@@ -26,14 +32,15 @@ export class HeroService {
     }));
   }
 
-  static async listPublicSlides() {
+  static async listPublicSlides(page = "home") {
     const slides = await prisma.heroSlide.findMany({
-      where: { isActive: true, deletedAt: null },
+      where: { page, isActive: true, deletedAt: null } as any,
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     });
 
     return slides.map((s) => ({
       id: s.id,
+      page: (s as any).page || "home",
       badge: s.badge,
       title1: s.title1,
       title2: s.title2,
@@ -47,6 +54,32 @@ export class HeroService {
     }));
   }
 
+  static async getPageHero(page: string) {
+    const slide = await prisma.heroSlide.findFirst({
+      where: { page, isActive: true, deletedAt: null } as any,
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    });
+    if (!slide) return null;
+
+    return {
+      id: slide.id,
+      page: (slide as any).page || page,
+      badge: slide.badge,
+      title1: slide.title1,
+      title2: slide.title2,
+      description: slide.description,
+      imageUrl: slide.imageUrl,
+      primaryBtnText: slide.primaryBtnText,
+      primaryBtnLink: slide.primaryBtnLink,
+      secondaryBtnText: slide.secondaryBtnText,
+      secondaryBtnLink: slide.secondaryBtnLink,
+      sortOrder: slide.sortOrder,
+      isActive: slide.isActive,
+      createdAt: slide.createdAt.toISOString(),
+      updatedAt: slide.updatedAt.toISOString(),
+    };
+  }
+
   static async getSlideById(id: string) {
     const slide = await prisma.heroSlide.findFirst({
       where: { id, deletedAt: null },
@@ -55,6 +88,7 @@ export class HeroService {
 
     return {
       id: slide.id,
+      page: (slide as any).page || "home",
       badge: slide.badge,
       title1: slide.title1,
       title2: slide.title2,
@@ -72,6 +106,7 @@ export class HeroService {
   }
 
   static async createSlide(data: {
+    page?: string;
     title1: string;
     title2: string;
     imageUrl: string;
@@ -84,10 +119,11 @@ export class HeroService {
     sortOrder?: number;
     isActive?: boolean;
   }) {
+    const page = data.page || "home";
     let sortOrder = data.sortOrder;
     if (sortOrder === undefined) {
       const highest = await prisma.heroSlide.findFirst({
-        where: { deletedAt: null },
+        where: { page, deletedAt: null } as any,
         orderBy: { sortOrder: "desc" },
         select: { sortOrder: true },
       });
@@ -97,6 +133,7 @@ export class HeroService {
     const slide = await prisma.heroSlide.create({
       data: {
         id: cuid(),
+        page,
         title1: data.title1,
         title2: data.title2,
         imageUrl: data.imageUrl,
@@ -108,7 +145,7 @@ export class HeroService {
         secondaryBtnLink: data.secondaryBtnLink ?? "/enquire/verify",
         sortOrder,
         isActive: data.isActive ?? true,
-      },
+      } as any,
     });
 
     return {
@@ -116,6 +153,64 @@ export class HeroService {
       createdAt: slide.createdAt.toISOString(),
       updatedAt: slide.updatedAt.toISOString(),
     };
+  }
+
+  static async upsertPageHero(
+    page: string,
+    data: {
+      title1: string;
+      title2: string;
+      imageUrl: string;
+      description?: string;
+      badge?: string;
+      primaryBtnText?: string;
+      primaryBtnLink?: string;
+      secondaryBtnText?: string;
+      secondaryBtnLink?: string;
+      isActive?: boolean;
+    }
+  ) {
+    const existing = await prisma.heroSlide.findFirst({
+      where: { page, deletedAt: null } as any,
+    });
+
+    if (existing) {
+      const updated = await prisma.heroSlide.update({
+        where: { id: existing.id },
+        data: {
+          title1: data.title1,
+          title2: data.title2,
+          imageUrl: data.imageUrl,
+          description: data.description ?? existing.description,
+          badge: data.badge ?? existing.badge,
+          primaryBtnText: data.primaryBtnText ?? existing.primaryBtnText,
+          primaryBtnLink: data.primaryBtnLink ?? existing.primaryBtnLink,
+          secondaryBtnText: data.secondaryBtnText ?? existing.secondaryBtnText,
+          secondaryBtnLink: data.secondaryBtnLink ?? existing.secondaryBtnLink,
+          isActive: data.isActive ?? existing.isActive,
+        },
+      });
+
+      return {
+        ...updated,
+        createdAt: updated.createdAt.toISOString(),
+        updatedAt: updated.updatedAt.toISOString(),
+      };
+    }
+
+    return this.createSlide({
+      page,
+      title1: data.title1,
+      title2: data.title2,
+      imageUrl: data.imageUrl,
+      description: data.description,
+      badge: data.badge,
+      primaryBtnText: data.primaryBtnText,
+      primaryBtnLink: data.primaryBtnLink,
+      secondaryBtnText: data.secondaryBtnText,
+      secondaryBtnLink: data.secondaryBtnLink,
+      isActive: data.isActive ?? true,
+    });
   }
 
   static async updateSlide(id: string, data: Record<string, unknown>) {

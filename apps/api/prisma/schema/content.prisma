@@ -4,6 +4,7 @@
 
 model HeroSlide {
   id               String    @id @default(cuid())
+  page             String    @default("home") // "home" | "about" | "services" | "projects" | "careers" | "clients" | "documents" | "quality-policy" | "contact" | "gallery"
   badge            String    @default("Architecture & Design")
   title1           String
   title2           String
@@ -20,6 +21,7 @@ model HeroSlide {
   updatedAt        DateTime  @default(now()) @updatedAt
   deletedAt        DateTime? // Soft Deletion
 
+  @@index([page, isActive, sortOrder])
   @@index([isActive, sortOrder])
   @@index([deletedAt])
 }

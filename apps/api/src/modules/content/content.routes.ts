@@ -7,6 +7,7 @@ import {
   handleAdminHeroSlidesList,
   handleAdminHeroSlidesReorder,
   handleAdminHeroSlideUpdate,
+  handleAdminPageHeroUpsert,
   handlePublicHeroRequest,
 } from "./hero/hero.controller";
 import {
@@ -98,6 +99,8 @@ export function createContentAdminRouter(env: Env) {
   router.get("/hero-slides", (c) => handleAdminHeroSlidesList(null, env, c.req.raw));
   router.post("/hero-slides", (c) => handleAdminHeroSlideCreate(null, env, c.req.raw));
   router.post("/hero-slides/reorder", (c) => handleAdminHeroSlidesReorder(null, env, c.req.raw));
+  router.put("/hero-slides/page/:page", (c) => handleAdminPageHeroUpsert(null, env, c.req.raw, c.req.param("page")));
+  router.post("/hero-slides/page/:page", (c) => handleAdminPageHeroUpsert(null, env, c.req.raw, c.req.param("page")));
   router.get("/hero-slides/:id", (c) => handleAdminHeroSlideGet(null, env, c.req.raw, c.req.param("id")));
   router.put("/hero-slides/:id", (c) => handleAdminHeroSlideUpdate(null, env, c.req.raw, c.req.param("id")));
   router.delete("/hero-slides/:id", (c) => handleAdminHeroSlideDelete(null, env, c.req.raw, c.req.param("id")));

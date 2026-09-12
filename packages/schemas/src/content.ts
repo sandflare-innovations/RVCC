@@ -4,6 +4,7 @@ import { z } from "zod";
 
 export const heroSlideSchema = z.object({
   id: z.string(),
+  page: z.string().default("home"),
   badge: z.string(),
   title1: z.string(),
   title2: z.string(),
@@ -21,6 +22,7 @@ export const heroSlideSchema = z.object({
 export type HeroSlideDTO = z.infer<typeof heroSlideSchema>;
 
 export const heroSlideInputSchema = z.object({
+  page: z.string().optional(),
   badge: z.string().optional(),
   title1: z.string(),
   title2: z.string(),
