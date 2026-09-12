@@ -1,6 +1,7 @@
 import { Footer } from "@layout/Footer";
 
 import { getClientPartners } from "@/lib/content/clients";
+import { getAboutContent } from "@/lib/content/about";
 import { AboutCertifications } from "@/sections/about/AboutCertifications";
 import { AboutClients } from "@/sections/about/AboutClients";
 import { AboutCTA } from "@/sections/about/AboutCTA";
@@ -13,7 +14,10 @@ import { AboutSafetySustainability } from "@/sections/about/AboutSafetySustainab
 import { AboutStats } from "@/sections/about/AboutStats";
 
 export default async function AboutPage() {
-  const clients = await getClientPartners();
+  const [clients, about] = await Promise.all([
+    getClientPartners(),
+    getAboutContent(),
+  ]);
 
   return (
     <main className="relative min-h-screen bg-white">
@@ -29,10 +33,20 @@ export default async function AboutPage() {
 
       <div className="relative z-10">
         <AboutHero />
-        <AboutOverview />
+        <AboutOverview
+          initialImages={about.overviewImages}
+          overviewTitle={about.overviewTitle}
+          overviewSubtitle={about.overviewSubtitle}
+          overviewDescription1={about.overviewDescription1}
+          overviewDescription2={about.overviewDescription2}
+          classABadge={about.classABadge}
+          classADescription={about.classADescription}
+          deliveriesCount={about.deliveriesCount}
+          yearsCount={about.yearsCount}
+        />
         <AboutMissionValues />
         <AboutJourney />
-        <AboutStats />
+        <AboutStats initialMetrics={about.aboutStats} />
         <AboutDivisions />
         <AboutCertifications />
         <AboutClients initialClients={clients} />

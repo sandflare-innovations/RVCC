@@ -26,3 +26,6 @@ export const DOCUMENTS_CACHE_TAG = "documents";
 export const NEWS_REVALIDATE_SECONDS = 60;
 export const NEWS_CACHE_TAG = "news";
 
+export const ABOUT_REVALIDATE_SECONDS = 60;
+export const ABOUT_CACHE_TAG = "about";
+

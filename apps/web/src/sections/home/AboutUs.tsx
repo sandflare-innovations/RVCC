@@ -103,10 +103,14 @@ const InlineImage = ({ src }: { src: string }) => {
 
 export const AboutUs = ({
   initialClients,
+  videoUrl = "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/about.mp4",
+  initialStats,
 }: {
   initialClients?: any[];
+  videoUrl?: string;
+  initialStats?: { value: number; label: string; suffix?: string }[];
 }) => {
-
+  const statsToDisplay = initialStats && initialStats.length > 0 ? initialStats : STATS;
   const containerRef = useRef<HTMLDivElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -219,7 +223,7 @@ export const AboutUs = ({
             >
               <video
                 ref={videoRef}
-                src="/videos/about.mp4#t=25"
+                src={`${videoUrl}#t=25`}
                 className="h-full w-full object-cover"
                 loop
                 muted
@@ -311,7 +315,7 @@ export const AboutUs = ({
 
         <div className="mt-element-gap pt-element-gap md:mt-section-py md:pt-section-py border-t border-zinc-100">
           <div className="gap-element-gap grid grid-cols-2 md:grid-cols-4">
-            {STATS.slice(1).map((stat, idx) => (
+            {statsToDisplay.slice(1).map((stat, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 100 }}

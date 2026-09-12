@@ -10,6 +10,7 @@ import { getHeroSlides } from "@/lib/content/hero";
 import { getNews } from "@/lib/content/news";
 import { getProjects } from "@/lib/content/projects";
 import { getServices } from "@/lib/content/services";
+import { getAboutContent } from "@/lib/content/about";
 
 // Dynamically load heavy components below the fold
 const Leaders = dynamic(() => import("@sections/home/Leaders").then((mod) => mod.Leaders), {
@@ -55,13 +56,14 @@ const Contact = dynamic(() => import("@components/common/Contact"), { ssr: true 
 
 // Dynamic page fetch with resilient fallback
 export default async function Home() {
-  const [slides, sisterLogos, clients, services, projects, news] = await Promise.all([
+  const [slides, sisterLogos, clients, services, projects, news, about] = await Promise.all([
     getHeroSlides(),
     getSisterCompanies(),
     getClientPartners(),
     getServices(),
     getProjects(),
     getNews(),
+    getAboutContent(),
   ]);
 
   return (
@@ -73,7 +75,11 @@ export default async function Home() {
 
       {/* Main Content Sections - Scroll over the Hero */}
       <div className="bg-background relative z-10 w-full shadow-[0_-20px_50px_rgba(0,0,0,0.1)]">
-        <AboutUs initialClients={clients} />
+        <AboutUs
+          initialClients={clients}
+          videoUrl={about.videoUrl}
+          initialStats={about.homeStats}
+        />
         <Leaders />
         <Services initialServices={services} />
         <MajorProject initialProjects={projects} />

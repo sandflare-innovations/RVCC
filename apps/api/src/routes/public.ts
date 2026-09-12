@@ -48,5 +48,12 @@ export function createPublicRouter(env: Env) {
     return handlePublicDocumentsRequest(c.req.raw, env, slug);
   });
 
+  router.all("/about", async (c) => {
+    const { handlePublicAboutRequest } = await import(
+      "../modules/content/about/about.controller"
+    );
+    return handlePublicAboutRequest(c.req.raw, env);
+  });
+
   return router;
 }

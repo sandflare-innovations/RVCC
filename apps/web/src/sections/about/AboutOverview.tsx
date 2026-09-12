@@ -4,22 +4,46 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
-const IMAGES = [
-  "/images/projects/1.webp",
-  "/images/projects/2.webp",
-  "/images/projects/3.webp",
-  "/images/projects/4.webp",
+const DEFAULT_IMAGES = [
+  "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-1.webp",
+  "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-2.webp",
+  "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-3.webp",
+  "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-4.webp",
 ];
 
-export const AboutOverview = () => {
+export interface AboutOverviewProps {
+  initialImages?: string[];
+  overviewTitle?: string;
+  overviewSubtitle?: string;
+  overviewDescription1?: string;
+  overviewDescription2?: string;
+  classABadge?: string;
+  classADescription?: string;
+  deliveriesCount?: string;
+  yearsCount?: string;
+}
+
+export const AboutOverview = ({
+  initialImages,
+  overviewTitle = "The Art of Structural Perfection.",
+  overviewSubtitle = "Company Profile",
+  overviewDescription1 = "Riyadh Villas Contracting Company (RVCC) stands as a beacon of refined engineering and timeless structural design. For nearly two decades, we have been the quiet force behind the Kingdom's most prestigious developments.",
+  overviewDescription2 = "Our philosophy is simple: perfection is not when there is nothing more to add, but when there is nothing left to take away. We bring this minimalist precision to every civil, structural, and engineering challenge we undertake.",
+  classABadge = "Class A",
+  classADescription = "Ministry Accredited Excellence",
+  deliveriesCount = "150+",
+  yearsCount = "20+",
+}: AboutOverviewProps) => {
+  const images = initialImages && initialImages.length > 0 ? initialImages : DEFAULT_IMAGES;
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
+    if (images.length === 0) return;
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % IMAGES.length);
+      setCurrentIndex((prev) => (prev + 1) % images.length);
     }, 5000); // Change image every 5 seconds
     return () => clearInterval(timer);
-  }, []);
+  }, [images.length]);
 
   return (
     <section className="relative overflow-hidden bg-white py-24 lg:pt-32">
@@ -33,18 +57,17 @@ export const AboutOverview = () => {
             transition={{ duration: 1 }}
           >
             <span className="text-brand-blue mb-6 block text-[10px] font-bold tracking-[0.8em] uppercase">
-              Company Profile
+              {overviewSubtitle}
             </span>
             <h3 className="font-heading mx-auto max-w-4xl text-6xl leading-[0.6] tracking-tighter text-zinc-900 lg:text-[8rem]">
-              The Art of <br />
-              <span className="serif text-brand-blue normal-case">Structural Perfection.</span>
+              {overviewTitle}
             </h3>
           </motion.div>
         </div>
 
         {/* MIDDLE: Immersive Gallery Image Slider */}
         <div className="relative mb-16 aspect-[21/9] w-full overflow-hidden bg-zinc-100 shadow-2xl">
-          {IMAGES.map((img, index) => (
+          {images.map((img, index) => (
             <motion.div
               key={index}
               initial={false}
@@ -65,7 +88,7 @@ export const AboutOverview = () => {
           {/* Subtle Decorative Frame & Progress Indicator */}
           <div className="pointer-events-none absolute inset-8 border border-white/20" />
           <div className="absolute bottom-12 left-1/2 z-20 flex -translate-x-1/2 gap-3">
-            {IMAGES.map((_, i) => (
+            {images.map((_, i) => (
               <div
                 key={i}
                 className={`h-[2px] w-8 transition-all duration-700 ${
@@ -87,16 +110,8 @@ export const AboutOverview = () => {
               transition={{ duration: 1, delay: 0.3 }}
               className="space-y-8 text-xl leading-relaxed font-light text-zinc-500"
             >
-              <p>
-                Riyadh Villas Contracting Company (RVCC) stands as a beacon of refined engineering
-                and timeless structural design. For nearly two decades, we have been the quiet force
-                behind the Kingdom's most prestigious developments.
-              </p>
-              <p className="text-lg opacity-80">
-                Our philosophy is simple: perfection is not when there is nothing more to add, but
-                when there is nothing left to take away. We bring this minimalist precision to every
-                civil, structural, and engineering challenge we undertake.
-              </p>
+              <p>{overviewDescription1}</p>
+              <p className="text-lg opacity-80">{overviewDescription2}</p>
             </motion.div>
           </div>
 
@@ -110,21 +125,21 @@ export const AboutOverview = () => {
               className="space-y-12"
             >
               <div>
-                <span className="text-brand-blue mb-2 block text-5xl font-bold">Class A</span>
+                <span className="text-brand-blue mb-2 block text-5xl font-bold">{classABadge}</span>
                 <p className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
-                  Ministry Accredited Excellence
+                  {classADescription}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-12">
                 <div>
-                  <span className="block text-3xl font-light text-zinc-900">150+</span>
+                  <span className="block text-3xl font-light text-zinc-900">{deliveriesCount}</span>
                   <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                     Deliveries
                   </span>
                 </div>
                 <div>
-                  <span className="block text-3xl font-light text-zinc-900">20+</span>
+                  <span className="block text-3xl font-light text-zinc-900">{yearsCount}</span>
                   <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                     Years
                   </span>

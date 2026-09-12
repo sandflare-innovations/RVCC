@@ -273,3 +273,54 @@ export const newsEventInputSchema = z.object({
 });
 export type NewsEventInput = z.infer<typeof newsEventInputSchema>;
 
+// ── About Content Schemas ───────────────────────────────────────────────────
+
+export const homeStatItemSchema = z.object({
+  value: z.number(),
+  label: z.string(),
+  suffix: z.string().default(""),
+});
+export type HomeStatItem = z.infer<typeof homeStatItemSchema>;
+
+export const aboutStatMetricSchema = z.object({
+  value: z.string(),
+  description: z.string(),
+});
+export type AboutStatMetric = z.infer<typeof aboutStatMetricSchema>;
+
+export const aboutContentSchema = z.object({
+  id: z.string(),
+  videoUrl: z.string(),
+  videoPosterUrl: z.string().nullable().optional(),
+  homeStats: z.array(homeStatItemSchema),
+  aboutStats: z.array(aboutStatMetricSchema),
+  overviewImages: z.array(z.string()),
+  overviewTitle: z.string().optional(),
+  overviewSubtitle: z.string().optional(),
+  overviewDescription1: z.string().optional(),
+  overviewDescription2: z.string().optional(),
+  classABadge: z.string().optional(),
+  classADescription: z.string().optional(),
+  deliveriesCount: z.string().optional(),
+  yearsCount: z.string().optional(),
+  updatedAt: z.string(),
+});
+export type AboutContentDTO = z.infer<typeof aboutContentSchema>;
+
+export const aboutContentInputSchema = z.object({
+  videoUrl: z.string().optional(),
+  videoPosterUrl: z.string().nullable().optional(),
+  homeStats: z.array(homeStatItemSchema).optional(),
+  aboutStats: z.array(aboutStatMetricSchema).optional(),
+  overviewImages: z.array(z.string()).optional(),
+  overviewTitle: z.string().optional(),
+  overviewSubtitle: z.string().optional(),
+  overviewDescription1: z.string().optional(),
+  overviewDescription2: z.string().optional(),
+  classABadge: z.string().optional(),
+  classADescription: z.string().optional(),
+  deliveriesCount: z.string().optional(),
+  yearsCount: z.string().optional(),
+});
+export type AboutContentInput = z.infer<typeof aboutContentInputSchema>;
+

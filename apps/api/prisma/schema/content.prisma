@@ -148,3 +148,22 @@ model NewsEvent {
   @@index([deletedAt])
 }
 
+model AboutContent {
+  id                    String   @id @default("default")
+  videoUrl              String   @default("https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/about.mp4")
+  videoPosterUrl        String?
+  homeStats             Json     @default("[]")
+  aboutStats            Json     @default("[]")
+  overviewImages        String[] @default([])
+  overviewTitle         String   @default("The Art of Structural Perfection.")
+  overviewSubtitle      String   @default("Company Profile")
+  overviewDescription1  String   @default("Riyadh Villas Contracting Company (RVCC) stands as a beacon of refined engineering and timeless structural design. For nearly two decades, we have been the quiet force behind the Kingdom's most prestigious developments.")
+  overviewDescription2  String   @default("Our philosophy is simple: perfection is not when there is nothing more to add, but when there is nothing left to take away. We bring this minimalist precision to every civil, structural, and engineering challenge we undertake.")
+  classABadge           String   @default("Class A")
+  classADescription     String   @default("Ministry Accredited Excellence")
+  deliveriesCount       String   @default("150+")
+  yearsCount            String   @default("20+")
+
+  updatedAt             DateTime @default(now()) @updatedAt
+}
+

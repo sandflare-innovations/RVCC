@@ -53,7 +53,13 @@ const METRICS = [
   },
 ];
 
-export const AboutStats = () => {
+export const AboutStats = ({
+  initialMetrics,
+}: {
+  initialMetrics?: { description: string; value: string }[];
+}) => {
+  const metricsToDisplay = initialMetrics && initialMetrics.length > 0 ? initialMetrics : METRICS;
+
   return (
     <section className="bg-transparent py-24">
       <div className="container mx-auto px-6">
@@ -69,7 +75,7 @@ export const AboutStats = () => {
           </p>
         </div>
         <div className="grid grid-cols-1 gap-x-12 gap-y-16 md:grid-cols-2 lg:grid-cols-4 lg:gap-x-16">
-          {METRICS.map((metric, index) => (
+          {metricsToDisplay.map((metric, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 10 }}

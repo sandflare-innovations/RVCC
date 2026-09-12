@@ -80,6 +80,10 @@ export function createContentPublicRouter(env: Env) {
   router.all("/services/*", (c) => handlePublicServicesRequest(c.req.raw, env));
   router.all("/gallery", (c) => handlePublicGalleryRequest(c.req.raw, env));
   router.all("/media/:id", (c) => handlePublicMediaRequest(c.req.raw, env, c.req.param("id")));
+  router.all("/about", async (c) => {
+    const { handlePublicAboutRequest } = await import("./about/about.controller");
+    return handlePublicAboutRequest(c.req.raw, env);
+  });
 
   return router;
 }
@@ -145,6 +149,20 @@ export function createContentAdminRouter(env: Env) {
   router.get("/news/:id", (c) => handleAdminNewsGet(null, env, c.req.raw, c.req.param("id")));
   router.put("/news/:id", (c) => handleAdminNewsUpdate(null, env, c.req.raw, c.req.param("id")));
   router.delete("/news/:id", (c) => handleAdminNewsDelete(null, env, c.req.raw, c.req.param("id")));
+
+  // About Content
+  router.get("/about", async (c) => {
+    const { handleAdminAboutGet } = await import("./about/about.controller");
+    return handleAdminAboutGet(null, env, c.req.raw);
+  });
+  router.put("/about", async (c) => {
+    const { handleAdminAboutUpdate } = await import("./about/about.controller");
+    return handleAdminAboutUpdate(null, env, c.req.raw);
+  });
+  router.post("/about/upload", async (c) => {
+    const { handleAdminAboutMediaUpload } = await import("./about/about.controller");
+    return handleAdminAboutMediaUpload(null, env, c.req.raw);
+  });
 
   return router;
 }

@@ -525,6 +525,20 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
       return await handleAdminContentMediaUpload(sql, env, request);
     }
 
+    // ── About Content Routes ────────────────────────────────────────────────
+    if (path === "/about" && request.method === "GET") {
+      const { handleAdminAboutGet } = await import("../modules/content/about/about.controller");
+      return await handleAdminAboutGet(sql, env, request);
+    }
+    if (path === "/about" && (request.method === "PUT" || request.method === "PATCH")) {
+      const { handleAdminAboutUpdate } = await import("../modules/content/about/about.controller");
+      return await handleAdminAboutUpdate(sql, env, request);
+    }
+    if (path === "/about/upload" && request.method === "POST") {
+      const { handleAdminAboutMediaUpload } = await import("../modules/content/about/about.controller");
+      return await handleAdminAboutMediaUpload(sql, env, request);
+    }
+
     // ── Company Documents Content Routes ────────────────────────────────────
     if (path === "/documents" && request.method === "GET") {
       const { handleAdminDocumentsList } = await import("../modules/documents/controllers/documents.admin.controller");
