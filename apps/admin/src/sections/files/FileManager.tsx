@@ -1319,15 +1319,23 @@ export function FileManager() {
                   <span>CDN URL</span>
                 </button>
 
-                <a
-                  href={previewFile.fileUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1.5 rounded-xl bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700 transition-colors"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  <span>Open Tab</span>
-                </a>
+                {(() => {
+                  const openTabUrl = is3DModel(previewFile)
+                    ? `/viewer?url=${encodeURIComponent(previewFile.fileUrl)}&name=${encodeURIComponent(previewFile.name)}&size=${previewFile.sizeBytes}&ext=${encodeURIComponent(previewFile.extension || "glb")}`
+                    : previewFile.fileUrl;
+                  return (
+                    <a
+                      href={openTabUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 rounded-xl bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700 transition-colors cursor-pointer"
+                      title={is3DModel(previewFile) ? "Open 3D Model in Full Tab Viewer" : "Open in new browser tab"}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      <span>Open Tab</span>
+                    </a>
+                  );
+                })()}
 
                 <button
                   onClick={() => setPreviewFile(null)}
@@ -1339,7 +1347,7 @@ export function FileManager() {
             </div>
 
             {/* Media Body */}
-            <div className={`flex-1 flex items-center justify-center ${is3DModel(previewFile) ? "p-3" : "p-6"} bg-zinc-950 overflow-auto min-h-[360px]`}>
+            <div className={`flex-1 flex flex-col items-center justify-center ${is3DModel(previewFile) ? "p-2 overflow-hidden" : "p-6 overflow-auto"} bg-zinc-950 min-h-[360px]`}>
               {previewFile.fileType === "IMAGE" ? (
                 <img
                   src={previewFile.fileUrl}
@@ -1360,15 +1368,17 @@ export function FileManager() {
                   <audio src={previewFile.fileUrl} controls className="w-full" />
                 </div>
               ) : is3DModel(previewFile) ? (
-                <div className="w-full flex-1">
+                <div className="w-full flex-1 flex flex-col min-h-0 overflow-hidden">
                   <Model3DPreview
                     url={previewFile.fileUrl}
                     name={previewFile.name}
                     originalName={previewFile.originalName}
                     sizeBytes={previewFile.sizeBytes}
+                    className="h-[58vh] max-h-[620px] min-h-[380px] w-full"
                   />
                 </div>
               ) : previewFile.mimeType.includes("pdf") ? (
+
                 <iframe
                   src={previewFile.fileUrl}
                   title={previewFile.name}

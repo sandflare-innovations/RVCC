@@ -22,6 +22,7 @@ interface Model3DPreviewProps {
   name: string;
   originalName?: string;
   sizeBytes?: string | number | bigint;
+  className?: string;
 }
 
 export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
@@ -29,7 +30,9 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
   name,
   originalName,
   sizeBytes,
+  className,
 }) => {
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
@@ -59,6 +62,33 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
   const initialCameraPosRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 5));
   const initialTargetRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
 
+  // Sync fullscreen state with document events (e.g. user hits ESC)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isCurrentFullscreen = document.fullscreenElement === wrapperRef.current;
+      setIsFullscreen(isCurrentFullscreen);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = async () => {
+    if (!wrapperRef.current) return;
+    try {
+      if (!document.fullscreenElement) {
+        await wrapperRef.current.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch {
+      // Fallback toggle for browsers without Fullscreen API support
+      setIsFullscreen((prev) => !prev);
+    }
+  };
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -70,14 +100,16 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    // 2. Camera
+    // 2. Initial Dimensions
     const width = container.clientWidth || 800;
     const height = container.clientHeight || 500;
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(2, 2, 4);
+
+    // 3. Camera
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000);
+    camera.position.set(0, 2, 5);
     cameraRef.current = camera;
 
-    // 3. Renderer
+    // 4. WebGL Renderer
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
@@ -86,39 +118,39 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.15;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.innerHTML = "";
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    // 4. OrbitControls
+    // 5. OrbitControls
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.autoRotate = true;
-    controls.autoRotateSpeed = 1.0;
+    controls.autoRotateSpeed = 0.8;
     controls.enablePan = true;
     controls.enableZoom = true;
     controlsRef.current = controls;
 
-    // 5. Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.3);
+    // 6. Studio Lighting Rig
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.0);
-    dirLight1.position.set(5, 10, 7);
-    scene.add(dirLight1);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    keyLight.position.set(6, 12, 8);
+    scene.add(keyLight);
 
-    const dirLight2 = new THREE.DirectionalLight(0x93c5fd, 1.2);
-    dirLight2.position.set(-5, -2, -5);
-    scene.add(dirLight2);
+    const fillLight = new THREE.DirectionalLight(0xa5b4fc, 1.2);
+    fillLight.position.set(-8, 3, -6);
+    scene.add(fillLight);
 
-    const dirLight3 = new THREE.DirectionalLight(0xffffff, 0.8);
-    dirLight3.position.set(0, -5, 0);
-    scene.add(dirLight3);
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    rimLight.position.set(0, -6, 0);
+    scene.add(rimLight);
 
-    // 6. Load Model
+    // 7. Load GLB Model
     setLoading(true);
     setError(null);
     setLoadProgress(0);
@@ -132,13 +164,13 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
         const model = gltf.scene;
         modelGroupRef.current = model;
 
-        // Compute Bounding Box
+        // Accurate Bounding Box Calculation
         const box = new THREE.Box3().setFromObject(model);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z);
+        const maxDim = Math.max(size.x, size.y, size.z, 0.001);
 
-        // Center Model at (0, 0, 0)
+        // Center Model at Origin (0, 0, 0)
         model.position.x = -center.x;
         model.position.y = -center.y;
         model.position.z = -center.z;
@@ -147,9 +179,9 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
         rootGroup.add(model);
         scene.add(rootGroup);
 
-        // Ground Grid Helper
+        // Ground Reference Grid
         const gridHelper = new THREE.GridHelper(
-          maxDim * 2.5,
+          maxDim * 2.8,
           24,
           0x0073bc,
           0x3f3f46
@@ -158,11 +190,22 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
         gridHelperRef.current = gridHelper;
         scene.add(gridHelper);
 
-        // Calculate Camera Distance
-        const fov = camera.fov * (Math.PI / 180);
-        const cameraDistance = Math.abs(maxDim / Math.sin(fov / 2)) * 0.95;
+        // Frame camera with proper vertical and horizontal FOV math
+        const currentAspect = (container.clientWidth || 800) / (container.clientHeight || 500);
+        camera.aspect = currentAspect;
 
-        camera.near = cameraDistance / 100;
+        const fovRad = camera.fov * (Math.PI / 180);
+        const vDistance = (size.y / 2) / Math.tan(fovRad / 2);
+        const hFov = 2 * Math.atan(Math.tan(fovRad / 2) * currentAspect);
+        const hDistance = (size.x / 2) / Math.tan(hFov / 2);
+        const depthOffset = size.z / 2;
+
+        // Ensure 35% comfortable breathing room so the model is never cut off
+        const cameraDistance =
+          Math.max(vDistance, hDistance, (maxDim / 2) / Math.tan(fovRad / 2)) * 1.35 +
+          depthOffset;
+
+        camera.near = Math.max(0.05, cameraDistance / 100);
         camera.far = cameraDistance * 100;
         camera.updateProjectionMatrix();
 
@@ -178,7 +221,7 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
         initialCameraPosRef.current = eyePos.clone();
         initialTargetRef.current = new THREE.Vector3(0, 0, 0);
 
-        // Collect stats & cache materials for wireframe toggle
+        // Collect mesh statistics & cache materials
         let triCount = 0;
         let vertCount = 0;
         let meshCount = 0;
@@ -225,7 +268,7 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
       }
     );
 
-    // 7. Animation Loop
+    // 8. Animation Loop
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       controls.update();
@@ -233,32 +276,34 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
     };
     animate();
 
-    // 8. Resize Handler
-    const handleResize = () => {
-      if (!container || !renderer || !camera) return;
-      const w = container.clientWidth;
-      const h = container.clientHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
+    // 9. ResizeObserver: Crucial for dynamic resize and fullscreen transitions
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width: w, height: h } = entry.contentRect;
+        if (w > 0 && h > 0 && camera && renderer) {
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        }
+      }
+    });
 
-    window.addEventListener("resize", handleResize);
+    resizeObserver.observe(container);
 
-    // Cleanup
+    // Cleanup on unmount
     return () => {
       isMounted = false;
-      window.removeEventListener("resize", handleResize);
+      resizeObserver.disconnect();
       cancelAnimationFrame(animationFrameId);
 
       controls.dispose();
       renderer.dispose();
 
-      if (container && renderer.domElement) {
+      if (container && renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
 
-      // Dispose scene objects
+      // Dispose geometries and materials
       scene.traverse((obj) => {
         if ((obj as THREE.Mesh).isMesh) {
           const mesh = obj as THREE.Mesh;
@@ -280,14 +325,14 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
     }
   }, [autoRotate]);
 
-  // Sync Grid
+  // Sync Grid Visibility
   useEffect(() => {
     if (gridHelperRef.current) {
       gridHelperRef.current.visible = showGrid;
     }
   }, [showGrid]);
 
-  // Sync Wireframe
+  // Sync Wireframe Mode
   useEffect(() => {
     if (!modelGroupRef.current) return;
     modelGroupRef.current.traverse((child) => {
@@ -323,11 +368,14 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
 
   return (
     <div
+      ref={wrapperRef}
       className={`relative w-full overflow-hidden rounded-2xl bg-gradient-to-b from-zinc-950 via-zinc-900 to-black select-none ${
-        isFullscreen ? "fixed inset-0 z-50 h-screen rounded-none" : "h-[62vh] min-h-[440px]"
+        isFullscreen
+          ? "fixed inset-0 z-[9999] h-screen w-screen rounded-none"
+          : className || "h-[58vh] max-h-[640px] min-h-[380px]"
       }`}
     >
-      {/* 3D WebGL Canvas Container */}
+      {/* 3D WebGL Canvas Viewport */}
       <div
         ref={containerRef}
         className="h-full w-full cursor-grab active:cursor-grabbing"
@@ -375,7 +423,7 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
 
       {/* Top Left: Model Info & Mesh Stats Badge */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 pointer-events-none">
-        <div className="flex items-center gap-2 rounded-xl bg-zinc-900/80 px-3 py-1.5 border border-zinc-800/80 backdrop-blur-md text-xs text-zinc-300 shadow-lg">
+        <div className="flex items-center gap-2 rounded-xl bg-zinc-900/85 px-3 py-1.5 border border-zinc-800/80 backdrop-blur-md text-xs text-zinc-300 shadow-lg">
           <Box className="h-3.5 w-3.5 text-[#0073bc]" />
           <span className="font-semibold text-zinc-100">{name}</span>
           <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-mono uppercase text-zinc-400">
@@ -387,7 +435,7 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
         </div>
 
         {stats && (
-          <div className="flex items-center gap-3 rounded-xl bg-zinc-900/60 px-3 py-1 border border-zinc-800/50 backdrop-blur-md text-[11px] text-zinc-400 shadow">
+          <div className="flex items-center gap-3 rounded-xl bg-zinc-900/70 px-3 py-1 border border-zinc-800/50 backdrop-blur-md text-[11px] text-zinc-400 shadow">
             <span>{stats.meshes} Meshes</span>
             <span>•</span>
             <span>{stats.vertices.toLocaleString()} Verts</span>
@@ -400,19 +448,19 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
       {/* Top Right: Fullscreen Button */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5">
         <button
-          onClick={() => setIsFullscreen(!isFullscreen)}
-          className="flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-900/80 border border-zinc-800/80 text-zinc-400 hover:text-white hover:bg-zinc-800 backdrop-blur-md transition-colors"
-          title={isFullscreen ? "Exit Fullscreen" : "Fullscreen 3D View"}
+          onClick={toggleFullscreen}
+          className="flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-900/85 border border-zinc-800/80 text-zinc-400 hover:text-white hover:bg-zinc-800 backdrop-blur-md transition-colors cursor-pointer shadow-lg"
+          title={isFullscreen ? "Exit Fullscreen (Esc)" : "Fullscreen 3D View"}
         >
           {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
         </button>
       </div>
 
       {/* Bottom Floating Interactive Toolbar */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 rounded-2xl bg-zinc-900/80 border border-zinc-800/80 p-1.5 backdrop-blur-md shadow-2xl">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 rounded-2xl bg-zinc-900/85 border border-zinc-800/80 p-1.5 backdrop-blur-md shadow-2xl">
         <button
           onClick={() => setAutoRotate(!autoRotate)}
-          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
             autoRotate
               ? "bg-[#0073bc] text-white"
               : "text-zinc-400 hover:text-white hover:bg-zinc-800"
@@ -425,7 +473,7 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
 
         <button
           onClick={handleResetCamera}
-          className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
           title="Reset Camera View"
         >
           <RotateCcw className="h-3.5 w-3.5" />
@@ -436,7 +484,7 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
 
         <button
           onClick={() => setShowGrid(!showGrid)}
-          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
             showGrid
               ? "bg-zinc-800 text-zinc-200"
               : "text-zinc-500 hover:text-white hover:bg-zinc-800/50"
@@ -449,7 +497,7 @@ export const Model3DPreview: React.FC<Model3DPreviewProps> = ({
 
         <button
           onClick={() => setWireframe(!wireframe)}
-          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
             wireframe
               ? "bg-[#0073bc] text-white"
               : "text-zinc-400 hover:text-white hover:bg-zinc-800"
