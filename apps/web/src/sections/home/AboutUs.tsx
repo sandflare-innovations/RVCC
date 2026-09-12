@@ -106,11 +106,17 @@ export const AboutUs = ({
   videoUrl = "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/about.mp4",
   videoPosterUrl = "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/about-poster.webp",
   initialStats,
+  overviewImages = [
+    "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-1.webp",
+    "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-2.webp",
+    "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-3.webp",
+  ],
 }: {
   initialClients?: any[];
   videoUrl?: string;
   videoPosterUrl?: string | null;
   initialStats?: { value: number; label: string; suffix?: string }[];
+  overviewImages?: string[];
 }) => {
   const statsToDisplay = initialStats && initialStats.length > 0 ? initialStats : STATS;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -197,12 +203,8 @@ export const AboutUs = ({
 
                 if (word.startsWith("[img")) {
                   const imgIndex = word === "[img1]" ? 0 : word === "[img2]" ? 1 : 2;
-                  const images = [
-                    "/images/projects/2.webp",
-                    "/images/projects/1.webp",
-                    "/images/projects/3.webp",
-                  ];
-                  return <InlineImage key={i} src={images[imgIndex]} />;
+                  const imgSrc = overviewImages[imgIndex] || overviewImages[0];
+                  return imgSrc ? <InlineImage key={i} src={imgSrc} /> : null;
                 }
 
                 return (

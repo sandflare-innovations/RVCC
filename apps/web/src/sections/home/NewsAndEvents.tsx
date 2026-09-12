@@ -75,7 +75,7 @@ export const NewsAndEvents = ({ initialNews }: { initialNews?: WebNewsItem[] }) 
         {/* Mobile Carousel / Desktop Grid */}
         <div className="scroll-hide md:gap-content-gap flex snap-x snap-mandatory flex-row items-stretch justify-start gap-4 overflow-x-auto overflow-y-hidden md:grid md:grid-cols-3 md:overflow-visible">
           {newsList.map((item, index) => {
-            const displayImage = item.imageUrl || (item as any).image || "/images/projects/13.webp";
+            const displayImage = item.imageUrl || (item as any).image || "";
             const itemNumber = String(index + 1).padStart(2, "0");
 
             return (
@@ -98,15 +98,17 @@ export const NewsAndEvents = ({ initialNews }: { initialNews?: WebNewsItem[] }) 
                 {/* Image */}
                 <Link
                   href={`/news/${item.slug}`}
-                  className="mb-content-gap relative aspect-video overflow-hidden transition-all duration-700 block"
+                  className="mb-content-gap relative aspect-video overflow-hidden transition-all duration-700 block bg-zinc-100"
                 >
-                  <Image
-                    src={displayImage}
-                    alt={item.title}
-                    fill
-                    className="object-cover transition-transform duration-1000 group-hover:scale-110"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
+                  {displayImage && (
+                    <Image
+                      src={displayImage}
+                      alt={item.title}
+                      fill
+                      className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                  )}
                 </Link>
 
                 {/* Content */}

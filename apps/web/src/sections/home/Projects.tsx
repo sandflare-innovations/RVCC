@@ -376,7 +376,7 @@ export const RecentProjects = ({
     category: p.category || "COMMERCIAL",
     type: p.type || "LANDMARK",
     description: p.description || "",
-    image: p.image || "/images/projects/4.webp",
+    image: p.image || (p as any).coverImage || "",
     slug: p.slug,
   }));
 
