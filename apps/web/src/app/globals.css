@@ -1,46 +1,6 @@
 /* RVCC Globals - v1.1 */
 @import "tailwindcss";
 
-@font-face {
-  font-family: "Ara Hamah Alislam";
-  src: url("/fonts/Ara Hamah Alislam Regular/Ara Hamah Alislam Regular.otf") format("opentype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Maven Pro";
-  src: url("/fonts/Maven_Pro/MavenPro-Regular.ttf") format("truetype");
-  font-weight: 400;
-  font-style: thin;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Maven Pro";
-  src: url("/fonts/Maven_Pro/MavenPro-Medium.ttf") format("truetype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Maven Pro";
-  src: url("/fonts/Maven_Pro/MavenPro-Bold.ttf") format("truetype");
-  font-weight: 700;
-  font-style: bold;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Maven Pro";
-  src: url("/fonts/Maven_Pro/MavenPro-Black.ttf") format("truetype");
-  font-weight: 900;
-  font-style: extrabold;
-  font-display: swap;
-}
-
 @theme {
   /* Brand Colors */
   --color-brand-blue: #0073bc;
@@ -56,8 +16,8 @@
   --color-accent: var(--accent);
   --color-border: var(--border);
   /* Fonts */
-  --font-heading: "Ara Hamah Alislam", cursive;
-  --font-primary: "Maven Pro", sans-serif;
+  --font-heading: var(--font-heading), cursive;
+  --font-primary: var(--font-primary), sans-serif;
   /* Custom Spacing */
   --spacing-section-py: 8rem;
   --spacing-section-py-mobile: 4rem;

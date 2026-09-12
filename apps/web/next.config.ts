@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
     "pdfjs-dist",
   ],
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",
