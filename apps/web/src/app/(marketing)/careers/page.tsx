@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { FloatingContact } from "@/components/common/FloatingContact";
 import { getPublishedJobs } from "@/lib/content/careers";
+import { getPageHero } from "@/lib/content/hero";
 import { CareerHero } from "@/sections/careers/CareerHero";
 import { CareerList } from "@/sections/careers/CareerList";
 
@@ -23,10 +24,19 @@ async function Positions() {
   return <CareerList positions={positions} />;
 }
 
-export default function CareerPage() {
+export default async function CareerPage() {
+  const hero = await getPageHero("careers", {
+    badge: "EVOLVE WITH US",
+    title1: "ARCHITECT",
+    title2: "THE FUTURE",
+    description:
+      "Join a team of visionaries and creators dedicated to reshaping the skyline of the Kingdom through monumental design and engineering.",
+    imageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-4.webp",
+  });
+
   return (
     <div className="bg-background relative min-h-screen">
-      <CareerHero />
+      <CareerHero hero={hero} />
       <Suspense
         fallback={<div className="container py-24 text-center">Loading opportunities...</div>}
       >

@@ -4,12 +4,20 @@ import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import React from "react";
 
+import type { HeroSlideItem } from "@/types/hero";
+
 const ThreeDCanvas = dynamic(() => import("@ui/ThreeDCanvas").then((m) => m.ThreeDCanvas), {
   ssr: false,
   loading: () => <div className="h-full w-full animate-pulse rounded-lg bg-zinc-100" />,
 });
 
-export const QualityHero = () => {
+export const QualityHero = ({ hero }: { hero?: Partial<HeroSlideItem> | null } = {}) => {
+  const title1 = hero?.title1 || "Quality";
+  const title2 = hero?.title2 || "Management";
+  const badge = hero?.badge || "ISO 9001";
+  const description =
+    hero?.description ||
+    "Architecting precision through rigorous standards and continuous improvement in every project landscape.";
   return (
     <section className="relative flex h-screen items-center overflow-hidden border-b border-zinc-100 bg-white pt-20 lg:pt-0">
       {/* Uniform Blueprint Grid */}
@@ -32,8 +40,8 @@ export const QualityHero = () => {
               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
             >
               <h1 className="font-heading mb-0 text-6xl leading-[0.6] tracking-tighter text-zinc-900 uppercase md:text-8xl lg:text-9xl">
-                Quality <br />
-                <span className="text-brand-blue serif">Management</span>
+                {title1} <br />
+                <span className="text-brand-blue serif">{title2}</span>
               </h1>
             </motion.div>
 
@@ -44,14 +52,13 @@ export const QualityHero = () => {
               className="max-w-md border-l border-zinc-100 pb-6"
             >
               <div className="mb-6 flex items-baseline gap-2">
-                <span className="font-heading text-brand-blue text-3xl leading-none">ISO 9001</span>
+                <span className="font-heading text-brand-blue text-3xl leading-none">{badge}</span>
                 <span className="text-[10px] leading-none font-black tracking-widest text-zinc-300 uppercase">
                   :2008
                 </span>
               </div>
               <p className="text-lg leading-relaxed font-light text-zinc-500">
-                Architecting precision through rigorous standards and continuous improvement in
-                every project landscape.
+                {description}
               </p>
             </motion.div>
           </div>

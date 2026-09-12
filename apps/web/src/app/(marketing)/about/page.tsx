@@ -2,6 +2,7 @@ import { Footer } from "@layout/Footer";
 
 import { getClientPartners } from "@/lib/content/clients";
 import { getAboutContent } from "@/lib/content/about";
+import { getPageHero } from "@/lib/content/hero";
 import { AboutCertifications } from "@/sections/about/AboutCertifications";
 import { AboutClients } from "@/sections/about/AboutClients";
 import { AboutCTA } from "@/sections/about/AboutCTA";
@@ -14,9 +15,15 @@ import { AboutSafetySustainability } from "@/sections/about/AboutSafetySustainab
 import { AboutStats } from "@/sections/about/AboutStats";
 
 export default async function AboutPage() {
-  const [clients, about] = await Promise.all([
+  const [clients, about, hero] = await Promise.all([
     getClientPartners(),
     getAboutContent(),
+    getPageHero("about", {
+      title1: "Shaping",
+      title2: "The Future",
+      description:
+        "A sanctuary where ideas find harmony, and excellence is built into every brick and beam. RVCC is where the future feels at home.",
+    }),
   ]);
 
   return (
@@ -32,7 +39,7 @@ export default async function AboutPage() {
       />
 
       <div className="relative z-10">
-        <AboutHero />
+        <AboutHero hero={hero} />
         <AboutOverview
           initialImages={about.overviewImages}
           overviewTitle={about.overviewTitle}

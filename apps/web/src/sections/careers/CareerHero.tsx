@@ -1,8 +1,19 @@
 "use client";
 
+import type { HeroSlideItem } from "@/types/hero";
 import { motion } from "framer-motion";
 
-export const CareerHero = () => {
+export const CareerHero = ({ hero }: { hero?: Partial<HeroSlideItem> | null }) => {
+  const badge = hero?.badge || "EVOLVE WITH US";
+  const title1 = hero?.title1 || "ARCHITECT";
+  const title2 = hero?.title2 || "THE FUTURE";
+  const description =
+    hero?.description ||
+    "Join a team of visionaries and creators dedicated to reshaping the skyline of the Kingdom through monumental design and engineering.";
+  const imageUrl =
+    hero?.imageUrl ||
+    "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-4.webp";
+
   const scrollToPositions = () => {
     const element = document.getElementById("open-positions");
     if (element) {
@@ -18,7 +29,8 @@ export const CareerHero = () => {
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
-          className="h-full w-full bg-[url('/images/careers/premium_studio.webp')] bg-cover bg-center grayscale-0"
+          style={{ backgroundImage: `url('${imageUrl}')` }}
+          className="h-full w-full bg-cover bg-center grayscale-0"
         />
         <div className="absolute inset-0 bg-black/50" />
       </div>
@@ -33,19 +45,18 @@ export const CareerHero = () => {
           <div className="mb-8 flex items-center space-x-4">
             <div className="h-[2px] w-12 bg-white" />
             <span className="text-[20px] font-bold tracking-[0.5em] text-white uppercase">
-              EVOLVE WITH US
+              {badge}
             </span>
           </div>
 
           <h1 className="font-heading mb-10 text-6xl font-normal tracking-tighter text-white uppercase md:text-8xl lg:text-[10rem] lg:leading-[0.6em]">
-            ARCHITECT <br />
-            <span className="opacity-90">THE FUTURE</span>
+            {title1} <br />
+            <span className="opacity-90">{title2}</span>
           </h1>
 
           <div className="mb-16 flex flex-col justify-between gap-12 md:gap-24 lg:flex-row lg:items-center">
             <p className="max-w-xl text-lg leading-relaxed font-light text-white/90 md:text-xl lg:text-2xl">
-              Join a team of visionaries and creators dedicated to reshaping the skyline of the
-              Kingdom through monumental design and engineering.
+              {description}
             </p>
 
             <div className="order-first flex gap-12 border-r border-white/20 pr-8 md:pr-16 lg:order-last">

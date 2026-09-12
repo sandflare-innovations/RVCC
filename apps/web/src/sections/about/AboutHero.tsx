@@ -13,7 +13,14 @@ const SkyscraperCanvas = dynamic(
   }
 );
 
-export const AboutHero = () => {
+import type { HeroSlideItem } from "@/types/hero";
+
+export const AboutHero = ({ hero }: { hero?: Partial<HeroSlideItem> | null } = {}) => {
+  const title1 = hero?.title1 || "Shaping";
+  const title2 = hero?.title2 || "The Future";
+  const description =
+    hero?.description ||
+    "A sanctuary where ideas find harmony, and excellence is built into every brick and beam. RVCC is where the future feels at home.";
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -71,8 +78,8 @@ export const AboutHero = () => {
               transition={{ duration: 1, ease: "easeOut" }}
             >
               <h1 className="font-heading mb-8 text-6xl leading-[0.6] tracking-tighter text-zinc-900 uppercase md:text-8xl">
-                Shaping <br />
-                <span className="text-brand-blue serif">The Future</span>
+                {title1} <br />
+                <span className="text-brand-blue serif">{title2}</span>
               </h1>
 
               {/* Floating Stat Card - Sharp Borders */}
@@ -107,8 +114,7 @@ export const AboutHero = () => {
               className="max-w-xs"
             >
               <p className="mb-8 text-lg leading-relaxed font-light text-zinc-500">
-                A sanctuary where ideas find harmony, and excellence is built into every brick and
-                beam. RVCC is where the future feels at home.
+                {description}
               </p>
 
               {/* Another Card - Sharp Borders */}
