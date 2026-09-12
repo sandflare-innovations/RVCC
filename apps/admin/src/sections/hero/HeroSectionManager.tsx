@@ -6,7 +6,6 @@ import {
   Building2,
   Check,
   ChevronDown,
-  FileText,
   Home,
   Loader2,
   Plus,
@@ -22,7 +21,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { HeroSlidesGrid } from "./HeroSlidesGrid";
 
-export type PageHeroKey = "home" | "services" | "careers" | "documents";
+export type PageHeroKey = "home" | "services" | "careers";
 
 interface PageHeroConfig {
   key: PageHeroKey;
@@ -65,16 +64,6 @@ export const PAGE_HERO_CONFIGS: PageHeroConfig[] = [
     defaultTitle2: "THE FUTURE",
     defaultDescription: "Join a team of visionaries and creators dedicated to reshaping the skyline of the Kingdom through monumental design and engineering.",
     defaultImageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-4.webp",
-  },
-  {
-    key: "documents",
-    label: "Documents",
-    icon: FileText,
-    defaultBadge: "TECHNICAL REPOSITORY",
-    defaultTitle1: "COMPANY PROFILES",
-    defaultTitle2: "& PREQUALIFICATIONS",
-    defaultDescription: "Access official documentation, corporate brochures, and pre-qualification credentials.",
-    defaultImageUrl: "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/overview-2.webp",
   },
 ];
 
