@@ -78,6 +78,7 @@ export default async function Home() {
         <AboutUs
           initialClients={clients}
           videoUrl={about.videoUrl}
+          videoPosterUrl={about.videoPosterUrl}
           initialStats={about.homeStats}
         />
         <Leaders />

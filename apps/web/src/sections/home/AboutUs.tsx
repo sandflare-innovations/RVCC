@@ -104,10 +104,12 @@ const InlineImage = ({ src }: { src: string }) => {
 export const AboutUs = ({
   initialClients,
   videoUrl = "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/about.mp4",
+  videoPosterUrl = "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/about-poster.webp",
   initialStats,
 }: {
   initialClients?: any[];
   videoUrl?: string;
+  videoPosterUrl?: string | null;
   initialStats?: { value: number; label: string; suffix?: string }[];
 }) => {
   const statsToDisplay = initialStats && initialStats.length > 0 ? initialStats : STATS;
@@ -224,6 +226,7 @@ export const AboutUs = ({
               <video
                 ref={videoRef}
                 src={`${videoUrl}#t=25`}
+                poster={videoPosterUrl || "https://pub-70b8c21f306842d3bbeab4d1d19319e1.r2.dev/content/about/about-poster.webp"}
                 className="h-full w-full object-cover"
                 loop
                 muted
