@@ -75,7 +75,7 @@ export async function handleAdminLiveBids(
   request: Request,
   requirementId: string
 ): Promise<Response> {
-  const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
+  const { deny } = await requireAdmin(sql, env, request, "PROCUREMENT_ADMIN");
   if (deny) return deny;
 
   const initialPayload = await buildAdminLiveBidsPayload(requirementId);

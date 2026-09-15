@@ -1,0 +1,17 @@
+# Keep VPS build caches and secrets. Rsync --delete will not remove these.
+node_modules
+.next
+dist
+.turbo
+.git
+.wrangler
+.vercel
+coverage
+*.log
+.DS_Store
+.env
+.env.local
+.env.production
+.env.development
+.env.server
+.env.vercel

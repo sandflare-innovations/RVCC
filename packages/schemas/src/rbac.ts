@@ -71,6 +71,35 @@ export function canManageProcurement(role: AdminRoleName): boolean {
   return role === "SUPER_ADMIN" || role === "ADMIN" || role === "PROCUREMENT_ADMIN";
 }
 
+/** Procurement staff may create requirements and capture offline quotations. */
+export function canCaptureQuotations(role: AdminRoleName): boolean {
+  return canManageProcurement(role);
+}
+
+/** Only Admin+ may set the confidential target, open bidding, evaluate, and award. */
+export function canConfigureBidding(role: AdminRoleName): boolean {
+  return role === "SUPER_ADMIN" || role === "ADMIN";
+}
+
+/**
+ * Target price is confidential. Procurement staff see it after they submit
+ * the requirement. Vendors never see it through this helper.
+ */
+export function canSeeConfidentialTarget(role: AdminRoleName, status: string): boolean {
+  if (role === "SUPER_ADMIN" || role === "ADMIN") return true;
+  if (role !== "PROCUREMENT_ADMIN") return false;
+  return [
+    "SUBMITTED_TO_ADMIN",
+    "PENDING",
+    "OPEN",
+    "BIDDING_CLOSED",
+    "EVALUATING",
+    "SHORTLISTED",
+    "AWARDED",
+    "CANCELLED",
+  ].includes(status);
+}
+
 export function canManageWebsite(role: AdminRoleName): boolean {
   return role === "SUPER_ADMIN" || role === "ADMIN" || role === "WEBSITE_ADMIN";
 }

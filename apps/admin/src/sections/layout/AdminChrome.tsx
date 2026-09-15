@@ -93,12 +93,13 @@ function SidebarContents({
   const filteredVendorNav = VENDOR_NAV.filter((item) => {
     if (item.href === "/procurement") return allowProcurement;
     if (item.href === "/staff") return allowStaff;
+    if (item.href === "/requirements" || item.href === "/live-market") {
+      return allowVendors || allowProcurement;
+    }
     if (
       item.href === "/" ||
       item.href === "/vendors" ||
-      item.href === "/requirements" ||
-      item.href === "/registrations" ||
-      item.href === "/live-market"
+      item.href === "/registrations"
     ) {
       return allowVendors;
     }

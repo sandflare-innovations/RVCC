@@ -11,7 +11,7 @@ interface LiveMarketCardProps {
   requirementId: string;
   projectTitle: string;
   currency: string;
-  closesAt: string;
+  closesAt: string | null;
 }
 
 export function LiveMarketCard({
@@ -54,13 +54,14 @@ export function LiveMarketCard({
             </span>
             <span>•</span>
             <span className="truncate" suppressHydrationWarning>
-              Closes{" "}
-              {new Date(closesAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {closesAt
+                ? `Closes ${new Date(closesAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}`
+                : "No close date"}
             </span>
           </div>
         </div>

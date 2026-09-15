@@ -47,6 +47,7 @@ model VendorUser {
   industries         Industry[]
   invites            RequirementInvite[]
   quotes             Quote[]
+  manualQuotations   ManualQuotation[]
   notifications      Notification[]
 
   @@index([email])

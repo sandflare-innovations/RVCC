@@ -4,7 +4,7 @@ export type CachedRequirementRow = {
   id: string;
   referenceNumber: string | null;
   project: string;
-  closesAt: string;
+  closesAt: string | null;
   createdAt: string;
   status: string;
   invited: number;

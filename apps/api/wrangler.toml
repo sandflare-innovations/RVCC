@@ -9,6 +9,9 @@ compatibility_flags = ["nodejs_compat"]
 
 workers_dev = true
 
+[triggers]
+crons = ["*/5 * * * *"]
+
 [vars]
 ALLOWED_ORIGINS = "https://rvcc-enquiry.vercel.app,https://rvcc-vendor.vercel.app,https://rvcc-admin.vercel.app,https://rvcc-procurement.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002"
 VENDOR_PORTAL_URL = "https://rvcc-vendor.vercel.app"

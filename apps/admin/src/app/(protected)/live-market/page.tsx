@@ -12,8 +12,8 @@ type RequirementItem = {
   project: string;
   referenceNumber: string | null;
   currency: string;
-  status: "DRAFT" | "PENDING" | "OPEN" | "CLOSED" | "AWARDED" | "CANCELLED";
-  closesAt: string;
+  status: string;
+  closesAt: string | null;
   quotesCount: number;
 };
 
