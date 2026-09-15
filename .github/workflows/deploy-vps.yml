@@ -1,0 +1,112 @@
+# CI/CD: test on GitHub, then SSH-sync and reload PM2 on the VPS.
+# Required GitHub secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY
+# Remote path is /opt/rvcc. App env files stay on the server (rsync excludes them).
+name: VPS CI/CD
+
+on:
+  push:
+    branches:
+      - prod
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-vps-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    name: Lint, Test & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/rvcc' }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.15.1
+          run_install: false
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Database Schema
+        run: pnpm --filter api db:validate
+
+      - name: Generate Prisma Client
+        run: pnpm --filter api db:generate
+
+      - name: Run Monorepo Tests
+        run: pnpm test
+
+      - name: Build All Packages
+        run: pnpm build
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
+
+  deploy-vps:
+    name: Sync, build, and reload PM2
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Skip when VPS secrets are not configured
+        id: gate
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          if [ -z "$VPS_HOST" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "VPS_HOST is not set. Add VPS_HOST, VPS_USER, and VPS_SSH_KEY in repo secrets."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure the remote app directory exists
+        if: steps.gate.outputs.skip == 'false'
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: mkdir -p /opt/rvcc
+
+      - name: Sync source to the VPS
+        if: steps.gate.outputs.skip == 'false'
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete --exclude-from=scripts/rsync-deploy-exclude.txt
+          path: ./
+          remote_path: /opt/rvcc/
+          remote_host: ${{ secrets.VPS_HOST }}
+          remote_user: ${{ secrets.VPS_USER }}
+          remote_key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Install, build, and reload PM2
+        if: steps.gate.outputs.skip == 'false'
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 20m
+          script: |
+            cd /opt/rvcc
+            chmod +x scripts/vps-deploy.sh
+            bash scripts/vps-deploy.sh

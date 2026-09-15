@@ -78,3 +78,44 @@ npx wrangler secret put R2_PUBLIC_URL
 npx wrangler secret put R2_ACCESS_KEY_ID
 npx wrangler secret put R2_SECRET_ACCESS_KEY
 ```
+
+---
+
+### C. VPS CI/CD (GitHub Actions → SSH → PM2)
+
+The `VPS CI/CD` workflow (`.github/workflows/deploy-vps.yml`) tests on GitHub, rsyncs the repo to `/opt/rvcc`, then rebuilds and reloads PM2.
+
+Add these **repository secrets** (Settings → Secrets and variables → Actions):
+
+| Secret        | Purpose                                      |
+| :------------ | :------------------------------------------- |
+| `VPS_HOST`    | Server IP or hostname                        |
+| `VPS_USER`    | SSH user (must be able to write `/opt/rvcc`) |
+| `VPS_SSH_KEY` | Private key whose public half is in `~/.ssh/authorized_keys` |
+
+If `VPS_HOST` is missing, the deploy job skips instead of failing.
+
+On the VPS, install Node 22 and keep env files **on the server** (rsync will not overwrite them):
+
+```bash
+# Once per app on the server
+cp /opt/rvcc/apps/api/.env.example /opt/rvcc/apps/api/.env
+# Then paste production values into:
+#   apps/api/.env
+#   apps/web/.env.production
+#   apps/admin/.env.production
+#   apps/vendor/.env.production
+#   apps/procurement/.env.production
+```
+
+Processes and ports (see `ecosystem.config.cjs`):
+
+| Process             | Port |
+| :------------------ | :--- |
+| `rvcc-web`          | 3000 |
+| `rvcc-admin`        | 3001 |
+| `rvcc-vendor`       | 3002 |
+| `rvcc-procurement`  | 3003 |
+| `rvcc-api`          | 4000 |
+
+Manual deploy from the Actions tab: **VPS CI/CD → Run workflow**. After deploy, `GET http://127.0.0.1:4000/health` must succeed.
