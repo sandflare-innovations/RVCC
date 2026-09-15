@@ -41,9 +41,11 @@ cp apps/api/.env.example apps/api/.env
 
 ## 3. Production Deployment Matrix
 
-### A. Vercel Projects (Frontend Apps)
+### A. Vercel Projects (Frontend Apps) — Git auto-deploy is off
 
-Configure the following variables in each app's **Vercel Project Settings → Environment Variables**:
+`git.deploymentEnabled` is `false` in each app `vercel.json` and the repo-root `vercel.json`. Frontends ship through **VPS CI/CD**, not Vercel Git. Disconnect the GitHub app in the Vercel dashboard if checks still appear.
+
+If a project is still hosted on Vercel for a while, keep these variables in **Project Settings → Environment Variables**:
 
 | App                    | Required Environment Variables                                                                                                                                                                       | Notes                                                     |
 | :--------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- |
