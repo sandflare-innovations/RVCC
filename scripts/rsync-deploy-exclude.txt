@@ -15,3 +15,4 @@ coverage
 .env.development
 .env.server
 .env.vercel
+ecosystem.config.cjs
