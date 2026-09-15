@@ -41,5 +41,24 @@ fi
 pm2 save
 
 echo "[vps-deploy] health check"
-curl -fsS "http://127.0.0.1:4000/health" >/dev/null
+# Hostinger API listens on PORT from apps/api/.env (4010), not the local default 4000.
+API_PORT=4000
+if [ -f "$ROOT/apps/api/.env" ]; then
+  env_port="$(grep -E '^PORT=' "$ROOT/apps/api/.env" | tail -1 | cut -d= -f2- | tr -d '[:space:]' | tr -d '"' | tr -d "'")"
+  if [ -n "$env_port" ]; then
+    API_PORT="$env_port"
+  fi
+fi
+ok=0
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+  if curl -fsS "http://127.0.0.1:${API_PORT}/health" >/dev/null; then
+    ok=1
+    break
+  fi
+  sleep 2
+done
+if [ "$ok" != 1 ]; then
+  echo "[vps-deploy] health check failed on 127.0.0.1:${API_PORT}/health"
+  exit 1
+fi
 echo "[vps-deploy] done"
