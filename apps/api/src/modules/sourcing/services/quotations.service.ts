@@ -52,9 +52,12 @@ export class QuotationsService {
       attachments: row.attachments.map((a) => ({
         id: a.id,
         fileName: a.fileName,
-        fileUrl: a.fileUrl,
+        fileUrl: `/api/requirements/${row.requirementId}/files/${a.id}?kind=manual`,
+        mimeType: a.mimeType,
         fileSize: a.fileSize,
         uploadedAt: a.uploadedAt.toISOString(),
+        previewable: ["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(a.mimeType || ""),
+        downloadPath: `/api/requirements/${row.requirementId}/files/${a.id}?kind=manual`,
       })),
     };
   }
@@ -83,6 +86,12 @@ export class QuotationsService {
     }
 
     const input = manualQuotationSchema.parse(raw) as ManualQuotationInput;
+    const vendor = await prisma.vendorUser.findFirst({
+      where: { id: input.vendorUserId, deletedAt: null },
+      select: { id: true, name: true, email: true },
+    });
+    if (!vendor) return { error: "Select a registered supplier for this quotation.", status: 400 as const };
+
     const money = computeMoneyBreakdown({
       unitPrice: input.unitPrice,
       quantity: input.quantity,
@@ -94,8 +103,8 @@ export class QuotationsService {
       data: {
         id: cuid(),
         requirementId,
-        vendorUserId: input.vendorUserId || null,
-        supplierName: input.supplierName,
+        vendorUserId: vendor.id,
+        supplierName: input.supplierName || vendor.name || vendor.email,
         contactPerson: input.contactPerson || "",
         phone: input.phone || "",
         email: input.email || "",
@@ -140,5 +149,37 @@ export class QuotationsService {
       data: { deletedAt: new Date() },
     });
     return existing;
+  }
+
+  /** Map an offline quotation onto a registered supplier so comparison and vendor history line up. */
+  static async relink(requirementId: string, quotationId: string, vendorUserId: string) {
+    const existing = await prisma.manualQuotation.findFirst({
+      where: { id: quotationId, requirementId, deletedAt: null },
+    });
+    if (!existing) return { error: "Quotation not found.", status: 404 as const };
+    const requirement = await prisma.requirement.findUnique({ where: { id: requirementId } });
+    if (requirement && !isEditableByProcurement(requirement.status)) {
+      return { error: "Quotations cannot be remapped after the requirement is submitted.", status: 409 as const };
+    }
+    const vendor = await prisma.vendorUser.findFirst({
+      where: { id: vendorUserId, deletedAt: null },
+      select: { id: true, name: true, email: true },
+    });
+    if (!vendor) return { error: "Select a registered supplier for this quotation.", status: 400 as const };
+
+    const updated = await prisma.manualQuotation.update({
+      where: { id: quotationId },
+      data: {
+        vendorUserId: vendor.id,
+        supplierName: existing.supplierName || vendor.name || vendor.email,
+        email: existing.email || vendor.email,
+      },
+      include: {
+        attachments: true,
+        vendorUser: { select: { id: true, email: true, name: true } },
+        recordedByAdmin: { select: { name: true, email: true } },
+      },
+    });
+    return { ok: true as const, quotation: this.serialize(updated) };
   }
 }

@@ -56,7 +56,7 @@ const DETAIL_INCLUDE = {
   quotes: {
     where: { deletedAt: null },
     include: {
-      vendorUser: { select: { email: true, name: true } },
+      vendorUser: { select: { id: true, email: true, name: true } },
       revisions: { orderBy: { createdAt: "desc" as const } },
       attachments: { orderBy: { uploadedAt: "asc" as const } },
     },

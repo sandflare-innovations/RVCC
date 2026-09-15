@@ -17,7 +17,11 @@ export async function vendorApiFetch(
 ): Promise<Response> {
   const { sessionToken, headers: initHeaders, ...rest } = init;
   const headers = new Headers(initHeaders);
-  headers.set("Content-Type", headers.get("Content-Type") || "application/json");
+  if (rest.body instanceof FormData) {
+    headers.delete("Content-Type");
+  } else if (!headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
   if (sessionToken) headers.set("X-Vendor-Session", sessionToken);
 
   const url = `${vendorBaseUrl()}${path.startsWith("/") ? path : `/${path}`}`;

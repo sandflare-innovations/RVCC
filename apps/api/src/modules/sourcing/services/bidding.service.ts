@@ -51,7 +51,8 @@ export class BiddingService {
         rankingStrategy: input.rankingStrategy as RankingStrategy,
         allowBidRevisions: input.allowBidRevisions ?? true,
         revealCompetitorPrices: input.revealCompetitorPrices ?? false,
-        revealTargetPrice: input.revealTargetPrice ?? false,
+        // This negotiation mode shows the company target to invited vendors.
+        revealTargetPrice: input.revealTargetPrice ?? true,
         priceWeight: input.priceWeight ?? 50,
         technicalWeight: input.technicalWeight ?? 25,
         commercialWeight: input.commercialWeight ?? 25,

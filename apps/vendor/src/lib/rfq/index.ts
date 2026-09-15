@@ -23,7 +23,8 @@ export type VendorNextAction = {
   actionLabel: string;
 };
 
-export function describeDeadline(closesAt: string) {
+export function describeDeadline(closesAt?: string | null) {
+  if (!closesAt) return { label: "Not set", urgent: false };
   const ms = new Date(closesAt).getTime() - Date.now();
   if (ms <= 0) return { label: "Closed", urgent: false };
   const hours = ms / (1000 * 60 * 60);

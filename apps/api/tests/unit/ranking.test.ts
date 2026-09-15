@@ -25,6 +25,7 @@ describe("QA Auction & Procurement Tests: Dense Ranking, Anti-Collusion & Tie-Br
     currency: "SAR",
     status: "OPEN",
     sellingPrice: null,
+    opensAt: null,
     closesAt: new Date(Date.now() + 86400000),
     rankingStrategy: "LOWEST_PRICE",
     revealCompetitorPrices: true,

@@ -94,6 +94,33 @@ export async function handleManualQuoteCreate(sql: unknown, env: Env, request: R
   }
 }
 
+export async function handleManualQuoteRelink(
+  sql: unknown,
+  env: Env,
+  request: Request,
+  id: string,
+  quotationId: string
+) {
+  const { admin, deny } = await requireAdmin(sql, env, request, "PROCUREMENT_ADMIN");
+  if (deny) return deny;
+  try {
+    const body = await readJson(request);
+    const vendorUserId = String((body as { vendorUserId?: string }).vendorUserId || "");
+    const result = await QuotationsService.relink(id, quotationId, vendorUserId);
+    if ("error" in result) return json(env, request, { error: result.error }, result.status);
+    await writeAudit(sql, {
+      adminId: admin.id,
+      action: "quotation.relinked",
+      entityType: "Requirement",
+      entityId: id,
+      metadata: { quotationId, vendorUserId },
+    });
+    return json(env, request, result);
+  } catch (err: any) {
+    return json(env, request, { error: err.message }, 400);
+  }
+}
+
 export async function handleManualQuoteDelete(
   sql: unknown,
   env: Env,

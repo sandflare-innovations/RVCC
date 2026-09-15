@@ -4,17 +4,18 @@ import { cuid } from "../../../lib/sql";
 import { writeAudit } from "../../auth";
 import { broadcastBidUpdate } from "../../sourcing/bidding/live-bids.controller";
 import { computeMoneyBreakdown, toSarAmount } from "../../sourcing/lib/money";
-import { isPastDeadline, VENDOR_VISIBLE_STATUSES } from "../../sourcing/lib/status-machine";
+import { isBiddingLive, isPastDeadline, negotiationPhase, VENDOR_VISIBLE_STATUSES } from "../../sourcing/lib/status-machine";
+import { attachmentDto } from "../../sourcing/services/sourcing-files.service";
 import {
   deleteUpload,
-  detectMagicMime,
   extractStorageKeyFromUrl,
-  publicUploadUrl,
+  keyFromStoredUrl,
+  MAX_SOURCING_UPLOAD_BYTES,
   putUpload,
+  resolveSourcingMime,
+  storedUrlForKey,
   storageKeyForQuote,
   uploadStorageConfigured,
-  validateUploadBytes,
-  validateUploadFile,
 } from "../../../lib/storage";
 
 export class VendorPortalService {
@@ -96,7 +97,14 @@ export class VendorPortalService {
             attachments: {
               orderBy: { uploadedAt: "asc" },
             },
+            revisions: { orderBy: { createdAt: "asc" } },
           },
+          take: 1,
+        },
+        manualQuotations: {
+          where: { vendorUserId, deletedAt: null },
+          include: { attachments: { orderBy: { uploadedAt: "asc" } } },
+          orderBy: { createdAt: "asc" },
           take: 1,
         },
       },
@@ -114,6 +122,7 @@ export class VendorPortalService {
     });
 
     const q = requirement.quotes[0];
+    const previous = requirement.manualQuotations[0];
     const isAwardedToMe = Boolean(q?.id && requirement.awardedQuoteId === q.id);
     const pastDeadline = isPastDeadline(requirement.closesAt);
     const isEnded =
@@ -135,6 +144,31 @@ export class VendorPortalService {
       }
     }
 
+    const quoteAttachments = q
+      ? q.attachments.map((a) =>
+          attachmentDto({
+            id: a.id,
+            requirementId,
+            kind: "quote",
+            fileName: a.fileName,
+            mimeType: a.mimeType,
+            fileSize: a.fileSize,
+            uploadedAt: a.uploadedAt,
+            vendorId: vendorUserId,
+            category: "quotation",
+          })
+        )
+      : [];
+
+    // Vendor downloads go through the quote-attachment BFF, not the admin files route.
+    const vendorFilePath = (attachmentId: string) =>
+      `/api/requirements/${requirementId}/quote/attachment/${attachmentId}`;
+    const vendorAttachments = quoteAttachments.map((a) => ({
+      ...a,
+      downloadPath: vendorFilePath(a.id),
+      fileUrl: vendorFilePath(a.id),
+    }));
+
     return {
       id: requirement.id,
       referenceNumber: requirement.referenceNumber,
@@ -150,14 +184,29 @@ export class VendorPortalService {
       requiredDocuments: requirement.requiredDocuments,
       allowBidRevisions: requirement.allowBidRevisions,
       revealCompetitorPrices: requirement.revealCompetitorPrices,
+      revealTargetPrice: Boolean(requirement.revealTargetPrice),
+      targetPrice: requirement.revealTargetPrice ? String(requirement.sellingPrice ?? "") : null,
       currency: requirement.currency,
       opensAt: requirement.opensAt?.toISOString() ?? null,
       closesAt: requirement.closesAt ? requirement.closesAt.toISOString() : null,
       status: requirement.status,
+      phase: negotiationPhase(requirement.status, requirement.opensAt, requirement.closesAt),
+      serverTime: new Date().toISOString(),
       isEnded,
       endedStatus,
       isAwardedToMe,
       awardedAt: requirement.awardedAt ? requirement.awardedAt.toISOString() : null,
+      // Flattened for QuoteForm. Nested `quote` stays for the live cockpit history table.
+      newPrice: q?.newPrice ? String(q.newPrice) : null,
+      remarks: q?.remarks ?? null,
+      quoteStatus: q?.status ?? null,
+      attachments: vendorAttachments,
+      bidHistory: (q?.revisions ?? []).map((r) => ({
+        id: r.id,
+        price: r.price ? String(r.price) : null,
+        submittedAt: r.createdAt.toISOString(),
+        status: r.status,
+      })),
       quote: q
         ? {
             id: q.id,
@@ -174,13 +223,26 @@ export class VendorPortalService {
             remarks: q.remarks ?? null,
             status: q.status,
             submittedAt: q.submittedAt ? q.submittedAt.toISOString() : null,
-            attachments: q.attachments.map((a) => ({
+            attachments: vendorAttachments,
+            revisions: q.revisions.map((r) => ({
+              id: r.id,
+              price: r.price ? String(r.price) : null,
+              submittedAt: r.createdAt.toISOString(),
+              status: r.status,
+            })),
+          }
+        : null,
+      previousQuotation: previous
+        ? {
+            amount: Number(previous.totalPrice),
+            currency: previous.currency,
+            source: previous.source,
+            receivedAt: previous.receivedAt.toISOString(),
+            attachments: previous.attachments.map((a) => ({
               id: a.id,
               fileName: a.fileName,
-              fileUrl: a.fileUrl,
-              fileSize: a.fileSize,
-              kind: a.kind,
-              uploadedAt: a.uploadedAt.toISOString(),
+              fileUrl: `/api/requirements/${requirementId}/quote/attachment/${a.id}`,
+              downloadPath: `/api/requirements/${requirementId}/quote/attachment/${a.id}`,
             })),
           }
         : null,
@@ -307,7 +369,13 @@ export class VendorPortalService {
       },
     });
 
-    if (!requirement || isPastDeadline(requirement.closesAt)) {
+    if (!requirement) {
+      return { error: "This requirement is closed or not available to you.", status: 409 };
+    }
+    if (!isBiddingLive(requirement.status, requirement.opensAt, requirement.closesAt)) {
+      if (requirement.opensAt && Date.now() < requirement.opensAt.getTime()) {
+        return { error: "Bidding has not started yet.", status: 409 };
+      }
       return { error: "This requirement is closed or not available to you.", status: 409 };
     }
 
@@ -352,57 +420,57 @@ export class VendorPortalService {
     }
 
     const remarks = String(body.remarks ?? body.notes ?? existing?.remarks ?? "");
-    const saved = await prisma.quote.upsert({
-      where: {
-        requirementId_vendorUserId: { requirementId, vendorUserId: vendorId },
-      },
-      update: {
-        newPrice: money.totalPrice,
-        totalPrice: money.totalPrice,
-        unitPrice: money.unitPrice,
-        quantity: money.quantity,
-        vatRate: money.vatRate,
-        vatAmount: money.vatAmount,
-        deliveryPeriodDays: body.deliveryPeriodDays ?? existing?.deliveryPeriodDays ?? null,
-        paymentTerms: body.paymentTerms ?? existing?.paymentTerms ?? "",
-        warranty: body.warranty ?? existing?.warranty ?? "",
-        notes: body.notes ?? existing?.notes ?? "",
-        currency: selectedCurrency as any,
-        exchangeRate,
-        amountSar,
-        remarks,
-        status: submit ? "SUBMITTED" : "DRAFT",
-        submittedAt: submit ? new Date() : existing?.submittedAt,
-      },
-      create: {
-        id: cuid(),
-        requirementId,
-        vendorUserId: vendorId,
-        newPrice: money.totalPrice || null,
-        totalPrice: money.totalPrice || null,
-        unitPrice: money.unitPrice || null,
-        quantity: money.quantity,
-        vatRate: money.vatRate,
-        vatAmount: money.vatAmount,
-        deliveryPeriodDays: body.deliveryPeriodDays ?? null,
-        paymentTerms: body.paymentTerms ?? "",
-        warranty: body.warranty ?? "",
-        notes: body.notes ?? "",
-        currency: selectedCurrency as any,
-        exchangeRate,
-        amountSar,
-        remarks,
-        status: submit ? "SUBMITTED" : "DRAFT",
-        submittedAt: submit ? new Date() : null,
-      },
-    });
+    const saved = await prisma.$transaction(async (tx) => {
+      const quote = await tx.quote.upsert({
+        where: {
+          requirementId_vendorUserId: { requirementId, vendorUserId: vendorId },
+        },
+        update: {
+          newPrice: money.totalPrice,
+          totalPrice: money.totalPrice,
+          unitPrice: money.unitPrice,
+          quantity: money.quantity,
+          vatRate: money.vatRate,
+          vatAmount: money.vatAmount,
+          deliveryPeriodDays: body.deliveryPeriodDays ?? existing?.deliveryPeriodDays ?? null,
+          paymentTerms: body.paymentTerms ?? existing?.paymentTerms ?? "",
+          warranty: body.warranty ?? existing?.warranty ?? "",
+          notes: body.notes ?? existing?.notes ?? "",
+          currency: selectedCurrency as any,
+          exchangeRate,
+          amountSar,
+          remarks,
+          status: submit ? "SUBMITTED" : "DRAFT",
+          submittedAt: submit ? new Date() : existing?.submittedAt,
+        },
+        create: {
+          id: cuid(),
+          requirementId,
+          vendorUserId: vendorId,
+          newPrice: money.totalPrice || null,
+          totalPrice: money.totalPrice || null,
+          unitPrice: money.unitPrice || null,
+          quantity: money.quantity,
+          vatRate: money.vatRate,
+          vatAmount: money.vatAmount,
+          deliveryPeriodDays: body.deliveryPeriodDays ?? null,
+          paymentTerms: body.paymentTerms ?? "",
+          warranty: body.warranty ?? "",
+          notes: body.notes ?? "",
+          currency: selectedCurrency as any,
+          exchangeRate,
+          amountSar,
+          remarks,
+          status: submit ? "SUBMITTED" : "DRAFT",
+          submittedAt: submit ? new Date() : null,
+        },
+      });
 
-    if (money.totalPrice > 0) {
-      void prisma.quoteRevision
-        .create({
+      if (money.totalPrice > 0) {
+        await tx.quoteRevision.create({
           data: {
             id: cuid(),
-            quoteId: saved.id,
+            quoteId: quote.id,
             requirementId,
             vendorUserId: vendorId,
             currency: selectedCurrency as any,
@@ -414,23 +482,25 @@ export class VendorPortalService {
             vatRate: money.vatRate,
             vatAmount: money.vatAmount,
             totalPrice: money.totalPrice,
-            deliveryPeriodDays: saved.deliveryPeriodDays,
-            paymentTerms: saved.paymentTerms,
-            warranty: saved.warranty,
+            deliveryPeriodDays: quote.deliveryPeriodDays,
+            paymentTerms: quote.paymentTerms,
+            warranty: quote.warranty,
             remarks,
-            notes: saved.notes,
+            notes: quote.notes,
             status: submit ? "SUBMITTED" : "DRAFT",
           },
-        })
-        .catch((err) => console.error("[quoteRevision] write failed", err));
-    }
+        });
+      }
 
-    if (submit) {
-      await prisma.requirementInvite.updateMany({
-        where: { requirementId, vendorUserId: vendorId },
-        data: { inviteStatus: "BID_SUBMITTED", respondedAt: new Date() },
-      });
-    }
+      if (submit) {
+        await tx.requirementInvite.updateMany({
+          where: { requirementId, vendorUserId: vendorId },
+          data: { inviteStatus: "BID_SUBMITTED", respondedAt: new Date() },
+        });
+      }
+
+      return quote;
+    });
 
     void writeAudit(null, {
       vendorId,
@@ -465,31 +535,30 @@ export class VendorPortalService {
     file: File
   ) {
     if (!uploadStorageConfigured(env)) {
-      return { error: "Upload storage not configured", status: 503 };
+      return { error: "Upload storage is not configured.", status: 503 };
     }
 
-    const requirement = await prisma.requirement.findUnique({
-      where: { id: requirementId },
-      select: { id: true, closesAt: true, status: true },
+    const requirement = await prisma.requirement.findFirst({
+      where: {
+        id: requirementId,
+        deletedAt: null,
+        invites: { some: { vendorUserId: vendorId } },
+      },
+      select: { id: true, closesAt: true, opensAt: true, status: true },
     });
     if (!requirement) return { error: "Requirement not found.", status: 404 };
-
-    const isPastDeadline = requirement.closesAt
-      ? new Date(requirement.closesAt).getTime() <= Date.now()
-      : false;
-    if (requirement.status !== "OPEN" || isPastDeadline) {
-      return { error: "Bidding is closed for this requirement.", status: 400 };
+    if (!isBiddingLive(requirement.status, requirement.opensAt, requirement.closesAt)) {
+      return { error: "Bidding is not open for document uploads.", status: 409 };
     }
 
-    const fileError = validateUploadFile(file, { maxBytes: 15 * 1024 * 1024 });
-    if (fileError) return { error: fileError, status: 400 };
-
-    const bytes = await file.arrayBuffer();
-    const byteError = validateUploadBytes(new Uint8Array(bytes), { maxBytes: 15 * 1024 * 1024 });
-    if (byteError) return { error: byteError, status: 400 };
-
-    const detectedMime = detectMagicMime(new Uint8Array(bytes));
-    const mimeType = detectedMime || file.type || "application/pdf";
+    const raw = new Uint8Array(await file.arrayBuffer());
+    if (raw.byteLength > MAX_SOURCING_UPLOAD_BYTES) {
+      return { error: "File must be 25 MB or smaller.", status: 400 };
+    }
+    const mimeType = resolveSourcingMime(file.name, file.type || "", raw);
+    if (!mimeType) {
+      return { error: "Only PDF, Word, Excel, JPEG, PNG, or WEBP files are accepted.", status: 400 };
+    }
 
     let quote = await prisma.quote.findUnique({
       where: {
@@ -513,34 +582,42 @@ export class VendorPortalService {
 
     const key = storageKeyForQuote(requirementId, quote.id, file.name);
     try {
-      await putUpload(env, key, bytes, mimeType);
+      await putUpload(env, key, raw, mimeType);
     } catch (err) {
       console.error("[quote/attachment] upload error", err);
-      return { error: "Failed to store document", status: 500 };
+      return { error: "Failed to store document.", status: 500 };
     }
-
-    const attachmentId = cuid();
-    const fileUrl = publicUploadUrl(env, key);
 
     const attachment = await prisma.quoteAttachment.create({
       data: {
-        id: attachmentId,
+        id: cuid(),
         quoteId: quote.id,
         fileName: file.name,
-        fileUrl,
-        fileSize: file.size,
+        fileUrl: storedUrlForKey(key),
+        fileSize: raw.byteLength,
         mimeType,
       },
     });
 
+    const dto = attachmentDto({
+      id: attachment.id,
+      requirementId,
+      kind: "quote",
+      fileName: attachment.fileName,
+      mimeType: attachment.mimeType,
+      fileSize: attachment.fileSize,
+      uploadedAt: attachment.uploadedAt,
+      uploadedBy: "vendor",
+      category: "quotation",
+      vendorId,
+    });
+    const downloadPath = `/api/requirements/${requirementId}/quote/attachment/${attachment.id}`;
     return {
       ok: true,
       attachment: {
-        id: attachment.id,
-        fileName: attachment.fileName,
-        fileUrl: attachment.fileUrl,
-        fileSize: attachment.fileSize,
-        uploadedAt: attachment.uploadedAt.toISOString(),
+        ...dto,
+        downloadPath,
+        fileUrl: downloadPath,
       },
     };
   }
@@ -564,7 +641,7 @@ export class VendorPortalService {
       return { error: "Attachment not found.", status: 404 };
     }
 
-    const key = extractStorageKeyFromUrl(env, attachment.fileUrl);
+    const key = keyFromStoredUrl(env, attachment.fileUrl) || extractStorageKeyFromUrl(env, attachment.fileUrl);
     if (key) {
       await deleteUpload(env, key).catch(() => {});
     }

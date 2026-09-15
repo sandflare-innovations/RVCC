@@ -21,6 +21,7 @@ export type QuoteAttachmentItem = {
   fileUrl: string;
   fileSize: number;
   uploadedAt: string;
+  downloadPath?: string;
 };
 
 export type QuoteFormRequirement = {
@@ -29,7 +30,7 @@ export type QuoteFormRequirement = {
   project: string;
   scopeOfWork: string;
   currency: string;
-  closesAt: string;
+  closesAt: string | null;
   newPrice: string | null;
   remarks: string | null;
   quoteStatus: "DRAFT" | "SUBMITTED" | null;
@@ -48,10 +49,12 @@ export function QuoteForm({
   requirement,
   action,
   onSubmitted,
+  lockedReason,
 }: {
   requirement: QuoteFormRequirement;
   action: string;
   onSubmitted?: () => void;
+  lockedReason?: string | null;
 }) {
   const [isSubmitted, setIsSubmitted] = useState(requirement.quoteStatus === "SUBMITTED");
   const [isRevising, setIsRevising] = useState(false);
@@ -73,15 +76,15 @@ export function QuoteForm({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isFormLocked = isSubmitted && !isRevising;
+  const isFormLocked = Boolean(lockedReason) || (isSubmitted && !isRevising);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     const file = files[0]!;
-    if (file.size > 15 * 1024 * 1024) {
-      setError("File must be 15 MB or smaller.");
+    if (file.size > 25 * 1024 * 1024) {
+      setError("File must be 25 MB or smaller.");
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -142,6 +145,12 @@ export function QuoteForm({
   };
 
   const save = async (submit: boolean) => {
+    if (submit) {
+      const confirmed = window.confirm(
+        `Submit your bid of ${price} ${currency}? This is recorded immediately and ranked against other invited suppliers.`
+      );
+      if (!confirmed) return;
+    }
     setBusy(true);
     setError(null);
     setSaved(false);
@@ -181,6 +190,11 @@ export function QuoteForm({
 
   return (
     <div className="space-y-5">
+      {lockedReason ? (
+        <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-medium text-amber-800">
+          {lockedReason}
+        </p>
+      ) : null}
       {error ? (
         <p
           role="alert"
@@ -246,7 +260,7 @@ export function QuoteForm({
           <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase flex items-center gap-1.5">
             <Paperclip className="h-3.5 w-3.5 text-zinc-400" /> Supporting Documents / Quotation PDF (Optional)
           </span>
-          <span className="text-[11px] text-zinc-400">PDF, PNG, JPG up to 15MB</span>
+          <span className="text-[11px] text-zinc-400">PDF, Word, Excel, JPEG, PNG up to 25MB</span>
         </div>
 
         {/* Uploaded Attachments List */}
@@ -263,7 +277,7 @@ export function QuoteForm({
                   </div>
                   <div className="min-w-0">
                     <a
-                      href={att.fileUrl}
+                      href={att.downloadPath || att.fileUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="block truncate font-bold text-zinc-900 hover:text-brand-blue transition-colors"
@@ -303,7 +317,7 @@ export function QuoteForm({
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg"
               onChange={handleFileUpload}
               className="hidden"
               id="quote-file-upload"

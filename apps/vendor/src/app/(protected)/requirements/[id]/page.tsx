@@ -46,7 +46,11 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
     );
   }
 
-  const closed = new Date(detail.closesAt).getTime() <= Date.now() || detail.status !== "OPEN";
+  const closed =
+    detail.phase === "CLOSED" ||
+    detail.phase === "UNDER_EVALUATION" ||
+    detail.isEnded === true ||
+    ["AWARDED", "CANCELLED", "BIDDING_CLOSED", "EVALUATING"].includes(detail.status);
   const deadline = describeDeadline(detail.closesAt);
 
   return (

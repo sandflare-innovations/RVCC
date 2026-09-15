@@ -7,6 +7,7 @@ import { ChevronLeft, Trophy } from "lucide-react";
 
 import { BidCountdown } from "@/components/ui/bid-countdown";
 import { Modal, SubmitLoader } from "@/components/ui";
+import { datetimeLocalToIso, isoToDatetimeLocal } from "@/lib/riyadh-datetime";
 import { formatMoney, statusBadgeClass, statusLabel } from "@/lib/rfq/status";
 
 type TabId =
@@ -44,6 +45,7 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [quoteForm, setQuoteForm] = useState({
+    vendorUserId: "",
     supplierName: "",
     email: "",
     phone: "",
@@ -54,11 +56,32 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
     source: "WHATSAPP",
     remarks: "",
   });
+  const [quoteFile, setQuoteFile] = useState<File | null>(null);
+  const [docFile, setDocFile] = useState<File | null>(null);
+  const [vendorOptions, setVendorOptions] = useState<{ id: string; label: string; email: string }[]>([]);
   const [targetPrice, setTargetPrice] = useState(data.requirement.targetPrice || "");
-  const [closesAt, setClosesAt] = useState(
-    data.requirement.closesAt ? data.requirement.closesAt.slice(0, 16) : ""
-  );
+  const [opensAt, setOpensAt] = useState(isoToDatetimeLocal(data.requirement.opensAt));
+  const [closesAt, setClosesAt] = useState(isoToDatetimeLocal(data.requirement.closesAt));
+  const [revealTargetPrice, setRevealTargetPrice] = useState(data.requirement.revealTargetPrice !== false);
   const [awardTarget, setAwardTarget] = useState<any | null>(null);
+
+  useEffect(() => {
+    fetch("/api/vendors")
+      .then((res) => res.json())
+      .then((rows) => {
+        const list = Array.isArray(rows) ? rows : [];
+        setVendorOptions(
+          list
+            .filter((v: any) => v.isActive)
+            .map((v: any) => ({
+              id: v.id,
+              label: v.companyName ? `${v.companyName} (${v.email})` : v.email,
+              email: v.email || "",
+            }))
+        );
+      })
+      .catch(() => setVendorOptions([]));
+  }, []);
 
   const req = data.requirement;
   const currency = req.currency || "SAR";
@@ -83,6 +106,18 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
     } finally {
       setBusy(null);
     }
+  }
+
+  async function uploadMultipart(path: string, file: File) {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch(`/api/requirements/${req.id}/${path}`, { method: "POST", body: form });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || "Upload failed.");
+  }
+
+  function fileHref(attachment: { downloadPath?: string; url?: string; fileUrl?: string }) {
+    return attachment.downloadPath || attachment.url || attachment.fileUrl || "#";
   }
 
   const submittedQuotes = useMemo(
@@ -178,7 +213,11 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
                 <p className="text-2xl font-bold tabular-nums text-zinc-900">
                   {req.targetPrice ? formatMoney(req.targetPrice, currency) : "Not set"}
                 </p>
-                <p className="mt-1 text-xs text-zinc-500">Visible only to authorized Admin/Procurement users.</p>
+                <p className="mt-1 text-xs text-zinc-500">
+                  {req.revealTargetPrice
+                    ? "Shown to invited vendors during this negotiation."
+                    : "Hidden from vendors until you enable reveal on the Bidding tab."}
+                </p>
               </Card>
               <Card title="Quotation snapshot">
                 <Row label="Count" value={String(data.quotationStats?.count ?? 0)} />
@@ -195,6 +234,26 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
             {(req.status === "DRAFT" || req.status === "QUOTATION_COLLECTION") && (
               <Card title="Capture supplier quotation">
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <select
+                    className={inputClass}
+                    value={quoteForm.vendorUserId}
+                    onChange={(e) => {
+                      const vendor = vendorOptions.find((v) => v.id === e.target.value);
+                      setQuoteForm({
+                        ...quoteForm,
+                        vendorUserId: e.target.value,
+                        supplierName: vendor?.label.split(" (")[0] || quoteForm.supplierName,
+                        email: vendor?.email || quoteForm.email,
+                      });
+                    }}
+                  >
+                    <option value="">Select registered supplier</option>
+                    {vendorOptions.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.label}
+                      </option>
+                    ))}
+                  </select>
                   <input className={inputClass} placeholder="Supplier name" value={quoteForm.supplierName} onChange={(e) => setQuoteForm({ ...quoteForm, supplierName: e.target.value })} />
                   <input className={inputClass} placeholder="Contact person" value={quoteForm.contactPerson} onChange={(e) => setQuoteForm({ ...quoteForm, contactPerson: e.target.value })} />
                   <input className={inputClass} placeholder="Phone" value={quoteForm.phone} onChange={(e) => setQuoteForm({ ...quoteForm, phone: e.target.value })} />
@@ -210,18 +269,46 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
                     <option value="OTHER">Other</option>
                   </select>
                   <input className={`${inputClass} sm:col-span-2`} placeholder="Remarks" value={quoteForm.remarks} onChange={(e) => setQuoteForm({ ...quoteForm, remarks: e.target.value })} />
+                  <input
+                    className={inputClass}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp"
+                    onChange={(e) => setQuoteFile(e.target.files?.[0] || null)}
+                  />
                 </div>
                 <button
                   className={`${primaryBtn} mt-3`}
-                  disabled={!!busy}
-                  onClick={() =>
-                    post("manual-quotes", {
-                      ...quoteForm,
-                      unitPrice: Number(quoteForm.unitPrice),
-                      quantity: Number(quoteForm.quantity || 1),
-                      vatRate: Number(quoteForm.vatRate || 0),
-                    })
-                  }
+                  disabled={!!busy || !quoteForm.vendorUserId}
+                  onClick={async () => {
+                    setBusy("manual-quotes");
+                    setError(null);
+                    try {
+                      const res = await fetch(`/api/requirements/${req.id}/manual-quotes`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          ...quoteForm,
+                          unitPrice: Number(quoteForm.unitPrice),
+                          quantity: Number(quoteForm.quantity || 1),
+                          vatRate: Number(quoteForm.vatRate || 0),
+                        }),
+                      });
+                      const json = await res.json().catch(() => ({}));
+                      if (!res.ok) {
+                        setError(json.error || "Could not save quotation.");
+                        return;
+                      }
+                      if (quoteFile && json.quotation?.id) {
+                        await uploadMultipart(`manual-quotes/${json.quotation.id}/attachments`, quoteFile);
+                        setQuoteFile(null);
+                      }
+                      router.refresh();
+                    } catch (err: any) {
+                      setError(err.message || "Could not reach the server.");
+                    } finally {
+                      setBusy(null);
+                    }
+                  }}
                 >
                   {busy ? <SubmitLoader /> : "Add quotation"}
                 </button>
@@ -233,18 +320,59 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
                   <thead className="bg-brand-blue text-white">
                     <tr>
                       <th className="px-3 py-2 text-left">Supplier</th>
+                      <th className="px-3 py-2 text-left">Linked vendor</th>
                       <th className="px-3 py-2 text-left">Source</th>
                       <th className="px-3 py-2 text-right">Total</th>
-                      <th className="px-3 py-2 text-left">Delivery</th>
+                      <th className="px-3 py-2 text-left">File</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.manualQuotations.map((q) => (
                       <tr key={q.id} className="border-b border-zinc-100">
                         <td className="px-3 py-2">{q.supplierName}</td>
+                        <td className="px-3 py-2">
+                          {(req.status === "DRAFT" || req.status === "QUOTATION_COLLECTION") ? (
+                            <select
+                              className={inputClass}
+                              value={q.vendorUserId || ""}
+                              onChange={async (e) => {
+                                setBusy(`relink-${q.id}`);
+                                setError(null);
+                                const res = await fetch(`/api/requirements/${req.id}/manual-quotes/${q.id}`, {
+                                  method: "PUT",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ vendorUserId: e.target.value }),
+                                });
+                                if (!res.ok) {
+                                  const json = await res.json().catch(() => ({}));
+                                  setError(json.error || "Could not relink supplier.");
+                                } else {
+                                  router.refresh();
+                                }
+                                setBusy(null);
+                              }}
+                            >
+                              {vendorOptions.map((v) => (
+                                <option key={v.id} value={v.id}>
+                                  {v.label}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            q.vendorUser?.name || q.vendorUser?.email || "—"
+                          )}
+                        </td>
                         <td className="px-3 py-2">{q.source}</td>
                         <td className="px-3 py-2 text-right tabular-nums">{formatMoney(q.totalPrice, q.currency)}</td>
-                        <td className="px-3 py-2">{q.deliveryPeriod || "—"}</td>
+                        <td className="px-3 py-2">
+                          {q.attachments?.[0] ? (
+                            <a className="text-brand-blue underline" href={fileHref(q.attachments[0])} target="_blank" rel="noreferrer">
+                              {q.attachments[0].fileName}
+                            </a>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -259,11 +387,29 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
         {tab === "bidding" && (
           <div className="space-y-4">
             <BidCountdown closesAt={req.closesAt} opensAt={req.opensAt} status={req.status} />
-            {(req.status === "SUBMITTED_TO_ADMIN" || req.status === "PENDING") && (
+            {(req.status === "SUBMITTED_TO_ADMIN" || req.status === "PENDING" || req.status === "OPEN") && (
               <Card title="Configure bidding">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <input className={inputClass} placeholder="Target price" value={targetPrice} onChange={(e) => setTargetPrice(e.target.value)} />
-                  <input className={inputClass} type="datetime-local" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} />
+                  <label className="space-y-1">
+                    <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">Target price</span>
+                    <input className={inputClass} placeholder="Target price" value={targetPrice} onChange={(e) => setTargetPrice(e.target.value)} />
+                  </label>
+                  <label className="flex items-end gap-2 pb-1">
+                    <input
+                      type="checkbox"
+                      checked={revealTargetPrice}
+                      onChange={(e) => setRevealTargetPrice(e.target.checked)}
+                    />
+                    <span className="text-sm text-zinc-700">Show target price to invited vendors</span>
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">Opens at (Riyadh)</span>
+                    <input className={inputClass} type="datetime-local" value={opensAt} onChange={(e) => setOpensAt(e.target.value)} />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">Closes at (Riyadh)</span>
+                    <input className={inputClass} type="datetime-local" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} />
+                  </label>
                 </div>
                 <button
                   className={`${primaryBtn} mt-3`}
@@ -271,12 +417,14 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
                   onClick={() =>
                     post("bid-config", {
                       targetPrice: Number(targetPrice),
-                      closesAt: closesAt ? new Date(closesAt).toISOString() : undefined,
-                      rankingStrategy: "CLOSEST_TO_TARGET",
+                      opensAt: datetimeLocalToIso(opensAt),
+                      closesAt: datetimeLocalToIso(closesAt),
+                      rankingStrategy: "LOWEST_PRICE",
+                      revealTargetPrice,
                     })
                   }
                 >
-                  Save target price
+                  Save bidding window
                 </button>
               </Card>
             )}
@@ -335,7 +483,7 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
               <tbody>
                 {submittedQuotes.map((q) => {
                   const original = data.manualQuotations.find(
-                    (m) => m.email && q.participantEmail && m.email.toLowerCase() === q.participantEmail.toLowerCase()
+                    (m) => m.vendorUserId && q.vendorUserId && m.vendorUserId === q.vendorUserId
                   );
                   return (
                     <tr key={q.id} className="border-b border-zinc-100">
@@ -352,18 +500,48 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
 
         {tab === "documents" && (
           <Card title="Documents">
+            {(req.status === "DRAFT" || req.status === "QUOTATION_COLLECTION" || req.status === "SUBMITTED_TO_ADMIN" || req.status === "PENDING" || req.status === "OPEN") && (
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                <input
+                  className={inputClass}
+                  type="file"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp"
+                  onChange={(e) => setDocFile(e.target.files?.[0] || null)}
+                />
+                <button
+                  className={primaryBtn}
+                  disabled={!docFile || !!busy}
+                  onClick={async () => {
+                    if (!docFile) return;
+                    setBusy("attachments");
+                    setError(null);
+                    try {
+                      await uploadMultipart("attachments", docFile);
+                      setDocFile(null);
+                      router.refresh();
+                    } catch (err: any) {
+                      setError(err.message || "Upload failed.");
+                    } finally {
+                      setBusy(null);
+                    }
+                  }}
+                >
+                  Upload requirement file
+                </button>
+              </div>
+            )}
             <ul className="space-y-2 text-sm">
               {(req.attachments || []).map((a: any) => (
                 <li key={a.id}>
-                  <a className="text-brand-blue underline" href={a.url} target="_blank" rel="noreferrer">
-                    {a.name}
+                  <a className="text-brand-blue underline" href={fileHref(a)} target="_blank" rel="noreferrer">
+                    {a.name || a.fileName}
                   </a>
                 </li>
               ))}
               {data.manualQuotations.flatMap((q) =>
                 (q.attachments || []).map((a: any) => (
                   <li key={a.id}>
-                    <a className="text-brand-blue underline" href={a.fileUrl} target="_blank" rel="noreferrer">
+                    <a className="text-brand-blue underline" href={fileHref(a)} target="_blank" rel="noreferrer">
                       {q.supplierName}: {a.fileName}
                     </a>
                   </li>
@@ -372,13 +550,13 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
               {data.quotes.flatMap((q) =>
                 (q.attachments || []).map((a: any) => (
                   <li key={a.id}>
-                    <a className="text-brand-blue underline" href={a.fileUrl} target="_blank" rel="noreferrer">
+                    <a className="text-brand-blue underline" href={fileHref(a)} target="_blank" rel="noreferrer">
                       {q.participantName}: {a.fileName}
                     </a>
                   </li>
                 ))
               )}
-              {!req.attachments?.length && !data.quotes.some((q) => q.attachments?.length) && (
+              {!req.attachments?.length && !data.quotes.some((q) => q.attachments?.length) && !data.manualQuotations.some((q) => q.attachments?.length) && (
                 <p className="text-zinc-500">No documents uploaded yet.</p>
               )}
             </ul>

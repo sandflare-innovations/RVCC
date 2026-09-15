@@ -64,6 +64,18 @@ export async function handleVendorRequest(request: Request, env: Env): Promise<R
     }
 
     const quoteAttDel = path.match(/^\/requirements\/([^/]+)\/quote\/attachment\/([^/]+)$/);
+    if (quoteAttDel && request.method === "GET") {
+      const { handleQuoteAttachmentDownload } = await import(
+        "../modules/vendors/portal/portal.controller"
+      );
+      return await handleQuoteAttachmentDownload(
+        null,
+        env,
+        request,
+        decodeURIComponent(quoteAttDel[1]!),
+        decodeURIComponent(quoteAttDel[2]!)
+      );
+    }
     if (quoteAttDel && request.method === "DELETE") {
       return await handleQuoteAttachmentDelete(
         null,

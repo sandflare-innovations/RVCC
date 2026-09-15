@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createPurchaseRequestSchema } from "../../src/modules/procurement/schemas/procurement.schema";
+import { nextReferenceNumber } from "../../src/modules/procurement/services/reference-number";
 
 /** Shape the procurement portal sent before the 400 "Required" fix. */
 const portalPayload = {
@@ -40,5 +41,21 @@ describe("createPurchaseRequestSchema portal payload", () => {
       estimatedAmount: portalPayload.totalEstimatedAmount,
     });
     expect(parsed.success).toBe(true);
+  });
+});
+
+describe("nextReferenceNumber", () => {
+  it("skips suffixes still held by soft-deleted rows", () => {
+    const next = nextReferenceNumber(2026, [
+      "PR-2026-001",
+      "PR-2026-006",
+      "PR-2026-007",
+      "PR-2026-009",
+    ]);
+    expect(next).toBe("PR-2026-010");
+  });
+
+  it("starts at 001 when no refs exist for the year", () => {
+    expect(nextReferenceNumber(2026, [])).toBe("PR-2026-001");
   });
 });

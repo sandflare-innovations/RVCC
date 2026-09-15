@@ -45,6 +45,12 @@ const ZIP = "application/zip";
 
 export const ALLOWED_UPLOAD_MIMES = new Set([PDF, JPEG, PNG, WEBP]);
 
+/** RFQ / quotation documents: PDF, images, Word, Excel. */
+export const ALLOWED_SOURCING_MIMES = new Set([PDF, JPEG, PNG, WEBP, DOC, DOCX, XLS, XLSX]);
+export const MAX_SOURCING_UPLOAD_BYTES = 25 * 1024 * 1024;
+const OLE = "application/x-ole";
+const R2_KEY_PREFIX = "r2:";
+
 export const ALLOWED_FILE_MANAGER_MIMES = new Set([
   PDF,
   JPEG,
@@ -459,6 +465,34 @@ export async function deleteSecureDocument(env: Env, key: string): Promise<void>
   await client.fetch(url, { method: "DELETE" }).catch(() => undefined);
 }
 
+export async function getSecureDocument(
+  env: Env,
+  key: string
+): Promise<{ body: ArrayBuffer; contentType: string } | null> {
+  const bucket = env.secureAssetsBucket || env.uploadsBucket;
+  if (bucket) {
+    const object = await bucket.get(key);
+    if (!object) return null;
+    const body = await object.arrayBuffer();
+    const contentType = object.httpMetadata?.contentType || "application/octet-stream";
+    return { body, contentType };
+  }
+
+  const bucketName = "rvcc-secure-assets";
+  if (!s3Configured(env)) return null;
+
+  const client = new AwsClient({
+    accessKeyId: env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: env.R2_SECRET_ACCESS_KEY!,
+  });
+  const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
+  const res = await client.fetch(url, { method: "GET" });
+  if (!res.ok) return null;
+  const body = await res.arrayBuffer();
+  const contentType = res.headers.get("Content-Type") || "application/octet-stream";
+  return { body, contentType };
+}
+
 /** Backward-compatible upload alias (routes to secure documents by default) */
 export const putUpload = putSecureDocument;
 /** Backward-compatible delete alias (routes to secure documents by default) */
@@ -528,8 +562,52 @@ export function detectMagicMime(bytes: Uint8Array): string | null {
     if (bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04) {
       return ZIP;
     }
+    // Legacy Word/Excel OLE compound (D0 CF 11 E0)
+    if (bytes[0] === 0xd0 && bytes[1] === 0xcf && bytes[2] === 0x11 && bytes[3] === 0xe0) {
+      return OLE;
+    }
   }
   return null;
+}
+
+/** Map magic bytes + filename onto an allowed sourcing MIME. */
+export function resolveSourcingMime(fileName: string, declaredType: string, bytes: Uint8Array): string | null {
+  const ext = getFileExtension(fileName, "");
+  const detected = detectMagicMime(bytes);
+  if (detected === PDF || detected === JPEG || detected === PNG || detected === WEBP) return detected;
+  if (detected === ZIP) {
+    if (ext === "docx") return DOCX;
+    if (ext === "xlsx") return XLSX;
+    return null;
+  }
+  if (detected === OLE) {
+    if (ext === "doc") return DOC;
+    if (ext === "xls") return XLS;
+    return null;
+  }
+  const declared = declaredType.split(";")[0]?.trim() || "";
+  if (ALLOWED_SOURCING_MIMES.has(declared) && (ext === "pdf" || ext === "jpg" || ext === "jpeg" || ext === "png" || ext === "webp")) {
+    return declared;
+  }
+  return null;
+}
+
+export function storedUrlForKey(key: string): string {
+  return `${R2_KEY_PREFIX}${key}`;
+}
+
+export function keyFromStoredUrl(env: Env, stored: string | null | undefined): string | null {
+  if (!stored || stored === "#") return null;
+  if (stored.startsWith(R2_KEY_PREFIX)) return stored.slice(R2_KEY_PREFIX.length);
+  const fromPublic = extractStorageKeyFromUrl(env, stored);
+  if (fromPublic) return fromPublic;
+  if (stored.startsWith("procurement/")) return stored;
+  return null;
+}
+
+export function isPreviewableMime(mime: string | null | undefined): boolean {
+  const type = (mime || "").split(";")[0]?.trim() || "";
+  return type === PDF || type.startsWith("image/");
 }
 
 export function validateUploadBytes(

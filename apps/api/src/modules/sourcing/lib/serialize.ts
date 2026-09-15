@@ -1,5 +1,6 @@
 import type { AdminRoleName } from "@rvcc/schemas";
 import { decimalToString, redactTargetPrice } from "./redact";
+import { negotiationPhase } from "./status-machine";
 
 type RequirementRow = {
   id: string;
@@ -92,6 +93,8 @@ export function serializeRequirement(
     requiredDocuments: Array.isArray(row.requiredDocuments) ? row.requiredDocuments : [],
     termsAndConditions: row.termsAndConditions || "",
     status: row.status,
+    phase: negotiationPhase(row.status, row.opensAt, row.closesAt),
+    serverTime: new Date().toISOString(),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt?.toISOString() ?? null,
     awardedQuoteId: row.awardedQuoteId ?? null,
