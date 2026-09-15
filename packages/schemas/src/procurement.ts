@@ -45,6 +45,7 @@ export const createPurchaseRequestSchema = z.object({
   title: sanitizedStringSchema(3, 200),
   description: sanitizedStringSchema(0, 2000).default(""),
   department: sanitizedStringSchema(1, 100),
+  // Portal may omit this; handleProcurementCreate fills it from the session.
   requesterName: sanitizedStringSchema(1, 120),
   requesterEmail: z.string().email().nullable().optional(),
   priority: procurementPrioritySchema.default("MEDIUM"),
