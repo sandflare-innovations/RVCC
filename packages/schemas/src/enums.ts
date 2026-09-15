@@ -42,19 +42,68 @@ export type RegistrationStatusEnum = z.infer<typeof registrationStatusSchema>;
 
 /**
  * Sourcing & RFQ Status Enums
+ * PENDING is a legacy alias of SUBMITTED_TO_ADMIN.
+ * OPEN is the live "Bidding Open" stage.
  */
-export const requirementStatusSchema = z.enum([
+export const REQUIREMENT_STATUSES = [
   "DRAFT",
+  "QUOTATION_COLLECTION",
+  "SUBMITTED_TO_ADMIN",
   "PENDING",
   "OPEN",
+  "BIDDING_CLOSED",
+  "EVALUATING",
+  "SHORTLISTED",
   "AWARDED",
   "CANCELLED",
   "REJECTED",
-]);
+] as const;
+export const requirementStatusSchema = z.enum(REQUIREMENT_STATUSES);
 export type RequirementStatusEnum = z.infer<typeof requirementStatusSchema>;
 
 export const quoteStatusSchema = z.enum(["DRAFT", "SUBMITTED", "ACCEPTED", "REJECTED"]);
 export type QuoteStatusEnum = z.infer<typeof quoteStatusSchema>;
+
+export const rankingStrategySchema = z.enum([
+  "CLOSEST_TO_TARGET",
+  "LOWEST_PRICE",
+  "TECHNICAL_COMMERCIAL",
+  "WEIGHTED",
+]);
+export type RankingStrategyEnum = z.infer<typeof rankingStrategySchema>;
+
+export const inviteStatusSchema = z.enum([
+  "INVITED",
+  "VIEWED",
+  "ACCEPTED",
+  "DECLINED",
+  "BID_SUBMITTED",
+]);
+export type InviteStatusEnum = z.infer<typeof inviteStatusSchema>;
+
+export const quotationSourceSchema = z.enum([
+  "WHATSAPP",
+  "EMAIL",
+  "PHYSICAL",
+  "PHONE",
+  "OTHER",
+]);
+export type QuotationSourceEnum = z.infer<typeof quotationSourceSchema>;
+
+export const quoteEvaluationStatusSchema = z.enum([
+  "NONE",
+  "SHORTLISTED",
+  "REJECTED",
+  "CLARIFICATION",
+  "REVISED_OFFER",
+  "NEGOTIATION",
+  "AWARDED",
+  "NOT_SELECTED",
+]);
+export type QuoteEvaluationStatusEnum = z.infer<typeof quoteEvaluationStatusSchema>;
+
+export const quoteAttachmentKindSchema = z.enum(["SUPPORTING", "TECHNICAL", "COMMERCIAL"]);
+export type QuoteAttachmentKindEnum = z.infer<typeof quoteAttachmentKindSchema>;
 
 /**
  * Procurement Domain Enums

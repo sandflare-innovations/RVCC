@@ -1,9 +1,19 @@
 import type { RequirementStatus } from "@prisma/client";
+import type { AdminRoleName } from "@rvcc/schemas";
+import { canConfigureBidding } from "@rvcc/schemas";
 import type { Env } from "../../../config/env";
 import { prisma } from "../../../lib/prisma";
 import { cuid } from "../../../lib/sql";
 import { sendRequirementMail } from "../../system/services/notification.service";
-import type { AwardableQuote, CreateRequirementInput } from "../types/sourcing.types";
+import type { AwardableQuote } from "../types/sourcing.types";
+import { normaliseRequirementInput } from "../lib/requirement-input";
+import { serializeRequirement } from "../lib/serialize";
+import {
+  assertTransition,
+  isEditableByProcurement,
+  toPrismaStatus,
+  type PipelineStatus,
+} from "../lib/status-machine";
 
 export function describeAward(quotes: AwardableQuote[], quoteId: string) {
   const winner = quotes.find((q) => q.id === quoteId);
@@ -15,32 +25,6 @@ export function describeAward(quotes: AwardableQuote[], quoteId: string) {
     winner,
     winningPrice: winner.newPrice,
     losingPrices: quotes.filter((q) => q.id !== quoteId).map((q) => q.newPrice),
-  };
-}
-
-export function normaliseRequirementInput(input: CreateRequirementInput) {
-  const scopeOfWork = String(input?.scopeOfWork ?? "").trim();
-  const project = String(input?.project ?? "").trim();
-
-  if (!scopeOfWork) throw new Error("A scope of work is required.");
-  if (!project) throw new Error("A project is required.");
-
-  const closesAt = new Date(input?.closesAt ?? "");
-  if (Number.isNaN(closesAt.getTime())) throw new Error("A valid closing time is required.");
-  if (closesAt.getTime() <= Date.now()) throw new Error("The closing time must be in the future.");
-
-  const raw = input.sellingPrice == null ? "" : String(input.sellingPrice).trim();
-  if (raw && !/^\d+(\.\d{1,2})?$/.test(raw)) {
-    throw new Error("The selling price must be a number with at most two decimals.");
-  }
-
-  return {
-    scopeOfWork,
-    project,
-    sellingPrice: raw || null,
-    currency: String(input.currency ?? "SAR").trim() || "SAR",
-    closesAt,
-    vendorUserIds: Array.isArray(input.vendorUserIds) ? input.vendorUserIds : [],
   };
 }
 
@@ -64,73 +48,111 @@ export function toCsvRow(cells: (string | number | null | undefined)[]): string 
   return cells.map(sanitizeCsvCell).join(",");
 }
 
+const DETAIL_INCLUDE = {
+  awardedByAdmin: { select: { email: true, name: true } },
+  submittedByAdmin: { select: { email: true, name: true } },
+  createdByAdmin: { select: { email: true, name: true } },
+  attachments: { where: { deletedAt: null }, orderBy: { uploadedAt: "asc" as const } },
+  quotes: {
+    where: { deletedAt: null },
+    include: {
+      vendorUser: { select: { email: true, name: true } },
+      revisions: { orderBy: { createdAt: "desc" as const } },
+      attachments: { orderBy: { uploadedAt: "asc" as const } },
+    },
+    orderBy: [{ submittedAt: { sort: "desc" as const, nulls: "last" as const } }, { updatedAt: "desc" as const }],
+  },
+  invites: {
+    include: {
+      vendorUser: { select: { id: true, email: true, name: true } },
+    },
+    orderBy: { createdAt: "asc" as const },
+  },
+  manualQuotations: {
+    where: { deletedAt: null },
+    include: {
+      attachments: { orderBy: { uploadedAt: "asc" as const } },
+      vendorUser: { select: { id: true, email: true, name: true } },
+    },
+    orderBy: { createdAt: "asc" as const },
+  },
+};
+
 export class SourcingService {
-  /**
-   * List all requirements for admin
-   */
-  static async listRequirements() {
+  static async listRequirements(role: AdminRoleName | "VENDOR" | null = "ADMIN") {
     const requirements = await prisma.requirement.findMany({
       where: { deletedAt: null },
       include: {
-        _count: { select: { invites: true, quotes: true } },
-        quotes: {
-          select: {
-            id: true,
-            newPrice: true,
-            status: true,
-          },
-        },
+        _count: { select: { invites: true, quotes: true, manualQuotations: true } },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return requirements.map((r) => ({
-      id: r.id,
-      project: r.project,
-      referenceNumber: r.referenceNumber,
-      scopeOfWork: r.scopeOfWork,
-      currency: r.currency,
-      closesAt: r.closesAt.toISOString(),
-      createdAt: r.createdAt.toISOString(),
-      status: r.status,
-      awardedQuoteId: r.awardedQuoteId,
-      awardedAt: r.awardedAt ? r.awardedAt.toISOString() : null,
-      invited: r._count.invites,
-      submitted: r._count.quotes,
-      invitedCount: r._count.invites,
-      quotesCount: r._count.quotes,
-    }));
+    return requirements.map((r) =>
+      serializeRequirement(r, role, {
+        invited: r._count.invites,
+        submitted: r._count.quotes,
+        invitedCount: r._count.invites,
+        quotesCount: r._count.quotes,
+        manualQuotationsCount: r._count.manualQuotations,
+      })
+    );
   }
 
-  /**
-   * Get single requirement detail
-   */
   static async getRequirementById(id: string) {
-    return await prisma.requirement.findUnique({
+    return prisma.requirement.findFirst({
+      where: { id, deletedAt: null },
+      include: DETAIL_INCLUDE,
+    });
+  }
+
+  static async transitionStatus(id: string, to: PipelineStatus) {
+    const requirement = await prisma.requirement.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!requirement) return null;
+    assertTransition(requirement.status, to);
+    return prisma.requirement.update({
       where: { id },
-      include: {
-        awardedByAdmin: { select: { email: true } },
-        quotes: {
-          include: {
-            vendorUser: { select: { email: true, name: true } },
-            revisions: { orderBy: { createdAt: "desc" } },
-            attachments: { orderBy: { uploadedAt: "asc" } },
-          },
-          orderBy: [{ submittedAt: { sort: "desc", nulls: "last" } }, { updatedAt: "desc" }],
-        },
-        invites: {
-          include: {
-            vendorUser: { select: { id: true, email: true } },
-          },
-          orderBy: { createdAt: "asc" },
-        },
+      data: { status: toPrismaStatus(to) },
+    });
+  }
+
+  static async startQuotationCollection(id: string) {
+    const requirement = await prisma.requirement.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!requirement) return null;
+    if (!isEditableByProcurement(requirement.status) && requirement.status !== "DRAFT") {
+      assertTransition(requirement.status, "QUOTATION_COLLECTION");
+    }
+    assertTransition(requirement.status, "QUOTATION_COLLECTION");
+    return prisma.requirement.update({
+      where: { id },
+      data: { status: "QUOTATION_COLLECTION" },
+    });
+  }
+
+  static async submitToAdmin(id: string, adminId: string) {
+    const requirement = await prisma.requirement.findFirst({
+      where: { id, deletedAt: null },
+      include: { _count: { select: { manualQuotations: { where: { deletedAt: null } } } } },
+    });
+    if (!requirement) return null;
+    if (requirement._count.manualQuotations < 1) {
+      throw new Error("Add at least one supplier quotation before submitting to Admin.");
+    }
+    assertTransition(requirement.status, "SUBMITTED_TO_ADMIN");
+    return prisma.requirement.update({
+      where: { id },
+      data: {
+        status: "SUBMITTED_TO_ADMIN",
+        submittedToAdminAt: new Date(),
+        submittedByAdminId: adminId,
       },
     });
   }
 
-  /**
-   * Award quote on requirement
-   */
   static async awardQuote(
     admin: { id: string; name?: string; role?: string },
     id: string,
@@ -141,7 +163,7 @@ export class SourcingService {
       where: { id },
       include: {
         quotes: {
-          where: { status: "SUBMITTED" },
+          where: { status: "SUBMITTED", deletedAt: null },
           include: { vendorUser: { select: { id: true, email: true } } },
         },
       },
@@ -160,15 +182,29 @@ export class SourcingService {
     );
 
     const winnerRow = requirement.quotes.find((q) => q.id === quoteId)!;
+    const winningValue = winnerRow.totalPrice ?? winnerRow.newPrice;
 
-    await prisma.requirement.update({
-      where: { id },
-      data: {
-        awardedQuoteId: quoteId,
-        awardedAt: new Date(),
-        awardedByAdminId: admin.id,
-        status: "AWARDED",
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.requirement.update({
+        where: { id },
+        data: {
+          awardedQuoteId: quoteId,
+          awardedAt: new Date(),
+          awardedByAdminId: admin.id,
+          awardedValue: winningValue,
+          status: "AWARDED",
+        },
+      });
+
+      await tx.quote.update({
+        where: { id: quoteId },
+        data: { evaluationStatus: "AWARDED", status: "ACCEPTED" },
+      });
+
+      await tx.quote.updateMany({
+        where: { requirementId: id, id: { not: quoteId }, deletedAt: null },
+        data: { evaluationStatus: "NOT_SELECTED" },
+      });
     });
 
     await prisma.notification.create({
@@ -221,92 +257,86 @@ export class SourcingService {
     };
   }
 
-  /**
-   * Create a new requirement
-   */
   static async createRequirement(
     adminId: string,
-    rawJson: any,
+    rawJson: unknown,
     post: boolean,
-    env: Env
+    env: Env,
+    role: AdminRoleName
   ) {
-    const input = normaliseRequirementInput(rawJson as CreateRequirementInput);
+    const input = normaliseRequirementInput(rawJson);
     const id = cuid();
     const count = await prisma.requirement.count();
     const referenceNumber = makeReferenceNumber(new Date(), count + 1);
+
+    // Fast-path OPEN is Admin-only and still requires a closing time.
+    const openNow = post && canConfigureBidding(role);
+    if (openNow && !input.closesAt) {
+      throw new Error("Set a bidding closing time before posting the requirement.");
+    }
+    if (openNow && input.closesAt && input.closesAt.getTime() <= Date.now()) {
+      throw new Error("The closing time must be in the future.");
+    }
+
+    const status: RequirementStatus = openNow ? "OPEN" : "DRAFT";
 
     await prisma.requirement.create({
       data: {
         id,
         referenceNumber,
+        title: input.title,
         project: input.project,
+        productServiceName: input.productServiceName,
+        category: input.category,
+        description: input.description,
         scopeOfWork: input.scopeOfWork,
-        currency: input.currency as any,
-        sellingPrice: input.sellingPrice ? Number(input.sellingPrice) : null,
-        status: (post ? "OPEN" : "DRAFT") as RequirementStatus,
-        closesAt: new Date(input.closesAt),
+        specifications: input.specifications,
+        quantity: input.quantity,
+        unit: input.unit,
+        requiredDeliveryDate: input.requiredDeliveryDate,
+        deliveryLocation: input.deliveryLocation,
+        requestingDepartment: input.requestingDepartment,
+        priority: input.priority,
+        internalNotes: input.internalNotes,
+        estimatedBudget: input.estimatedBudget,
+        currency: input.currency,
+        sellingPrice: input.sellingPrice,
+        status,
+        closesAt: input.closesAt,
+        rankingStrategy: openNow ? "LOWEST_PRICE" : "CLOSEST_TO_TARGET",
         createdByAdminId: adminId,
         invites: {
           create: input.vendorUserIds.map((vId) => ({
             id: cuid(),
             vendorUserId: vId,
+            inviteStatus: "INVITED",
           })),
         },
       },
     });
 
-    if (post && input.vendorUserIds.length > 0) {
-      const invited = await prisma.vendorUser.findMany({
-        where: { id: { in: input.vendorUserIds } },
-        select: { id: true, email: true },
-      });
-
-      const outcome = await sendRequirementMail(env, {
-        kind: "POSTED",
-        recipients: invited.map((v) => v.email),
-        project: input.project,
-        scopeOfWork: input.scopeOfWork,
-        referenceNumber: referenceNumber ?? "",
-        closesAt: new Date(input.closesAt).toISOString(),
-        portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/requirements/${id}`,
-      });
-
-      if (outcome.attempted) {
-        for (const v of invited) {
-          const failure = outcome.failed.find((f) => f.to === v.email);
-          await prisma.requirementInvite.updateMany({
-            where: { requirementId: id, vendorUserId: v.id },
-            data: {
-              emailStatus: failure ? "FAILED" : "SENT",
-              emailError: failure ? failure.error : null,
-              emailedAt: failure ? null : new Date(),
-            },
-          });
-        }
-      }
+    if (openNow && input.vendorUserIds.length > 0) {
+      await this.sendInviteEmails(env, id, input.project, input.scopeOfWork, referenceNumber, input.closesAt);
     }
 
-    return { id, referenceNumber, input };
+    return { id, referenceNumber, input, status };
   }
 
-  /**
-   * Update existing requirement
-   */
-  static async updateRequirement(
-    id: string,
-    rawJson: any,
-    post: boolean
-  ) {
+  static async updateRequirement(id: string, rawJson: unknown, post: boolean, role: AdminRoleName) {
     const existing = await prisma.requirement.findUnique({
       where: { id },
       include: { invites: true },
     });
     if (!existing) return null;
 
-    const input = normaliseRequirementInput(rawJson as CreateRequirementInput);
+    if (!canConfigureBidding(role) && !isEditableByProcurement(existing.status)) {
+      throw new Error("This requirement can no longer be edited by Procurement.");
+    }
 
+    const input = normaliseRequirementInput(rawJson);
     let nextStatus = existing.status;
-    if (post && existing.status === "DRAFT") {
+    if (post && canConfigureBidding(role) && existing.status === "DRAFT") {
+      if (!input.closesAt) throw new Error("Set a bidding closing time before posting.");
       nextStatus = "OPEN";
     }
 
@@ -314,11 +344,24 @@ export class SourcingService {
       await tx.requirement.update({
         where: { id },
         data: {
+          title: input.title,
           project: input.project,
+          productServiceName: input.productServiceName,
+          category: input.category,
+          description: input.description,
           scopeOfWork: input.scopeOfWork,
-          currency: input.currency as any,
-          sellingPrice: input.sellingPrice ? Number(input.sellingPrice) : null,
-          closesAt: new Date(input.closesAt),
+          specifications: input.specifications,
+          quantity: input.quantity,
+          unit: input.unit,
+          requiredDeliveryDate: input.requiredDeliveryDate,
+          deliveryLocation: input.deliveryLocation,
+          requestingDepartment: input.requestingDepartment,
+          priority: input.priority,
+          internalNotes: input.internalNotes,
+          estimatedBudget: input.estimatedBudget,
+          currency: input.currency,
+          sellingPrice: canConfigureBidding(role) ? input.sellingPrice : existing.sellingPrice,
+          closesAt: input.closesAt ?? existing.closesAt,
           status: nextStatus,
         },
       });
@@ -332,6 +375,7 @@ export class SourcingService {
               id: cuid(),
               requirementId: id,
               vendorUserId: vId,
+              inviteStatus: "INVITED",
             })),
           });
         }
@@ -341,35 +385,35 @@ export class SourcingService {
     return { input, nextStatus };
   }
 
-  /**
-   * Delete requirement and associated invites and quotes
-   */
   static async deleteRequirement(id: string) {
-    const requirement = await prisma.requirement.findUnique({
-      where: { id },
-    });
+    const requirement = await prisma.requirement.findUnique({ where: { id } });
     if (!requirement) return null;
 
     await prisma.$transaction(async (tx) => {
       await tx.requirementInvite.deleteMany({ where: { requirementId: id } });
       await tx.quote.deleteMany({ where: { requirementId: id } });
+      await tx.manualQuotation.deleteMany({ where: { requirementId: id } });
+      await tx.requirementAttachment.deleteMany({ where: { requirementId: id } });
       await tx.requirement.delete({ where: { id } });
     });
 
     return requirement;
   }
 
-  /**
-   * Export requirement quotes to CSV
-   */
+  static async listActivity(id: string) {
+    return prisma.auditLog.findMany({
+      where: { entityType: "Requirement", entityId: id },
+      orderBy: { createdAt: "desc" },
+      take: 200,
+    });
+  }
+
   static async exportRequirementCsv(id: string) {
     const requirement = await prisma.requirement.findUnique({
       where: { id },
       include: {
         quotes: {
-          include: {
-            vendorUser: { select: { email: true, name: true } },
-          },
+          include: { vendorUser: { select: { email: true, name: true } } },
           orderBy: { amountSar: "asc" },
         },
       },
@@ -393,7 +437,6 @@ export class SourcingService {
     ];
 
     const rows = [toCsvRow(headers)];
-
     for (const q of requirement.quotes) {
       rows.push(
         toCsvRow([
@@ -401,7 +444,7 @@ export class SourcingService {
           requirement.project,
           requirement.currency,
           requirement.status,
-          requirement.closesAt.toISOString(),
+          requirement.closesAt?.toISOString() ?? "",
           q.vendorUser?.name || "N/A",
           q.vendorUser?.email || "N/A",
           q.newPrice ? String(q.newPrice) : "",
@@ -418,5 +461,42 @@ export class SourcingService {
       filename: `requirement-${requirement.referenceNumber || requirement.id}-quotes.csv`,
     };
   }
-}
 
+  static async sendInviteEmails(
+    env: Env,
+    requirementId: string,
+    project: string,
+    scopeOfWork: string,
+    referenceNumber: string | null,
+    closesAt: Date | null
+  ) {
+    const invited = await prisma.vendorUser.findMany({
+      where: { invites: { some: { requirementId } } },
+      select: { id: true, email: true },
+    });
+    if (invited.length === 0) return;
+
+    const outcome = await sendRequirementMail(env, {
+      kind: "POSTED",
+      recipients: invited.map((v) => v.email),
+      project,
+      scopeOfWork,
+      referenceNumber: referenceNumber ?? "",
+      closesAt: closesAt?.toISOString(),
+      portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/requirements/${requirementId}`,
+    });
+
+    if (!outcome.attempted) return;
+    for (const v of invited) {
+      const failure = outcome.failed.find((f) => f.to === v.email);
+      await prisma.requirementInvite.updateMany({
+        where: { requirementId, vendorUserId: v.id },
+        data: {
+          emailStatus: failure ? "FAILED" : "SENT",
+          emailError: failure ? failure.error : null,
+          emailedAt: failure ? null : new Date(),
+        },
+      });
+    }
+  }
+}

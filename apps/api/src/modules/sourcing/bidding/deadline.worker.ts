@@ -29,13 +29,12 @@ export async function processExpiredRequirements(env?: Env): Promise<number> {
     }
 
     for (const req of expiredReqs) {
-      // 1. Transition status from OPEN to EVALUATING
+      // Close bidding first. Admin then starts evaluation — ranking never awards.
       await prisma.requirement.update({
         where: { id: req.id },
-        data: { status: "EVALUATING" },
+        data: { status: "BIDDING_CLOSED" },
       });
 
-      // 2. Write system audit log
       await prisma.auditLog.create({
         data: {
           action: "requirement.deadline_expired",
@@ -44,20 +43,19 @@ export async function processExpiredRequirements(env?: Env): Promise<number> {
           actorName: "System Automation",
           actorRole: "SYSTEM",
           previousStatus: "OPEN",
-          newStatus: "EVALUATING",
-          note: `Bidding deadline passed for ${req.referenceNumber || req.project}. Status transitioned to EVALUATING.`,
+          newStatus: "BIDDING_CLOSED",
+          note: `Bidding deadline passed for ${req.referenceNumber || req.project}. Status transitioned to BIDDING_CLOSED.`,
           metadata: { project: req.project, closedAt: now.toISOString() },
         },
       }).catch((e) => console.warn("[deadline-worker] audit log error", e));
 
-      // 3. Notify author admin or general procurement
       if (req.createdByAdminId) {
         await prisma.notification.create({
           data: {
             adminId: req.createdByAdminId,
             type: "REQUIREMENT_UPDATED",
             title: `Bidding Concluded: ${req.project}`,
-            body: `Deadline reached. Requirement is now in EVALUATING stage.`,
+            body: `Deadline reached. Requirement is now Bidding Closed.`,
             linkPath: `/requirements/${req.id}`,
           },
         }).catch((e) => console.warn("[deadline-worker] notification error", e));
@@ -71,7 +69,7 @@ export async function processExpiredRequirements(env?: Env): Promise<number> {
       }
     }
 
-    console.log(`[deadline-worker] Transitioned ${expiredReqs.length} expired requirement(s) to EVALUATING.`);
+    console.log(`[deadline-worker] Transitioned ${expiredReqs.length} expired requirement(s) to BIDDING_CLOSED.`);
     return expiredReqs.length;
   } catch (err) {
     console.error("[deadline-worker] Error processing expired requirements:", err);

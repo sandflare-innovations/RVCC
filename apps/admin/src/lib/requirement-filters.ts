@@ -1,10 +1,14 @@
 export const REQUIREMENT_FILTERS = [
-  { value: "OPEN", label: "Open" },
-  { value: "DRAFT", label: "Draft" },
-  { value: "AWARDED", label: "Awarded" },
-  { value: "CLOSED", label: "Closed" },
-  { value: "CANCELLED", label: "Cancelled" },
   { value: "ALL", label: "All" },
+  { value: "DRAFT", label: "Draft" },
+  { value: "QUOTATION_COLLECTION", label: "Quotation Collection" },
+  { value: "SUBMITTED_TO_ADMIN", label: "Submitted to Admin" },
+  { value: "OPEN", label: "Bidding Open" },
+  { value: "BIDDING_CLOSED", label: "Bidding Closed" },
+  { value: "EVALUATING", label: "Under Evaluation" },
+  { value: "SHORTLISTED", label: "Shortlisted" },
+  { value: "AWARDED", label: "Awarded" },
+  { value: "CANCELLED", label: "Cancelled" },
 ] as const;
 
 export type RequirementFilterValue = (typeof REQUIREMENT_FILTERS)[number]["value"];
@@ -38,11 +42,14 @@ export function matchesRequirementFilter(
 
   const isExpired = r.closesAt && new Date(r.closesAt).getTime() <= Date.now();
 
-  if (filter === "CLOSED") {
-    return r.status === "OPEN" && !!isExpired;
+  if (filter === "CLOSED" || filter === "BIDDING_CLOSED") {
+    return r.status === "BIDDING_CLOSED" || (r.status === "OPEN" && !!isExpired);
   }
   if (filter === "OPEN") {
     return r.status === "OPEN" && !isExpired;
+  }
+  if (filter === "SUBMITTED_TO_ADMIN") {
+    return r.status === "SUBMITTED_TO_ADMIN" || r.status === "PENDING";
   }
 
   return r.status === filter;

@@ -1,4 +1,5 @@
 import { z } from "@rvcc/schemas";
+import { createRequirementSchema } from "@rvcc/schemas";
 
 export const awardableQuoteSchema = z.object({
   id: z.string(),
@@ -7,14 +8,6 @@ export const awardableQuoteSchema = z.object({
 });
 export type AwardableQuote = z.infer<typeof awardableQuoteSchema>;
 
-export const createRequirementInputSchema = z.object({
-  scopeOfWork: z.string().min(1),
-  project: z.string().min(1),
-  sellingPrice: z.string().nullable().optional(),
-  currency: z.string().optional(),
-  closesAt: z.string(),
-  /** Vendor ids. "Agent" at RVCC means vendor, so there is only one audience. */
-  vendorUserIds: z.array(z.string()),
-});
+/** Accept both the legacy RFQ payload and the new procurement requirement payload. */
+export const createRequirementInputSchema = createRequirementSchema;
 export type CreateRequirementInput = z.infer<typeof createRequirementInputSchema>;
-

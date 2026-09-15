@@ -26,6 +26,12 @@ describe("QA Auction & Procurement Tests: Dense Ranking, Anti-Collusion & Tie-Br
     status: "OPEN",
     sellingPrice: null,
     closesAt: new Date(Date.now() + 86400000),
+    rankingStrategy: "LOWEST_PRICE",
+    revealCompetitorPrices: true,
+    revealTargetPrice: false,
+    priceWeight: 50,
+    technicalWeight: 25,
+    commercialWeight: 25,
     awardedQuoteId: null,
     quotes: [
       {

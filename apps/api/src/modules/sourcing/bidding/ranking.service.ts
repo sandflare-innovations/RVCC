@@ -6,9 +6,29 @@ import type {
   VendorLiveBidsPayload,
 } from "@rvcc/schemas";
 
+type RankedQuote = AdminQuoteRankingItem & {
+  deliveryPeriodDays: number | null;
+  paymentTerms: string;
+  differenceFromTarget: number | null;
+  differencePercent: number | null;
+  isClosestToTarget: boolean;
+  isBestPrice: boolean;
+  isFastestDelivery: boolean;
+};
+
+function bidAmount(q: { amountSar?: unknown; totalPrice?: unknown; newPrice?: unknown }): number {
+  return Number(q.amountSar ?? q.totalPrice ?? q.newPrice ?? 0);
+}
+
+function compareByTime(a: { submittedAt?: Date | string | null }, b: { submittedAt?: Date | string | null }) {
+  const timeA = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+  const timeB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+  return timeA - timeB;
+}
+
 /**
- * Calculates dense price rankings for all submitted quotes on a requirement.
- * Lowest price is Rank #1 (L1), with tie-breakers decided by earlier submission timestamp.
+ * Rank quotes using the strategy stored on the requirement.
+ * Ranking never awards the procurement — Admin always decides.
  */
 export async function getRequirementRankings(requirementId: string): Promise<{
   requirement: {
@@ -16,11 +36,17 @@ export async function getRequirementRankings(requirementId: string): Promise<{
     project: string;
     currency: string;
     status: string;
-    sellingPrice: any; // Prisma Decimal
-    closesAt: Date;
+    sellingPrice: unknown;
+    closesAt: Date | null;
     awardedQuoteId: string | null;
+    rankingStrategy: string;
+    revealCompetitorPrices: boolean;
+    revealTargetPrice: boolean;
+    priceWeight: number;
+    technicalWeight: number;
+    commercialWeight: number;
   } | null;
-  adminQuotes: AdminQuoteRankingItem[];
+  adminQuotes: RankedQuote[];
   lowestPrice: string | null;
   averagePrice: string | null;
   totalQuotes: number;
@@ -35,9 +61,16 @@ export async function getRequirementRankings(requirementId: string): Promise<{
       sellingPrice: true,
       closesAt: true,
       awardedQuoteId: true,
+      rankingStrategy: true,
+      revealCompetitorPrices: true,
+      revealTargetPrice: true,
+      priceWeight: true,
+      technicalWeight: true,
+      commercialWeight: true,
       quotes: {
         where: {
           status: "SUBMITTED",
+          deletedAt: null,
           newPrice: { not: null },
         },
         include: {
@@ -47,11 +80,7 @@ export async function getRequirementRankings(requirementId: string): Promise<{
               email: true,
               name: true,
               registration: {
-                select: {
-                  company: {
-                    select: { legalName: true, dbaName: true },
-                  },
-                },
+                select: { company: { select: { legalName: true, dbaName: true } } },
               },
             },
           },
@@ -70,47 +99,76 @@ export async function getRequirementRankings(requirementId: string): Promise<{
     };
   }
 
-  // Filter valid submitted quotes with positive price
-  const validQuotes = req.quotes.filter((q) => q.newPrice !== null && Number(q.newPrice) > 0);
+  const validQuotes = req.quotes.filter((q) => bidAmount(q) > 0);
+  const target = req.sellingPrice != null ? Number(req.sellingPrice) : null;
+  const strategy = req.rankingStrategy || "LOWEST_PRICE";
 
-  // Sort ascending by price, then by submittedAt timestamp (tie breaker)
   validQuotes.sort((a, b) => {
-    const priceA = Number(a.amountSar ?? a.newPrice);
-    const priceB = Number(b.amountSar ?? b.newPrice);
+    const priceA = bidAmount(a);
+    const priceB = bidAmount(b);
+    if (strategy === "CLOSEST_TO_TARGET" && target != null) {
+      const diff = Math.abs(priceA - target) - Math.abs(priceB - target);
+      if (diff !== 0) return diff;
+      return compareByTime(a, b);
+    }
+    if (strategy === "TECHNICAL_COMMERCIAL" || strategy === "WEIGHTED") {
+      const priceW = Number(req.priceWeight ?? 50);
+      const techW = Number(req.technicalWeight ?? 25);
+      const commW = Number(req.commercialWeight ?? 25);
+      const score = (q: (typeof validQuotes)[number]) => {
+        const priceScore = target && target > 0 ? Math.max(0, 100 - (Math.abs(bidAmount(q) - target) / target) * 100) : 100 - priceA;
+        return (
+          (priceScore * priceW +
+            Number(q.technicalScore ?? 0) * techW +
+            Number(q.commercialScore ?? 0) * commW) /
+          Math.max(1, priceW + techW + commW)
+        );
+      };
+      const delta = score(b) - score(a);
+      if (delta !== 0) return delta;
+      return compareByTime(a, b);
+    }
     if (priceA !== priceB) return priceA - priceB;
-    const timeA = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
-    const timeB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
-    return timeA - timeB;
+    return compareByTime(a, b);
   });
 
-  const lowestNum =
-    validQuotes.length > 0 ? Number(validQuotes[0]!.amountSar ?? validQuotes[0]!.newPrice) : null;
-  const lowestPrice = lowestNum !== null ? lowestNum.toFixed(2) : null;
-
+  const prices = validQuotes.map((q) => bidAmount(q));
+  const lowestNum = prices.length ? Math.min(...prices) : null;
+  const lowestPrice = lowestNum != null ? lowestNum.toFixed(2) : null;
   const totalQuotes = validQuotes.length;
-  const totalPrice = validQuotes.reduce((sum, q) => sum + Number(q.amountSar ?? q.newPrice), 0);
-  const averagePrice = totalQuotes > 0 ? (totalPrice / totalQuotes).toFixed(2) : null;
+  const averagePrice =
+    totalQuotes > 0 ? (prices.reduce((sum, n) => sum + n, 0) / totalQuotes).toFixed(2) : null;
 
-  let lastPrice: number | null = null;
+  const fastestDelivery = validQuotes.reduce<number | null>((min, q) => {
+    if (q.deliveryPeriodDays == null) return min;
+    return min == null ? q.deliveryPeriodDays : Math.min(min, q.deliveryPeriodDays);
+  }, null);
+
+  let closestId: string | null = null;
+  if (target != null && validQuotes.length) {
+    closestId = [...validQuotes].sort(
+      (a, b) => Math.abs(bidAmount(a) - target) - Math.abs(bidAmount(b) - target)
+    )[0]!.id;
+  }
+
+  let lastKey: string | null = null;
   let lastRank = 0;
-
-  const adminQuotes: AdminQuoteRankingItem[] = validQuotes.map((q, index) => {
-    const p = Number(q.amountSar ?? q.newPrice);
-    // Dense ranking: identical price shares the same rank
-    const rank = lastPrice !== null && p === lastPrice ? lastRank : index + 1;
-    lastPrice = p;
+  const adminQuotes: RankedQuote[] = validQuotes.map((q, index) => {
+    const p = bidAmount(q);
+    const key = `${strategy}:${p}:${q.technicalScore ?? 0}:${q.commercialScore ?? 0}`;
+    const rank = lastKey === key ? lastRank : index + 1;
+    lastKey = key;
     lastRank = rank;
-
     const companyName =
       q.vendorUser.registration?.company?.legalName ||
       q.vendorUser.registration?.company?.dbaName ||
       q.vendorUser.name ||
       q.vendorUser.email;
-
-    const varianceFromL1Percent =
-      lowestNum && lowestNum > 0 && p >= lowestNum
-        ? Number((((p - lowestNum) / lowestNum) * 100).toFixed(1))
-        : 0;
+    const differenceFromTarget = target != null ? Math.round((p - target) * 100) / 100 : null;
+    const differencePercent =
+      target && target !== 0 && differenceFromTarget != null
+        ? Math.round((differenceFromTarget / target) * 10000) / 100
+        : null;
 
     return {
       id: q.id,
@@ -124,7 +182,15 @@ export async function getRequirementRankings(requirementId: string): Promise<{
       vendorEmail: q.vendorUser.email,
       vendorId: q.vendorUserId,
       isLeading: rank === 1,
-      varianceFromL1Percent,
+      varianceFromL1Percent:
+        lowestNum && lowestNum > 0 ? Number((((p - lowestNum) / lowestNum) * 100).toFixed(1)) : 0,
+      deliveryPeriodDays: q.deliveryPeriodDays ?? null,
+      paymentTerms: q.paymentTerms || "",
+      differenceFromTarget,
+      differencePercent,
+      isClosestToTarget: q.id === closestId,
+      isBestPrice: lowestNum != null && p === lowestNum,
+      isFastestDelivery: fastestDelivery != null && q.deliveryPeriodDays === fastestDelivery,
     };
   });
 
@@ -137,6 +203,12 @@ export async function getRequirementRankings(requirementId: string): Promise<{
       sellingPrice: req.sellingPrice,
       closesAt: req.closesAt,
       awardedQuoteId: req.awardedQuoteId,
+      rankingStrategy: strategy,
+      revealCompetitorPrices: Boolean(req.revealCompetitorPrices),
+      revealTargetPrice: Boolean(req.revealTargetPrice),
+      priceWeight: Number(req.priceWeight ?? 50),
+      technicalWeight: Number(req.technicalWeight ?? 25),
+      commercialWeight: Number(req.commercialWeight ?? 25),
     },
     adminQuotes,
     lowestPrice,
@@ -145,9 +217,6 @@ export async function getRequirementRankings(requirementId: string): Promise<{
   };
 }
 
-/**
- * Builds full Admin live bids payload
- */
 export async function buildAdminLiveBidsPayload(
   requirementId: string
 ): Promise<AdminLiveBidsPayload | null> {
@@ -160,7 +229,7 @@ export async function buildAdminLiveBidsPayload(
     currency: data.requirement.currency,
     status: data.requirement.status,
     sellingPrice: data.requirement.sellingPrice ? String(data.requirement.sellingPrice) : null,
-    closesAt: data.requirement.closesAt.toISOString(),
+    closesAt: data.requirement.closesAt ? data.requirement.closesAt.toISOString() : "",
     awardedQuoteId: data.requirement.awardedQuoteId,
     totalQuotes: data.totalQuotes,
     lowestPrice: data.lowestPrice,
@@ -170,9 +239,6 @@ export async function buildAdminLiveBidsPayload(
   };
 }
 
-/**
- * Builds sanitized Vendor live bids payload (Blind Bidding / Anti-Collusion compliant)
- */
 export async function buildVendorLiveBidsPayload(
   requirementId: string,
   vendorUserId: string
@@ -180,18 +246,9 @@ export async function buildVendorLiveBidsPayload(
   const data = await getRequirementRankings(requirementId);
   if (!data.requirement) return null;
 
-  // Find this vendor's quote (if any, including draft)
   const myQuoteRecord = await prisma.quote.findUnique({
-    where: {
-      requirementId_vendorUserId: {
-        requirementId,
-        vendorUserId,
-      },
-    },
-    select: {
-      status: true,
-      newPrice: true,
-    },
+    where: { requirementId_vendorUserId: { requirementId, vendorUserId } },
+    select: { status: true, newPrice: true },
   });
 
   const myStatus: "DRAFT" | "SUBMITTED" | "NOT_STARTED" =
@@ -202,38 +259,47 @@ export async function buildVendorLiveBidsPayload(
         : "NOT_STARTED";
 
   const myPrice = myQuoteRecord?.newPrice ? Number(myQuoteRecord.newPrice).toFixed(2) : null;
-
-  // Determine vendor's rank
   const myRankItem = data.adminQuotes.find((q) => q.vendorId === vendorUserId);
   const myRank = myRankItem ? myRankItem.rank : null;
-  const isLeading = myRank === 1;
+  const reveal = data.requirement.revealCompetitorPrices;
 
-  // Anonymized leaderboard for vendor view
-  const leaderboard: VendorAnonymizedBidItem[] = data.adminQuotes.map((q) => {
-    const isYou = q.vendorId === vendorUserId;
-    return {
-      rank: q.rank,
-      price: q.newPrice,
-      currency: q.currency,
-      amountSar: q.amountSar,
-      submittedAt: q.submittedAt,
-      isYou,
-      maskedName: isYou ? "You" : `Bidder #${q.rank}`,
-    };
-  });
+  const leaderboard: VendorAnonymizedBidItem[] = reveal
+    ? data.adminQuotes.map((q) => {
+        const isYou = q.vendorId === vendorUserId;
+        return {
+          rank: q.rank,
+          price: q.newPrice,
+          currency: q.currency,
+          amountSar: q.amountSar,
+          submittedAt: q.submittedAt,
+          isYou,
+          maskedName: isYou ? "You" : `Bidder #${q.rank}`,
+        };
+      })
+    : data.adminQuotes
+        .filter((q) => q.vendorId === vendorUserId)
+        .map((q) => ({
+          rank: q.rank,
+          price: q.newPrice,
+          currency: q.currency,
+          amountSar: q.amountSar,
+          submittedAt: q.submittedAt,
+          isYou: true,
+          maskedName: "You",
+        }));
 
   return {
     requirementId: data.requirement.id,
     project: data.requirement.project,
     currency: data.requirement.currency,
     status: data.requirement.status,
-    closesAt: data.requirement.closesAt.toISOString(),
-    totalBidders: data.totalQuotes,
-    lowestPrice: data.lowestPrice,
-    myRank,
+    closesAt: data.requirement.closesAt ? data.requirement.closesAt.toISOString() : "",
+    totalBidders: reveal ? data.totalQuotes : myStatus === "SUBMITTED" ? 1 : 0,
+    lowestPrice: reveal ? data.lowestPrice : myPrice,
+    myRank: reveal ? myRank : myRank,
     myPrice,
     myStatus,
-    isLeading,
+    isLeading: reveal ? myRank === 1 : false,
     leaderboard,
     updatedAt: new Date().toISOString(),
   };

@@ -268,6 +268,31 @@ export function storageKeyForQuote(
   return `procurement/quotes/${requirementId}/${quoteId}/${cleanName}-${tag}.${ext}`;
 }
 
+/** Offline quotation scan: procurement/manual-quotes/{requirementId}/{quoteId}/{file} */
+export function storageKeyForManualQuote(
+  requirementId: string,
+  quoteId: string,
+  fileName: string
+): string {
+  const ext = getFileExtension(fileName, "pdf");
+  const baseName = fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
+  const cleanName = slugify(baseName) || "quotation";
+  const tag = generateUniqueToken(4);
+  return `procurement/manual-quotes/${requirementId}/${quoteId}/${cleanName}-${tag}.${ext}`;
+}
+
+/** Requirement spec attachments: procurement/requirements/{requirementId}/{file} */
+export function storageKeyForRequirement(
+  requirementId: string,
+  fileName: string
+): string {
+  const ext = getFileExtension(fileName, "pdf");
+  const baseName = fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
+  const cleanName = slugify(baseName) || "requirement-doc";
+  const tag = generateUniqueToken(4);
+  return `procurement/requirements/${requirementId}/${cleanName}-${tag}.${ext}`;
+}
+
 /** Secure Purchase Requisition: procurement/requisitions/{purchaseRequestId}/{cleanFileName}-{tag}.{ext} */
 export function storageKeyForRequisition(
   purchaseRequestId: string,

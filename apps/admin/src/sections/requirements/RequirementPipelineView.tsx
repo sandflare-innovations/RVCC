@@ -1,0 +1,566 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ChevronLeft, Trophy } from "lucide-react";
+
+import { BidCountdown } from "@/components/ui/bid-countdown";
+import { Modal, SubmitLoader } from "@/components/ui";
+import { formatMoney, statusBadgeClass, statusLabel } from "@/lib/rfq/status";
+
+type TabId =
+  | "overview"
+  | "quotations"
+  | "bidding"
+  | "comparison"
+  | "documents"
+  | "evaluation"
+  | "shortlist"
+  | "activity";
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: "overview", label: "Overview" },
+  { id: "quotations", label: "Supplier Quotations" },
+  { id: "bidding", label: "Bidding" },
+  { id: "comparison", label: "Comparison" },
+  { id: "documents", label: "Documents" },
+  { id: "evaluation", label: "Evaluation" },
+  { id: "shortlist", label: "Shortlist" },
+  { id: "activity", label: "Activity Log" },
+];
+
+type PipelinePayload = {
+  requirement: Record<string, any>;
+  quotes: any[];
+  invites: any[];
+  manualQuotations: any[];
+  quotationStats: { count: number; lowest: number | null; highest: number | null; average: number | null };
+};
+
+export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
+  const router = useRouter();
+  const [tab, setTab] = useState<TabId>("overview");
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [quoteForm, setQuoteForm] = useState({
+    supplierName: "",
+    email: "",
+    phone: "",
+    contactPerson: "",
+    unitPrice: "",
+    quantity: "1",
+    vatRate: "0",
+    source: "WHATSAPP",
+    remarks: "",
+  });
+  const [targetPrice, setTargetPrice] = useState(data.requirement.targetPrice || "");
+  const [closesAt, setClosesAt] = useState(
+    data.requirement.closesAt ? data.requirement.closesAt.slice(0, 16) : ""
+  );
+  const [awardTarget, setAwardTarget] = useState<any | null>(null);
+
+  const req = data.requirement;
+  const currency = req.currency || "SAR";
+
+  async function post(path: string, body?: unknown) {
+    setBusy(path);
+    setError(null);
+    try {
+      const res = await fetch(`/api/requirements/${req.id}/${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body ? JSON.stringify(body) : "{}",
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error || "Action failed.");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError("Could not reach the server.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const submittedQuotes = useMemo(
+    () => data.quotes.filter((q) => q.status === "SUBMITTED"),
+    [data.quotes]
+  );
+  const shortlisted = submittedQuotes.filter((q) => q.evaluationStatus === "SHORTLISTED");
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex flex-none items-center justify-between bg-white px-6 pt-4 pb-4">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/requirements"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-100"
+            aria-label="Go back"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-zinc-900">{req.title || req.project}</h1>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadgeClass(req.status)}`}>
+                {statusLabel(req.status, req.closesAt)}
+              </span>
+            </div>
+            <p className="text-xs text-zinc-500">{req.referenceNumber || req.id}</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {req.status === "DRAFT" && (
+            <button className={btnClass} onClick={() => post("collect-quotations")} disabled={!!busy}>
+              Start quotation collection
+            </button>
+          )}
+          {(req.status === "DRAFT" || req.status === "QUOTATION_COLLECTION") && (
+            <button className={btnClass} onClick={() => post("submit")} disabled={!!busy}>
+              Submit to Admin
+            </button>
+          )}
+          {(req.status === "SUBMITTED_TO_ADMIN" || req.status === "PENDING") && (
+            <button className={primaryBtn} onClick={() => post("open")} disabled={!!busy}>
+              Open bidding
+            </button>
+          )}
+          {req.status === "OPEN" && (
+            <button className={btnClass} onClick={() => post("close")} disabled={!!busy}>
+              Close bidding
+            </button>
+          )}
+          {req.status === "BIDDING_CLOSED" && (
+            <button className={btnClass} onClick={() => post("evaluate")} disabled={!!busy}>
+              Start evaluation
+            </button>
+          )}
+        </div>
+      </div>
+
+      {error && <p className="mx-6 mb-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">{error}</p>}
+
+      <div className="flex gap-2 overflow-x-auto border-b border-zinc-200 px-6">
+        {TABS.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setTab(item.id)}
+            className={`border-b-2 px-3 py-2 text-sm font-semibold whitespace-nowrap ${
+              tab === item.id ? "border-brand-blue text-brand-blue" : "border-transparent text-zinc-500"
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto p-6">
+        {tab === "overview" && (
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-4">
+              <Card title="Requirement">
+                <Row label="Product / service" value={req.productServiceName || req.title} />
+                <Row label="Category" value={req.category} />
+                <Row label="Description" value={req.description || req.scopeOfWork} />
+                <Row label="Specifications" value={req.specifications || "—"} />
+                <Row label="Quantity" value={`${req.quantity} ${req.unit}`} />
+                <Row label="Delivery location" value={req.deliveryLocation || "—"} />
+                <Row label="Department" value={req.requestingDepartment || "—"} />
+                <Row label="Priority" value={req.priority} />
+              </Card>
+            </div>
+            <div className="space-y-4">
+              <BidCountdown closesAt={req.closesAt} opensAt={req.opensAt} status={req.status} />
+              <Card title="Confidential target">
+                <p className="text-2xl font-bold tabular-nums text-zinc-900">
+                  {req.targetPrice ? formatMoney(req.targetPrice, currency) : "Not set"}
+                </p>
+                <p className="mt-1 text-xs text-zinc-500">Visible only to authorized Admin/Procurement users.</p>
+              </Card>
+              <Card title="Quotation snapshot">
+                <Row label="Count" value={String(data.quotationStats?.count ?? 0)} />
+                <Row label="Lowest" value={formatMoney(data.quotationStats?.lowest, currency)} />
+                <Row label="Highest" value={formatMoney(data.quotationStats?.highest, currency)} />
+                <Row label="Average" value={formatMoney(data.quotationStats?.average, currency)} />
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {tab === "quotations" && (
+          <div className="space-y-4">
+            {(req.status === "DRAFT" || req.status === "QUOTATION_COLLECTION") && (
+              <Card title="Capture supplier quotation">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <input className={inputClass} placeholder="Supplier name" value={quoteForm.supplierName} onChange={(e) => setQuoteForm({ ...quoteForm, supplierName: e.target.value })} />
+                  <input className={inputClass} placeholder="Contact person" value={quoteForm.contactPerson} onChange={(e) => setQuoteForm({ ...quoteForm, contactPerson: e.target.value })} />
+                  <input className={inputClass} placeholder="Phone" value={quoteForm.phone} onChange={(e) => setQuoteForm({ ...quoteForm, phone: e.target.value })} />
+                  <input className={inputClass} placeholder="Email" value={quoteForm.email} onChange={(e) => setQuoteForm({ ...quoteForm, email: e.target.value })} />
+                  <input className={inputClass} placeholder="Unit price" value={quoteForm.unitPrice} onChange={(e) => setQuoteForm({ ...quoteForm, unitPrice: e.target.value })} />
+                  <input className={inputClass} placeholder="Quantity" value={quoteForm.quantity} onChange={(e) => setQuoteForm({ ...quoteForm, quantity: e.target.value })} />
+                  <input className={inputClass} placeholder="VAT %" value={quoteForm.vatRate} onChange={(e) => setQuoteForm({ ...quoteForm, vatRate: e.target.value })} />
+                  <select className={inputClass} value={quoteForm.source} onChange={(e) => setQuoteForm({ ...quoteForm, source: e.target.value })}>
+                    <option value="WHATSAPP">WhatsApp</option>
+                    <option value="EMAIL">Email</option>
+                    <option value="PHYSICAL">Physical</option>
+                    <option value="PHONE">Phone</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                  <input className={`${inputClass} sm:col-span-2`} placeholder="Remarks" value={quoteForm.remarks} onChange={(e) => setQuoteForm({ ...quoteForm, remarks: e.target.value })} />
+                </div>
+                <button
+                  className={`${primaryBtn} mt-3`}
+                  disabled={!!busy}
+                  onClick={() =>
+                    post("manual-quotes", {
+                      ...quoteForm,
+                      unitPrice: Number(quoteForm.unitPrice),
+                      quantity: Number(quoteForm.quantity || 1),
+                      vatRate: Number(quoteForm.vatRate || 0),
+                    })
+                  }
+                >
+                  {busy ? <SubmitLoader /> : "Add quotation"}
+                </button>
+              </Card>
+            )}
+            <Card title="Collected quotations">
+              {data.manualQuotations?.length ? (
+                <table className="w-full text-sm">
+                  <thead className="bg-brand-blue text-white">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Supplier</th>
+                      <th className="px-3 py-2 text-left">Source</th>
+                      <th className="px-3 py-2 text-right">Total</th>
+                      <th className="px-3 py-2 text-left">Delivery</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.manualQuotations.map((q) => (
+                      <tr key={q.id} className="border-b border-zinc-100">
+                        <td className="px-3 py-2">{q.supplierName}</td>
+                        <td className="px-3 py-2">{q.source}</td>
+                        <td className="px-3 py-2 text-right tabular-nums">{formatMoney(q.totalPrice, q.currency)}</td>
+                        <td className="px-3 py-2">{q.deliveryPeriod || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-sm text-zinc-500">No offline quotations captured yet.</p>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {tab === "bidding" && (
+          <div className="space-y-4">
+            <BidCountdown closesAt={req.closesAt} opensAt={req.opensAt} status={req.status} />
+            {(req.status === "SUBMITTED_TO_ADMIN" || req.status === "PENDING") && (
+              <Card title="Configure bidding">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input className={inputClass} placeholder="Target price" value={targetPrice} onChange={(e) => setTargetPrice(e.target.value)} />
+                  <input className={inputClass} type="datetime-local" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} />
+                </div>
+                <button
+                  className={`${primaryBtn} mt-3`}
+                  disabled={!!busy}
+                  onClick={() =>
+                    post("bid-config", {
+                      targetPrice: Number(targetPrice),
+                      closesAt: closesAt ? new Date(closesAt).toISOString() : undefined,
+                      rankingStrategy: "CLOSEST_TO_TARGET",
+                    })
+                  }
+                >
+                  Save target price
+                </button>
+              </Card>
+            )}
+            <Card title="Invited suppliers">
+              {data.invites.length ? (
+                <ul className="space-y-2 text-sm">
+                  {data.invites.map((i) => (
+                    <li key={i.id} className="flex justify-between rounded-xl border border-zinc-100 px-3 py-2">
+                      <span>{i.name || i.email}</span>
+                      <span className="text-xs font-semibold text-zinc-500">{i.inviteStatus || i.emailStatus}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-zinc-500">No suppliers invited yet.</p>
+              )}
+              <InviteForm requirementId={req.id} onDone={() => router.refresh()} />
+            </Card>
+            <Card title="Online bids">
+              {submittedQuotes.length ? (
+                <table className="w-full text-sm">
+                  <thead className="bg-brand-blue text-white">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Supplier</th>
+                      <th className="px-3 py-2 text-right">Bid</th>
+                      <th className="px-3 py-2 text-left">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {submittedQuotes.map((q) => (
+                      <tr key={q.id} className="border-b border-zinc-100">
+                        <td className="px-3 py-2">{q.participantName || q.vendorUser?.name}</td>
+                        <td className="px-3 py-2 text-right tabular-nums">{formatMoney(q.totalPrice || q.newPrice, currency)}</td>
+                        <td className="px-3 py-2">{q.evaluationStatus}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-sm text-zinc-500">No online bids submitted yet.</p>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {tab === "comparison" && (
+          <Card title="Supplier comparison">
+            <table className="w-full text-sm">
+              <thead className="bg-brand-blue text-white">
+                <tr>
+                  <th className="px-3 py-2 text-left">Supplier</th>
+                  <th className="px-3 py-2 text-right">Original quotation</th>
+                  <th className="px-3 py-2 text-right">Bid</th>
+                </tr>
+              </thead>
+              <tbody>
+                {submittedQuotes.map((q) => {
+                  const original = data.manualQuotations.find(
+                    (m) => m.email && q.participantEmail && m.email.toLowerCase() === q.participantEmail.toLowerCase()
+                  );
+                  return (
+                    <tr key={q.id} className="border-b border-zinc-100">
+                      <td className="px-3 py-2">{q.participantName || q.vendorUser?.name}</td>
+                      <td className="px-3 py-2 text-right">{formatMoney(original?.totalPrice, currency)}</td>
+                      <td className="px-3 py-2 text-right font-semibold">{formatMoney(q.totalPrice || q.newPrice, currency)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </Card>
+        )}
+
+        {tab === "documents" && (
+          <Card title="Documents">
+            <ul className="space-y-2 text-sm">
+              {(req.attachments || []).map((a: any) => (
+                <li key={a.id}>
+                  <a className="text-brand-blue underline" href={a.url} target="_blank" rel="noreferrer">
+                    {a.name}
+                  </a>
+                </li>
+              ))}
+              {data.manualQuotations.flatMap((q) =>
+                (q.attachments || []).map((a: any) => (
+                  <li key={a.id}>
+                    <a className="text-brand-blue underline" href={a.fileUrl} target="_blank" rel="noreferrer">
+                      {q.supplierName}: {a.fileName}
+                    </a>
+                  </li>
+                ))
+              )}
+              {data.quotes.flatMap((q) =>
+                (q.attachments || []).map((a: any) => (
+                  <li key={a.id}>
+                    <a className="text-brand-blue underline" href={a.fileUrl} target="_blank" rel="noreferrer">
+                      {q.participantName}: {a.fileName}
+                    </a>
+                  </li>
+                ))
+              )}
+              {!req.attachments?.length && !data.quotes.some((q) => q.attachments?.length) && (
+                <p className="text-zinc-500">No documents uploaded yet.</p>
+              )}
+            </ul>
+          </Card>
+        )}
+
+        {tab === "evaluation" && (
+          <Card title="Bid evaluation">
+            <p className="mb-3 text-xs text-zinc-500">Ranking supports Admin decision-making. It does not award automatically.</p>
+            <table className="w-full text-sm">
+              <thead className="bg-brand-blue text-white">
+                <tr>
+                  <th className="px-3 py-2 text-left">Supplier</th>
+                  <th className="px-3 py-2 text-right">Bid</th>
+                  <th className="px-3 py-2 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {submittedQuotes.map((q) => (
+                  <tr key={q.id} className="border-b border-zinc-100">
+                    <td className="px-3 py-2">{q.participantName || q.vendorUser?.name}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{formatMoney(q.totalPrice || q.newPrice, currency)}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex flex-wrap gap-1">
+                        {["SHORTLISTED", "REJECTED", "CLARIFICATION", "NEGOTIATION"].map((action) => (
+                          <button
+                            key={action}
+                            className="rounded-md border border-zinc-200 px-2 py-1 text-[11px] font-semibold"
+                            onClick={() => post(`quotes/${q.id}/action`, { action, note: "" })}
+                          >
+                            {action.replace("_", " ")}
+                          </button>
+                        ))}
+                        <button className="rounded-md bg-brand-blue px-2 py-1 text-[11px] font-semibold text-white" onClick={() => setAwardTarget(q)}>
+                          Award
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        )}
+
+        {tab === "shortlist" && (
+          <Card title="Shortlisted suppliers">
+            {shortlisted.length ? (
+              <ul className="space-y-2">
+                {shortlisted.map((q) => (
+                  <li key={q.id} className="rounded-xl border border-zinc-100 px-4 py-3">
+                    <p className="font-semibold">{q.participantName || q.vendorUser?.name}</p>
+                    <p className="text-sm text-zinc-500">{formatMoney(q.totalPrice || q.newPrice, currency)}</p>
+                    {q.evaluationNote && <p className="mt-1 text-sm">{q.evaluationNote}</p>}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-zinc-500">No suppliers shortlisted yet.</p>
+            )}
+          </Card>
+        )}
+
+        {tab === "activity" && <ActivityPanel requirementId={req.id} />}
+      </div>
+
+      <Modal open={!!awardTarget} onClose={() => setAwardTarget(null)} title="Award Procurement" maxWidth="sm">
+        {awardTarget && (
+          <div className="p-6">
+            <Trophy className="text-brand-blue mx-auto mb-3 h-8 w-8" />
+            <p className="text-center text-sm">
+              Award to <strong>{awardTarget.participantName || awardTarget.vendorUser?.name}</strong> at{" "}
+              <strong>{formatMoney(awardTarget.totalPrice || awardTarget.newPrice, currency)}</strong>
+              {req.targetPrice ? ` vs target ${formatMoney(req.targetPrice, currency)}` : ""}.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button className={btnClass} onClick={() => setAwardTarget(null)}>Cancel</button>
+              <button
+                className={primaryBtn}
+                onClick={async () => {
+                  setBusy("award");
+                  const res = await fetch(`/api/requirements/${req.id}/award`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ quoteId: awardTarget.id }),
+                  });
+                  if (res.ok) {
+                    setAwardTarget(null);
+                    router.refresh();
+                  } else {
+                    const json = await res.json().catch(() => ({}));
+                    setError(json.error || "Award failed.");
+                  }
+                  setBusy(null);
+                }}
+              >
+                Award Procurement
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+function ActivityPanel({ requirementId }: { requirementId: string }) {
+  const [logs, setLogs] = useState<any[] | null>(null);
+  useEffect(() => {
+    fetch(`/api/requirements/${requirementId}/activity`)
+      .then((r) => r.json())
+      .then((d) => setLogs(Array.isArray(d) ? d : []))
+      .catch(() => setLogs([]));
+  }, [requirementId]);
+
+  if (!logs) return <p className="text-sm text-zinc-500">Loading activity…</p>;
+  if (!logs.length) return <p className="text-sm text-zinc-500">No activity recorded yet.</p>;
+  return (
+    <ol className="space-y-3">
+      {logs.map((log) => (
+        <li key={log.id} className="rounded-2xl border border-zinc-100 px-4 py-3">
+          <p className="text-sm font-semibold text-zinc-900">{log.action}</p>
+          <p className="text-xs text-zinc-500">
+            {log.actorName} · {log.actorRole} · {new Date(log.createdAt).toLocaleString("en-GB")}
+          </p>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function InviteForm({ requirementId, onDone }: { requirementId: string; onDone: () => void }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="mt-4 grid gap-2 sm:grid-cols-3">
+      <input className={inputClass} placeholder="New supplier name" value={name} onChange={(e) => setName(e.target.value)} />
+      <input className={inputClass} placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <button
+        className={btnClass}
+        disabled={busy || !name || !email}
+        onClick={async () => {
+          setBusy(true);
+          await fetch(`/api/requirements/${requirementId}/invites`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ newSuppliers: [{ name, email }], sendEmail: true }),
+          });
+          setName("");
+          setEmail("");
+          setBusy(false);
+          onDone();
+        }}
+      >
+        Invite supplier
+      </button>
+    </div>
+  );
+}
+
+function Card({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+      <div className="border-b border-zinc-100 bg-zinc-50/70 px-5 py-3 text-sm font-bold">{title}</div>
+      <div className="p-5">{children}</div>
+    </section>
+  );
+}
+
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex flex-col border-b border-zinc-50 py-2 last:border-0 sm:flex-row">
+      <dt className="w-40 text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">{label}</dt>
+      <dd className="text-sm text-zinc-900">{value || "—"}</dd>
+    </div>
+  );
+}
+
+const inputClass =
+  "h-10 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:border-brand-blue";
+const btnClass =
+  "rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50";
+const primaryBtn =
+  "rounded-xl bg-brand-blue px-3 py-2 text-xs font-semibold text-white hover:opacity-95";

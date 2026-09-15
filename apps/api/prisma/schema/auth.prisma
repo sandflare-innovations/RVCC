@@ -76,6 +76,9 @@ model AdminUser {
   jobPostings    JobPosting[]
   requirements   Requirement[]          @relation("RequirementAuthor")
   awardedReqs    Requirement[]          @relation("RequirementAwarder")
+  submittedReqs  Requirement[]          @relation("RequirementSubmitter")
+  manualQuotes   ManualQuotation[]      @relation("ManualQuoteRecorder")
+  shortlistedQuotes Quote[]             @relation("QuoteShortlister")
   notifications  Notification[]
   purchaseReqs   PurchaseRequest[]
   pushSubscriptions PushSubscription[]

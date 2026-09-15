@@ -62,6 +62,22 @@ import {
   handleRequirementAward,
   handleRequirementExportCsv,
 } from "../modules/sourcing/controllers/sourcing.admin.controller";
+import {
+  handleActivity,
+  handleBidConfig,
+  handleCloseBidding,
+  handleCollectQuotations,
+  handleComparison,
+  handleInviteSuppliers,
+  handleManualQuoteCreate,
+  handleManualQuoteDelete,
+  handleManualQuotesList,
+  handleOpenBidding,
+  handleQuoteAction,
+  handleRequirementStats,
+  handleStartEvaluation,
+  handleSubmitToAdmin,
+} from "../modules/sourcing/controllers/sourcing.pipeline.controller";
 import { handleAdminLiveBids } from "../modules/sourcing/bidding/live-bids.controller";
 import {
   handleProcurementCreate,
@@ -172,10 +188,77 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
     if (path === "/requirements" && request.method === "POST") {
       return await handleRequirementCreate(sql, env, request);
     }
+    if (path === "/requirements/stats" && request.method === "GET") {
+      return await handleRequirementStats(sql, env, request);
+    }
 
     const reqAward = path.match(/^\/requirements\/([^/]+)\/award$/);
     if (reqAward && request.method === "POST") {
       return await handleRequirementAward(sql, env, request, decodeURIComponent(reqAward[1]!));
+    }
+
+    const reqCollect = path.match(/^\/requirements\/([^/]+)\/collect-quotations$/);
+    if (reqCollect && request.method === "POST") {
+      return await handleCollectQuotations(sql, env, request, decodeURIComponent(reqCollect[1]!));
+    }
+    const reqSubmit = path.match(/^\/requirements\/([^/]+)\/submit$/);
+    if (reqSubmit && request.method === "POST") {
+      return await handleSubmitToAdmin(sql, env, request, decodeURIComponent(reqSubmit[1]!));
+    }
+    const reqManualQuoteOne = path.match(/^\/requirements\/([^/]+)\/manual-quotes\/([^/]+)$/);
+    if (reqManualQuoteOne && request.method === "DELETE") {
+      return await handleManualQuoteDelete(
+        sql,
+        env,
+        request,
+        decodeURIComponent(reqManualQuoteOne[1]!),
+        decodeURIComponent(reqManualQuoteOne[2]!)
+      );
+    }
+    const reqManualQuotes = path.match(/^\/requirements\/([^/]+)\/manual-quotes$/);
+    if (reqManualQuotes && request.method === "GET") {
+      return await handleManualQuotesList(sql, env, request, decodeURIComponent(reqManualQuotes[1]!));
+    }
+    if (reqManualQuotes && request.method === "POST") {
+      return await handleManualQuoteCreate(sql, env, request, decodeURIComponent(reqManualQuotes[1]!));
+    }
+    const reqBidConfig = path.match(/^\/requirements\/([^/]+)\/bid-config$/);
+    if (reqBidConfig && request.method === "POST") {
+      return await handleBidConfig(sql, env, request, decodeURIComponent(reqBidConfig[1]!));
+    }
+    const reqInvites = path.match(/^\/requirements\/([^/]+)\/invites$/);
+    if (reqInvites && request.method === "POST") {
+      return await handleInviteSuppliers(sql, env, request, decodeURIComponent(reqInvites[1]!));
+    }
+    const reqOpen = path.match(/^\/requirements\/([^/]+)\/open$/);
+    if (reqOpen && request.method === "POST") {
+      return await handleOpenBidding(sql, env, request, decodeURIComponent(reqOpen[1]!));
+    }
+    const reqClose = path.match(/^\/requirements\/([^/]+)\/close$/);
+    if (reqClose && request.method === "POST") {
+      return await handleCloseBidding(sql, env, request, decodeURIComponent(reqClose[1]!));
+    }
+    const reqEvaluate = path.match(/^\/requirements\/([^/]+)\/evaluate$/);
+    if (reqEvaluate && request.method === "POST") {
+      return await handleStartEvaluation(sql, env, request, decodeURIComponent(reqEvaluate[1]!));
+    }
+    const reqQuoteAction = path.match(/^\/requirements\/([^/]+)\/quotes\/([^/]+)\/action$/);
+    if (reqQuoteAction && request.method === "POST") {
+      return await handleQuoteAction(
+        sql,
+        env,
+        request,
+        decodeURIComponent(reqQuoteAction[1]!),
+        decodeURIComponent(reqQuoteAction[2]!)
+      );
+    }
+    const reqComparison = path.match(/^\/requirements\/([^/]+)\/comparison$/);
+    if (reqComparison && request.method === "GET") {
+      return await handleComparison(sql, env, request, decodeURIComponent(reqComparison[1]!));
+    }
+    const reqActivity = path.match(/^\/requirements\/([^/]+)\/activity$/);
+    if (reqActivity && request.method === "GET") {
+      return await handleActivity(sql, env, request, decodeURIComponent(reqActivity[1]!));
     }
 
     const reqLiveBids = path.match(/^\/requirements\/([^/]+)\/live-bids$/);
