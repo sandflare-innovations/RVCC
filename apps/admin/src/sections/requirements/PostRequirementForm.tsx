@@ -412,10 +412,28 @@ export function PostRequirementForm({
         }),
       });
 
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      const body = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        requirement?: { id?: string };
+      };
       if (!res.ok) {
         setError(body.error ?? "Could not save the requirement.");
         return;
+      }
+
+      const requirementId = isEdit ? initialData.id : body.requirement?.id;
+      if (file && requirementId) {
+        const upload = new FormData();
+        upload.append("file", file);
+        const uploadRes = await fetch(`/api/requirements/${requirementId}/attachments`, {
+          method: "POST",
+          body: upload,
+        });
+        if (!uploadRes.ok) {
+          const uploadBody = (await uploadRes.json().catch(() => ({}))) as { error?: string };
+          setError(uploadBody.error ?? "Requirement saved, but the document could not be uploaded.");
+          return;
+        }
       }
 
       router.push("/requirements");
@@ -525,14 +543,14 @@ export function PostRequirementForm({
                                 <span className="text-brand-blue font-semibold">Upload file</span>{" "}
                                 or drag and drop
                               </p>
-                              <p className="mt-2 text-xs text-zinc-400">PDF, DOCX up to 10MB</p>
+                              <p className="mt-2 text-xs text-zinc-400">PDF, Word, Excel, JPEG, PNG up to 25MB</p>
                             </div>
                           )}
                           <input
                             type="file"
                             name="scopeDocument"
                             className="hidden"
-                            accept=".pdf,.doc,.docx"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,application/pdf"
                             onChange={handleFileChange}
                           />
                         </label>

@@ -77,7 +77,7 @@ export const awardQuoteSchema = z.object({
 export type AwardQuoteInput = z.infer<typeof awardQuoteSchema>;
 
 export const manualQuotationSchema = z.object({
-  vendorUserId: cuidSchema.nullable().optional(),
+  vendorUserId: cuidSchema,
   supplierName: sanitizedStringSchema(1, 200),
   contactPerson: sanitizedStringSchema(0, 120).optional().default(""),
   phone: sanitizedStringSchema(0, 40).optional().default(""),
@@ -104,10 +104,10 @@ export const bidConfigSchema = z.object({
   closesAt: z.union([z.string(), z.date()]),
   minAcceptablePrice: nonNegativeDecimalSchema.nullable().optional(),
   maxAcceptablePrice: nonNegativeDecimalSchema.nullable().optional(),
-  rankingStrategy: rankingStrategySchema.default("CLOSEST_TO_TARGET"),
+  rankingStrategy: rankingStrategySchema.default("LOWEST_PRICE"),
   allowBidRevisions: z.boolean().optional().default(true),
   revealCompetitorPrices: z.boolean().optional().default(false),
-  revealTargetPrice: z.boolean().optional().default(false),
+  revealTargetPrice: z.boolean().optional().default(true),
   priceWeight: nonNegativeDecimalSchema.optional(),
   technicalWeight: nonNegativeDecimalSchema.optional(),
   commercialWeight: nonNegativeDecimalSchema.optional(),

@@ -1,4 +1,4 @@
-import type { Currency, ProcurementPriority, ProcurementStatus } from "@prisma/client";
+import { Prisma, type Currency, type ProcurementPriority, type ProcurementStatus } from "@prisma/client";
 import { prisma } from "../../../lib/prisma";
 import { cuid } from "../../../lib/sql";
 import type {
@@ -6,6 +6,15 @@ import type {
   ReviewPurchaseRequestInput,
 } from "../schemas/procurement.schema";
 import type { PurchaseRequestDetailDTO } from "../types/procurement.types";
+import { nextReferenceNumber } from "./reference-number";
+
+function isReferenceNumberConflict(err: unknown): boolean {
+  if (!(err instanceof Prisma.PrismaClientKnownRequestError) || err.code !== "P2002") {
+    return false;
+  }
+  const target = err.meta?.target;
+  return Array.isArray(target) && target.includes("referenceNumber");
+}
 
 export function formatStatusToClient(status: string): string {
   return status.toLowerCase();
@@ -17,13 +26,18 @@ export function formatPriorityToClient(priority: string): string {
 
 export class ProcurementService {
   /**
-   * Generate PR-YYYY-XXX sequential reference number
+   * Generate PR-YYYY-XXX sequential reference number.
+   * Reads all rows (including soft-deleted) so retired numbers stay reserved.
    */
   static async generateReferenceNumber(): Promise<string> {
     const year = new Date().getFullYear();
-    const count = await prisma.purchaseRequest.count();
-    const nextNum = count + 1;
-    return `PR-${year}-${String(nextNum).padStart(3, "0")}`;
+    const rows = await prisma.$queryRaw<Array<{ referenceNumber: string }>>`
+      SELECT "referenceNumber" FROM "PurchaseRequest"
+      WHERE "referenceNumber" LIKE ${`PR-${year}-%`}
+    `;
+    const refs = rows.map((row) => row.referenceNumber);
+    const refNum = nextReferenceNumber(year, refs);
+    return refNum;
   }
 
   /**
@@ -177,28 +191,40 @@ export class ProcurementService {
     const priority = input.priority.toUpperCase() as ProcurementPriority;
     const currency = (input.currency || "SAR") as Currency;
 
-    await prisma.purchaseRequest.create({
-      data: {
-        id: reqId,
-        referenceNumber: refNum,
-        title: input.title.trim(),
-        description: input.description?.trim() || "",
-        department: input.department.trim(),
-        requesterName: input.requesterName.trim(),
-        requesterEmail: input.requesterEmail?.trim() || null,
-        priority,
-        status: "PENDING" as ProcurementStatus,
-        requiredByDate: new Date(input.requiredByDate),
-        currency,
-        estimatedAmount: calculatedTotal,
-        costCenter: input.costCenter?.trim() || null,
-        createdById: adminId,
-        items: { create: processedItems },
-        attachments: { create: processedAttachments },
-      },
-    });
+    const maxAttempts = 8;
+    let createdRef = refNum;
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      createdRef = attempt === 1 ? refNum : await this.generateReferenceNumber();
+      try {
+        await prisma.purchaseRequest.create({
+          data: {
+            id: reqId,
+            referenceNumber: createdRef,
+            title: input.title.trim(),
+            description: input.description?.trim() || "",
+            department: input.department.trim(),
+            requesterName: input.requesterName.trim(),
+            requesterEmail: input.requesterEmail?.trim() || null,
+            priority,
+            status: "PENDING" as ProcurementStatus,
+            requiredByDate: new Date(input.requiredByDate),
+            currency,
+            estimatedAmount: calculatedTotal,
+            costCenter: input.costCenter?.trim() || null,
+            createdById: adminId,
+            items: { create: processedItems },
+            attachments: { create: processedAttachments },
+          },
+        });
+        return { reqId, refNum: createdRef, calculatedTotal };
+      } catch (err) {
+        if (!isReferenceNumberConflict(err) || attempt === maxAttempts) {
+          throw err;
+        }
+      }
+    }
 
-    return { reqId, refNum, calculatedTotal };
+    return { reqId, refNum: createdRef, calculatedTotal };
   }
 
   /**

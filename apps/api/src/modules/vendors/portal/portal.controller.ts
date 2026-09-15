@@ -120,6 +120,30 @@ export class VendorPortalController {
 
     return json(env, request, res);
   }
+
+  static async handleQuoteAttachmentDownload(
+    sql: unknown,
+    env: Env,
+    request: Request,
+    requirementId: string,
+    attachmentId: string
+  ): Promise<Response> {
+    const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
+    if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
+
+    const asDownload = new URL(request.url).searchParams.get("download") === "1";
+    const { SourcingFilesService } = await import("../../sourcing/services/sourcing-files.service");
+    const result = await SourcingFilesService.downloadVendorQuoteFile(
+      env,
+      request,
+      requirementId,
+      attachmentId,
+      vendor.id,
+      asDownload
+    );
+    if ("error" in result) return json(env, request, { error: result.error }, result.status);
+    return result.response;
+  }
 }
 
 export const handleDashboard = VendorPortalController.handleDashboard;
@@ -128,3 +152,4 @@ export const handleRequirementGet = VendorPortalController.handleRequirementGet;
 export const handleQuoteSave = VendorPortalController.handleQuoteSave;
 export const handleQuoteAttachmentUpload = VendorPortalController.handleQuoteAttachmentUpload;
 export const handleQuoteAttachmentDelete = VendorPortalController.handleQuoteAttachmentDelete;
+export const handleQuoteAttachmentDownload = VendorPortalController.handleQuoteAttachmentDownload;

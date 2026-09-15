@@ -8,7 +8,6 @@ import {
   Copy,
   FileText,
   Medal,
-  RefreshCw,
   Trophy,
 } from "lucide-react";
 import { useState } from "react";
@@ -17,13 +16,27 @@ import { useVendorLiveBidding } from "@/hooks/use-vendor-live-bidding";
 import { describeDeadline } from "@/lib/rfq";
 
 import { QuoteForm, type QuoteFormRequirement } from "./QuoteForm";
+import { LiveBiddingCockpit } from "./LiveBiddingCockpit";
 
 export type VendorRequirementDetail = QuoteFormRequirement & {
   status: string;
+  phase?: string;
+  opensAt?: string | null;
+  closesAt?: string | null;
+  targetPrice?: string | null;
+  revealTargetPrice?: boolean;
   isEnded?: boolean;
   endedStatus?: "WON" | "LOST" | "UNDER_EVALUATION" | "CANCELLED" | "EXPIRED" | null;
   isAwardedToMe?: boolean;
   awardedAt?: string | null;
+  bidHistory?: { id: string; price: string | null; submittedAt: string; status: string }[];
+  previousQuotation?: {
+    amount: number;
+    currency: string;
+    source: string;
+    receivedAt: string;
+    attachments?: { id: string; fileName: string; downloadPath?: string; fileUrl?: string }[];
+  } | null;
 };
 
 export function VendorRequirementInteractive({
@@ -39,6 +52,13 @@ export function VendorRequirementInteractive({
   const [copied, setCopied] = useState(false);
 
   const deadline = describeDeadline(requirement.closesAt);
+  const phase = requirement.phase || "";
+  const isScheduled = phase === "SCHEDULED";
+  const lockedReason = isScheduled
+    ? "Bidding has not opened yet. You can review the scope now; submission starts when the window opens."
+    : closed
+      ? "This bidding window is closed."
+      : null;
   const myRank = status === "live" && data ? data.myRank : null;
   const myPrice = data?.myPrice ?? requirement.newPrice ?? null;
   const isLeading = status === "live" && data ? data.isLeading : false;
@@ -72,11 +92,11 @@ export function VendorRequirementInteractive({
               {closed ? "Closed" : deadline.label}
             </p>
             <p className="mt-1 text-xs font-medium text-zinc-400">
-              Closes {new Date(requirement.closesAt).toLocaleDateString("en-US", {
+              Closes {requirement.closesAt ? new Date(requirement.closesAt).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
                 year: "numeric",
-              })}
+              }) : "window not set"}
             </p>
           </div>
         </div>
@@ -225,12 +245,18 @@ export function VendorRequirementInteractive({
                   suppressHydrationWarning
                   className="inline-flex items-center gap-1 rounded-xl bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-600"
                 >
-                  <Calendar className="h-3.5 w-3.5 text-zinc-500" /> Closes{" "}
-                  {new Date(requirement.closesAt).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                  {requirement.closesAt ? (
+                    <>
+                      <Calendar className="h-3.5 w-3.5 text-zinc-500" /> Closes{" "}
+                      {new Date(requirement.closesAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </>
+                  ) : (
+                    "Bidding window not set"
+                  )}
                 </span>
               </div>
 
@@ -241,101 +267,51 @@ export function VendorRequirementInteractive({
             </div>
           </section>
 
-          {/* Card B: Your Real-Time Standing & Bid Performance */}
+          {/* Card B: Live cockpit — target, countdown, rank, own history */}
           <section className="overflow-hidden rounded-3xl bg-white p-7 shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)]">
-            <div className="flex items-center justify-between pb-5 border-b border-zinc-100">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue">
-                  <Medal className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold tracking-tight text-zinc-950">
-                    Your Real-Time Standing
-                  </h3>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="relative flex h-2 w-2">
-                      {status === "live" && (
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-blue opacity-75"></span>
-                      )}
-                      <span
-                        className={`relative inline-flex h-2 w-2 rounded-full ${
-                          status === "live" ? "bg-brand-blue" : "bg-zinc-400"
-                        }`}
-                      ></span>
-                    </span>
-                    <span className="text-xs text-zinc-400 font-medium">
-                      {status === "live" ? "Live feed active" : "Connecting…"}
-                    </span>
-                  </div>
-                </div>
+            <LiveBiddingCockpit data={data} status={status} currency={requirement.currency} />
+            {requirement.previousQuotation && (
+              <div className="mt-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
+                <p className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">Your previous quotation</p>
+                <p className="mt-1 text-sm font-bold text-zinc-900">
+                  {Number(requirement.previousQuotation.amount).toLocaleString("en-US")} {requirement.previousQuotation.currency}
+                  <span className="ml-2 text-xs font-medium text-zinc-500">via {requirement.previousQuotation.source}</span>
+                </p>
+                {(requirement.previousQuotation.attachments || []).map((att) => (
+                  <a
+                    key={att.id}
+                    href={att.downloadPath || att.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 block text-xs font-semibold text-brand-blue underline"
+                  >
+                    {att.fileName}
+                  </a>
+                ))}
               </div>
-
-              <button
-                type="button"
-                onClick={refresh}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-50 text-zinc-400 hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
-                title="Refresh Status"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="pt-6">
-              {myRank === 1 ? (
-                <div className="rounded-2xl bg-gradient-to-br from-brand-blue/10 via-brand-blue/5 to-white p-6 shadow-xs">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-blue text-white font-black text-xl shadow-md">
-                      #1
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-base font-bold text-zinc-950">
-                          You Currently Hold the Lowest Offer
-                        </h4>
-                        <span className="inline-flex items-center gap-1 rounded-full bg-brand-blue px-2.5 py-0.5 text-[10px] font-bold text-white uppercase">
-                          L1 Leader
-                        </span>
-                      </div>
-                      <p className="mt-1.5 text-xs text-zinc-600 leading-relaxed">
-                        Your offer of <strong suppressHydrationWarning className="text-zinc-950">{Number(myPrice).toLocaleString("en-US")} {requirement.currency}</strong> is currently leading the evaluation. If other vendors submit lower revisions before the deadline, you will receive an alert to adjust your offer.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : myRank !== null ? (
-                <div className="rounded-2xl bg-zinc-50 p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-blue/15 text-brand-blue font-black text-xl">
-                      #{myRank}
-                    </div>
-                    <div>
-                      <h4 className="text-base font-bold text-zinc-950">
-                        You Are Currently Rank #{myRank}
-                      </h4>
-                      <p className="mt-1.5 text-xs text-zinc-600 leading-relaxed">
-                        Your submitted offer is <strong suppressHydrationWarning className="text-zinc-950">{Number(myPrice).toLocaleString("en-US")} {requirement.currency}</strong>. You can submit a lower revised bid at any time before the sourcing closes to improve your position.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-2xl bg-zinc-50 p-6 text-zinc-800">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-200 text-zinc-600 font-bold text-lg">
-                      —
-                    </div>
-                    <div>
-                      <h4 className="text-base font-bold text-zinc-950">
-                        Submit Your Quotation to Enter the Ranking
-                      </h4>
-                      <p className="mt-1.5 text-xs text-zinc-600 leading-relaxed">
-                        Use the quotation console on the right to enter your commercial price and attach supporting documents. Your rank position is calculated automatically upon submission.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
+            {(requirement.bidHistory || []).length > 0 && (
+              <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-100">
+                <table className="w-full text-sm">
+                  <thead className="bg-zinc-50 text-xs font-semibold tracking-wider text-zinc-500 uppercase">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Your bid history</th>
+                      <th className="px-3 py-2 text-right">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {requirement.bidHistory!.map((row) => (
+                      <tr key={row.id} className="border-t border-zinc-100">
+                        <td className="px-3 py-2 text-zinc-600">{new Date(row.submittedAt).toLocaleString("en-GB")}</td>
+                        <td className="px-3 py-2 text-right font-semibold tabular-nums">
+                          {row.price ? `${Number(row.price).toLocaleString("en-US")} ${requirement.currency}` : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
         </div>
 
@@ -362,7 +338,12 @@ export function VendorRequirementInteractive({
 
             <div className="pt-6">
               {!closed ? (
-                <QuoteForm requirement={requirement} action={action} onSubmitted={refresh} />
+                <QuoteForm
+                  requirement={requirement}
+                  action={action}
+                  onSubmitted={refresh}
+                  lockedReason={isScheduled ? lockedReason : null}
+                />
               ) : (
                 <div className="space-y-4">
                   <div className="rounded-2xl bg-zinc-50 p-5 text-center">

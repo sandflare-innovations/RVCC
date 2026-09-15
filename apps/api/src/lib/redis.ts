@@ -33,8 +33,12 @@ export async function redisGet<T>(key: string, env?: Env): Promise<T | null> {
     });
     if (!res.ok) return null;
     const data = (await res.json()) as { result?: string };
-    if (!data.result) return null;
-    return JSON.parse(data.result) as T;
+    if (data.result == null || data.result === "") return null;
+    try {
+      return JSON.parse(data.result) as T;
+    } catch {
+      return data.result as T;
+    }
   } catch {
     return null;
   }

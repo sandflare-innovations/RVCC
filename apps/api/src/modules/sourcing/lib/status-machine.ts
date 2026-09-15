@@ -68,6 +68,37 @@ export function isPastDeadline(closesAt?: Date | null): boolean {
   return closesAt.getTime() <= Date.now();
 }
 
+/** Server-authoritative live window. Do not use the browser countdown for this. */
+export function isBiddingLive(
+  status: string,
+  opensAt?: Date | null,
+  closesAt?: Date | null
+): boolean {
+  if (normalizeStatus(status) !== "OPEN") return false;
+  const now = Date.now();
+  if (opensAt && opensAt.getTime() > now) return false;
+  if (closesAt && closesAt.getTime() <= now) return false;
+  return true;
+}
+
+/** UI/API phase derived from stored status + server clock. */
+export function negotiationPhase(
+  status: string,
+  opensAt?: Date | null,
+  closesAt?: Date | null
+): string {
+  const current = normalizeStatus(status);
+  if (current === "OPEN") {
+    const now = Date.now();
+    if (opensAt && opensAt.getTime() > now) return "SCHEDULED";
+    if (closesAt && closesAt.getTime() <= now) return "CLOSED";
+    return "LIVE";
+  }
+  if (current === "BIDDING_CLOSED") return "CLOSED";
+  if (current === "EVALUATING") return "UNDER_EVALUATION";
+  return current;
+}
+
 export const VENDOR_VISIBLE_STATUSES: RequirementStatus[] = [
   "OPEN",
   "BIDDING_CLOSED",

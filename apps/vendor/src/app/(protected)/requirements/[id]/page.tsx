@@ -4,7 +4,6 @@ import Link from "next/link";
 
 import { BackButton } from "@/components/ui/back-button";
 import { VENDOR_COOKIE } from "@/lib/constants";
-import { describeDeadline } from "@/lib/rfq";
 import { vendorWorkerFetch } from "@/lib/vendor-api";
 import { type VendorRequirementDetail, VendorRequirementInteractive } from "@/sections/requirements/VendorRequirementInteractive";
 
@@ -46,9 +45,11 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
     );
   }
 
-  const closed = new Date(detail.closesAt).getTime() <= Date.now() || detail.status !== "OPEN";
-  const deadline = describeDeadline(detail.closesAt);
-
+  const closed =
+    detail.phase === "CLOSED" ||
+    detail.phase === "UNDER_EVALUATION" ||
+    detail.isEnded === true ||
+    ["AWARDED", "CANCELLED", "BIDDING_CLOSED", "EVALUATING"].includes(detail.status);
   return (
     <div className="space-y-8">
       {/* Header: Back Button and Project Title in Same Row */}
@@ -91,15 +92,15 @@ export default async function RequirementPage({ params }: { params: Promise<{ id
               suppressHydrationWarning
               className="rounded-3xl bg-zinc-50 p-6 text-xs font-semibold text-zinc-600 shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)]"
             >
-              This requirement concluded on{" "}
-              {new Date(detail.closesAt).toLocaleString("en-GB", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-              .
+              {detail.closesAt
+                ? `This requirement concluded on ${new Date(detail.closesAt).toLocaleString("en-GB", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}.`
+                : "This requirement has concluded."}
             </div>
           )}
         </div>

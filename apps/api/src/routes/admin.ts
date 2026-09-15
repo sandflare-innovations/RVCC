@@ -71,6 +71,7 @@ import {
   handleInviteSuppliers,
   handleManualQuoteCreate,
   handleManualQuoteDelete,
+  handleManualQuoteRelink,
   handleManualQuotesList,
   handleOpenBidding,
   handleQuoteAction,
@@ -201,11 +202,60 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
     if (reqCollect && request.method === "POST") {
       return await handleCollectQuotations(sql, env, request, decodeURIComponent(reqCollect[1]!));
     }
+    const reqAttachments = path.match(/^\/requirements\/([^/]+)\/attachments$/);
+    if (reqAttachments && request.method === "POST") {
+      const { handleRequirementAttachmentUpload } = await import(
+        "../modules/sourcing/controllers/sourcing.files.controller"
+      );
+      return await handleRequirementAttachmentUpload(
+        sql,
+        env,
+        request,
+        decodeURIComponent(reqAttachments[1]!)
+      );
+    }
+    const reqFile = path.match(/^\/requirements\/([^/]+)\/files\/([^/]+)$/);
+    if (reqFile && request.method === "GET") {
+      const { handleAdminFileDownload } = await import(
+        "../modules/sourcing/controllers/sourcing.files.controller"
+      );
+      return await handleAdminFileDownload(
+        sql,
+        env,
+        request,
+        decodeURIComponent(reqFile[1]!),
+        decodeURIComponent(reqFile[2]!)
+      );
+    }
     const reqSubmit = path.match(/^\/requirements\/([^/]+)\/submit$/);
     if (reqSubmit && request.method === "POST") {
       return await handleSubmitToAdmin(sql, env, request, decodeURIComponent(reqSubmit[1]!));
     }
+    const reqManualQuoteFile = path.match(
+      /^\/requirements\/([^/]+)\/manual-quotes\/([^/]+)\/attachments$/
+    );
+    if (reqManualQuoteFile && request.method === "POST") {
+      const { handleManualQuoteAttachmentUpload } = await import(
+        "../modules/sourcing/controllers/sourcing.files.controller"
+      );
+      return await handleManualQuoteAttachmentUpload(
+        sql,
+        env,
+        request,
+        decodeURIComponent(reqManualQuoteFile[1]!),
+        decodeURIComponent(reqManualQuoteFile[2]!)
+      );
+    }
     const reqManualQuoteOne = path.match(/^\/requirements\/([^/]+)\/manual-quotes\/([^/]+)$/);
+    if (reqManualQuoteOne && (request.method === "PUT" || request.method === "PATCH")) {
+      return await handleManualQuoteRelink(
+        sql,
+        env,
+        request,
+        decodeURIComponent(reqManualQuoteOne[1]!),
+        decodeURIComponent(reqManualQuoteOne[2]!)
+      );
+    }
     if (reqManualQuoteOne && request.method === "DELETE") {
       return await handleManualQuoteDelete(
         sql,

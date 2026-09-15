@@ -39,10 +39,12 @@ export async function handleRequirementGet(
       attachments: requirement.attachments.map((a) => ({
         id: a.id,
         name: a.name,
-        url: a.url,
+        url: `/api/requirements/${id}/files/${a.id}?kind=requirement`,
         sizeBytes: a.sizeBytes,
         mimeType: a.mimeType,
         uploadedAt: a.uploadedAt.toISOString(),
+        previewable: ["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(a.mimeType || ""),
+        downloadPath: `/api/requirements/${id}/files/${a.id}?kind=requirement`,
       })),
     },
     quotes: requirement.quotes.map((q) => ({
@@ -70,10 +72,13 @@ export async function handleRequirementGet(
       attachments: q.attachments.map((a) => ({
         id: a.id,
         fileName: a.fileName,
-        fileUrl: a.fileUrl,
+        fileUrl: `/api/requirements/${id}/files/${a.id}?kind=quote`,
         fileSize: a.fileSize,
+        mimeType: a.mimeType,
         kind: a.kind,
         uploadedAt: a.uploadedAt.toISOString(),
+        previewable: ["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(a.mimeType || ""),
+        downloadPath: `/api/requirements/${id}/files/${a.id}?kind=quote`,
       })),
       revisions: q.revisions.map((r) => ({
         id: r.id,
@@ -83,7 +88,9 @@ export async function handleRequirementGet(
         status: r.status,
         createdAt: r.createdAt.toISOString(),
       })),
+      vendorUserId: q.vendorUserId,
       vendorUser: {
+        id: q.vendorUser.id,
         email: q.vendorUser.email,
         name: q.vendorUser.name,
       },

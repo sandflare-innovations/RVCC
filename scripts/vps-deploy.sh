@@ -28,6 +28,16 @@ pnpm install --frozen-lockfile
 echo "[vps-deploy] generating Prisma client"
 pnpm --filter api db:generate
 
+# Additive schema sync. nginx must disable buffering on SSE:
+#   location ~ /api/requirements/.*/live {
+#     proxy_buffering off;
+#     proxy_cache off;
+#     proxy_read_timeout 3600s;
+#     add_header X-Accel-Buffering no;
+#   }
+echo "[vps-deploy] syncing Prisma schema to Postgres"
+pnpm --filter api exec prisma db push --skip-generate
+
 echo "[vps-deploy] building apps"
 pnpm build
 

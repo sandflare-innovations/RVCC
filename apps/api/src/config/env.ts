@@ -15,6 +15,10 @@ export type R2Bucket = {
       };
     }
   ): Promise<unknown>;
+  get(key: string): Promise<{
+    arrayBuffer(): Promise<ArrayBuffer>;
+    httpMetadata?: { contentType?: string };
+  } | null>;
   delete(key: string): Promise<void>;
 };
 

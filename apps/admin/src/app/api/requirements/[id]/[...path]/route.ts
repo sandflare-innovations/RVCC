@@ -12,18 +12,36 @@ async function proxy(request: Request, id: string, path: string[]) {
   const suffix = path.map(encodeURIComponent).join("/");
   const search = new URL(request.url).search;
   const upstream = `/requirements/${encodeURIComponent(id)}/${suffix}${search}`;
+  const contentType = request.headers.get("Content-Type") || "";
+  const isMultipart = contentType.includes("multipart/form-data");
+  const isGet = request.method === "GET" || request.method === "HEAD";
 
   try {
     const res = await adminWorkerFetch(upstream, {
       method: request.method,
       sessionToken: token,
-      body: request.method === "GET" || request.method === "HEAD" ? undefined : await request.text(),
-      headers: { "Content-Type": request.headers.get("Content-Type") || "application/json" },
+      body: isGet ? undefined : isMultipart ? await request.arrayBuffer() : await request.text(),
+      headers: isMultipart
+        ? { "Content-Type": contentType }
+        : isGet
+          ? { Accept: request.headers.get("Accept") || "application/json" }
+          : { "Content-Type": "application/json" },
     });
+    const outType = res.headers.get("Content-Type") || "application/json";
+    if (!outType.includes("application/json") && !outType.includes("text/")) {
+      return new Response(res.body, {
+        status: res.status,
+        headers: {
+          "Content-Type": outType,
+          "Content-Disposition": res.headers.get("Content-Disposition") || "inline",
+          "Cache-Control": "private, no-store",
+        },
+      });
+    }
     const text = await res.text();
     return new NextResponse(text, {
       status: res.status,
-      headers: { "Content-Type": res.headers.get("Content-Type") || "application/json" },
+      headers: { "Content-Type": outType },
     });
   } catch (err) {
     console.error("[admin BFF requirement action]", err);

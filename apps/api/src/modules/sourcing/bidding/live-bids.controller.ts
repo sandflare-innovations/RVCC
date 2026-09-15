@@ -1,6 +1,7 @@
 import type { Env } from "../../../config/env";
 import { corsHeaders, json } from "../../../lib/http";
-import { redisPublish } from "../../../lib/redis";
+import { prisma } from "../../../lib/prisma";
+import { redisGet, redisPublish, redisSet } from "../../../lib/redis";
 import { requireAdmin } from "../../auth/services/admin-auth.service";
 import { getVendorFromSession } from "../../auth/services/vendor-auth.service";
 import { buildAdminLiveBidsPayload, buildVendorLiveBidsPayload } from "./ranking.service";
@@ -12,11 +13,12 @@ function vendorSessionFrom(request: Request): string | null {
 type BidSubscriber = {
   type: "admin" | "vendor";
   vendorId?: string;
-  send: (payload: any) => void;
+  send: (eventName: string, payload: unknown, eventId: string) => void;
 };
 
-// In-isolate subscriber registry for live SSE connections per requirement
 const requirementSubscribers = new Map<string, Set<BidSubscriber>>();
+const lastTick = new Map<string, string>();
+let fanoutTimer: ReturnType<typeof setInterval> | null = null;
 
 function getSubscribersFor(requirementId: string): Set<BidSubscriber> {
   let subs = requirementSubscribers.get(requirementId);
@@ -27,37 +29,28 @@ function getSubscribersFor(requirementId: string): Set<BidSubscriber> {
   return subs;
 }
 
-/**
- * Broadcasts an updated leaderboard snapshot to all active SSE client streams for a requirement.
- * Broadcasts both to in-isolate streams and to Redis Pub/Sub for cross-node global sync.
- */
-export async function broadcastBidUpdate(requirementId: string, env?: Env): Promise<void> {
-  // 1. Cross-node distributed broadcast via Upstash Redis
-  try {
-    void redisPublish(`requirement:live:${requirementId}`, {
-      requirementId,
-      timestamp: Date.now(),
-    }, env);
-  } catch (err) {
-    console.warn("[broadcastBidUpdate] redis publish fallback", err);
-  }
+function dropSubscriber(requirementId: string, subscriber: BidSubscriber | null) {
+  if (!subscriber) return;
+  const subs = requirementSubscribers.get(requirementId);
+  if (!subs) return;
+  subs.delete(subscriber);
+  if (subs.size === 0) requirementSubscribers.delete(requirementId);
+}
 
-  // 2. In-isolate direct SSE push
+async function fanoutLocal(requirementId: string) {
   const subs = requirementSubscribers.get(requirementId);
   if (!subs || subs.size === 0) return;
-
-  // Build payloads once
+  const eventId = String(Date.now());
   const adminPayload = await buildAdminLiveBidsPayload(requirementId);
   if (!adminPayload) return;
 
-  for (const sub of subs) {
+  for (const sub of [...subs]) {
     try {
       if (sub.type === "admin") {
-        sub.send(adminPayload);
-      } else if (sub.type === "vendor" && sub.vendorId) {
-        // Build customized vendor view (with personal rank & masked competitors)
+        sub.send("update", adminPayload, eventId);
+      } else if (sub.vendorId) {
         const vendorPayload = await buildVendorLiveBidsPayload(requirementId, sub.vendorId);
-        if (vendorPayload) sub.send(vendorPayload);
+        if (vendorPayload) sub.send("update", vendorPayload, eventId);
       }
     } catch {
       subs.delete(sub);
@@ -65,10 +58,101 @@ export async function broadcastBidUpdate(requirementId: string, env?: Env): Prom
   }
 }
 
-/**
- * GET /admin/requirements/:id/live-bids
- * Real-time SSE stream transmitting live rank leaderboards to authorized procurement staff.
- */
+function ensureFanoutPoller(env?: Env) {
+  if (fanoutTimer) return;
+  fanoutTimer = setInterval(() => {
+    void (async () => {
+      for (const requirementId of requirementSubscribers.keys()) {
+        const tick = await redisGet<string>(`requirement:live:${requirementId}:tick`, env);
+        if (!tick || tick === lastTick.get(requirementId)) continue;
+        lastTick.set(requirementId, tick);
+        await fanoutLocal(requirementId);
+      }
+    })().catch((err) => console.warn("[live-bids] redis fan-out poll failed", err));
+  }, 1000);
+}
+
+/** After a bid is committed, rebuild from Postgres and notify SSE clients. */
+export async function broadcastBidUpdate(requirementId: string, env?: Env): Promise<void> {
+  const tick = String(Date.now());
+  lastTick.set(requirementId, tick);
+  try {
+    await redisSet(`requirement:live:${requirementId}:tick`, tick, 3600, env);
+    void redisPublish(`requirement:live:${requirementId}`, { requirementId, timestamp: tick }, env);
+  } catch (err) {
+    console.warn("[broadcastBidUpdate] redis publish fallback", err);
+  }
+  await fanoutLocal(requirementId);
+}
+
+function sseHeaders(request: Request, env: Env): HeadersInit {
+  return {
+    ...corsHeaders(request, env),
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no",
+  };
+}
+
+function openSseStream(
+  env: Env,
+  request: Request,
+  requirementId: string,
+  subscriber: Omit<BidSubscriber, "send">,
+  snapshot: unknown
+) {
+  ensureFanoutPoller(env);
+  let live: BidSubscriber | null = null;
+  const subs = getSubscribersFor(requirementId);
+
+  const stream = new ReadableStream({
+    start(controller) {
+      const encoder = new TextEncoder();
+      const sendEvent = (eventName: string, data: unknown, eventId = String(Date.now())) => {
+        controller.enqueue(
+          encoder.encode(`id: ${eventId}\nevent: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`)
+        );
+      };
+
+      // Last-Event-ID reconnects get a fresh DB snapshot, not a bid replay.
+      sendEvent("snapshot", snapshot);
+
+      live = {
+        ...subscriber,
+        send: (eventName, payload, eventId) => sendEvent(eventName, payload, eventId),
+      };
+      subs.add(live);
+
+      const heartbeatTimer = setInterval(() => {
+        try {
+          controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+          sendEvent("ping", { serverTime: new Date().toISOString() });
+        } catch {
+          clearInterval(heartbeatTimer);
+          dropSubscriber(requirementId, live);
+        }
+      }, 15000);
+
+      const cleanup = () => {
+        clearInterval(heartbeatTimer);
+        dropSubscriber(requirementId, live);
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
+      };
+      request.signal.addEventListener("abort", cleanup);
+    },
+    cancel() {
+      dropSubscriber(requirementId, live);
+    },
+  });
+
+  return new Response(stream, { headers: sseHeaders(request, env) });
+}
+
 export async function handleAdminLiveBids(
   sql: unknown,
   env: Env,
@@ -83,71 +167,12 @@ export async function handleAdminLiveBids(
     return json(env, request, { error: "Requirement not found" }, 404);
   }
 
-  // If the client requested JSON (e.g. initial snapshot fetch)
   const isSse = request.headers.get("Accept")?.includes("text/event-stream");
-  if (!isSse) {
-    return json(env, request, initialPayload);
-  }
+  if (!isSse) return json(env, request, initialPayload);
 
-  let subscriber: BidSubscriber | null = null;
-  const subs = getSubscribersFor(requirementId);
-
-  const stream = new ReadableStream({
-    start(controller) {
-      const encoder = new TextEncoder();
-
-      const sendEvent = (eventName: string, data: any) => {
-        controller.enqueue(encoder.encode(`event: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`));
-      };
-
-      // Send immediate snapshot on connection
-      sendEvent("snapshot", initialPayload);
-
-      subscriber = {
-        type: "admin",
-        send: (data) => sendEvent("update", data),
-      };
-      subs.add(subscriber);
-
-      // Keepalive heartbeat every 15s to prevent Cloudflare Worker timeouts
-      const heartbeatTimer = setInterval(() => {
-        try {
-          controller.enqueue(encoder.encode(`: heartbeat\n\n`));
-        } catch {
-          clearInterval(heartbeatTimer);
-          if (subscriber) subs.delete(subscriber);
-        }
-      }, 15000);
-
-      // Clean up on disconnect
-      request.signal.addEventListener("abort", () => {
-        clearInterval(heartbeatTimer);
-        if (subscriber) subs.delete(subscriber);
-        try {
-          controller.close();
-        } catch {}
-      });
-    },
-    cancel() {
-      if (subscriber) subs.delete(subscriber);
-    },
-  });
-
-  return new Response(stream, {
-    headers: {
-      ...corsHeaders(request, env),
-      "Content-Type": "text/event-stream; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
-      "X-Accel-Buffering": "no",
-    },
-  });
+  return openSseStream(env, request, requirementId, { type: "admin" }, initialPayload);
 }
 
-/**
- * GET /vendor/requirements/:id/live-bids
- * Real-time SSE stream transmitting live rank & competitor bids (anonymized) to participating vendors.
- */
 export async function handleVendorLiveBids(
   sql: unknown,
   env: Env,
@@ -160,69 +185,27 @@ export async function handleVendorLiveBids(
     return json(env, request, { error: "Not signed in" }, 401);
   }
 
+  const invited = await prisma.requirementInvite.findFirst({
+    where: { requirementId, vendorUserId: vendor.id },
+    select: { id: true },
+  });
+  if (!invited) {
+    return json(env, request, { error: "You are not invited to this negotiation." }, 403);
+  }
+
   const initialPayload = await buildVendorLiveBidsPayload(requirementId, vendor.id);
   if (!initialPayload) {
     return json(env, request, { error: "Requirement not found" }, 404);
   }
 
-  // If the client requested JSON (e.g. initial snapshot fetch)
   const isSse = request.headers.get("Accept")?.includes("text/event-stream");
-  if (!isSse) {
-    return json(env, request, initialPayload);
-  }
+  if (!isSse) return json(env, request, initialPayload);
 
-  let subscriber: BidSubscriber | null = null;
-  const subs = getSubscribersFor(requirementId);
-
-  const stream = new ReadableStream({
-    start(controller) {
-      const encoder = new TextEncoder();
-
-      const sendEvent = (eventName: string, data: any) => {
-        controller.enqueue(encoder.encode(`event: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`));
-      };
-
-      // Send immediate snapshot on connection
-      sendEvent("snapshot", initialPayload);
-
-      subscriber = {
-        type: "vendor",
-        vendorId: vendor.id,
-        send: (data) => sendEvent("update", data),
-      };
-      subs.add(subscriber);
-
-      // Keepalive heartbeat
-      const heartbeatTimer = setInterval(() => {
-        try {
-          controller.enqueue(encoder.encode(`: heartbeat\n\n`));
-        } catch {
-          clearInterval(heartbeatTimer);
-          if (subscriber) subs.delete(subscriber);
-        }
-      }, 15000);
-
-      // Clean up on disconnect
-      request.signal.addEventListener("abort", () => {
-        clearInterval(heartbeatTimer);
-        if (subscriber) subs.delete(subscriber);
-        try {
-          controller.close();
-        } catch {}
-      });
-    },
-    cancel() {
-      if (subscriber) subs.delete(subscriber);
-    },
-  });
-
-  return new Response(stream, {
-    headers: {
-      ...corsHeaders(request, env),
-      "Content-Type": "text/event-stream; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
-      "X-Accel-Buffering": "no",
-    },
-  });
+  return openSseStream(
+    env,
+    request,
+    requirementId,
+    { type: "vendor", vendorId: vendor.id },
+    initialPayload
+  );
 }

@@ -3,9 +3,26 @@
 import type { VendorLiveBidsPayload } from "@rvcc/schemas";
 import {
   ShieldCheck,
+  Target,
   Trophy,
   Users,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+
+function countdownParts(ms: number) {
+  const clamped = Math.max(0, ms);
+  return {
+    days: Math.floor(clamped / 86400000),
+    hours: Math.floor((clamped % 86400000) / 3600000),
+    minutes: Math.floor((clamped % 3600000) / 60000),
+    seconds: Math.floor((clamped % 60000) / 1000),
+    expired: ms <= 0,
+  };
+}
+
+function pad(n: number) {
+  return String(n).padStart(2, "0");
+}
 
 export function LiveBiddingCockpit({
   data,
@@ -16,31 +33,56 @@ export function LiveBiddingCockpit({
   status: "connecting" | "live" | "offline";
   currency: string;
 }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const totalBidders = data?.totalBidders ?? 0;
   const lowestPrice = data?.lowestPrice ?? null;
   const myRank = data?.myRank ?? null;
   const myPrice = data?.myPrice ?? null;
   const isLeading = data?.isLeading ?? false;
   const leaderboard = data?.leaderboard ?? [];
+  const targetPrice = data?.targetPrice ? Number(data.targetPrice) : null;
+  const myNumeric = myPrice ? Number(myPrice) : null;
+  const deltaPercent =
+    targetPrice && myNumeric && targetPrice > 0
+      ? ((myNumeric - targetPrice) / targetPrice) * 100
+      : null;
+  const phase = data?.phase || "";
+  const opensAt = data?.opensAt;
+  const closesAt = data?.closesAt;
+  const openMs = opensAt ? new Date(opensAt).getTime() - now : 0;
+  const closeMs = closesAt ? new Date(closesAt).getTime() - now : 0;
+  const waitingToOpen = phase === "SCHEDULED" || (opensAt && openMs > 0);
+  const remaining = waitingToOpen ? openMs : closeMs;
+  const clock = countdownParts(remaining);
 
   return (
     <div className="space-y-4">
-      {/* Header Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-zinc-900 px-5 py-3.5 text-white shadow-sm">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
-              {status === "live" && (
+              {status === "live" && phase === "LIVE" && (
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
               )}
               <span
                 className={`relative inline-flex h-2.5 w-2.5 rounded-full ${
-                  status === "live" ? "bg-emerald-400" : "bg-zinc-500"
+                  status === "live" && phase === "LIVE" ? "bg-emerald-400" : "bg-zinc-500"
                 }`}
               ></span>
             </span>
             <span className="text-xs font-bold tracking-wider text-zinc-200 uppercase">
-              {status === "live" ? "Live Bidding Engine" : "Connecting Live Feed..."}
+              {phase === "LIVE"
+                ? "Live bidding"
+                : phase === "SCHEDULED"
+                  ? "Scheduled"
+                  : phase === "CLOSED"
+                    ? "Closed"
+                    : "Connecting live feed..."}
             </span>
           </div>
           <span className="text-zinc-600">|</span>
@@ -57,6 +99,45 @@ export function LiveBiddingCockpit({
           <span>Blind & Anonymized Bidding</span>
         </div>
       </div>
+
+      {closesAt && (
+        <div className="rounded-2xl border border-brand-blue/20 bg-brand-blue/5 px-4 py-3">
+          <p className="text-[11px] font-semibold tracking-wider text-brand-blue uppercase">
+            {waitingToOpen ? "Bid opens in" : clock.expired ? "Bidding closed" : "Bid closes in"}
+          </p>
+          {!clock.expired || waitingToOpen ? (
+            <p className="mt-1 font-mono text-lg font-bold tracking-wide text-zinc-900">
+              {pad(clock.days)} Day : {pad(clock.hours)} Hours : {pad(clock.minutes)} Minutes
+              <span className="ml-2 text-sm font-medium text-zinc-500">{pad(clock.seconds)}s</span>
+            </p>
+          ) : null}
+        </div>
+      )}
+
+      {targetPrice != null && !Number.isNaN(targetPrice) && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue">
+              <Target className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">Company target</p>
+              <p className="text-lg font-black tabular-nums text-zinc-950">
+                {targetPrice.toLocaleString("en-US")} {currency}
+              </p>
+            </div>
+          </div>
+          {deltaPercent != null && (
+            <div className="text-right">
+              <p className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">Your delta vs target</p>
+              <p className={`text-lg font-black tabular-nums ${deltaPercent <= 0 ? "text-emerald-700" : "text-amber-700"}`}>
+                {deltaPercent > 0 ? "+" : ""}
+                {deltaPercent.toFixed(1)}%
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Hero Rank Status Banner */}
       {myRank !== null ? (
