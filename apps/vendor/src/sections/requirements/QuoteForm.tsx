@@ -58,6 +58,10 @@ export function QuoteForm({
   const [price, setPrice] = useState(requirement.newPrice ?? "");
   const [currency, setCurrency] = useState(requirement.currency ?? "SAR");
   const [remarks, setRemarks] = useState(requirement.remarks ?? "");
+  const [paymentTerms, setPaymentTerms] = useState("");
+  const [warranty, setWarranty] = useState("");
+  const [deliveryDays, setDeliveryDays] = useState("");
+  const [vatRate, setVatRate] = useState("0");
   const [attachments, setAttachments] = useState<QuoteAttachmentItem[]>(
     requirement.attachments ?? []
   );
@@ -146,7 +150,17 @@ export function QuoteForm({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ newPrice: price, currency, remarks, submit }),
+        body: JSON.stringify({
+          newPrice: price,
+          unitPrice: price,
+          currency,
+          remarks,
+          paymentTerms,
+          warranty,
+          deliveryPeriodDays: deliveryDays ? Number(deliveryDays) : null,
+          vatRate: vatRate ? Number(vatRate) : 0,
+          submit,
+        }),
       });
       if (!res.ok) {
         setError(await readApiError(res, submit ? "Submit failed." : "Save failed."));
@@ -316,6 +330,25 @@ export function QuoteForm({
           </div>
         )}
       </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <label className="block space-y-2">
+          <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">VAT %</span>
+          <input className="w-full rounded-2xl border border-zinc-200 px-3 py-2.5 text-sm" value={vatRate} onChange={(e) => setVatRate(e.target.value)} disabled={isFormLocked || busy} />
+        </label>
+        <label className="block space-y-2">
+          <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">Delivery days</span>
+          <input className="w-full rounded-2xl border border-zinc-200 px-3 py-2.5 text-sm" value={deliveryDays} onChange={(e) => setDeliveryDays(e.target.value)} disabled={isFormLocked || busy} />
+        </label>
+        <label className="block space-y-2">
+          <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">Warranty</span>
+          <input className="w-full rounded-2xl border border-zinc-200 px-3 py-2.5 text-sm" value={warranty} onChange={(e) => setWarranty(e.target.value)} disabled={isFormLocked || busy} />
+        </label>
+      </div>
+      <label className="block space-y-2">
+        <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">Payment terms</span>
+        <input className="w-full rounded-2xl border border-zinc-200 px-3 py-2.5 text-sm" value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)} disabled={isFormLocked || busy} />
+      </label>
 
       <label className="block space-y-2">
         <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">

@@ -127,19 +127,18 @@ export function RequirementsPanel() {
   const metrics = useMemo(() => {
     let open = 0;
     let draft = 0;
-    let closed = 0;
+    let submitted = 0;
+    let evaluating = 0;
+    let awarded = 0;
     for (const r of allRows) {
       const isExpired = r.closesAt && new Date(r.closesAt).getTime() <= Date.now();
       if (r.status === "OPEN" && !isExpired) open++;
-      else if (r.status === "DRAFT") draft++;
-      else if (
-        (r.status === "OPEN" && isExpired) ||
-        r.status === "AWARDED" ||
-        r.status === "CLOSED"
-      )
-        closed++;
+      else if (r.status === "DRAFT" || r.status === "QUOTATION_COLLECTION") draft++;
+      else if (r.status === "SUBMITTED_TO_ADMIN" || r.status === "PENDING") submitted++;
+      else if (r.status === "BIDDING_CLOSED" || r.status === "EVALUATING" || r.status === "SHORTLISTED") evaluating++;
+      else if (r.status === "AWARDED") awarded++;
     }
-    return { total: allRows.length, open, draft, closed };
+    return { total: allRows.length, open, draft, submitted, evaluating, awarded };
   }, [allRows]);
 
   const applyFilter = (next: RequirementFilterValue) => {
@@ -204,30 +203,42 @@ export function RequirementsPanel() {
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
-      <div className="mb-6 grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-6 grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         {[
           {
-            label: "Total RFQs",
+            label: "Total requirements",
             value: metrics.total,
             filterVal: "ALL" as const,
             icon: <FileText className="h-4 w-4" />,
           },
           {
-            label: "Open & Bidding",
-            value: metrics.open,
-            filterVal: "OPEN" as const,
-            icon: <Radio className="h-4 w-4" />,
-          },
-          {
-            label: "Drafts",
+            label: "Draft / collection",
             value: metrics.draft,
             filterVal: "DRAFT" as const,
             icon: <Edit2 className="h-4 w-4" />,
           },
           {
-            label: "Closed / Awarded",
-            value: metrics.closed,
-            filterVal: "CLOSED" as const,
+            label: "Submitted to Admin",
+            value: metrics.submitted,
+            filterVal: "SUBMITTED_TO_ADMIN" as const,
+            icon: <Clock className="h-4 w-4" />,
+          },
+          {
+            label: "Active bids",
+            value: metrics.open,
+            filterVal: "OPEN" as const,
+            icon: <Radio className="h-4 w-4" />,
+          },
+          {
+            label: "Under evaluation",
+            value: metrics.evaluating,
+            filterVal: "EVALUATING" as const,
+            icon: <Lock className="h-4 w-4" />,
+          },
+          {
+            label: "Awarded",
+            value: metrics.awarded,
+            filterVal: "AWARDED" as const,
             icon: <Award className="h-4 w-4" />,
           },
         ].map((card) => (

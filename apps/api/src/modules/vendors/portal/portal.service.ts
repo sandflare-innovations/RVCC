@@ -1,6 +1,10 @@
 import type { Env } from "../../../config/env";
 import { prisma } from "../../../lib/prisma";
 import { cuid } from "../../../lib/sql";
+import { writeAudit } from "../../auth";
+import { broadcastBidUpdate } from "../../sourcing/bidding/live-bids.controller";
+import { computeMoneyBreakdown, toSarAmount } from "../../sourcing/lib/money";
+import { isPastDeadline, VENDOR_VISIBLE_STATUSES } from "../../sourcing/lib/status-machine";
 import {
   deleteUpload,
   detectMagicMime,
@@ -21,7 +25,8 @@ export class VendorPortalService {
     const requirements = await prisma.requirement.findMany({
       where: {
         deletedAt: null,
-        status: { in: ["OPEN", "AWARDED", "CANCELLED"] },
+        status: { in: VENDOR_VISIBLE_STATUSES },
+        invites: { some: { vendorUserId } },
       },
       include: {
         invites: {
@@ -40,7 +45,7 @@ export class VendorPortalService {
     return requirements.map((r) => {
       const q = r.quotes[0];
       const isAwardedToMe = Boolean(q?.id && r.awardedQuoteId === q.id);
-      const isPastDeadline = new Date(r.closesAt).getTime() <= Date.now();
+      const isPastDeadline = r.closesAt ? new Date(r.closesAt).getTime() <= Date.now() : false;
       const isEnded = r.status === "AWARDED" || r.status === "CANCELLED" || isPastDeadline;
 
       let endedStatus: "WON" | "LOST" | "UNDER_EVALUATION" | "CANCELLED" | "EXPIRED" | null = null;
@@ -62,7 +67,7 @@ export class VendorPortalService {
         scopeOfWork: r.scopeOfWork,
         project: r.project,
         currency: r.currency,
-        closesAt: r.closesAt.toISOString(),
+        closesAt: r.closesAt ? r.closesAt.toISOString() : null,
         status: r.status,
         isEnded,
         endedStatus,
@@ -82,6 +87,7 @@ export class VendorPortalService {
       where: {
         id: requirementId,
         deletedAt: null,
+        invites: { some: { vendorUserId } },
       },
       include: {
         quotes: {
@@ -98,13 +104,23 @@ export class VendorPortalService {
 
     if (!requirement) return null;
 
+    await prisma.requirementInvite.updateMany({
+      where: {
+        requirementId,
+        vendorUserId,
+        viewedAt: null,
+      },
+      data: { inviteStatus: "VIEWED", viewedAt: new Date() },
+    });
+
     const q = requirement.quotes[0];
     const isAwardedToMe = Boolean(q?.id && requirement.awardedQuoteId === q.id);
-    const isPastDeadline = new Date(requirement.closesAt).getTime() <= Date.now();
+    const pastDeadline = isPastDeadline(requirement.closesAt);
     const isEnded =
       requirement.status === "AWARDED" ||
       requirement.status === "CANCELLED" ||
-      isPastDeadline;
+      requirement.status === "BIDDING_CLOSED" ||
+      pastDeadline;
 
     let endedStatus: "WON" | "LOST" | "UNDER_EVALUATION" | "CANCELLED" | "EXPIRED" | null = null;
     if (isEnded) {
@@ -122,10 +138,21 @@ export class VendorPortalService {
     return {
       id: requirement.id,
       referenceNumber: requirement.referenceNumber,
-      scopeOfWork: requirement.scopeOfWork,
+      title: requirement.title || requirement.project,
       project: requirement.project,
+      description: requirement.description || requirement.scopeOfWork,
+      scopeOfWork: requirement.scopeOfWork,
+      specifications: requirement.specifications,
+      quantity: Number(requirement.quantity ?? 1),
+      unit: requirement.unit,
+      deliveryLocation: requirement.deliveryLocation,
+      termsAndConditions: requirement.termsAndConditions,
+      requiredDocuments: requirement.requiredDocuments,
+      allowBidRevisions: requirement.allowBidRevisions,
+      revealCompetitorPrices: requirement.revealCompetitorPrices,
       currency: requirement.currency,
-      closesAt: requirement.closesAt.toISOString(),
+      opensAt: requirement.opensAt?.toISOString() ?? null,
+      closesAt: requirement.closesAt ? requirement.closesAt.toISOString() : null,
       status: requirement.status,
       isEnded,
       endedStatus,
@@ -135,6 +162,15 @@ export class VendorPortalService {
         ? {
             id: q.id,
             newPrice: q.newPrice ? String(q.newPrice) : null,
+            unitPrice: q.unitPrice ? String(q.unitPrice) : null,
+            quantity: q.quantity != null ? Number(q.quantity) : null,
+            vatRate: Number(q.vatRate ?? 0),
+            vatAmount: q.vatAmount ? String(q.vatAmount) : null,
+            totalPrice: q.totalPrice ? String(q.totalPrice) : null,
+            deliveryPeriodDays: q.deliveryPeriodDays,
+            paymentTerms: q.paymentTerms,
+            warranty: q.warranty,
+            notes: q.notes,
             remarks: q.remarks ?? null,
             status: q.status,
             submittedAt: q.submittedAt ? q.submittedAt.toISOString() : null,
@@ -143,6 +179,7 @@ export class VendorPortalService {
               fileName: a.fileName,
               fileUrl: a.fileUrl,
               fileSize: a.fileSize,
+              kind: a.kind,
               uploadedAt: a.uploadedAt.toISOString(),
             })),
           }
@@ -240,104 +277,127 @@ export class VendorPortalService {
   }
 
   static async saveQuote(
-    _env: Env,
+    env: Env,
     vendorId: string,
     requirementId: string,
     body: {
       newPrice?: string | number | null;
+      unitPrice?: string | number | null;
+      quantity?: string | number | null;
+      vatRate?: string | number | null;
+      deliveryPeriodDays?: number | null;
+      paymentTerms?: string;
+      warranty?: string;
+      notes?: string;
       currency?: string;
       remarks?: string;
       submit?: boolean;
     }
   ) {
     const submit = body.submit === true;
-    const price = body.newPrice == null ? "" : String(body.newPrice).trim();
-    const selectedCurrency = body.currency || "SAR";
-
-    if (price && !/^\d+(\.\d{1,2})?$/.test(price)) {
-      return { error: "Enter a price as a number with at most two decimals.", status: 400 };
-    }
-    if (submit && (!price || Number(price) <= 0)) {
-      return { error: "Enter a price before submitting.", status: 400 };
-    }
-
     const requirement = await prisma.requirement.findFirst({
       where: {
         id: requirementId,
         status: "OPEN",
-        closesAt: { gt: new Date() },
         deletedAt: null,
-        OR: [
-          { invites: { some: { vendorUserId: vendorId } } },
-          { quotes: { some: { vendorUserId: vendorId } } },
-          { status: "OPEN" },
-        ],
+        invites: { some: { vendorUserId: vendorId } },
       },
-      select: { id: true },
+      include: {
+        quotes: { where: { vendorUserId: vendorId }, take: 1 },
+      },
     });
 
-    if (!requirement) {
+    if (!requirement || isPastDeadline(requirement.closesAt)) {
       return { error: "This requirement is closed or not available to you.", status: 409 };
     }
 
-    const numericPrice = price ? Number(price) : null;
-    let amountSar = numericPrice;
-    let exchangeRate = 1.0;
+    const existing = requirement.quotes[0];
+    if (existing?.status === "SUBMITTED" && requirement.allowBidRevisions === false) {
+      return { error: "Bid revisions are not permitted on this requirement.", status: 409 };
+    }
 
-    if (numericPrice && selectedCurrency !== "SAR") {
+    const quantity = Number(body.quantity ?? existing?.quantity ?? requirement.quantity ?? 1);
+    const unitPriceRaw = body.unitPrice ?? body.newPrice ?? existing?.unitPrice ?? existing?.newPrice;
+    const unitPrice = unitPriceRaw == null || unitPriceRaw === "" ? 0 : Number(unitPriceRaw);
+    if (submit && !(unitPrice > 0)) {
+      return { error: "Enter a price before submitting.", status: 400 };
+    }
+    if (unitPrice && !/^\d+(\.\d{1,2})?$/.test(String(unitPrice))) {
+      return { error: "Enter a price as a number with at most two decimals.", status: 400 };
+    }
+
+    const money = computeMoneyBreakdown({
+      unitPrice,
+      quantity,
+      vatRate: Number(body.vatRate ?? existing?.vatRate ?? 0),
+    });
+    const selectedCurrency = body.currency || requirement.currency || "SAR";
+    let exchangeRate = 1;
+    if (selectedCurrency !== "SAR") {
       const fx = await prisma.exchangeRate.findUnique({
         where: { currency: selectedCurrency as any },
       });
-
-      if (fx && fx.rateToSar) {
-        exchangeRate = Number(fx.rateToSar);
-        amountSar = numericPrice * exchangeRate;
-      } else {
+      if (!fx?.rateToSar) {
         return { error: `Exchange rate for ${selectedCurrency} is currently unavailable.`, status: 400 };
       }
+      exchangeRate = Number(fx.rateToSar);
+    }
+    const amountSar = toSarAmount(money.totalPrice, exchangeRate);
+
+    if (requirement.minAcceptablePrice && amountSar < Number(requirement.minAcceptablePrice)) {
+      return { error: "This bid is below the minimum acceptable price.", status: 400 };
+    }
+    if (requirement.maxAcceptablePrice && amountSar > Number(requirement.maxAcceptablePrice)) {
+      return { error: "This bid is above the maximum acceptable price.", status: 400 };
     }
 
+    const remarks = String(body.remarks ?? body.notes ?? existing?.remarks ?? "");
     const saved = await prisma.quote.upsert({
       where: {
-        requirementId_vendorUserId: {
-          requirementId,
-          vendorUserId: vendorId,
-        },
+        requirementId_vendorUserId: { requirementId, vendorUserId: vendorId },
       },
       update: {
-        newPrice: numericPrice,
+        newPrice: money.totalPrice,
+        totalPrice: money.totalPrice,
+        unitPrice: money.unitPrice,
+        quantity: money.quantity,
+        vatRate: money.vatRate,
+        vatAmount: money.vatAmount,
+        deliveryPeriodDays: body.deliveryPeriodDays ?? existing?.deliveryPeriodDays ?? null,
+        paymentTerms: body.paymentTerms ?? existing?.paymentTerms ?? "",
+        warranty: body.warranty ?? existing?.warranty ?? "",
+        notes: body.notes ?? existing?.notes ?? "",
         currency: selectedCurrency as any,
         exchangeRate,
         amountSar,
-        remarks: String(body.remarks ?? ""),
+        remarks,
         status: submit ? "SUBMITTED" : "DRAFT",
-        submittedAt: submit ? new Date() : undefined,
+        submittedAt: submit ? new Date() : existing?.submittedAt,
       },
       create: {
         id: cuid(),
         requirementId,
         vendorUserId: vendorId,
-        newPrice: numericPrice,
+        newPrice: money.totalPrice || null,
+        totalPrice: money.totalPrice || null,
+        unitPrice: money.unitPrice || null,
+        quantity: money.quantity,
+        vatRate: money.vatRate,
+        vatAmount: money.vatAmount,
+        deliveryPeriodDays: body.deliveryPeriodDays ?? null,
+        paymentTerms: body.paymentTerms ?? "",
+        warranty: body.warranty ?? "",
+        notes: body.notes ?? "",
         currency: selectedCurrency as any,
         exchangeRate,
         amountSar,
-        remarks: String(body.remarks ?? ""),
+        remarks,
         status: submit ? "SUBMITTED" : "DRAFT",
         submittedAt: submit ? new Date() : null,
       },
-      select: {
-        id: true,
-        status: true,
-        newPrice: true,
-        currency: true,
-        exchangeRate: true,
-        amountSar: true,
-        remarks: true,
-        submittedAt: true,
-      },
     });
 
-    if (numericPrice !== null) {
+    if (money.totalPrice > 0) {
       void prisma.quoteRevision
         .create({
           data: {
@@ -347,13 +407,43 @@ export class VendorPortalService {
             vendorUserId: vendorId,
             currency: selectedCurrency as any,
             exchangeRate,
-            price: numericPrice,
+            price: money.totalPrice,
             amountSar,
-            remarks: String(body.remarks ?? ""),
+            unitPrice: money.unitPrice,
+            quantity: money.quantity,
+            vatRate: money.vatRate,
+            vatAmount: money.vatAmount,
+            totalPrice: money.totalPrice,
+            deliveryPeriodDays: saved.deliveryPeriodDays,
+            paymentTerms: saved.paymentTerms,
+            warranty: saved.warranty,
+            remarks,
+            notes: saved.notes,
             status: submit ? "SUBMITTED" : "DRAFT",
           },
         })
         .catch((err) => console.error("[quoteRevision] write failed", err));
+    }
+
+    if (submit) {
+      await prisma.requirementInvite.updateMany({
+        where: { requirementId, vendorUserId: vendorId },
+        data: { inviteStatus: "BID_SUBMITTED", respondedAt: new Date() },
+      });
+    }
+
+    void writeAudit(null, {
+      vendorId,
+      action: submit ? "bid.submitted" : "bid.revised",
+      entityType: "Requirement",
+      entityId: requirementId,
+      metadata: { quoteId: saved.id, totalPrice: money.totalPrice, previousPrice: existing?.newPrice ?? null },
+    });
+
+    try {
+      void broadcastBidUpdate(requirementId, env);
+    } catch (err) {
+      console.warn("[saveQuote] live broadcast failed", err);
     }
 
     return {
@@ -384,8 +474,10 @@ export class VendorPortalService {
     });
     if (!requirement) return { error: "Requirement not found.", status: 404 };
 
-    const isPastDeadline = new Date(requirement.closesAt).getTime() <= Date.now();
-    if (requirement.status === "AWARDED" || requirement.status === "CANCELLED" || isPastDeadline) {
+    const isPastDeadline = requirement.closesAt
+      ? new Date(requirement.closesAt).getTime() <= Date.now()
+      : false;
+    if (requirement.status !== "OPEN" || isPastDeadline) {
       return { error: "Bidding is closed for this requirement.", status: 400 };
     }
 

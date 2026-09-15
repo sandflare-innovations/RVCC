@@ -4,6 +4,9 @@ export {
   canManageStaff,
   canManageVendors,
   canManageProcurement,
+  canCaptureQuotations,
+  canConfigureBidding,
+  canSeeConfidentialTarget,
   canManageWebsite,
   hasRole,
 } from "@rvcc/schemas";

@@ -1,12 +1,18 @@
 // =========================================================================
-// SOURCING & RFQ DOMAIN
+// SOURCING & COMPETITIVE BIDDING DOMAIN
+// Manual quotations and online bids are stored separately on purpose.
+// Ranking never auto-awards — Admin always confirms the winner.
 // =========================================================================
 
 enum RequirementStatus {
   DRAFT
-  PENDING
-  OPEN
+  QUOTATION_COLLECTION
+  SUBMITTED_TO_ADMIN
+  PENDING // legacy alias of SUBMITTED_TO_ADMIN
+  OPEN // Bidding Open
+  BIDDING_CLOSED
   EVALUATING
+  SHORTLISTED
   AWARDED
   CANCELLED
   REJECTED
@@ -19,35 +25,129 @@ enum QuoteStatus {
   REJECTED
 }
 
+enum RankingStrategy {
+  CLOSEST_TO_TARGET
+  LOWEST_PRICE
+  TECHNICAL_COMMERCIAL
+  WEIGHTED
+}
+
+enum InviteStatus {
+  INVITED
+  VIEWED
+  ACCEPTED
+  DECLINED
+  BID_SUBMITTED
+}
+
+enum QuotationSource {
+  WHATSAPP
+  EMAIL
+  PHYSICAL
+  PHONE
+  OTHER
+}
+
+enum QuoteEvaluationStatus {
+  NONE
+  SHORTLISTED
+  REJECTED
+  CLARIFICATION
+  REVISED_OFFER
+  NEGOTIATION
+  AWARDED
+  NOT_SELECTED
+}
+
+enum QuoteAttachmentKind {
+  SUPPORTING
+  TECHNICAL
+  COMMERCIAL
+}
+
 model Requirement {
   id               String            @id @default(cuid())
   referenceNumber  String?           @unique
-  scopeOfWork      String
+
+  // Spec / commercial fields. `project` is kept as the historical title column.
+  title            String            @default("")
   project          String
+  productServiceName String          @default("")
+  category         String            @default("General")
+  description      String            @default("")
+  scopeOfWork      String
+  specifications   String            @default("")
+  quantity         Decimal           @default(1) @db.Decimal(12, 2)
+  unit             String            @default("pcs")
+  requiredDeliveryDate DateTime?
+  deliveryLocation String            @default("")
+  requestingDepartment String        @default("")
+  priority         ProcurementPriority @default(MEDIUM)
+  internalNotes    String            @default("")
+
+  // sellingPrice is the confidential Admin target. Never expose to vendors by default.
   sellingPrice     Decimal?          @db.Decimal(14, 2)
+  estimatedBudget  Decimal?          @db.Decimal(14, 2)
   currency         Currency          @default(SAR)
 
-  closesAt         DateTime
+  opensAt          DateTime?
+  closesAt         DateTime?
+  minAcceptablePrice Decimal?        @db.Decimal(14, 2)
+  maxAcceptablePrice Decimal?        @db.Decimal(14, 2)
+  rankingStrategy  RankingStrategy   @default(LOWEST_PRICE)
+  allowBidRevisions Boolean          @default(true)
+  revealCompetitorPrices Boolean     @default(false)
+  revealTargetPrice Boolean          @default(false)
+  priceWeight      Decimal           @default(50) @db.Decimal(5, 2)
+  technicalWeight  Decimal           @default(25) @db.Decimal(5, 2)
+  commercialWeight Decimal           @default(25) @db.Decimal(5, 2)
+  bidRules         String            @default("")
+  eligibilityNotes String            @default("")
+  requiredDocuments Json             @default("[]")
+  termsAndConditions String          @default("")
+
   status           RequirementStatus @default(DRAFT)
 
   createdByAdminId String
   createdByAdmin   AdminUser         @relation("RequirementAuthor", fields: [createdByAdminId], references: [id], onDelete: Restrict)
+
+  submittedToAdminAt DateTime?
+  submittedByAdminId String?
+  submittedByAdmin   AdminUser?      @relation("RequirementSubmitter", fields: [submittedByAdminId], references: [id], onDelete: SetNull)
 
   awardedQuoteId   String?           @unique
   awardedQuote     Quote?            @relation("AwardedQuote", fields: [awardedQuoteId], references: [id], onDelete: SetNull)
   awardedAt        DateTime?
   awardedByAdminId String?
   awardedByAdmin   AdminUser?        @relation("RequirementAwarder", fields: [awardedByAdminId], references: [id], onDelete: SetNull)
+  awardedValue     Decimal?          @db.Decimal(14, 2)
 
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @default(now()) @updatedAt
-  deletedAt        DateTime?         // Soft Deletion
+  deletedAt        DateTime?
 
   invites          RequirementInvite[]
   quotes           Quote[]
+  manualQuotations ManualQuotation[]
+  attachments      RequirementAttachment[]
 
   @@index([status, closesAt])
   @@index([deletedAt])
+  @@index([category])
+}
+
+model RequirementAttachment {
+  id            String      @id @default(cuid())
+  requirementId String
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Restrict)
+  name          String
+  url           String
+  sizeBytes     Int         @default(0)
+  mimeType      String      @default("application/pdf")
+  uploadedAt    DateTime    @default(now())
+  deletedAt     DateTime?
+
+  @@index([requirementId])
 }
 
 model RequirementInvite {
@@ -58,6 +158,12 @@ model RequirementInvite {
   vendorUserId  String
   vendorUser    VendorUser  @relation(fields: [vendorUserId], references: [id], onDelete: Restrict)
 
+  inviteStatus  InviteStatus @default(INVITED)
+  inviteToken   String?      @unique
+  viewedAt      DateTime?
+  respondedAt   DateTime?
+  declineReason String?
+
   emailStatus   String      @default("PENDING")
   emailError    String?
   emailedAt     DateTime?
@@ -66,6 +172,7 @@ model RequirementInvite {
 
   @@unique([requirementId, vendorUserId])
   @@index([vendorUserId])
+  @@index([inviteStatus])
 }
 
 model Quote {
@@ -76,19 +183,36 @@ model Quote {
   vendorUserId  String
   vendorUser    VendorUser  @relation(fields: [vendorUserId], references: [id], onDelete: Restrict)
 
-  // Multi-Currency Implementation
   currency      Currency    @default(SAR)
   exchangeRate  Decimal     @default(1.0) @db.Decimal(12, 6)
+  // newPrice remains the commercial total used by existing ranking/UI.
   newPrice      Decimal?    @db.Decimal(14, 2)
   amountSar     Decimal?    @db.Decimal(14, 2)
+  unitPrice     Decimal?    @db.Decimal(14, 2)
+  quantity      Decimal?    @db.Decimal(12, 2)
+  vatRate       Decimal     @default(0) @db.Decimal(5, 2)
+  vatAmount     Decimal     @default(0) @db.Decimal(14, 2)
+  totalPrice    Decimal?    @db.Decimal(14, 2)
+  deliveryPeriodDays Int?
+  paymentTerms  String      @default("")
+  warranty      String      @default("")
+  notes         String      @default("")
 
   remarks       String      @default("")
   status        QuoteStatus @default(DRAFT)
   submittedAt   DateTime?
 
+  evaluationStatus QuoteEvaluationStatus @default(NONE)
+  evaluationNote   String    @default("")
+  technicalScore   Decimal?  @db.Decimal(5, 2)
+  commercialScore  Decimal?  @db.Decimal(5, 2)
+  shortlistedAt    DateTime?
+  shortlistedByAdminId String?
+  shortlistedByAdmin   AdminUser? @relation("QuoteShortlister", fields: [shortlistedByAdminId], references: [id], onDelete: SetNull)
+
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @default(now()) @updatedAt
-  deletedAt     DateTime?   // Soft Deletion
+  deletedAt     DateTime?
 
   awardedFor    Requirement? @relation("AwardedQuote")
   revisions     QuoteRevision[]
@@ -100,14 +224,15 @@ model Quote {
 }
 
 model QuoteAttachment {
-  id          String    @id @default(cuid())
+  id          String              @id @default(cuid())
   quoteId     String
-  quote       Quote     @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quote       Quote               @relation(fields: [quoteId], references: [id], onDelete: Cascade)
   fileName    String
   fileUrl     String
-  fileSize    Int       @default(0)
-  mimeType    String    @default("application/pdf")
-  uploadedAt  DateTime  @default(now())
+  fileSize    Int                 @default(0)
+  mimeType    String              @default("application/pdf")
+  kind        QuoteAttachmentKind @default(SUPPORTING)
+  uploadedAt  DateTime            @default(now())
 
   @@index([quoteId])
 }
@@ -122,7 +247,16 @@ model QuoteRevision {
   exchangeRate  Decimal     @default(1.0) @db.Decimal(12, 6)
   price         Decimal?    @db.Decimal(14, 2)
   amountSar     Decimal?    @db.Decimal(14, 2)
+  unitPrice     Decimal?    @db.Decimal(14, 2)
+  quantity      Decimal?    @db.Decimal(12, 2)
+  vatRate       Decimal     @default(0) @db.Decimal(5, 2)
+  vatAmount     Decimal     @default(0) @db.Decimal(14, 2)
+  totalPrice    Decimal?    @db.Decimal(14, 2)
+  deliveryPeriodDays Int?
+  paymentTerms  String      @default("")
+  warranty      String      @default("")
   remarks       String      @default("")
+  notes         String      @default("")
   status        QuoteStatus @default(DRAFT)
   createdAt     DateTime    @default(now())
 
@@ -130,4 +264,62 @@ model QuoteRevision {
   @@index([requirementId])
   @@index([vendorUserId])
   @@index([createdAt])
+}
+
+// Offline quotations captured before bidding. Never overwritten by online bids.
+model ManualQuotation {
+  id              String          @id @default(cuid())
+  requirementId   String
+  requirement     Requirement     @relation(fields: [requirementId], references: [id], onDelete: Restrict)
+
+  vendorUserId    String?
+  vendorUser      VendorUser?     @relation(fields: [vendorUserId], references: [id], onDelete: SetNull)
+
+  supplierName    String
+  contactPerson   String          @default("")
+  phone           String          @default("")
+  email           String          @default("")
+
+  currency        Currency        @default(SAR)
+  exchangeRate    Decimal         @default(1.0) @db.Decimal(12, 6)
+  quantity        Decimal         @default(1) @db.Decimal(12, 2)
+  unitPrice       Decimal         @db.Decimal(14, 2)
+  vatRate         Decimal         @default(0) @db.Decimal(5, 2)
+  vatAmount       Decimal         @default(0) @db.Decimal(14, 2)
+  totalPrice      Decimal         @db.Decimal(14, 2)
+  amountSar       Decimal?        @db.Decimal(14, 2)
+
+  deliveryPeriod  String          @default("")
+  paymentTerms    String          @default("")
+  validity        String          @default("")
+  warranty        String          @default("")
+  remarks         String          @default("")
+  source          QuotationSource @default(OTHER)
+  receivedAt      DateTime        @default(now())
+
+  recordedByAdminId String
+  recordedByAdmin   AdminUser     @relation("ManualQuoteRecorder", fields: [recordedByAdminId], references: [id], onDelete: Restrict)
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now()) @updatedAt
+  deletedAt       DateTime?
+
+  attachments     ManualQuotationAttachment[]
+
+  @@index([requirementId])
+  @@index([vendorUserId])
+  @@index([deletedAt])
+}
+
+model ManualQuotationAttachment {
+  id              String          @id @default(cuid())
+  manualQuotationId String
+  manualQuotation ManualQuotation @relation(fields: [manualQuotationId], references: [id], onDelete: Cascade)
+  fileName        String
+  fileUrl         String
+  fileSize        Int             @default(0)
+  mimeType        String          @default("application/pdf")
+  uploadedAt      DateTime        @default(now())
+
+  @@index([manualQuotationId])
 }

@@ -370,19 +370,20 @@ export function PostRequirementForm({
     }
 
     const rawClosesAt = form.get("closesAt");
-    if (!rawClosesAt || !String(rawClosesAt).trim()) {
-      setError("Please select a closing deadline.");
-      setBusy(false);
-      return;
-    }
-
-    const [cYear, cMonth, cDay] = String(rawClosesAt).split("T")[0].split("-").map(Number);
-    const closesAtDate = new Date(cYear, cMonth - 1, cDay, 23, 59, 59);
-    const todayMidnight = new Date();
-    todayMidnight.setHours(0, 0, 0, 0);
-
-    if (closesAtDate < todayMidnight) {
-      setError("Closing deadline cannot be in the past. Please choose today or a future date.");
+    let closesAt: string | undefined;
+    if (rawClosesAt && String(rawClosesAt).trim()) {
+      const [cYear, cMonth, cDay] = String(rawClosesAt).split("T")[0].split("-").map(Number);
+      const closesAtDate = new Date(cYear, cMonth - 1, cDay, 23, 59, 59);
+      const todayMidnight = new Date();
+      todayMidnight.setHours(0, 0, 0, 0);
+      if (closesAtDate < todayMidnight) {
+        setError("Closing deadline cannot be in the past. Please choose today or a future date.");
+        setBusy(false);
+        return;
+      }
+      closesAt = closesAtDate.toISOString();
+    } else if (post) {
+      setError("Please select a closing deadline before posting.");
       setBusy(false);
       return;
     }
@@ -398,11 +399,14 @@ export function PostRequirementForm({
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          scopeOfWork: scopeWithCategory,
+          title: form.get("project"),
           project: form.get("project"),
+          productServiceName: form.get("project"),
+          scopeOfWork: scopeWithCategory,
+          description: scopeWithCategory,
           sellingPrice: form.get("sellingPrice") || null,
           currency: form.get("currency") || "SAR",
-          closesAt: closesAtDate.toISOString(),
+          closesAt,
           vendorUserIds,
           post,
         }),

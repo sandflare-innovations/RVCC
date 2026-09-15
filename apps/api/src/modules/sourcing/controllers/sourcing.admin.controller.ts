@@ -1,6 +1,8 @@
 import type { Env } from "../../../config/env";
 import { json, readJson } from "../../../lib/http";
 import { requireAdmin, writeAudit } from "../../auth";
+import { serializeRequirement } from "../lib/serialize";
+import { QuotationsService } from "../services/quotations.service";
 import { SourcingService } from "../services/sourcing.service";
 
 export async function handleRequirementsList(
@@ -8,10 +10,10 @@ export async function handleRequirementsList(
   env: Env,
   request: Request
 ): Promise<Response> {
-  const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
+  const { admin, deny } = await requireAdmin(sql, env, request, "PROCUREMENT_ADMIN");
   if (deny) return deny;
 
-  const requirements = await SourcingService.listRequirements();
+  const requirements = await SourcingService.listRequirements(admin.role);
   return json(env, request, requirements);
 }
 
@@ -21,7 +23,7 @@ export async function handleRequirementGet(
   request: Request,
   id: string
 ): Promise<Response> {
-  const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
+  const { admin, deny } = await requireAdmin(sql, env, request, "PROCUREMENT_ADMIN");
   if (deny) return deny;
 
   const requirement = await SourcingService.getRequirementById(id);
@@ -29,24 +31,38 @@ export async function handleRequirementGet(
 
   return json(env, request, {
     requirement: {
-      id: requirement.id,
-      referenceNumber: requirement.referenceNumber,
-      scopeOfWork: requirement.scopeOfWork,
-      project: requirement.project,
-      sellingPrice: requirement.sellingPrice ? String(requirement.sellingPrice) : null,
-      currency: requirement.currency,
-      closesAt: requirement.closesAt.toISOString(),
-      status: requirement.status,
-      createdAt: requirement.createdAt.toISOString(),
-      awardedAt: requirement.awardedAt ? requirement.awardedAt.toISOString() : null,
-      awardedQuoteId: requirement.awardedQuoteId,
-      awardedByEmail: requirement.awardedByAdmin?.email ?? null,
+      ...serializeRequirement(requirement, admin.role, {
+        awardedByEmail: requirement.awardedByAdmin?.email ?? null,
+        createdByName: requirement.createdByAdmin?.name || requirement.createdByAdmin?.email || "",
+        submittedByName: requirement.submittedByAdmin?.name || requirement.submittedByAdmin?.email || "",
+      }),
+      attachments: requirement.attachments.map((a) => ({
+        id: a.id,
+        name: a.name,
+        url: a.url,
+        sizeBytes: a.sizeBytes,
+        mimeType: a.mimeType,
+        uploadedAt: a.uploadedAt.toISOString(),
+      })),
     },
     quotes: requirement.quotes.map((q) => ({
       id: q.id,
       newPrice: q.newPrice ? String(q.newPrice) : null,
+      unitPrice: q.unitPrice ? String(q.unitPrice) : null,
+      quantity: q.quantity != null ? Number(q.quantity) : null,
+      vatRate: Number(q.vatRate ?? 0),
+      vatAmount: q.vatAmount ? String(q.vatAmount) : null,
+      totalPrice: q.totalPrice ? String(q.totalPrice) : null,
+      deliveryPeriodDays: q.deliveryPeriodDays,
+      paymentTerms: q.paymentTerms,
+      warranty: q.warranty,
+      notes: q.notes,
       remarks: q.remarks,
       status: q.status,
+      evaluationStatus: q.evaluationStatus,
+      evaluationNote: q.evaluationNote,
+      technicalScore: q.technicalScore != null ? Number(q.technicalScore) : null,
+      commercialScore: q.commercialScore != null ? Number(q.commercialScore) : null,
       submittedAt: q.submittedAt ? q.submittedAt.toISOString() : null,
       updatedAt: q.updatedAt.toISOString(),
       participantEmail: q.vendorUser.email,
@@ -56,6 +72,7 @@ export async function handleRequirementGet(
         fileName: a.fileName,
         fileUrl: a.fileUrl,
         fileSize: a.fileSize,
+        kind: a.kind,
         uploadedAt: a.uploadedAt.toISOString(),
       })),
       revisions: q.revisions.map((r) => ({
@@ -74,11 +91,19 @@ export async function handleRequirementGet(
     invites: requirement.invites.map((i) => ({
       id: i.id,
       email: i.vendorUser.email,
+      name: i.vendorUser.name,
+      inviteStatus: i.inviteStatus,
       emailStatus: i.emailStatus,
+      inviteToken: i.inviteToken,
+      viewedAt: i.viewedAt?.toISOString() ?? null,
       vendorUser: {
+        id: i.vendorUser.id,
         email: i.vendorUser.email,
+        name: i.vendorUser.name,
       },
     })),
+    manualQuotations: requirement.manualQuotations.map((q) => QuotationsService.serialize(q as any)),
+    quotationStats: QuotationsService.stats(requirement.manualQuotations),
   });
 }
 
@@ -125,7 +150,7 @@ export async function handleRequirementCreate(
   env: Env,
   request: Request
 ): Promise<Response> {
-  const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
+  const { admin, deny } = await requireAdmin(sql, env, request, "PROCUREMENT_ADMIN");
   if (deny) return deny;
 
   let rawJson: any = {};
@@ -143,7 +168,8 @@ export async function handleRequirementCreate(
       admin.id,
       rawJson,
       post,
-      env
+      env,
+      admin.role
     );
 
     await writeAudit(sql, {
@@ -153,7 +179,7 @@ export async function handleRequirementCreate(
       entityId: id,
       metadata: {
         project: input.project,
-        closesAt: new Date(input.closesAt).toISOString(),
+        closesAt: input.closesAt ? input.closesAt.toISOString() : null,
         invited: input.vendorUserIds.length,
       },
     });
@@ -170,7 +196,7 @@ export async function handleRequirementUpdate(
   request: Request,
   id: string
 ): Promise<Response> {
-  const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
+  const { admin, deny } = await requireAdmin(sql, env, request, "PROCUREMENT_ADMIN");
   if (deny) return deny;
 
   let rawJson: any = {};
@@ -184,7 +210,7 @@ export async function handleRequirementUpdate(
   const post = url.searchParams.get("post") === "true" || rawJson.post === true;
 
   try {
-    const updated = await SourcingService.updateRequirement(id, rawJson, post);
+    const updated = await SourcingService.updateRequirement(id, rawJson, post, admin.role);
     if (!updated) return json(env, request, { error: "Requirement not found" }, 404);
 
     await writeAudit(sql, {
