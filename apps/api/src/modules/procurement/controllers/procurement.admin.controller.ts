@@ -15,6 +15,71 @@ async function readJson(request: Request): Promise<unknown | null> {
   }
 }
 
+/** Fill session identity and portal field aliases before Zod parse. */
+function normalizeCreateBody(
+  raw: unknown,
+  admin: { name: string; email: string }
+): Record<string, unknown> {
+  const body =
+    raw && typeof raw === "object" ? { ...(raw as Record<string, unknown>) } : {};
+
+  // Portal form never sent requesterName; Zod then returned the generic "Required".
+  const name = typeof body.requesterName === "string" ? body.requesterName.trim() : "";
+  if (!name) body.requesterName = admin.name;
+
+  if (body.requesterEmail == null || body.requesterEmail === "") {
+    body.requesterEmail = admin.email || null;
+  }
+
+  // Modal sends totalEstimatedAmount; schema expects estimatedAmount.
+  if (body.estimatedAmount == null && body.totalEstimatedAmount != null) {
+    body.estimatedAmount = body.totalEstimatedAmount;
+  }
+
+  if (Array.isArray(body.items)) {
+    body.items = body.items.map((item) => {
+      if (!item || typeof item !== "object") return item;
+      const next = { ...(item as Record<string, unknown>) };
+      delete next.id;
+      return next;
+    });
+  }
+
+  // File picker stores url "#"; those are not real uploads yet.
+  if (Array.isArray(body.attachments)) {
+    body.attachments = body.attachments
+      .filter((att) => {
+        if (!att || typeof att !== "object") return false;
+        const url = String((att as { url?: unknown }).url ?? "");
+        return url.length > 0 && url !== "#";
+      })
+      .map((att) => {
+        const a = att as Record<string, unknown>;
+        return {
+          name: a.name,
+          url: a.url,
+          sizeBytes: a.sizeBytes ?? a.size,
+          mimeType: a.mimeType ?? a.type,
+        };
+      });
+  }
+
+  return body;
+}
+
+function formatZodIssues(error: { issues: { path: (string | number)[]; message: string }[] }) {
+  const issues = error.issues.map((issue) => ({
+    path: issue.path.join(".") || "(root)",
+    message: issue.message,
+  }));
+  return {
+    error: issues
+      .map((issue) => (issue.path === "(root)" ? issue.message : `${issue.path}: ${issue.message}`))
+      .join("; "),
+    issues,
+  };
+}
+
 export async function loadPurchaseRequestDetail(_sql: unknown, idOrRef: string) {
   return await ProcurementService.loadPurchaseRequestDetail(idOrRef);
 }
@@ -59,11 +124,10 @@ export async function handleProcurementCreate(
   const auth = await requireAdmin(sql, env, request, "PROCUREMENT_ADMIN");
   if (auth.deny) return auth.deny;
 
-  const rawBody = await readJson(request);
+  const rawBody = normalizeCreateBody(await readJson(request), auth.admin);
   const parsed = createPurchaseRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
-    const issue = parsed.error.issues[0]?.message || "Invalid request body";
-    return json(env, request, { error: issue }, 400);
+    return json(env, request, formatZodIssues(parsed.error), 400);
   }
 
   const { reqId, refNum, calculatedTotal } = await ProcurementService.createPurchaseRequest(

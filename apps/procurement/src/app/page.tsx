@@ -35,25 +35,75 @@ export default function RequesterDashboard() {
     loadData();
   }, [loadData]);
 
-  const handleCreateRequest = async (newReqData: any) => {
+  const handleCreateRequest = async (
+    newReqData: any
+  ): Promise<{ ok: true } | { ok: false; errors: string[] }> => {
     try {
       const res = await fetch("/api/procurement", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newReqData),
+        body: JSON.stringify({
+          title: newReqData.title,
+          description: newReqData.description,
+          department: newReqData.department,
+          priority: newReqData.priority,
+          requiredByDate: newReqData.requiredByDate,
+          currency: newReqData.currency,
+          estimatedAmount: newReqData.totalEstimatedAmount,
+          requesterName: user?.name,
+          requesterEmail: user?.email,
+          items: (newReqData.items || []).map(
+            (item: {
+              name: string;
+              category: string;
+              quantity: number;
+              unit: string;
+              estimatedUnitPrice: number;
+              totalPrice: number;
+              preferredVendor?: string;
+              notes?: string;
+            }) => ({
+              name: item.name,
+              category: item.category,
+              quantity: item.quantity,
+              unit: item.unit,
+              estimatedUnitPrice: item.estimatedUnitPrice,
+              totalPrice: item.totalPrice,
+              preferredVendor: item.preferredVendor || null,
+              notes: item.notes || null,
+            })
+          ),
+          // File picker only stores url "#"; skip those until a real upload exists.
+          attachments: (newReqData.attachments || []).filter(
+            (att: { url?: string }) => att.url && att.url !== "#"
+          ),
+        }),
       });
 
       if (res.ok) {
         const created = await res.json();
         await loadData();
         router.push(`/requirements/${created.id || created.referenceNumber}`);
-      } else {
-        const err = await res.json().catch(() => ({}));
-        alert(err.error || "Failed to create requisition. Please check all fields.");
+        return { ok: true };
       }
+
+      const err = await res.json().catch(() => ({}));
+      const issues = Array.isArray(err.issues)
+        ? err.issues.map((issue: { path?: string; message?: string }) =>
+            issue.path && issue.path !== "(root)"
+              ? `${issue.path}: ${issue.message}`
+              : issue.message || "Invalid field"
+          )
+        : [];
+      return {
+        ok: false,
+        errors: issues.length
+          ? issues
+          : [err.error || "Failed to create requisition. Please check all fields."],
+      };
     } catch (e) {
       console.error("Failed to create request", e);
-      alert("Network error while creating requisition.");
+      return { ok: false, errors: ["Network error while creating requisition."] };
     }
   };
 

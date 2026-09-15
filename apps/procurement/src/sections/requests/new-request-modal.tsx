@@ -29,7 +29,7 @@ interface NewRequestModalProps {
     items: RequestItem[];
     totalEstimatedAmount: number;
     attachments: Attachment[];
-  }) => void;
+  }) => Promise<{ ok: true } | { ok: false; errors: string[] }>;
 }
 
 export const CONSTRUCTION_DEPARTMENT_OPTIONS: DropdownOption[] = [
@@ -111,6 +111,7 @@ export function NewRequestModal({ isOpen, onClose, onSubmit }: NewRequestModalPr
   // Attachments
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -173,8 +174,10 @@ export function NewRequestModal({ isOpen, onClose, onSubmit }: NewRequestModalPr
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    e?.preventDefault();
+    if (submitting) return;
+
     const newErrors: string[] = [];
 
     if (!title.trim()) newErrors.push("Site requisition title is required.");
@@ -208,19 +211,29 @@ export function NewRequestModal({ isOpen, onClose, onSubmit }: NewRequestModalPr
 
     const totalEstimatedAmount = processedItems.reduce((acc, curr) => acc + curr.totalPrice, 0);
 
-    onSubmit({
-      title,
-      description,
-      department,
-      priority,
-      requiredByDate,
-      currency,
-      items: processedItems,
-      totalEstimatedAmount,
-      attachments,
-    });
-
-    onClose();
+    setSubmitting(true);
+    setErrors([]);
+    try {
+      // Stay open until the API accepts the requisition.
+      const result = await onSubmit({
+        title,
+        description,
+        department,
+        priority,
+        requiredByDate,
+        currency,
+        items: processedItems,
+        totalEstimatedAmount,
+        attachments,
+      });
+      if (result.ok) {
+        onClose();
+      } else {
+        setErrors(result.errors);
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -562,7 +575,8 @@ export function NewRequestModal({ isOpen, onClose, onSubmit }: NewRequestModalPr
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer rounded-xl border border-zinc-200 bg-white px-5 py-2.5 text-xs font-bold text-zinc-700 shadow-2xs transition-colors hover:bg-zinc-100"
+            disabled={submitting}
+            className="cursor-pointer rounded-xl border border-zinc-200 bg-white px-5 py-2.5 text-xs font-bold text-zinc-700 shadow-2xs transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Cancel
           </button>
@@ -570,10 +584,11 @@ export function NewRequestModal({ isOpen, onClose, onSubmit }: NewRequestModalPr
           <button
             type="button"
             onClick={handleSubmit}
-            className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#0073bc] px-6 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-[#005f9e] active:scale-98"
+            disabled={submitting}
+            className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#0073bc] px-6 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-[#005f9e] active:scale-98 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <CheckCircle2 className="h-4 w-4" />
-            Submit Site Requisition
+            {submitting ? "Submitting…" : "Submit Site Requisition"}
           </button>
         </div>
       </div>
