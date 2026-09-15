@@ -42,7 +42,8 @@ export function matchesRequirementFilter(
 
   const isExpired = r.closesAt && new Date(r.closesAt).getTime() <= Date.now();
 
-  if (filter === "CLOSED" || filter === "BIDDING_CLOSED") {
+  // CLOSED was renamed to BIDDING_CLOSED; keep expired OPEN rows in this bucket.
+  if (filter === "BIDDING_CLOSED") {
     return r.status === "BIDDING_CLOSED" || (r.status === "OPEN" && !!isExpired);
   }
   if (filter === "OPEN") {
