@@ -32,7 +32,12 @@ echo "[vps-deploy] building apps"
 pnpm build
 
 echo "[vps-deploy] reloading PM2"
-pm2 startOrReload "$ROOT/ecosystem.config.cjs" --update-env
+# Keep the server's ecosystem file (rsync excludes it) so Hostinger ports stay 3010-3013.
+if [ -f "$ROOT/ecosystem.config.cjs" ]; then
+  pm2 startOrReload "$ROOT/ecosystem.config.cjs" --update-env
+else
+  pm2 restart rvcc-website rvcc-admin rvcc-vendor rvcc-procurement rvcc-api
+fi
 pm2 save
 
 echo "[vps-deploy] health check"

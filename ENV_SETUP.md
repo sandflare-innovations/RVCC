@@ -95,7 +95,17 @@ Add these **repository secrets** (Settings → Secrets and variables → Actions
 | `VPS_USER`    | SSH user (must be able to write `/opt/rvcc`) |
 | `VPS_SSH_KEY` | Private key whose public half is in `~/.ssh/authorized_keys` |
 
-If `VPS_HOST` is missing, the deploy job skips instead of failing.
+If `VPS_HOST` is missing, the deploy job **fails** (the live VPS is not updated). After adding the secrets, re-run **Actions → VPS CI/CD**.
+
+Until GitHub can SSH, update the server by hand:
+
+```bash
+cd /opt/rvcc   # or the directory nginx serves
+git fetch origin
+git checkout main
+git pull
+bash scripts/vps-deploy.sh
+```
 
 On the VPS, install Node 22 and keep env files **on the server** (rsync will not overwrite them):
 
