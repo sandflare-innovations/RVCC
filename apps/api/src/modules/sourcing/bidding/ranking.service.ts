@@ -87,6 +87,12 @@ export async function getRequirementRankings(requirementId: string): Promise<{
               },
             },
           },
+          attachments: {
+            orderBy: { uploadedAt: "asc" as const },
+            take: 1,
+            select: { id: true },
+          },
+          _count: { select: { revisions: true } },
         },
       },
     },
@@ -103,6 +109,16 @@ export async function getRequirementRankings(requirementId: string): Promise<{
   }
 
   const validQuotes = req.quotes.filter((q) => bidAmount(q) > 0);
+  const manuals = await prisma.manualQuotation.findMany({
+    where: { requirementId, deletedAt: null },
+    select: { vendorUserId: true, totalPrice: true, amountSar: true },
+  });
+  const originalByVendor = new Map<string, number>();
+  for (const row of manuals) {
+    if (!row.vendorUserId) continue;
+    const amount = Number(row.amountSar ?? row.totalPrice);
+    if (amount > 0) originalByVendor.set(row.vendorUserId, amount);
+  }
   const target = req.sellingPrice != null ? Number(req.sellingPrice) : null;
   const strategy = req.rankingStrategy || "LOWEST_PRICE";
 
@@ -173,6 +189,8 @@ export async function getRequirementRankings(requirementId: string): Promise<{
         ? Math.round((differenceFromTarget / target) * 10000) / 100
         : null;
 
+    const original = originalByVendor.get(q.vendorUserId) ?? null;
+    const firstAttachment = q.attachments[0];
     return {
       id: q.id,
       rank,
@@ -180,6 +198,9 @@ export async function getRequirementRankings(requirementId: string): Promise<{
       currency: q.currency,
       amountSar: q.amountSar ? Number(q.amountSar).toFixed(2) : null,
       remarks: q.remarks || null,
+      quoteFileUrl: firstAttachment
+        ? `/api/requirements/${requirementId}/files/${firstAttachment.id}?kind=quote`
+        : null,
       submittedAt: q.submittedAt ? q.submittedAt.toISOString() : null,
       who: companyName,
       vendorEmail: q.vendorUser.email,
@@ -187,10 +208,14 @@ export async function getRequirementRankings(requirementId: string): Promise<{
       isLeading: rank === 1,
       varianceFromL1Percent:
         lowestNum && lowestNum > 0 ? Number((((p - lowestNum) / lowestNum) * 100).toFixed(1)) : 0,
-      deliveryPeriodDays: q.deliveryPeriodDays ?? null,
-      paymentTerms: q.paymentTerms || "",
+      originalQuotation: original != null ? original.toFixed(2) : null,
+      reductionFromOriginalPercent:
+        original && original > 0 ? Number((((original - p) / original) * 100).toFixed(1)) : null,
       differenceFromTarget,
       differencePercent,
+      revisionCount: q._count.revisions,
+      deliveryPeriodDays: q.deliveryPeriodDays ?? null,
+      paymentTerms: q.paymentTerms || "",
       isClosestToTarget: q.id === closestId,
       isBestPrice: lowestNum != null && p === lowestNum,
       isFastestDelivery: fastestDelivery != null && q.deliveryPeriodDays === fastestDelivery,

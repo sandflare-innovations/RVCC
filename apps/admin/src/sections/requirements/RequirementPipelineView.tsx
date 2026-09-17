@@ -1,13 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ChevronLeft, Trophy } from "lucide-react";
 
 import { BidCountdown } from "@/components/ui/bid-countdown";
 import { Modal, SubmitLoader } from "@/components/ui";
-import { datetimeLocalToIso, isoToDatetimeLocal } from "@/lib/riyadh-datetime";
+import {
+  composeRiyadhIso,
+  riyadhWindowDuration,
+  splitRiyadhParts,
+} from "@/lib/riyadh-datetime";
 import { formatMoney, statusBadgeClass, statusLabel } from "@/lib/rfq/status";
 
 type TabId =
@@ -60,10 +64,15 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
   const [docFile, setDocFile] = useState<File | null>(null);
   const [vendorOptions, setVendorOptions] = useState<{ id: string; label: string; email: string }[]>([]);
   const [targetPrice, setTargetPrice] = useState(data.requirement.targetPrice || "");
-  const [opensAt, setOpensAt] = useState(isoToDatetimeLocal(data.requirement.opensAt));
-  const [closesAt, setClosesAt] = useState(isoToDatetimeLocal(data.requirement.closesAt));
+  const openParts = splitRiyadhParts(data.requirement.opensAt);
+  const closeParts = splitRiyadhParts(data.requirement.closesAt);
+  const [openDate, setOpenDate] = useState(openParts.date);
+  const [openTime, setOpenTime] = useState(openParts.time);
+  const [closeDate, setCloseDate] = useState(closeParts.date);
+  const [closeTime, setCloseTime] = useState(closeParts.time);
   const [revealTargetPrice, setRevealTargetPrice] = useState(data.requirement.revealTargetPrice !== false);
   const [awardTarget, setAwardTarget] = useState<any | null>(null);
+  const [openConfirm, setOpenConfirm] = useState(false);
 
   useEffect(() => {
     fetch("/api/vendors")
@@ -98,11 +107,13 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(json.error || "Action failed.");
-        return;
+        return false;
       }
       router.refresh();
+      return true;
     } catch {
       setError("Could not reach the server.");
+      return false;
     } finally {
       setBusy(null);
     }
@@ -117,7 +128,25 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
   }
 
   function fileHref(attachment: { downloadPath?: string; url?: string; fileUrl?: string }) {
-    return attachment.downloadPath || attachment.url || attachment.fileUrl || "#";
+    const href = attachment.downloadPath || attachment.url || attachment.fileUrl || "";
+    if (!href || href === "#") return "";
+    return href;
+  }
+
+  function FileLink({
+    attachment,
+    children,
+  }: {
+    attachment: { downloadPath?: string; url?: string; fileUrl?: string; fileName?: string; name?: string };
+    children: ReactNode;
+  }) {
+    const href = fileHref(attachment);
+    if (!href) return <span className="text-zinc-500">{children}</span>;
+    return (
+      <a className="text-brand-blue underline" href={href} target="_blank" rel="noreferrer">
+        {children}
+      </a>
+    );
   }
 
   const submittedQuotes = useMemo(
@@ -141,7 +170,7 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-zinc-900">{req.title || req.project}</h1>
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadgeClass(req.status)}`}>
-                {statusLabel(req.status, req.closesAt)}
+                {statusLabel(req.status, req.closesAt, req.opensAt)}
               </span>
             </div>
             <p className="text-xs text-zinc-500">{req.referenceNumber || req.id}</p>
@@ -159,7 +188,7 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
             </button>
           )}
           {(req.status === "SUBMITTED_TO_ADMIN" || req.status === "PENDING") && (
-            <button className={primaryBtn} onClick={() => post("open")} disabled={!!busy}>
+            <button className={primaryBtn} onClick={() => setOpenConfirm(true)} disabled={!!busy}>
               Open bidding
             </button>
           )}
@@ -366,9 +395,7 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
                         <td className="px-3 py-2 text-right tabular-nums">{formatMoney(q.totalPrice, q.currency)}</td>
                         <td className="px-3 py-2">
                           {q.attachments?.[0] ? (
-                            <a className="text-brand-blue underline" href={fileHref(q.attachments[0])} target="_blank" rel="noreferrer">
-                              {q.attachments[0].fileName}
-                            </a>
+                            <FileLink attachment={q.attachments[0]}>{q.attachments[0].fileName}</FileLink>
                           ) : (
                             "—"
                           )}
@@ -403,22 +430,33 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
                     <span className="text-sm text-zinc-700">Show target price to invited vendors</span>
                   </label>
                   <label className="space-y-1">
-                    <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">Opens at (Riyadh)</span>
-                    <input className={inputClass} type="datetime-local" value={opensAt} onChange={(e) => setOpensAt(e.target.value)} />
+                    <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">Opens date (Riyadh)</span>
+                    <input className={inputClass} type="date" value={openDate} onChange={(e) => setOpenDate(e.target.value)} />
                   </label>
                   <label className="space-y-1">
-                    <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">Closes at (Riyadh)</span>
-                    <input className={inputClass} type="datetime-local" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} />
+                    <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">Opens time</span>
+                    <input className={inputClass} type="time" step="1800" value={openTime} onChange={(e) => setOpenTime(e.target.value)} />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">Closes date (Riyadh)</span>
+                    <input className={inputClass} type="date" value={closeDate} onChange={(e) => setCloseDate(e.target.value)} />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">Closes time</span>
+                    <input className={inputClass} type="time" step="1800" value={closeTime} onChange={(e) => setCloseTime(e.target.value)} />
                   </label>
                 </div>
+                <p className="mt-2 text-xs font-medium text-zinc-500">
+                  Window length: {riyadhWindowDuration(openDate, openTime, closeDate, closeTime) || "set both start and end"}
+                </p>
                 <button
                   className={`${primaryBtn} mt-3`}
                   disabled={!!busy}
                   onClick={() =>
                     post("bid-config", {
                       targetPrice: Number(targetPrice),
-                      opensAt: datetimeLocalToIso(opensAt),
-                      closesAt: datetimeLocalToIso(closesAt),
+                      opensAt: composeRiyadhIso(openDate, openTime),
+                      closesAt: composeRiyadhIso(closeDate, closeTime),
                       rankingStrategy: "LOWEST_PRICE",
                       revealTargetPrice,
                     })
@@ -478,6 +516,7 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
                   <th className="px-3 py-2 text-left">Supplier</th>
                   <th className="px-3 py-2 text-right">Original quotation</th>
                   <th className="px-3 py-2 text-right">Bid</th>
+                  <th className="px-3 py-2 text-right">Reduction</th>
                 </tr>
               </thead>
               <tbody>
@@ -485,11 +524,18 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
                   const original = data.manualQuotations.find(
                     (m) => m.vendorUserId && q.vendorUserId && m.vendorUserId === q.vendorUserId
                   );
+                  const bid = Number(q.totalPrice || q.newPrice || 0);
+                  const originalAmt = Number(original?.totalPrice || 0);
+                  const reduction =
+                    originalAmt > 0 && bid > 0
+                      ? (((originalAmt - bid) / originalAmt) * 100).toFixed(1)
+                      : null;
                   return (
                     <tr key={q.id} className="border-b border-zinc-100">
                       <td className="px-3 py-2">{q.participantName || q.vendorUser?.name}</td>
                       <td className="px-3 py-2 text-right">{formatMoney(original?.totalPrice, currency)}</td>
                       <td className="px-3 py-2 text-right font-semibold">{formatMoney(q.totalPrice || q.newPrice, currency)}</td>
+                      <td className="px-3 py-2 text-right">{reduction != null ? `${reduction}%` : "—"}</td>
                     </tr>
                   );
                 })}
@@ -533,26 +579,24 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
             <ul className="space-y-2 text-sm">
               {(req.attachments || []).map((a: any) => (
                 <li key={a.id}>
-                  <a className="text-brand-blue underline" href={fileHref(a)} target="_blank" rel="noreferrer">
-                    {a.name || a.fileName}
-                  </a>
+                  <FileLink attachment={a}>{a.name || a.fileName}</FileLink>
                 </li>
               ))}
               {data.manualQuotations.flatMap((q) =>
                 (q.attachments || []).map((a: any) => (
                   <li key={a.id}>
-                    <a className="text-brand-blue underline" href={fileHref(a)} target="_blank" rel="noreferrer">
+                    <FileLink attachment={a}>
                       {q.supplierName}: {a.fileName}
-                    </a>
+                    </FileLink>
                   </li>
                 ))
               )}
               {data.quotes.flatMap((q) =>
                 (q.attachments || []).map((a: any) => (
                   <li key={a.id}>
-                    <a className="text-brand-blue underline" href={fileHref(a)} target="_blank" rel="noreferrer">
+                    <FileLink attachment={a}>
                       {q.participantName}: {a.fileName}
-                    </a>
+                    </FileLink>
                   </li>
                 ))
               )}
@@ -622,6 +666,42 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
 
         {tab === "activity" && <ActivityPanel requirementId={req.id} />}
       </div>
+
+      <Modal open={openConfirm} onClose={() => setOpenConfirm(false)} title="Publish live negotiation" maxWidth="sm">
+        <div className="p-6">
+          <p className="text-sm text-zinc-700">
+            Open bidding for <strong>{req.title || req.project}</strong>? Invited suppliers can bid only between the start and end times.
+          </p>
+          <ul className="mt-4 space-y-1 text-sm text-zinc-600">
+            <li>Target: {formatMoney(targetPrice || req.targetPrice, currency)}</li>
+            <li>Opens: {openDate} {openTime} (Riyadh)</li>
+            <li>Closes: {closeDate} {closeTime} (Riyadh)</li>
+            <li>Duration: {riyadhWindowDuration(openDate, openTime, closeDate, closeTime) || "not set"}</li>
+            <li>Target visible to vendors: {revealTargetPrice ? "Yes" : "No"}</li>
+          </ul>
+          <div className="mt-5 flex justify-end gap-2">
+            <button className={btnClass} onClick={() => setOpenConfirm(false)} disabled={!!busy}>Cancel</button>
+            <button
+              className={primaryBtn}
+              disabled={!!busy}
+              onClick={async () => {
+                const saved = await post("bid-config", {
+                  targetPrice: Number(targetPrice),
+                  opensAt: composeRiyadhIso(openDate, openTime),
+                  closesAt: composeRiyadhIso(closeDate, closeTime),
+                  rankingStrategy: "LOWEST_PRICE",
+                  revealTargetPrice,
+                });
+                if (!saved) return;
+                const opened = await post("open");
+                if (opened) setOpenConfirm(false);
+              }}
+            >
+              {busy === "open" ? "Publishing…" : "Confirm and open"}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       <Modal open={!!awardTarget} onClose={() => setAwardTarget(null)} title="Award Procurement" maxWidth="sm">
         {awardTarget && (

@@ -251,6 +251,11 @@ describe("QA Scenario 1: Live Bidding, Blind Masking & Concurrency E2E Test", ()
     expect(vendorPayload?.myRank).toBe(1);
     expect(vendorPayload?.isLeading).toBe(true);
     expect(vendorPayload?.lowestPrice).toBe("85000.00");
+
+    const revisionCount = await prisma.quoteRevision.count({
+      where: { requirementId, vendorUserId: vendorAId },
+    });
+    expect(revisionCount).toBeGreaterThanOrEqual(2);
   });
 
   it("Step 5: Post-Deadline Lockout prevents bids after closing time", async () => {

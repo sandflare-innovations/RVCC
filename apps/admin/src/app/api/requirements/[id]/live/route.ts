@@ -16,10 +16,14 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 
   try {
     const isSse = request.headers.get("Accept")?.includes("text/event-stream");
+    const lastEventId = request.headers.get("Last-Event-ID");
     const res = await adminWorkerFetch(`/requirements/${encodeURIComponent(params.id)}/live-bids`, {
       method: "GET",
       sessionToken: token,
-      headers: { Accept: isSse ? "text/event-stream" : "application/json" },
+      headers: {
+        Accept: isSse ? "text/event-stream" : "application/json",
+        ...(lastEventId ? { "Last-Event-ID": lastEventId } : {}),
+      },
     });
 
     if (isSse && res.ok && res.body) {

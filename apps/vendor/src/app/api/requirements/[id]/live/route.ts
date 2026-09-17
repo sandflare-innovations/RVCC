@@ -14,11 +14,13 @@ export async function GET(request: Request, ctx: { params: Promise<{ id: string 
 
   try {
     const isSse = request.headers.get("Accept")?.includes("text/event-stream");
+    const lastEventId = request.headers.get("Last-Event-ID");
     const res = await vendorWorkerFetch(`/requirements/${encodeURIComponent(id)}/live-bids`, {
       method: "GET",
       sessionToken: token,
       headers: {
         Accept: isSse ? "text/event-stream" : "application/json",
+        ...(lastEventId ? { "Last-Event-ID": lastEventId } : {}),
       },
     });
 

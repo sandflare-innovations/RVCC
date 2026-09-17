@@ -37,6 +37,7 @@ type QuoteAttachmentInfo = {
   fileUrl: string;
   fileSize: number;
   uploadedAt: string;
+  downloadPath?: string;
 };
 
 type QuoteInfo = {
@@ -355,10 +356,23 @@ export function QuotesSection({
 
                         <div className="flex flex-wrap items-center gap-2">
                           {q.attachments && q.attachments.length > 0 ? (
-                            q.attachments.map((att) => (
+                            q.attachments.map((att) => {
+                              const href = att.downloadPath || att.fileUrl;
+                              if (!href || href === "#") {
+                                return (
+                                  <span
+                                    key={att.id}
+                                    className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-bold text-zinc-500"
+                                  >
+                                    <FileText className="h-3.5 w-3.5" />
+                                    <span className="max-w-[130px] truncate">{att.fileName}</span>
+                                  </span>
+                                );
+                              }
+                              return (
                               <a
                                 key={att.id}
-                                href={att.fileUrl}
+                                href={href}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="hover:border-brand-blue hover:text-brand-blue focus-visible:ring-brand-blue/20 flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-bold text-zinc-700 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
@@ -367,8 +381,9 @@ export function QuotesSection({
                                 <FileText className="h-3.5 w-3.5 text-brand-blue" />
                                 <span className="max-w-[130px] truncate">{att.fileName}</span>
                               </a>
-                            ))
-                          ) : q.quoteFileUrl ? (
+                              );
+                            })
+                          ) : q.quoteFileUrl && q.quoteFileUrl !== "#" ? (
                             <a
                               href={q.quoteFileUrl}
                               target="_blank"

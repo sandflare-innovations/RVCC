@@ -44,7 +44,10 @@ export function useVendorLiveBidding(
     eventSourceRef.current = es;
 
     es.onopen = () => {
-      if (!unmounted) setStatus("live");
+      if (!unmounted) {
+        setStatus("live");
+        void fetchSnapshot();
+      }
     };
 
     const onMessageEvent = (event: MessageEvent) => {
@@ -64,9 +67,21 @@ export function useVendorLiveBidding(
     es.onmessage = onMessageEvent;
     es.addEventListener("snapshot", onMessageEvent);
     es.addEventListener("update", onMessageEvent);
+    es.addEventListener("ping", (event) => {
+      if (unmounted) return;
+      try {
+        const payload = JSON.parse(event.data) as { serverTime?: string };
+        if (payload?.serverTime) setLastUpdated(new Date(payload.serverTime));
+      } catch {
+        /* ignore malformed ping */
+      }
+    });
 
     es.onerror = () => {
-      if (!unmounted) setStatus("offline");
+      if (!unmounted) {
+        setStatus("offline");
+        void fetchSnapshot();
+      }
     };
 
     // When the vendor switches back to this tab, sync once

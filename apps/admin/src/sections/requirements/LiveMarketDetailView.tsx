@@ -202,6 +202,11 @@ export function LiveMarketDetailView({ initialPayload }: LiveMarketDetailViewPro
           quoteFileUrl: matchingInitial?.quoteFileUrl ?? null,
           attachments: (matchingInitial as any)?.attachments ?? (lq as any).attachments ?? [],
           submittedAt: lq.submittedAt ? new Date(lq.submittedAt) : null,
+          originalQuotation: lq.originalQuotation ?? null,
+          reductionFromOriginalPercent: lq.reductionFromOriginalPercent ?? null,
+          differenceFromTarget: lq.differenceFromTarget ?? null,
+          differencePercent: lq.differencePercent ?? null,
+          revisionCount: lq.revisionCount ?? (matchingInitial as { revisions?: unknown[] } | undefined)?.revisions?.length ?? 0,
         };
       });
     }
@@ -225,6 +230,11 @@ export function LiveMarketDetailView({ initialPayload }: LiveMarketDetailViewPro
           quoteFileUrl: q.quoteFileUrl,
           attachments: (q as any).attachments ?? [],
           submittedAt: q.submittedAt ? new Date(q.submittedAt) : null,
+          originalQuotation: null,
+          reductionFromOriginalPercent: null,
+          differenceFromTarget: null,
+          differencePercent: null,
+          revisionCount: Array.isArray((q as any).revisions) ? (q as any).revisions.length : 0,
         };
       });
   }, [displayData.quotes, initialQuotes, req.currency]);
@@ -484,6 +494,22 @@ export function LiveMarketDetailView({ initialPayload }: LiveMarketDetailViewPro
                                 +{q.varianceFromL1Percent.toFixed(1)}% vs L1
                               </p>
                             )}
+                            <div className="mt-1 space-y-0.5 text-[10px] font-medium text-zinc-500">
+                              {q.originalQuotation ? <p>Original {q.originalQuotation}</p> : null}
+                              {q.reductionFromOriginalPercent != null ? (
+                                <p>
+                                  {q.reductionFromOriginalPercent >= 0 ? "−" : "+"}
+                                  {Math.abs(q.reductionFromOriginalPercent).toFixed(1)}% vs original
+                                </p>
+                              ) : null}
+                              {q.differencePercent != null ? (
+                                <p>
+                                  {q.differencePercent > 0 ? "+" : ""}
+                                  {q.differencePercent.toFixed(1)}% vs target
+                                </p>
+                              ) : null}
+                              <p>{q.revisionCount || 0} revision{(q.revisionCount || 0) === 1 ? "" : "s"}</p>
+                            </div>
                           </div>
                         </div>
 
@@ -506,10 +532,23 @@ export function LiveMarketDetailView({ initialPayload }: LiveMarketDetailViewPro
 
                           <div className="flex flex-wrap items-center gap-2">
                             {(q as any).attachments && (q as any).attachments.length > 0 ? (
-                              (q as any).attachments.map((att: any) => (
+                              (q as any).attachments.map((att: any) => {
+                                const href = att.downloadPath || att.fileUrl;
+                                if (!href || href === "#") {
+                                  return (
+                                    <span
+                                      key={att.id}
+                                      className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 px-2 py-0.5 text-[11px] font-semibold text-zinc-500"
+                                    >
+                                      <FileText className="h-3 w-3" />
+                                      <span className="max-w-[100px] truncate">{att.fileName}</span>
+                                    </span>
+                                  );
+                                }
+                                return (
                                 <a
                                   key={att.id}
-                                  href={att.fileUrl}
+                                  href={href}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="hover:border-brand-blue hover:text-brand-blue inline-flex items-center gap-1 rounded-lg border border-zinc-200 px-2 py-0.5 text-[11px] font-semibold text-zinc-700 shadow-xs"
@@ -518,8 +557,9 @@ export function LiveMarketDetailView({ initialPayload }: LiveMarketDetailViewPro
                                   <FileText className="h-3 w-3 text-brand-blue" />
                                   <span className="max-w-[100px] truncate">{att.fileName}</span>
                                 </a>
-                              ))
-                            ) : q.quoteFileUrl ? (
+                                );
+                              })
+                            ) : q.quoteFileUrl && q.quoteFileUrl !== "#" ? (
                               <a
                                 href={q.quoteFileUrl}
                                 target="_blank"

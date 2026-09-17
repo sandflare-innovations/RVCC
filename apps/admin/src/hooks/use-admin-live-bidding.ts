@@ -50,6 +50,7 @@ export function useAdminLiveBidding(
       if (!unmounted) {
         setStatus("live");
         setErrorMsg(null);
+        void fetchSnapshot();
       }
     };
 
@@ -70,10 +71,20 @@ export function useAdminLiveBidding(
     es.onmessage = onMessageEvent;
     es.addEventListener("snapshot", onMessageEvent);
     es.addEventListener("update", onMessageEvent);
+    es.addEventListener("ping", (event) => {
+      if (unmounted) return;
+      try {
+        const payload = JSON.parse(event.data) as { serverTime?: string };
+        if (payload?.serverTime) setStatus("live");
+      } catch {
+        /* ignore malformed ping */
+      }
+    });
 
     es.onerror = () => {
       if (unmounted) return;
       setStatus("offline");
+      void fetchSnapshot();
     };
 
     // When the admin switches back to the tab, sync once
