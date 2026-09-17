@@ -237,10 +237,12 @@ async function sendMail(
     host: env.SMTP_HOST,
     port,
     secure: implicitTls,
+    requireTLS: !implicitTls,
     auth: {
       user: env.SMTP_USER,
       pass: env.SMTP_PASS,
     },
+    tls: { minVersion: "TLSv1.2" },
   });
 
   await transport.sendMail({
@@ -249,6 +251,7 @@ async function sendMail(
     subject: opts.subject,
     text: opts.text,
     html: opts.html,
+    replyTo: env.SMTP_USER || undefined,
   });
 }
 

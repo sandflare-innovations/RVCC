@@ -40,6 +40,7 @@ export default async function EditRequirementPage({ params }: { params: Promise<
   const vendorOptions = activeVendors.map((v) => ({
     id: v.id,
     label: v.companyName ? `${v.companyName} (${v.email})` : v.email,
+    email: v.email,
   }));
 
   const { requirement: req, invites } = reqResult.data;

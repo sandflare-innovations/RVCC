@@ -123,7 +123,25 @@ export async function handleOtpRequest(
     await sendOtpEmail(env, email, code, 15);
   } catch (err) {
     console.error("[enquire] OTP mail failed", err);
-    return json(env, request, { error: "Unable to send access code." }, 500);
+    // Mailbox SMTP AUTH is often disabled on Microsoft 365. Keep the code in
+    // the API log so registration can continue while SMTP is being enabled.
+    console.log(`\n======================================================`);
+    console.log(`[REGISTRATION OTP]`);
+    console.log(`Recipient: ${email}`);
+    console.log(`Code:      ${code}`);
+    console.log(`Expires:   ${expiresAt.toISOString()}`);
+    console.log(`======================================================\n`);
+    const detail = err instanceof Error ? err.message : "Unable to send access code.";
+    return json(
+      env,
+      request,
+      {
+        error:
+          "Unable to send access code. Microsoft 365 rejected SMTP login. Enable Authenticated SMTP for rvcc-admin@rvcc.com.sa (or create an app password if MFA is on).",
+        detail,
+      },
+      500
+    );
   }
 
   return json(env, request, {

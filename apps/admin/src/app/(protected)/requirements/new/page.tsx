@@ -15,6 +15,7 @@ export default async function NewRequirementPage() {
   const vendorOptions = activeVendors.map((v) => ({
     id: v.id,
     label: v.companyName ? `${v.companyName} (${v.email})` : v.email,
+    email: v.email,
   }));
 
   return (
