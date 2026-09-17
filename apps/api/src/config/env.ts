@@ -45,6 +45,8 @@ export type AppEnv = {
   R2_ACCESS_KEY_ID?: string;
   R2_SECRET_ACCESS_KEY?: string;
   R2_BUCKET_NAME?: string;
+  /** Private RFQ/KYC bucket. Falls back to R2_BUCKET_NAME when unset. */
+  R2_SECURE_BUCKET_NAME?: string;
   /** Cloudflare Worker R2 binding — set in worker.ts, not process.env. */
   uploadsBucket?: R2Bucket;
   publicAssetsBucket?: R2Bucket;
@@ -100,6 +102,7 @@ export function loadEnv(): AppEnv {
     R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID?.trim() || undefined,
     R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY?.trim() || undefined,
     R2_BUCKET_NAME: process.env.R2_BUCKET_NAME?.trim() || undefined,
+    R2_SECURE_BUCKET_NAME: process.env.R2_SECURE_BUCKET_NAME?.trim() || undefined,
     PORT: Number(process.env.PORT || 4000),
     NODE_ENV: process.env.NODE_ENV || "development",
   };
