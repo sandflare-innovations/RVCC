@@ -23,11 +23,18 @@ import { useEffect, useRef, useState } from "react";
 
 import { SubmitLoader } from "@/components/ui";
 import { DatePicker } from "@/components/ui/date-picker";
+import {
+  SupplierQuoteAttach,
+  emailFromVendor,
+  hasQuotePayload,
+  supplierNameFromLabel,
+  type SupplierQuoteDraft,
+} from "@/sections/requirements/SupplierQuoteAttach";
 
 const Document = dynamic(() => import("react-pdf").then((mod) => mod.Document), { ssr: false });
 const Page = dynamic(() => import("react-pdf").then((mod) => mod.Page), { ssr: false });
 
-export type ParticipantOption = { id: string; label: string };
+export type ParticipantOption = { id: string; label: string; email?: string };
 
 export type RequirementInitialData = {
   id: string;
@@ -323,6 +330,21 @@ export function PostRequirementForm({
   });
 
   const [vendorSearch, setVendorSearch] = useState("");
+  // Per-supplier quote file + price, posted with the requirement (not only on the pipeline tab).
+  const [quoteDrafts, setQuoteDrafts] = useState<SupplierQuoteDraft[]>([]);
+
+  // Custom invite: one quote row per selected supplier, unless the list is huge.
+  useEffect(() => {
+    if (inviteTarget !== "CUSTOM") return;
+    setQuoteDrafts((prev) => {
+      const byId = new Map(prev.map((d) => [d.vendorUserId, d]));
+      const selected = Array.from(selectedVendors);
+      if (selected.length > 12) {
+        return prev.filter((d) => selectedVendors.has(d.vendorUserId));
+      }
+      return selected.map((id) => byId.get(id) || { vendorUserId: id, unitPrice: "", file: null });
+    });
+  }, [inviteTarget, selectedVendors]);
 
   const toggleVendor = (id: string) => {
     setSelectedVendors((prev) => {
@@ -369,6 +391,18 @@ export function PostRequirementForm({
       vendorUserIds = Array.from(selectedVendors);
     }
 
+    const quotesToSave = quoteDrafts.filter(hasQuotePayload);
+    for (const draft of quotesToSave) {
+      const vendor = vendors.find((v) => v.id === draft.vendorUserId);
+      const name = vendor ? supplierNameFromLabel(vendor.label) : "this supplier";
+      const price = Number(draft.unitPrice);
+      if (!draft.unitPrice.trim() || !Number.isFinite(price) || price < 0) {
+        setError(`Enter a unit price for ${name} before attaching their quote.`);
+        setBusy(false);
+        return;
+      }
+    }
+
     const rawClosesAt = form.get("closesAt");
     let closesAt: string | undefined;
     if (rawClosesAt && String(rawClosesAt).trim()) {
@@ -390,26 +424,31 @@ export function PostRequirementForm({
 
     try {
       const isEdit = !!initialData?.id;
+      // Manual quotes can only be written while the requirement is still a draft.
+      const openAfterQuotes = post && quotesToSave.length > 0;
+      const saveAsPosted = openAfterQuotes ? false : post;
       const url = isEdit
-        ? `/api/requirements/${initialData.id}?post=${post}`
-        : `/api/requirements?post=${post}`;
+        ? `/api/requirements/${initialData.id}?post=${saveAsPosted}`
+        : `/api/requirements?post=${saveAsPosted}`;
       const method = isEdit ? "PUT" : "POST";
+      const currency = String(form.get("currency") || "SAR");
+      const payload = {
+        title: form.get("project"),
+        project: form.get("project"),
+        productServiceName: form.get("project"),
+        scopeOfWork: scopeWithCategory,
+        description: scopeWithCategory,
+        sellingPrice: form.get("sellingPrice") || null,
+        currency,
+        closesAt,
+        vendorUserIds,
+        post: saveAsPosted,
+      };
 
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: form.get("project"),
-          project: form.get("project"),
-          productServiceName: form.get("project"),
-          scopeOfWork: scopeWithCategory,
-          description: scopeWithCategory,
-          sellingPrice: form.get("sellingPrice") || null,
-          currency: form.get("currency") || "SAR",
-          closesAt,
-          vendorUserIds,
-          post,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const body = (await res.json().catch(() => ({}))) as {
@@ -432,6 +471,72 @@ export function PostRequirementForm({
         if (!uploadRes.ok) {
           const uploadBody = (await uploadRes.json().catch(() => ({}))) as { error?: string };
           setError(uploadBody.error ?? "Requirement saved, but the document could not be uploaded.");
+          return;
+        }
+      }
+
+      if (requirementId) {
+        for (const draft of quotesToSave) {
+          const vendor = vendors.find((v) => v.id === draft.vendorUserId);
+          if (!vendor) continue;
+          const quoteRes = await fetch(`/api/requirements/${requirementId}/manual-quotes`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              vendorUserId: vendor.id,
+              supplierName: supplierNameFromLabel(vendor.label),
+              email: emailFromVendor(vendor),
+              unitPrice: Number(draft.unitPrice),
+              quantity: 1,
+              vatRate: 0,
+              currency,
+              source: "OTHER",
+            }),
+          });
+          const quoteBody = (await quoteRes.json().catch(() => ({}))) as {
+            error?: string;
+            quotation?: { id?: string };
+          };
+          if (!quoteRes.ok) {
+            setError(
+              quoteBody.error ??
+                "Requirement saved, but a supplier quotation could not be recorded."
+            );
+            return;
+          }
+          if (draft.file && quoteBody.quotation?.id) {
+            const quoteUpload = new FormData();
+            quoteUpload.append("file", draft.file);
+            const quoteUploadRes = await fetch(
+              `/api/requirements/${requirementId}/manual-quotes/${quoteBody.quotation.id}/attachments`,
+              { method: "POST", body: quoteUpload }
+            );
+            if (!quoteUploadRes.ok) {
+              const uploadBody = (await quoteUploadRes.json().catch(() => ({}))) as {
+                error?: string;
+              };
+              setError(
+                uploadBody.error ??
+                  "Quotation saved, but the quote file could not be uploaded."
+              );
+              return;
+            }
+          }
+        }
+      }
+
+      if (openAfterQuotes && requirementId) {
+        const openRes = await fetch(`/api/requirements/${requirementId}?post=true`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, post: true }),
+        });
+        if (!openRes.ok) {
+          const openBody = (await openRes.json().catch(() => ({}))) as { error?: string };
+          setError(
+            openBody.error ??
+              "Quotes were saved. Posting for live bidding failed — open it from the pipeline."
+          );
           return;
         }
       }
@@ -521,7 +626,7 @@ export function PostRequirementForm({
                 <div className="mt-6 flex flex-1 flex-col gap-6 lg:flex-row">
                   {/* File Upload Box */}
                   <div className="flex w-full flex-col lg:w-48 lg:shrink-0">
-                    <FieldWrapper label="Scope Document" hint="Optional attachment.">
+                    <FieldWrapper label="Scope Document" hint="RFQ / spec file for suppliers. Attach their quotes in Supplier quotations below.">
                       <div className="h-full">
                         <label className="hover:border-brand-blue/50 flex h-full min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 p-4 text-center transition-colors hover:bg-zinc-50">
                           {file ? (
@@ -666,6 +771,8 @@ export function PostRequirementForm({
                     onClick={() => {
                       setInviteTarget("ALL");
                       setSelectedVendors(new Set(vendors.map((v) => v.id)));
+                      // Keep only quotes the user actually filled; do not list every supplier.
+                      setQuoteDrafts((prev) => prev.filter(hasQuotePayload));
                     }}
                     className={`flex items-center gap-1.5 rounded-lg px-3 py-2 transition-all ${
                       inviteTarget === "ALL"
@@ -795,6 +902,17 @@ export function PostRequirementForm({
               </div>
             )}
           </section>
+
+          <SupplierQuoteAttach
+            vendors={
+              inviteTarget === "CUSTOM"
+                ? vendors.filter((v) => selectedVendors.has(v.id))
+                : vendors
+            }
+            drafts={quoteDrafts}
+            onChange={setQuoteDrafts}
+            allowPick={inviteTarget === "ALL" || selectedVendors.size > 12}
+          />
         </div>
       </div>
     </form>

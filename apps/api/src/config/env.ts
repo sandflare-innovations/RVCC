@@ -59,6 +59,18 @@ function required(name: string): string {
   return v;
 }
 
+/** SMTP_PASS_B64 avoids # comment truncation in .env parsers. */
+function decodeSmtpPass(raw?: string, b64?: string): string | undefined {
+  if (b64?.trim()) {
+    try {
+      return Buffer.from(b64.trim(), "base64").toString("utf8");
+    } catch {
+      /* fall through to raw */
+    }
+  }
+  return raw?.trim().replace(/^["']|["']$/g, "") || undefined;
+}
+
 export function loadEnv(): AppEnv {
   return {
     DATABASE_URL: required("DATABASE_URL"),
@@ -79,9 +91,9 @@ export function loadEnv(): AppEnv {
     SMTP_HOST: process.env.SMTP_HOST,
     SMTP_PORT: process.env.SMTP_PORT,
     SMTP_SECURE: process.env.SMTP_SECURE,
-    SMTP_USER: process.env.SMTP_USER,
-    SMTP_PASS: process.env.SMTP_PASS,
-    SMTP_FROM: process.env.SMTP_FROM,
+    SMTP_USER: process.env.SMTP_USER?.trim(),
+    SMTP_PASS: decodeSmtpPass(process.env.SMTP_PASS, process.env.SMTP_PASS_B64),
+    SMTP_FROM: process.env.SMTP_FROM?.trim(),
     ENQUIRE_FROM_EMAIL: process.env.ENQUIRE_FROM_EMAIL,
     R2_PUBLIC_URL: process.env.R2_PUBLIC_URL?.trim() || undefined,
     R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID?.trim() || undefined,
