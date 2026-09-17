@@ -12,9 +12,13 @@ export const STATUS_LABELS: Record<string, string> = {
   REJECTED: "Cancelled",
 };
 
-export function statusLabel(status: string, closesAt?: string | null) {
-  if (status === "OPEN" && closesAt && new Date(closesAt).getTime() <= Date.now()) {
-    return "Bidding Closed";
+/** Derived OPEN phases: Scheduled before opensAt, Live inside the window, Closed after closesAt. */
+export function statusLabel(status: string, closesAt?: string | null, opensAt?: string | null) {
+  if (status === "OPEN") {
+    const now = Date.now();
+    if (opensAt && new Date(opensAt).getTime() > now) return "Scheduled";
+    if (closesAt && new Date(closesAt).getTime() <= now) return "Closed";
+    return "Live";
   }
   return STATUS_LABELS[status] || status;
 }

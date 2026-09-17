@@ -6,6 +6,7 @@ import {
   sanitizeFileName,
   storageKeyForCareer,
   storageKeyForQuote,
+  resolveSourcingMime,
 } from "../../src/lib/storage";
 
 describe("QA Security Tests: File Upload & Storage Key Sanitization", () => {
@@ -40,6 +41,20 @@ describe("QA Security Tests: File Upload & Storage Key Sanitization", () => {
     it("should detect authentic PNG header", () => {
       const pngBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
       expect(detectMagicMime(pngBytes)).toBe("image/png");
+    });
+
+    it("should map Office ZIP/OLE magic onto sourcing Word and Excel types", () => {
+      const zip = new Uint8Array([0x50, 0x4b, 0x03, 0x04, 0x00, 0x00]);
+      const ole = new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1]);
+      expect(resolveSourcingMime("quote.xlsx", "application/octet-stream", zip)).toBe(
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      expect(resolveSourcingMime("spec.docx", "", zip)).toBe(
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      );
+      expect(resolveSourcingMime("old.doc", "", ole)).toBe("application/msword");
+      expect(resolveSourcingMime("old.xls", "", ole)).toBe("application/vnd.ms-excel");
+      expect(resolveSourcingMime("malware.zip", "", zip)).toBeNull();
     });
 
     it("should detect authentic JPEG header", () => {

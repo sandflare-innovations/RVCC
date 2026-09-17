@@ -4,6 +4,7 @@ import { requireAdmin, writeAudit } from "../../auth";
 import { serializeRequirement } from "../lib/serialize";
 import { QuotationsService } from "../services/quotations.service";
 import { SourcingService } from "../services/sourcing.service";
+import { attachmentDto } from "../services/sourcing-files.service";
 
 export async function handleRequirementsList(
   sql: unknown,
@@ -36,16 +37,18 @@ export async function handleRequirementGet(
         createdByName: requirement.createdByAdmin?.name || requirement.createdByAdmin?.email || "",
         submittedByName: requirement.submittedByAdmin?.name || requirement.submittedByAdmin?.email || "",
       }),
-      attachments: requirement.attachments.map((a) => ({
-        id: a.id,
-        name: a.name,
-        url: `/api/requirements/${id}/files/${a.id}?kind=requirement`,
-        sizeBytes: a.sizeBytes,
-        mimeType: a.mimeType,
-        uploadedAt: a.uploadedAt.toISOString(),
-        previewable: ["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(a.mimeType || ""),
-        downloadPath: `/api/requirements/${id}/files/${a.id}?kind=requirement`,
-      })),
+      attachments: requirement.attachments.map((a) =>
+        attachmentDto({
+          id: a.id,
+          requirementId: id,
+          kind: "requirement",
+          fileName: a.name,
+          mimeType: a.mimeType,
+          fileSize: a.sizeBytes,
+          uploadedAt: a.uploadedAt,
+          category: "requirement",
+        })
+      ),
     },
     quotes: requirement.quotes.map((q) => ({
       id: q.id,
@@ -69,17 +72,19 @@ export async function handleRequirementGet(
       updatedAt: q.updatedAt.toISOString(),
       participantEmail: q.vendorUser.email,
       participantName: q.vendorUser.name,
-      attachments: q.attachments.map((a) => ({
-        id: a.id,
-        fileName: a.fileName,
-        fileUrl: `/api/requirements/${id}/files/${a.id}?kind=quote`,
-        fileSize: a.fileSize,
-        mimeType: a.mimeType,
-        kind: a.kind,
-        uploadedAt: a.uploadedAt.toISOString(),
-        previewable: ["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(a.mimeType || ""),
-        downloadPath: `/api/requirements/${id}/files/${a.id}?kind=quote`,
-      })),
+      attachments: q.attachments.map((a) =>
+        attachmentDto({
+          id: a.id,
+          requirementId: id,
+          kind: "quote",
+          fileName: a.fileName,
+          mimeType: a.mimeType,
+          fileSize: a.fileSize,
+          uploadedAt: a.uploadedAt,
+          category: "quotation",
+          vendorId: q.vendorUserId,
+        })
+      ),
       revisions: q.revisions.map((r) => ({
         id: r.id,
         price: r.price ? String(r.price) : null,

@@ -35,6 +35,7 @@ export type QuoteFormRequirement = {
   remarks: string | null;
   quoteStatus: "DRAFT" | "SUBMITTED" | null;
   attachments?: QuoteAttachmentItem[];
+  allowBidRevisions?: boolean;
 };
 
 function formatBytes(bytes: number): string {
@@ -71,6 +72,7 @@ export function QuoteForm({
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -145,12 +147,11 @@ export function QuoteForm({
   };
 
   const save = async (submit: boolean) => {
-    if (submit) {
-      const confirmed = window.confirm(
-        `Submit your bid of ${price} ${currency}? This is recorded immediately and ranked against other invited suppliers.`
-      );
-      if (!confirmed) return;
+    if (submit && !confirmOpen) {
+      setConfirmOpen(true);
+      return;
     }
+    setConfirmOpen(false);
     setBusy(true);
     setError(null);
     setSaved(false);
@@ -276,6 +277,7 @@ export function QuoteForm({
                     <FileText className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
+                    {att.downloadPath || (att.fileUrl && att.fileUrl !== "#") ? (
                     <a
                       href={att.downloadPath || att.fileUrl}
                       target="_blank"
@@ -285,6 +287,9 @@ export function QuoteForm({
                     >
                       {att.fileName}
                     </a>
+                    ) : (
+                      <span className="block truncate font-bold text-zinc-500">{att.fileName}</span>
+                    )}
                     <span className="text-[11px] font-medium text-zinc-400 tabular-nums">
                       {formatBytes(att.fileSize)}
                     </span>
@@ -387,8 +392,11 @@ export function QuoteForm({
       {isSubmitted && !isRevising ? (
         <div className="flex flex-col gap-3 pt-2">
           <p className="text-xs font-medium text-zinc-400">
-            Bid recorded. You can submit a lower revision or update files anytime before the deadline.
+            {requirement.allowBidRevisions === false
+              ? "Bid recorded. Revisions are not allowed on this requirement."
+              : "Bid recorded. You can submit a lower revision or update files anytime before the deadline."}
           </p>
+          {requirement.allowBidRevisions === false ? null : (
           <button
             type="button"
             onClick={() => setIsRevising(true)}
@@ -396,6 +404,7 @@ export function QuoteForm({
           >
             <Edit3 className="h-4 w-4" /> Revise Price / Update Documents
           </button>
+          )}
         </div>
       ) : (
         <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -443,6 +452,36 @@ export function QuoteForm({
           </button>
         </div>
       )}
+
+      {/* Confirm overlay — REST submit only happens after the vendor confirms. */}
+      {confirmOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
+            <h3 className="text-base font-bold text-zinc-950">Confirm bid submission</h3>
+            <p className="mt-2 text-sm text-zinc-600">
+              Submit {price} {currency}? This is recorded immediately and ranked against other invited suppliers.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                className="rounded-2xl bg-zinc-100 px-4 py-2 text-sm font-bold text-zinc-700"
+                onClick={() => setConfirmOpen(false)}
+                disabled={busy}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="rounded-2xl bg-brand-blue px-4 py-2 text-sm font-bold text-white"
+                onClick={() => void save(true)}
+                disabled={busy}
+              >
+                {busy ? "Submitting…" : "Confirm submit"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -277,17 +277,22 @@ export function VendorRequirementInteractive({
                   {Number(requirement.previousQuotation.amount).toLocaleString("en-US")} {requirement.previousQuotation.currency}
                   <span className="ml-2 text-xs font-medium text-zinc-500">via {requirement.previousQuotation.source}</span>
                 </p>
-                {(requirement.previousQuotation.attachments || []).map((att) => (
+                {(requirement.previousQuotation.attachments || []).map((att) => {
+                  const href = att.downloadPath || att.fileUrl;
+                  return href && href !== "#" ? (
                   <a
                     key={att.id}
-                    href={att.downloadPath || att.fileUrl}
+                    href={href}
                     target="_blank"
                     rel="noreferrer"
                     className="mt-2 block text-xs font-semibold text-brand-blue underline"
                   >
                     {att.fileName}
                   </a>
-                ))}
+                  ) : (
+                    <span key={att.id} className="mt-2 block text-xs text-zinc-500">{att.fileName}</span>
+                  );
+                })}
               </div>
             )}
             {(requirement.bidHistory || []).length > 0 && (

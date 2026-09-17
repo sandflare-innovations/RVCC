@@ -4,6 +4,7 @@ import { prisma } from "../../../lib/prisma";
 import { cuid } from "../../../lib/sql";
 import { computeMoneyBreakdown, toSarAmount } from "../lib/money";
 import { isEditableByProcurement } from "../lib/status-machine";
+import { attachmentDto } from "./sourcing-files.service";
 
 async function exchangeRateFor(currency: string): Promise<number> {
   if (currency === "SAR") return 1;
@@ -49,16 +50,20 @@ export class QuotationsService {
       receivedAt: row.receivedAt.toISOString(),
       recordedBy: row.recordedByAdmin?.name || row.recordedByAdmin?.email || "",
       vendorUser: row.vendorUser,
-      attachments: row.attachments.map((a) => ({
-        id: a.id,
-        fileName: a.fileName,
-        fileUrl: `/api/requirements/${row.requirementId}/files/${a.id}?kind=manual`,
-        mimeType: a.mimeType,
-        fileSize: a.fileSize,
-        uploadedAt: a.uploadedAt.toISOString(),
-        previewable: ["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(a.mimeType || ""),
-        downloadPath: `/api/requirements/${row.requirementId}/files/${a.id}?kind=manual`,
-      })),
+      attachments: row.attachments.map((a) =>
+        attachmentDto({
+          id: a.id,
+          requirementId: row.requirementId,
+          kind: "manual",
+          fileName: a.fileName,
+          mimeType: a.mimeType,
+          fileSize: a.fileSize,
+          uploadedAt: a.uploadedAt,
+          uploadedBy: row.recordedByAdmin?.name || row.recordedByAdmin?.email || null,
+          category: "quotation",
+          vendorId: row.vendorUserId,
+        })
+      ),
     };
   }
 

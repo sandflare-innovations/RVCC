@@ -28,15 +28,21 @@ pnpm install --frozen-lockfile
 echo "[vps-deploy] generating Prisma client"
 pnpm --filter api db:generate
 
-# Additive schema sync. nginx must disable buffering on SSE:
-#   location ~ /api/requirements/.*/live {
+# Additive schema sync. nginx must disable buffering on live SSE paths:
+#   location ~ /(api|admin|vendor)/requirements/.*/(live|live-bids) {
+#     proxy_http_version 1.1;
+#     proxy_set_header Connection "";
 #     proxy_buffering off;
 #     proxy_cache off;
+#     gzip off;
 #     proxy_read_timeout 3600s;
+#     proxy_send_timeout 3600s;
 #     add_header X-Accel-Buffering no;
 #   }
 echo "[vps-deploy] syncing Prisma schema to Postgres"
 pnpm --filter api exec prisma db push --skip-generate
+
+# RFQ documents need R2/UPLOADS on the API .env. Missing credentials return 503 "storage not configured".
 
 echo "[vps-deploy] building apps"
 pnpm build

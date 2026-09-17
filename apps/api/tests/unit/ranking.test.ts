@@ -11,12 +11,16 @@ vi.mock("../../src/lib/prisma", () => ({
     quote: {
       findUnique: vi.fn(),
     },
+    manualQuotation: {
+      findMany: vi.fn(),
+    },
   },
 }));
 
 describe("QA Auction & Procurement Tests: Dense Ranking, Anti-Collusion & Tie-Breakers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(prisma.manualQuotation.findMany).mockResolvedValue([]);
   });
 
   const mockRequirement = {
@@ -44,6 +48,8 @@ describe("QA Auction & Procurement Tests: Dense Ranking, Anti-Collusion & Tie-Br
         submittedAt: new Date("2026-09-01T10:00:00Z"),
         remarks: "Bidder 1 remarks",
         vendorUserId: "vendor-alpha",
+        attachments: [],
+        _count: { revisions: 1 },
         vendorUser: {
           id: "vendor-alpha",
           email: "alpha@vendor.sa",
@@ -62,6 +68,8 @@ describe("QA Auction & Procurement Tests: Dense Ranking, Anti-Collusion & Tie-Br
         submittedAt: new Date("2026-09-01T11:00:00Z"),
         remarks: "Bidder 2 remarks",
         vendorUserId: "vendor-beta",
+        attachments: [],
+        _count: { revisions: 1 },
         vendorUser: {
           id: "vendor-beta",
           email: "beta@vendor.sa",
@@ -80,6 +88,8 @@ describe("QA Auction & Procurement Tests: Dense Ranking, Anti-Collusion & Tie-Br
         submittedAt: new Date("2026-09-01T12:00:00Z"), // Submitted later than q-2
         remarks: "Bidder 3 remarks",
         vendorUserId: "vendor-gamma",
+        attachments: [],
+        _count: { revisions: 2 },
         vendorUser: {
           id: "vendor-gamma",
           email: "gamma@vendor.sa",
@@ -98,6 +108,8 @@ describe("QA Auction & Procurement Tests: Dense Ranking, Anti-Collusion & Tie-Br
         submittedAt: new Date("2026-09-01T09:00:00Z"),
         remarks: "Bidder 4 remarks",
         vendorUserId: "vendor-delta",
+        attachments: [],
+        _count: { revisions: 1 },
         vendorUser: {
           id: "vendor-delta",
           email: "delta@vendor.sa",
@@ -177,6 +189,41 @@ describe("QA Auction & Procurement Tests: Dense Ranking, Anti-Collusion & Tie-Br
       expect((comp as any).vendorEmail).toBeUndefined();
       expect((comp as any).vendorId).toBeUndefined();
     }
+  });
+
+  it("includes original quotation, target delta, and revisionCount on admin ranks", async () => {
+    vi.mocked(prisma.requirement.findUnique).mockResolvedValue({
+      ...mockRequirement,
+      sellingPrice: "48000.00",
+      revealTargetPrice: true,
+    } as any);
+    vi.mocked(prisma.manualQuotation.findMany).mockResolvedValue([
+      { vendorUserId: "vendor-alpha", totalPrice: "55000.00", amountSar: "55000.00" },
+    ] as any);
+
+    const result = await getRequirementRankings("req-101");
+    const quoteAlpha = result.adminQuotes.find((q) => q.vendorId === "vendor-alpha");
+    expect(quoteAlpha?.originalQuotation).toBe("55000.00");
+    // (55000 - 50000) / 55000 * 100 = 9.1
+    expect(quoteAlpha?.reductionFromOriginalPercent).toBe(9.1);
+    expect(quoteAlpha?.revisionCount).toBe(1);
+    expect(quoteAlpha?.differenceFromTarget).toBe(2000);
+  });
+
+  it("reveals the company target to vendors when revealTargetPrice is on", async () => {
+    vi.mocked(prisma.requirement.findUnique).mockResolvedValue({
+      ...mockRequirement,
+      sellingPrice: "48000.00",
+      revealTargetPrice: true,
+    } as any);
+    vi.mocked(prisma.quote.findUnique).mockResolvedValue({
+      status: "SUBMITTED",
+      newPrice: "50000.00",
+    } as any);
+
+    const vendorPayload = await buildVendorLiveBidsPayload("req-101", "vendor-alpha");
+    expect(vendorPayload?.targetPrice).toBe("48000.00");
+    expect(vendorPayload?.myRank).toBe(3);
   });
 
   it("should handle requirements with zero bids gracefully", async () => {

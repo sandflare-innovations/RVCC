@@ -18,10 +18,10 @@ function pad(n: number) {
 export function BidCountdown({
   closesAt,
   opensAt,
-  status,
 }: {
   closesAt?: string | null;
   opensAt?: string | null;
+  /** Kept for callers; phase is derived from opensAt/closesAt. */
   status?: string;
 }) {
   const [now, setNow] = useState(() => Date.now());
@@ -41,7 +41,8 @@ export function BidCountdown({
 
   const closeMs = new Date(closesAt).getTime() - now;
   const openMs = opensAt ? new Date(opensAt).getTime() - now : 0;
-  const notOpenYet = opensAt && openMs > 0 && status !== "OPEN";
+  // Stored status stays OPEN while the clock is still before opensAt (Scheduled).
+  const notOpenYet = Boolean(opensAt && openMs > 0);
   const remaining = notOpenYet ? openMs : closeMs;
   const { days, hours, minutes, seconds, expired } = parts(remaining);
 

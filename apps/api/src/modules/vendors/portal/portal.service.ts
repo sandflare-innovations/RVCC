@@ -612,6 +612,13 @@ export class VendorPortalService {
       vendorId,
     });
     const downloadPath = `/api/requirements/${requirementId}/quote/attachment/${attachment.id}`;
+    void writeAudit(null, {
+      vendorId,
+      action: "quote.attachment_uploaded",
+      entityType: "Requirement",
+      entityId: requirementId,
+      metadata: { attachmentId: attachment.id, fileName: attachment.fileName },
+    });
     return {
       ok: true,
       attachment: {

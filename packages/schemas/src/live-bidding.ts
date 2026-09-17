@@ -16,6 +16,11 @@ export const adminQuoteRankingItemSchema = z.object({
   vendorId: z.string(),
   isLeading: z.boolean(),
   varianceFromL1Percent: z.number().optional(),
+  originalQuotation: z.string().nullable().optional(),
+  reductionFromOriginalPercent: z.number().nullable().optional(),
+  differenceFromTarget: z.number().nullable().optional(),
+  differencePercent: z.number().nullable().optional(),
+  revisionCount: z.number().int().optional(),
 });
 export type AdminQuoteRankingItem = z.infer<typeof adminQuoteRankingItemSchema>;
 

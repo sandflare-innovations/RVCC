@@ -31,18 +31,23 @@ export function attachmentDto(input: {
   vendorId?: string | null;
 }) {
   const mimeType = input.mimeType || "application/octet-stream";
+  const downloadPath = `/api/requirements/${input.requirementId}/files/${input.id}?kind=${input.kind}`;
   return {
     id: input.id,
     fileName: input.fileName,
+    name: input.fileName,
     mimeType,
     fileSize: input.fileSize,
+    sizeBytes: input.fileSize,
     uploadedAt: input.uploadedAt.toISOString(),
     uploadedBy: input.uploadedBy || null,
     category: input.category || input.kind,
     requirementId: input.requirementId,
     vendorId: input.vendorId || null,
     previewable: isPreviewableMime(mimeType),
-    downloadPath: `/api/requirements/${input.requirementId}/files/${input.id}?kind=${input.kind}`,
+    downloadPath,
+    url: downloadPath,
+    fileUrl: downloadPath,
   };
 }
 
