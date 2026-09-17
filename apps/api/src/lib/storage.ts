@@ -335,6 +335,11 @@ function s3Configured(env: Env): boolean {
   );
 }
 
+/** Worker binds rvcc-secure-assets. Local R2 tokens are often scoped to R2_BUCKET_NAME only. */
+function secureS3BucketName(env: Env): string {
+  return env.R2_SECURE_BUCKET_NAME || env.R2_BUCKET_NAME || "rvcc-secure-assets";
+}
+
 export function uploadStorageConfigured(env: Env): boolean {
   return (
     Boolean(env.publicAssetsBucket) ||
@@ -423,7 +428,7 @@ export async function putSecureDocument(
     return;
   }
 
-  const bucketName = "rvcc-secure-assets";
+  const bucketName = secureS3BucketName(env);
   if (!s3Configured(env)) {
     throw new Error(`Upload storage not configured for secure assets (${bucketName})`);
   }
@@ -454,7 +459,7 @@ export async function deleteSecureDocument(env: Env, key: string): Promise<void>
     return;
   }
 
-  const bucketName = "rvcc-secure-assets";
+  const bucketName = secureS3BucketName(env);
   if (!s3Configured(env)) return;
 
   const client = new AwsClient({
@@ -478,7 +483,7 @@ export async function getSecureDocument(
     return { body, contentType };
   }
 
-  const bucketName = "rvcc-secure-assets";
+  const bucketName = secureS3BucketName(env);
   if (!s3Configured(env)) return null;
 
   const client = new AwsClient({
