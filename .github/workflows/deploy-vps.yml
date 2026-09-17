@@ -75,12 +75,35 @@ jobs:
             exit 1
           fi
 
+      # drone-ssh default protocol is tcp (IPv6 first). A broken AAAA record
+      # or Hostinger firewall dropping GitHub runner IPs shows up as:
+      #   dial tcp ***:22: i/o timeout
+      - name: Check VPS SSH port from GitHub
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -euo pipefail
+          host="${VPS_HOST%%:*}"
+          echo "Probing SSH on port 22 (IPv4). Host is a repository secret."
+          for i in 1 2 3 4 5 6; do
+            if nc -z -w 12 -4 "$host" 22; then
+              echo "SSH port reachable on attempt $i"
+              exit 0
+            fi
+            echo "attempt $i: SSH port not reachable yet"
+            sleep 8
+          done
+          echo "::error::GitHub Actions cannot open TCP 22 to VPS_HOST. Open SSH in the Hostinger firewall for 0.0.0.0/0 (keep key-only auth) or allow GitHub Actions IPs. Then re-run this workflow."
+          exit 1
+
       - name: Ensure the remote app directory exists
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          protocol: tcp4
+          timeout: 1m
           script: mkdir -p /home/developer/aj-rvcc
 
       - name: Sync source to the VPS
@@ -99,6 +122,8 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          protocol: tcp4
+          timeout: 1m
           command_timeout: 20m
           script: |
             cd /home/developer/aj-rvcc
