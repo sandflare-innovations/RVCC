@@ -35,7 +35,55 @@ export async function handleRegistrationGet(
 
   const registration = await RegistrationsService.loadRegistration(id);
   if (!registration) return json(env, request, { error: "Registration not found." }, 404);
-  return json(env, request, registration);
+
+  const attachments = (registration.attachments || []).map((a: Record<string, unknown>) => {
+    const attachmentId = String(a.id ?? "");
+    return {
+      ...a,
+      fileUrl: attachmentId
+        ? `/api/registrations/${id}/attachments/${attachmentId}`
+        : a.fileUrl,
+    };
+  });
+  return json(env, request, { ...registration, attachments });
+}
+
+export async function handleRegistrationAttachmentDownload(
+  sql: unknown,
+  env: Env,
+  request: Request,
+  registrationId: string,
+  attachmentId: string
+): Promise<Response> {
+  const { deny } = await requireAdmin(sql, env, request, "REVIEWER");
+  if (deny) return deny;
+
+  const { getSecureDocument, keyFromStoredUrl } = await import("../../../lib/storage");
+  const { prisma } = await import("../../../lib/prisma");
+
+  const row = await prisma.registrationAttachment.findFirst({
+    where: { id: attachmentId, registrationId },
+    select: { fileUrl: true, fileName: true, mimeType: true },
+  });
+  if (!row) return json(env, request, { error: "Attachment not found." }, 404);
+
+  const key = keyFromStoredUrl(env, row.fileUrl);
+  if (!key) return json(env, request, { error: "File is not available." }, 404);
+
+  const file = await getSecureDocument(env, key);
+  if (!file) return json(env, request, { error: "File is not available." }, 404);
+
+  const asDownload = new URL(request.url).searchParams.get("download") === "1";
+  const safeName = (row.fileName || "document").replace(/"/g, "");
+  return new Response(file.body, {
+    status: 200,
+    headers: {
+      "Content-Type": file.contentType || row.mimeType || "application/octet-stream",
+      "Content-Disposition": `${asDownload ? "attachment" : "inline"}; filename="${safeName}"`,
+      "Cache-Control": "private, no-store",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }
 
 export async function handleRegistrationReview(

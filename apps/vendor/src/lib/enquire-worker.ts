@@ -16,8 +16,11 @@ export async function enquireWorkerFetch(
 ): Promise<Response> {
   const { sessionToken, headers: initHeaders, ...rest } = init;
   const headers = new Headers(initHeaders);
+  const method = (rest.method || "GET").toUpperCase();
   const isFormData = typeof FormData !== "undefined" && rest.body instanceof FormData;
-  if (!isFormData && !headers.has("Content-Type")) {
+  const hasBody = rest.body != null && method !== "GET" && method !== "HEAD";
+  // Never invent JSON content-type for multipart/raw binary bodies.
+  if (hasBody && !isFormData && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 

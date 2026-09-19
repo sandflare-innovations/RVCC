@@ -28,10 +28,17 @@ export async function POST(request: Request) {
       );
     }
 
-    const form = await request.formData();
+    const contentType = request.headers.get("Content-Type") || "";
+    if (!contentType.includes("multipart/form-data")) {
+      return NextResponse.json({ error: "Expected multipart form data" }, { status: 400 });
+    }
+
+    // Forward raw multipart + boundary. Re-encoding FormData can strip MIME/filename
+    // and fail upstream File checks.
     const res = await enquireWorkerFetch("/attachments", {
       method: "POST",
-      body: form,
+      body: await request.arrayBuffer(),
+      headers: { "Content-Type": contentType },
       sessionToken: token,
     });
     const data = await res.json().catch(() => ({}));
