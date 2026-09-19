@@ -12,6 +12,46 @@ async function withRenewedSessionCookie(body: unknown, status = 200) {
   return out;
 }
 
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    if (!workerConfigured()) {
+      return NextResponse.json({ error: "API not configured" }, { status: 503 });
+    }
+    const { id } = await params;
+    const jar = await cookies();
+    const token = jar.get(ENQUIRE_COOKIE)?.value ?? null;
+    if (!token) {
+      return NextResponse.json(
+        { error: "Not authenticated — verify your email again." },
+        { status: 401 }
+      );
+    }
+
+    const download =
+      new URL(request.url).searchParams.get("download") === "1" ? "?download=1" : "";
+    const res = await enquireWorkerFetch(`/attachments/${encodeURIComponent(id)}${download}`, {
+      method: "GET",
+      sessionToken: token,
+    });
+    const outType = res.headers.get("Content-Type") || "application/octet-stream";
+    if (!outType.includes("application/json")) {
+      return new Response(res.body, {
+        status: res.status,
+        headers: {
+          "Content-Type": outType,
+          "Content-Disposition": res.headers.get("Content-Disposition") || "inline",
+          "Cache-Control": "private, no-store",
+        },
+      });
+    }
+    const data = await res.json().catch(() => ({}));
+    return NextResponse.json(data, { status: res.status });
+  } catch (err) {
+    console.error("[enquire/attachments GET]", err);
+    return NextResponse.json({ error: "Download failed" }, { status: 503 });
+  }
+}
+
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     if (!workerConfigured()) {

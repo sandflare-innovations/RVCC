@@ -61,6 +61,14 @@ export async function handleEnquireRequest(request: Request, env: Env): Promise<
     }
 
     const attachmentOne = path.match(/^\/attachments\/([^/]+)$/);
+    if (attachmentOne && request.method === "GET") {
+      return await attachmentHandlers.handleAttachmentDownload(
+        sql,
+        env,
+        request,
+        decodeURIComponent(attachmentOne[1]!)
+      );
+    }
     if (attachmentOne && request.method === "DELETE") {
       return await attachmentHandlers.handleAttachmentDelete(
         sql,

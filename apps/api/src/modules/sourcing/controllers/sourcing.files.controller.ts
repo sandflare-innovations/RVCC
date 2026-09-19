@@ -24,7 +24,8 @@ export async function handleRequirementAttachmentUpload(
     return json(env, request, { error: "Expected multipart form data." }, 400);
   }
   const file = form.get("file");
-  if (!(file instanceof File)) return json(env, request, { error: "File is required." }, 400);
+  const { isUploadFile } = await import("../../../lib/storage");
+  if (!isUploadFile(file)) return json(env, request, { error: "File is required." }, 400);
 
   try {
     const result = await SourcingFilesService.uploadRequirementFile(
@@ -65,7 +66,8 @@ export async function handleManualQuoteAttachmentUpload(
     return json(env, request, { error: "Expected multipart form data." }, 400);
   }
   const file = form.get("file");
-  if (!(file instanceof File)) return json(env, request, { error: "File is required." }, 400);
+  const { isUploadFile } = await import("../../../lib/storage");
+  if (!isUploadFile(file)) return json(env, request, { error: "File is required." }, 400);
 
   try {
     const result = await SourcingFilesService.uploadManualQuoteFile(

@@ -33,7 +33,11 @@ const draftPatchSchema = z.object({
 });
 
 function sessionFrom(request: Request): string | null {
-  return request.headers.get("X-Registration-Session");
+  // Vendor BFF sends X-Enquire-Session; accept legacy X-Registration-Session too.
+  return (
+    request.headers.get("X-Enquire-Session") ||
+    request.headers.get("X-Registration-Session")
+  );
 }
 
 export async function resolveEnquireRegistration(
@@ -258,7 +262,8 @@ export async function handleOtpVerify(sql: unknown, env: Env, request: Request):
 export async function handleDraftGet(sql: unknown, env: Env, request: Request): Promise<Response> {
   const registration = await resolveEnquireRegistration(sql, env, request);
   if (!registration) return json(env, request, { error: "Not authenticated" }, 401);
-  return json(env, request, { registration });
+  const { withClientAttachmentUrls } = await import("./attachments");
+  return json(env, request, { registration: withClientAttachmentUrls(registration) });
 }
 
 export async function handleDraftPatch(
@@ -433,7 +438,11 @@ export async function handleDraftPatch(
   }
 
   const registration = await loadRegistration(sql, id);
-  return json(env, request, { ok: true, registration });
+  const { withClientAttachmentUrls } = await import("./attachments");
+  return json(env, request, {
+    ok: true,
+    registration: registration ? withClientAttachmentUrls(registration) : registration,
+  });
 }
 
 export async function handleSubmit(_sql: unknown, env: Env, request: Request): Promise<Response> {
