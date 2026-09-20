@@ -340,6 +340,23 @@ function secureS3BucketName(env: Env): string {
   return env.R2_SECURE_BUCKET_NAME || env.R2_BUCKET_NAME || "rvcc-secure-assets";
 }
 
+function s3Client(env: Env): AwsClient {
+  return new AwsClient({
+    accessKeyId: env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: env.R2_SECRET_ACCESS_KEY!,
+    service: "s3",
+    region: "auto",
+  });
+}
+
+/** aws4fetch + Node fetch need a real ArrayBuffer, not a Uint8Array view. */
+function asFetchBody(body: ArrayBuffer | ReadableStream | Uint8Array): BodyInit {
+  if (body instanceof Uint8Array) {
+    return body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) as ArrayBuffer;
+  }
+  return body as BodyInit;
+}
+
 export function uploadStorageConfigured(env: Env): boolean {
   return (
     Boolean(env.publicAssetsBucket) ||
@@ -374,18 +391,20 @@ export async function putPublicAsset(
     throw new Error(`Upload storage not configured for public assets (${bucketName})`);
   }
 
-  const client = new AwsClient({
-    accessKeyId: env.R2_ACCESS_KEY_ID!,
-    secretAccessKey: env.R2_SECRET_ACCESS_KEY!,
-  });
+  const client = s3Client(env);
+  const payload = asFetchBody(body);
   const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
+  const headers: Record<string, string> = {
+    "Content-Type": contentType,
+    "Cache-Control": "public, max-age=31536000, immutable",
+  };
+  if (payload instanceof ArrayBuffer) {
+    headers["Content-Length"] = String(payload.byteLength);
+  }
   const res = await client.fetch(url, {
     method: "PUT",
-    body: body as BodyInit,
-    headers: {
-      "Content-Type": contentType,
-      "Cache-Control": "public, max-age=31536000, immutable",
-    },
+    body: payload,
+    headers,
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
@@ -433,18 +452,20 @@ export async function putSecureDocument(
     throw new Error(`Upload storage not configured for secure assets (${bucketName})`);
   }
 
-  const client = new AwsClient({
-    accessKeyId: env.R2_ACCESS_KEY_ID!,
-    secretAccessKey: env.R2_SECRET_ACCESS_KEY!,
-  });
+  const client = s3Client(env);
+  const payload = asFetchBody(body);
   const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
+  const headers: Record<string, string> = {
+    "Content-Type": contentType,
+    "Cache-Control": "private, no-cache, no-store",
+  };
+  if (payload instanceof ArrayBuffer) {
+    headers["Content-Length"] = String(payload.byteLength);
+  }
   const res = await client.fetch(url, {
     method: "PUT",
-    body: body as BodyInit,
-    headers: {
-      "Content-Type": contentType,
-      "Cache-Control": "private, no-cache, no-store",
-    },
+    body: payload,
+    headers,
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => "");

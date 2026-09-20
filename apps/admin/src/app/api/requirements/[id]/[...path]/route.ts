@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { adminWorkerFetch } from "@/lib/admin-api";
 import { ADMIN_COOKIE } from "@/lib/constants";
 
+export const maxDuration = 60;
+
 async function proxy(request: Request, id: string, path: string[]) {
   const jar = await cookies();
   const token = jar.get(ADMIN_COOKIE)?.value;

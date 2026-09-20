@@ -101,7 +101,12 @@ export class SourcingFilesService {
     if ("error" in validated) return validated;
 
     const key = storageKeyForRequirement(requirementId, validated.fileName);
-    await putUpload(env, key, validated.bytes, validated.mimeType);
+    try {
+      await putUpload(env, key, validated.bytes, validated.mimeType);
+    } catch (err) {
+      console.error("[requirement attachment] upload", err);
+      return { error: "Failed to store document.", status: 500 as const };
+    }
     const row = await prisma.requirementAttachment.create({
       data: {
         id: cuid(),
@@ -146,7 +151,12 @@ export class SourcingFilesService {
     if ("error" in validated) return validated;
 
     const key = storageKeyForManualQuote(requirementId, quotationId, validated.fileName);
-    await putUpload(env, key, validated.bytes, validated.mimeType);
+    try {
+      await putUpload(env, key, validated.bytes, validated.mimeType);
+    } catch (err) {
+      console.error("[manual quote attachment] upload", err);
+      return { error: "Failed to store document.", status: 500 as const };
+    }
     const row = await prisma.manualQuotationAttachment.create({
       data: {
         id: cuid(),

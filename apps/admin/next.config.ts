@@ -2,6 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // RFQ / quote files can be up to 25MB. Next 16 proxy otherwise buffers a
+  // truncated body and the API reports "Failed to store document."
+  serverActions: {
+    bodySizeLimit: "25mb",
+  },
+  experimental: {
+    proxyClientMaxBodySize: "25mb",
+  },
   compiler: {
     removeConsole:
       process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
