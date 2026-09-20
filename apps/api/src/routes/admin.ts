@@ -41,6 +41,7 @@ import {
 import {
   handleRegistrationsList,
   handleRegistrationGet,
+  handleRegistrationAttachmentDownload,
   handleRegistrationReview,
   handleRegistrationDelete,
   handleRegistrationsExportCsv,
@@ -161,6 +162,17 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
     const regReview = path.match(/^\/registrations\/([^/]+)\/review$/);
     if (regReview && request.method === "POST") {
       return await handleRegistrationReview(sql, env, request, decodeURIComponent(regReview[1]!));
+    }
+
+    const regAttachment = path.match(/^\/registrations\/([^/]+)\/attachments\/([^/]+)$/);
+    if (regAttachment && request.method === "GET") {
+      return await handleRegistrationAttachmentDownload(
+        sql,
+        env,
+        request,
+        decodeURIComponent(regAttachment[1]!),
+        decodeURIComponent(regAttachment[2]!)
+      );
     }
 
     const regOne = path.match(/^\/registrations\/([^/]+)$/);

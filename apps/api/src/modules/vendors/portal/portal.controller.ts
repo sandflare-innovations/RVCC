@@ -91,7 +91,8 @@ export class VendorPortalController {
     }
 
     const file = form.get("file");
-    if (!(file instanceof File)) {
+    const { isUploadFile } = await import("../../../lib/storage");
+    if (!isUploadFile(file)) {
       return json(env, request, { error: "File is required" }, 400);
     }
 

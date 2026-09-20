@@ -2,16 +2,19 @@ import type { Env } from "../../config/env";
 import { json } from "../../lib/http";
 import {
   deleteUpload,
-  extractStorageKeyFromUrl,
-  isRegistrationSection,
-  MAX_REGISTRATION_ATTACHMENT_BYTES,
-  publicUploadUrl,
-  putUpload,
-  storageKeyForRegistration,
-  uploadStorageConfigured,
-  validateUploadFile,
   detectMagicMime,
+  getSecureDocument,
+  isRegistrationSection,
+  isUploadFile,
+  keyFromStoredUrl,
+  MAX_REGISTRATION_ATTACHMENT_BYTES,
+  putUpload,
+  sanitizeFileName,
+  storageKeyForRegistration,
+  storedUrlForKey,
+  uploadStorageConfigured,
   validateUploadBytes,
+  validateUploadFile,
 } from "../../lib/storage";
 import { cuid } from "../../lib/sql";
 import { loadRegistration } from "./db";
@@ -22,6 +25,24 @@ type ResolveRegistration = (
   env: Env,
   request: Request
 ) => Promise<Awaited<ReturnType<typeof loadRegistration>>>;
+
+function clientAttachmentUrl(attachmentId: string): string {
+  return `/api/enquire/attachments/${attachmentId}`;
+}
+
+function withClientAttachmentUrls(
+  registration: NonNullable<Awaited<ReturnType<typeof loadRegistration>>>
+) {
+  const attachments = (registration.attachments || []).map((a: Record<string, unknown>) => {
+    const id = String(a.id ?? "");
+    return {
+      ...a,
+      fileUrl: id ? clientAttachmentUrl(id) : a.fileUrl,
+      downloadPath: id ? clientAttachmentUrl(id) : undefined,
+    };
+  });
+  return { ...registration, attachments };
+}
 
 export function createAttachmentHandlers(resolveRegistration: ResolveRegistration) {
   return {
@@ -56,14 +77,15 @@ export function createAttachmentHandlers(resolveRegistration: ResolveRegistratio
       if (!isRegistrationSection(section)) {
         return json(env, request, { error: "Invalid attachment section" }, 400);
       }
-      if (!(file instanceof File)) {
+      if (!isUploadFile(file)) {
         return json(env, request, { error: "File is required" }, 400);
       }
 
+      const fileName = sanitizeFileName(file.name || "document.pdf");
       const fileError = validateUploadFile(file, { maxBytes: MAX_REGISTRATION_ATTACHMENT_BYTES });
       if (fileError) return json(env, request, { error: fileError }, 400);
 
-      const key = storageKeyForRegistration(registration.id, section, file.name);
+      const key = storageKeyForRegistration(registration.id, section, fileName);
       const bytes = await file.arrayBuffer();
       const byteError = validateUploadBytes(new Uint8Array(bytes), {
         maxBytes: MAX_REGISTRATION_ATTACHMENT_BYTES,
@@ -81,21 +103,26 @@ export function createAttachmentHandlers(resolveRegistration: ResolveRegistratio
       }
 
       const id = cuid();
-      const fileUrl = publicUploadUrl(env, key);
+      // Secure bucket — never expose a public CDN URL for KYC docs.
+      const fileUrl = storedUrlForKey(key);
 
       await prisma.registrationAttachment.create({
         data: {
           id,
           registrationId: registration.id,
           section,
-          fileName: file.name,
+          fileName,
           fileUrl,
           mimeType,
         },
       });
 
       const updated = await loadRegistration(sql, registration.id);
-      return json(env, request, { ok: true, attachmentId: id, registration: updated });
+      return json(env, request, {
+        ok: true,
+        attachmentId: id,
+        registration: updated ? withClientAttachmentUrls(updated) : updated,
+      });
     },
 
     async handleAttachmentDelete(
@@ -124,7 +151,7 @@ export function createAttachmentHandlers(resolveRegistration: ResolveRegistratio
 
       if (!row) return json(env, request, { error: "Attachment not found" }, 404);
 
-      const key = extractStorageKeyFromUrl(env, row.fileUrl);
+      const key = keyFromStoredUrl(env, row.fileUrl);
       if (key) {
         try {
           await deleteUpload(env, key);
@@ -136,7 +163,48 @@ export function createAttachmentHandlers(resolveRegistration: ResolveRegistratio
       await prisma.registrationAttachment.delete({ where: { id: attachmentId } });
 
       const updated = await loadRegistration(sql, registration.id);
-      return json(env, request, { ok: true, registration: updated });
+      return json(env, request, {
+        ok: true,
+        registration: updated ? withClientAttachmentUrls(updated) : updated,
+      });
+    },
+
+    async handleAttachmentDownload(
+      sql: unknown,
+      env: Env,
+      request: Request,
+      attachmentId: string
+    ): Promise<Response> {
+      const registration = await resolveRegistration(sql, env, request);
+      if (!registration) {
+        return json(env, request, { error: "Not authenticated — verify your email again." }, 401);
+      }
+
+      const row = await prisma.registrationAttachment.findFirst({
+        where: { id: attachmentId, registrationId: registration.id },
+        select: { id: true, fileUrl: true, fileName: true, mimeType: true },
+      });
+      if (!row) return json(env, request, { error: "Attachment not found" }, 404);
+
+      const key = keyFromStoredUrl(env, row.fileUrl);
+      if (!key) return json(env, request, { error: "File is not available" }, 404);
+
+      const file = await getSecureDocument(env, key);
+      if (!file) return json(env, request, { error: "File is not available" }, 404);
+
+      const asDownload = new URL(request.url).searchParams.get("download") === "1";
+      const safeName = (row.fileName || "document").replace(/"/g, "");
+      return new Response(file.body, {
+        status: 200,
+        headers: {
+          "Content-Type": file.contentType || row.mimeType || "application/octet-stream",
+          "Content-Disposition": `${asDownload ? "attachment" : "inline"}; filename="${safeName}"`,
+          "Cache-Control": "private, no-store",
+          "X-Content-Type-Options": "nosniff",
+        },
+      });
     },
   };
 }
+
+export { withClientAttachmentUrls };

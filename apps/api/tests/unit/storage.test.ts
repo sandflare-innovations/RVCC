@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   detectMagicMime,
+  isUploadFile,
   validateUploadBytes,
   validateUploadFile,
   sanitizeFileName,
@@ -72,6 +73,44 @@ describe("QA Security Tests: File Upload & Storage Key Sanitization", () => {
         allowedMimes: new Set(["application/pdf"]),
       });
       expect(err).toMatch(/invalid or not allowed/i);
+    });
+  });
+
+  describe("Upload file metadata checks", () => {
+    it("should duck-type File-like multipart parts", () => {
+      const fake = {
+        name: "cr.pdf",
+        size: 12,
+        type: "application/pdf",
+        arrayBuffer: async () => new ArrayBuffer(12),
+      };
+      expect(isUploadFile(fake)).toBe(true);
+      expect(isUploadFile("not-a-file")).toBe(false);
+      expect(isUploadFile(null)).toBe(false);
+    });
+
+    it("should allow empty or octet-stream MIME (magic bytes are authoritative)", () => {
+      const emptyType = {
+        name: "cr.pdf",
+        size: 100,
+        type: "",
+      } as File;
+      const octet = {
+        name: "cr.pdf",
+        size: 100,
+        type: "application/octet-stream",
+      } as File;
+      expect(validateUploadFile(emptyType, { maxBytes: 1024 })).toBeNull();
+      expect(validateUploadFile(octet, { maxBytes: 1024 })).toBeNull();
+    });
+
+    it("should still reject disallowed declared MIME types", () => {
+      const exe = {
+        name: "malware.exe",
+        size: 100,
+        type: "application/x-msdownload",
+      } as File;
+      expect(validateUploadFile(exe, { maxBytes: 1024 })).toMatch(/not allowed/i);
     });
   });
 

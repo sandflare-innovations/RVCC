@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { Env } from "../../config/env";
 import {
+  handleRegistrationAttachmentDownload,
   handleRegistrationDelete,
   handleRegistrationGet,
   handleRegistrationReview,
@@ -35,6 +36,15 @@ export function createVendorsAdminRouter(env: Env) {
   router.get("/registrations", (c) => handleRegistrationsList(null, env, c.req.raw));
   router.get("/registrations/export", (c) => handleRegistrationsExportCsv(null, env, c.req.raw));
   router.get("/registrations/:id", (c) => handleRegistrationGet(null, env, c.req.raw, c.req.param("id")));
+  router.get("/registrations/:id/attachments/:attachmentId", (c) =>
+    handleRegistrationAttachmentDownload(
+      null,
+      env,
+      c.req.raw,
+      c.req.param("id"),
+      c.req.param("attachmentId")
+    )
+  );
   router.post("/registrations/:id/review", (c) => handleRegistrationReview(null, env, c.req.raw, c.req.param("id")));
   router.delete("/registrations/:id", (c) => handleRegistrationDelete(null, env, c.req.raw, c.req.param("id")));
 
@@ -57,11 +67,22 @@ export function createVendorPortalRouter(env: Env) {
   router.post("/notifications", (c) => handleVendorNotificationsMarkRead(null, env, c.req.raw));
   router.get("/requirements", (c) => handleRequirementsList(null, env, c.req.raw));
   router.get("/requirements/:id", (c) => handleRequirementGet(null, env, c.req.raw, c.req.param("id")));
+  router.put("/requirements/:id/quote", (c) => handleQuoteSave(null, env, c.req.raw, c.req.param("id")));
   router.post("/requirements/:id/quote", (c) => handleQuoteSave(null, env, c.req.raw, c.req.param("id")));
-  router.post("/requirements/:id/attachments", (c) =>
+  router.post("/requirements/:id/quote/attachment", (c) =>
     handleQuoteAttachmentUpload(null, env, c.req.raw, c.req.param("id"))
   );
-  router.delete("/requirements/:id/attachments/:attachmentId", (c) =>
+  router.get("/requirements/:id/quote/attachment/:attachmentId", async (c) => {
+    const { handleQuoteAttachmentDownload } = await import("./portal/portal.controller");
+    return handleQuoteAttachmentDownload(
+      null,
+      env,
+      c.req.raw,
+      c.req.param("id"),
+      c.req.param("attachmentId")
+    );
+  });
+  router.delete("/requirements/:id/quote/attachment/:attachmentId", (c) =>
     handleQuoteAttachmentDelete(null, env, c.req.raw, c.req.param("id"), c.req.param("attachmentId"))
   );
 

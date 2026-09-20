@@ -639,6 +639,17 @@ export function validateUploadBytes(
   return null;
 }
 
+/** Duck-type upload parts — `instanceof File` fails across undici/Worker realms. */
+export function isUploadFile(value: unknown): value is File {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as Blob).arrayBuffer === "function" &&
+    typeof (value as Blob).size === "number" &&
+    typeof (value as File).name === "string"
+  );
+}
+
 export function validateUploadFile(
   file: File,
   opts: { maxBytes: number; allowedMimes?: Set<string> }
@@ -648,7 +659,10 @@ export function validateUploadFile(
     const mb = Math.round(opts.maxBytes / (1024 * 1024));
     return `File must be ${mb} MB or smaller`;
   }
-  const mime = file.type || "application/octet-stream";
+  const mime = (file.type || "").split(";")[0]?.trim() || "";
+  // Empty / generic types are common after BFF multipart forwarding — magic-byte
+  // validation (validateUploadBytes) is the authoritative check.
+  if (!mime || mime === "application/octet-stream") return null;
   const allowed = opts.allowedMimes ?? ALLOWED_UPLOAD_MIMES;
   if (!allowed.has(mime)) {
     return "File type not allowed";
