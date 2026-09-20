@@ -9,7 +9,6 @@ import {
   adminCookieOptions,
   expiredCookieOptions,
 } from "@/lib/constants";
-import { ADMIN_PROXY_MATCHER } from "@/lib/proxy-matcher";
 
 /**
  * Cheap cookie-presence gate. Real auth is /auth/me via apps/api.
@@ -69,5 +68,8 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [ADMIN_PROXY_MATCHER],
+  // Literal string required by Next.js; keep in sync with src/lib/proxy-matcher.ts
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|manifest.webmanifest|sw.js|offline.html|icons/|images/|fonts/|api/).*)",
+  ],
 };

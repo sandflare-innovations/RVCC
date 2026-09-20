@@ -1,4 +1,4 @@
-/** Next.js proxy matcher. API uploads must stay out so large RFQ files are not buffered/truncated. */
+/** Keep in sync with the literal matcher in src/proxy.ts (Next requires a static string). */
 export const ADMIN_PROXY_MATCHER =
   "/((?!_next/static|_next/image|favicon.ico|manifest.json|manifest.webmanifest|sw.js|offline.html|icons/|images/|fonts/|api/).*)";
 
