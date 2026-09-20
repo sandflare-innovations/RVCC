@@ -13,8 +13,8 @@ workers_dev = true
 crons = ["*/5 * * * *"]
 
 [vars]
-ALLOWED_ORIGINS = "https://rvcc-enquiry.vercel.app,https://rvcc-vendor.vercel.app,https://rvcc-admin.vercel.app,https://rvcc-procurement.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002"
-VENDOR_PORTAL_URL = "https://rvcc-vendor.vercel.app"
+ALLOWED_ORIGINS = "https://site.147-93-105-74.nip.io,https://vendor.147-93-105-74.nip.io,https://admin.147-93-105-74.nip.io,https://procurement.147-93-105-74.nip.io,http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003"
+VENDOR_PORTAL_URL = "https://vendor.147-93-105-74.nip.io"
 # Optional Hyperdrive (production): create in Cloudflare dashboard, then add:
 # [[hyperdrive]]
 # binding = "HYPERDRIVE"

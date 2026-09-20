@@ -32,8 +32,8 @@ function toAppEnv(env: WorkerEnv): import("./config/env").Env {
     DATABASE_READ_URL: env.DATABASE_READ_URL?.trim() || undefined,
     ALLOWED_ORIGINS:
       env.ALLOWED_ORIGINS?.trim() ||
-      "https://rvcc-enquiry.vercel.app,https://rvcc-vendor.vercel.app,https://rvcc-admin.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002",
-    VENDOR_PORTAL_URL: (env.VENDOR_PORTAL_URL || "https://rvcc-vendor.vercel.app").replace(
+      "https://site.147-93-105-74.nip.io,https://vendor.147-93-105-74.nip.io,https://admin.147-93-105-74.nip.io,https://procurement.147-93-105-74.nip.io,http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003",
+    VENDOR_PORTAL_URL: (env.VENDOR_PORTAL_URL || "https://vendor.147-93-105-74.nip.io").replace(
       /\/$/,
       ""
     ),

@@ -79,15 +79,13 @@ export function loadEnv(): AppEnv {
     DATABASE_READ_URL: process.env.DATABASE_READ_URL?.trim() || undefined,
     ALLOWED_ORIGINS:
       process.env.ALLOWED_ORIGINS?.trim() ||
-      "https://rvcc-enquiry.vercel.app,https://rvcc-vendor.vercel.app,https://rvcc-admin.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002",
-    VENDOR_PORTAL_URL: (process.env.VENDOR_PORTAL_URL || "https://rvcc-vendor.vercel.app").replace(
-      /\/$/,
-      ""
-    ),
-    ADMIN_PORTAL_URL: (process.env.ADMIN_PORTAL_URL || "https://rvcc-admin.vercel.app").replace(
-      /\/$/,
-      ""
-    ),
+      "https://site.147-93-105-74.nip.io,https://vendor.147-93-105-74.nip.io,https://admin.147-93-105-74.nip.io,https://procurement.147-93-105-74.nip.io,http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003",
+    VENDOR_PORTAL_URL: (
+      process.env.VENDOR_PORTAL_URL || "https://vendor.147-93-105-74.nip.io"
+    ).replace(/\/$/, ""),
+    ADMIN_PORTAL_URL: (
+      process.env.ADMIN_PORTAL_URL || "https://admin.147-93-105-74.nip.io"
+    ).replace(/\/$/, ""),
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL?.trim() || undefined,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN?.trim() || undefined,
     SMTP_HOST: process.env.SMTP_HOST,

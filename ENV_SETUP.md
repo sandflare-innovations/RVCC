@@ -41,22 +41,32 @@ cp apps/api/.env.example apps/api/.env
 
 ## 3. Production Deployment Matrix
 
-### A. Vercel Projects (Frontend Apps) — Git auto-deploy is off
+### A. VPS frontends (PM2) — live production
 
-`git.deploymentEnabled` is `false` in each app `vercel.json` and the repo-root `vercel.json`. Frontends ship through **VPS CI/CD**, not Vercel Git. Disconnect the GitHub app in the Vercel dashboard if checks still appear.
+Production hosts (nip.io → VPS):
 
-If a project is still hosted on Vercel for a while, keep these variables in **Project Settings → Environment Variables**:
+| App | URL |
+| --- | --- |
+| Site | `https://site.147-93-105-74.nip.io` |
+| Vendor | `https://vendor.147-93-105-74.nip.io` |
+| Admin | `https://admin.147-93-105-74.nip.io` |
+| Procurement | `https://procurement.147-93-105-74.nip.io` |
+| API | `https://api.147-93-105-74.nip.io` |
 
-| App                    | Required Environment Variables                                                                                                                                                                       | Notes                                                     |
-| :--------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- |
-| **`apps/web`**         | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`<br>`NEXT_PUBLIC_ASSET_CDN_URL`<br>`NEXT_PUBLIC_PDF_CDN_URL`<br>`DOC_PASSWORD`               | Set `DOC_PASSWORD` for document download security PIN.    |
-| **`apps/admin`**       | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`<br>`UPSTASH_REDIS_REST_URL`<br>`UPSTASH_REDIS_REST_TOKEN`<br>`NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Upstash Redis is used for fast cross-lambda auth caching. |
-| **`apps/vendor`**      | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`<br>`UPSTASH_REDIS_REST_URL`<br>`UPSTASH_REDIS_REST_TOKEN`                                   | Upstash Redis is used for vendor session caching.         |
-| **`apps/procurement`** | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`                                                                                             | Cross-portal navigation links.                            |
+Put these in each app’s **`.env.production`** on the server (never commit):
 
-### B. Cloudflare Workers (`apps/api`)
+| App | Required Environment Variables | Notes |
+| --- | --- | --- |
+| **`apps/web`** | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`<br>`NEXT_PUBLIC_ASSET_CDN_URL`<br>`NEXT_PUBLIC_PDF_CDN_URL`<br>`DOC_PASSWORD` | `API_URL=https://api.147-93-105-74.nip.io` |
+| **`apps/admin`** | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`<br>`UPSTASH_REDIS_REST_URL`<br>`UPSTASH_REDIS_REST_TOKEN`<br>`NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Redis optional but recommended for live bidding fan-out |
+| **`apps/vendor`** | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL`<br>`UPSTASH_REDIS_REST_URL`<br>`UPSTASH_REDIS_REST_TOKEN` | Same Redis recommendation |
+| **`apps/procurement`** | `API_URL`<br>`NEXT_PUBLIC_SITE_URL`<br>`NEXT_PUBLIC_VENDOR_PORTAL_URL`<br>`NEXT_PUBLIC_ADMIN_PORTAL_URL` | Cross-portal navigation links |
 
-Production API runs on Cloudflare Workers. Configure secrets via Wrangler CLI or Cloudflare Dashboard:
+Vercel is **not** used for production. `vercel.json` files were removed from the repo.
+
+### B. Cloudflare Workers (`apps/api`) — optional
+
+The API can also run on Cloudflare Workers. **Live production fronts the VPS API** above. If you still publish a Worker, configure secrets via Wrangler:
 
 ```bash
 # Required Database URL (or Hyperdrive connection string)
