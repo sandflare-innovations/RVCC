@@ -68,7 +68,8 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
+  // Literal string required by Next.js; keep in sync with src/lib/proxy-matcher.ts
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json|manifest.webmanifest|sw.js|offline.html|icons/|images/|fonts/).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|manifest.webmanifest|sw.js|offline.html|icons/|images/|fonts/|api/).*)",
   ],
 };
