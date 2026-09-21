@@ -37,6 +37,7 @@ export type VendorRequirementDetail = QuoteFormRequirement & {
     receivedAt: string;
     attachments?: { id: string; fileName: string; downloadPath?: string; fileUrl?: string }[];
   } | null;
+  canLiveBid?: boolean;
 };
 
 export function VendorRequirementInteractive({
@@ -48,7 +49,8 @@ export function VendorRequirementInteractive({
   action: string;
   closed: boolean;
 }) {
-  const { data, status, refresh } = useVendorLiveBidding(requirement.id);
+  const sealedOffline = Boolean(requirement.previousQuotation) || requirement.canLiveBid === false;
+  const { data, status, refresh } = useVendorLiveBidding(requirement.id, null, !sealedOffline);
   const [copied, setCopied] = useState(false);
 
   const deadline = describeDeadline(requirement.closesAt);
@@ -123,7 +125,9 @@ export function VendorRequirementInteractive({
               )}
             </div>
             <p className="mt-1 text-xs font-medium text-zinc-400">
-              {myRank === 1
+              {sealedOffline
+                ? "Live ranking is closed for your company on this RFQ"
+                : myRank === 1
                 ? "Lowest commercial offer in market"
                 : myRank
                   ? "Real-time ranking standing"
@@ -143,8 +147,15 @@ export function VendorRequirementInteractive({
             </div>
           </div>
           <div className="mt-4">
-            <p suppressHydrationWarning className="text-2xl font-black tracking-tight text-zinc-950 tabular-nums">
-              {myPrice ? (
+            <p className="text-2xl font-black tracking-tight text-zinc-950 tabular-nums">
+              {sealedOffline && requirement.previousQuotation ? (
+                <>
+                  {Number(requirement.previousQuotation.amount).toLocaleString("en-US")}{" "}
+                  <span className="text-xs font-bold text-brand-blue">
+                    {requirement.previousQuotation.currency}
+                  </span>
+                </>
+              ) : myPrice ? (
                 <>
                   {Number(myPrice).toLocaleString("en-US")}{" "}
                   <span className="text-xs font-bold text-brand-blue">{requirement.currency}</span>
@@ -171,14 +182,18 @@ export function VendorRequirementInteractive({
           </div>
           <div className="mt-4">
             <p className="text-2xl font-black tracking-tight text-zinc-950">
-              {requirement.quoteStatus === "SUBMITTED"
+              {sealedOffline
+                ? "Recorded"
+                : requirement.quoteStatus === "SUBMITTED"
                 ? "Submitted"
                 : requirement.quoteStatus === "DRAFT"
                   ? "Draft Saved"
                   : "Unquoted"}
             </p>
             <p className="mt-1 text-xs font-medium text-zinc-400">
-              {requirement.quoteStatus === "SUBMITTED"
+              {sealedOffline
+                ? "Offline quotation already on file"
+                : requirement.quoteStatus === "SUBMITTED"
                 ? "Active in competition"
                 : requirement.quoteStatus === "DRAFT"
                   ? "Ready to submit"
@@ -267,55 +282,77 @@ export function VendorRequirementInteractive({
             </div>
           </section>
 
-          {/* Card B: Live cockpit — target, countdown, rank, own history */}
+          {/* Card B: Live cockpit — hidden when an offline quotation is already on file */}
           <section className="overflow-hidden rounded-3xl bg-white p-7 shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)]">
-            <LiveBiddingCockpit data={data} status={status} currency={requirement.currency} />
-            {requirement.previousQuotation && (
-              <div className="mt-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
-                <p className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">Your previous quotation</p>
-                <p className="mt-1 text-sm font-bold text-zinc-900">
-                  {Number(requirement.previousQuotation.amount).toLocaleString("en-US")} {requirement.previousQuotation.currency}
-                  <span className="ml-2 text-xs font-medium text-zinc-500">via {requirement.previousQuotation.source}</span>
+            {sealedOffline ? (
+              <div className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
+                <p className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">
+                  Recorded quotation
                 </p>
-                {(requirement.previousQuotation.attachments || []).map((att) => {
-                  const href = att.downloadPath || att.fileUrl;
-                  return href && href !== "#" ? (
-                  <a
-                    key={att.id}
-                    href={href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-2 block text-xs font-semibold text-brand-blue underline"
-                  >
-                    {att.fileName}
-                  </a>
-                  ) : (
-                    <span key={att.id} className="mt-2 block text-xs text-zinc-500">{att.fileName}</span>
-                  );
-                })}
+                {requirement.previousQuotation ? (
+                  <>
+                    <p className="mt-1 text-sm font-bold text-zinc-900">
+                      {Number(requirement.previousQuotation.amount).toLocaleString("en-US")}{" "}
+                      {requirement.previousQuotation.currency}
+                      <span className="ml-2 text-xs font-medium text-zinc-500">
+                        via {requirement.previousQuotation.source}
+                      </span>
+                    </p>
+                    {(requirement.previousQuotation.attachments || []).map((att) => {
+                      const href = att.downloadPath || att.fileUrl;
+                      return href && href !== "#" ? (
+                        <a
+                          key={att.id}
+                          href={href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-2 block text-xs font-semibold text-brand-blue underline"
+                        >
+                          {att.fileName}
+                        </a>
+                      ) : (
+                        <span key={att.id} className="mt-2 block text-xs text-zinc-500">
+                          {att.fileName}
+                        </span>
+                      );
+                    })}
+                  </>
+                ) : (
+                  <p className="mt-1 text-sm text-zinc-600">
+                    RVCC already recorded a quotation for your company on this RFQ.
+                  </p>
+                )}
               </div>
-            )}
-            {(requirement.bidHistory || []).length > 0 && (
-              <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-100">
-                <table className="w-full text-sm">
-                  <thead className="bg-zinc-50 text-xs font-semibold tracking-wider text-zinc-500 uppercase">
-                    <tr>
-                      <th className="px-3 py-2 text-left">Your bid history</th>
-                      <th className="px-3 py-2 text-right">Price</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {requirement.bidHistory!.map((row) => (
-                      <tr key={row.id} className="border-t border-zinc-100">
-                        <td className="px-3 py-2 text-zinc-600">{new Date(row.submittedAt).toLocaleString("en-GB")}</td>
-                        <td className="px-3 py-2 text-right font-semibold tabular-nums">
-                          {row.price ? `${Number(row.price).toLocaleString("en-US")} ${requirement.currency}` : "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            ) : (
+              <>
+                <LiveBiddingCockpit data={data} status={status} currency={requirement.currency} />
+                {(requirement.bidHistory || []).length > 0 && (
+                  <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-100">
+                    <table className="w-full text-sm">
+                      <thead className="bg-zinc-50 text-xs font-semibold tracking-wider text-zinc-500 uppercase">
+                        <tr>
+                          <th className="px-3 py-2 text-left">Your bid history</th>
+                          <th className="px-3 py-2 text-right">Price</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {requirement.bidHistory!.map((row) => (
+                          <tr key={row.id} className="border-t border-zinc-100">
+                            <td className="px-3 py-2 text-zinc-600">
+                              {new Date(row.submittedAt).toLocaleString("en-GB")}
+                            </td>
+                            <td className="px-3 py-2 text-right font-semibold tabular-nums">
+                              {row.price
+                                ? `${Number(row.price).toLocaleString("en-US")} ${requirement.currency}`
+                                : "—"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
             )}
           </section>
         </div>
@@ -328,21 +365,40 @@ export function VendorRequirementInteractive({
           <section className="overflow-hidden rounded-3xl bg-white p-7 shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)]">
             <div className="pb-5 border-b border-zinc-100">
               <h2 className="text-base font-bold tracking-tight text-zinc-950">
-                {closed
-                  ? "Quotation Summary"
-                  : requirement.quoteStatus === "SUBMITTED"
-                    ? "Manage & Revise Your Bid"
-                    : "Submit Commercial Offer"}
+                {sealedOffline
+                  ? "Quotation on file"
+                  : closed
+                    ? "Quotation Summary"
+                    : requirement.quoteStatus === "SUBMITTED"
+                      ? "Manage & Revise Your Bid"
+                      : "Submit Commercial Offer"}
               </h2>
               <p className="mt-0.5 text-xs text-zinc-400">
-                {closed
-                  ? "Sourcing has concluded for this requirement"
-                  : "Enter your price and attach technical proposals"}
+                {sealedOffline
+                  ? "Live bidding is closed for your company because RVCC already recorded your quotation"
+                  : closed
+                    ? "Sourcing has concluded for this requirement"
+                    : "Enter your price and attach technical proposals"}
               </p>
             </div>
 
             <div className="pt-6">
-              {!closed ? (
+              {sealedOffline ? (
+                <div className="rounded-2xl bg-zinc-50 p-5 text-center">
+                  <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                    Recorded quotation
+                  </p>
+                  <p className="mt-1.5 text-2xl font-black text-zinc-950 tabular-nums">
+                    {requirement.previousQuotation
+                      ? `${Number(requirement.previousQuotation.amount).toLocaleString("en-US")} ${requirement.previousQuotation.currency}`
+                      : "On file"}
+                  </p>
+                  <p className="mt-3 text-xs leading-relaxed text-zinc-500">
+                    You can review the scope of work, but you cannot submit or revise a live bid on this
+                    requirement.
+                  </p>
+                </div>
+              ) : !closed ? (
                 <QuoteForm
                   requirement={requirement}
                   action={action}

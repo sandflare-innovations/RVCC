@@ -336,8 +336,16 @@ function s3Configured(env: Env): boolean {
 }
 
 /** Worker binds rvcc-secure-assets. Local R2 tokens are often scoped to R2_BUCKET_NAME only. */
-function secureS3BucketName(env: Env): string {
-  return env.R2_SECURE_BUCKET_NAME || env.R2_BUCKET_NAME || "rvcc-secure-assets";
+export function secureS3BucketName(env: Env): string {
+  return env.R2_SECURE_BUCKET_NAME || env.R2_BUCKET_NAME || "rvcc-uploads";
+}
+
+/** Token-scoped buckets first. rvcc-public-assets / rvcc-secure-assets often 403. */
+export function candidateSecureBuckets(env: Env): string[] {
+  const names = [env.R2_SECURE_BUCKET_NAME, env.R2_BUCKET_NAME, "rvcc-uploads"].filter(
+    (name): name is string => Boolean(name && name.trim())
+  );
+  return [...new Set(names)];
 }
 
 function s3Client(env: Env): AwsClient {
@@ -370,6 +378,13 @@ export function uploadStorageConfigured(env: Env): boolean {
    PUBLIC ASSETS UPLOAD / DELETE (rvcc-public-assets)
    ========================================================================= */
 
+export function candidatePublicBuckets(env: Env): string[] {
+  const names = [env.R2_BUCKET_NAME, "rvcc-uploads"].filter(
+    (name): name is string => Boolean(name && name.trim())
+  );
+  return [...new Set(names)];
+}
+
 export async function putPublicAsset(
   env: Env,
   key: string,
@@ -377,23 +392,28 @@ export async function putPublicAsset(
   contentType: string
 ): Promise<void> {
   if (env.publicAssetsBucket) {
-    await env.publicAssetsBucket.put(key, body, {
-      httpMetadata: {
-        contentType,
-        cacheControl: "public, max-age=31536000, immutable",
-      },
-    });
-    return;
+    try {
+      await env.publicAssetsBucket.put(key, body, {
+        httpMetadata: {
+          contentType,
+          cacheControl: "public, max-age=31536000, immutable",
+        },
+      });
+      return;
+    } catch (err) {
+      if (!s3Configured(env)) throw err;
+      console.error("[storage] public binding put failed, trying S3", err);
+    }
   }
 
-  const bucketName = env.R2_BUCKET_NAME || "rvcc-public-assets";
   if (!s3Configured(env)) {
-    throw new Error(`Upload storage not configured for public assets (${bucketName})`);
+    throw new Error(
+      `Upload storage not configured for public assets (${env.R2_BUCKET_NAME || "rvcc-uploads"})`
+    );
   }
 
   const client = s3Client(env);
   const payload = asFetchBody(body);
-  const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
   const headers: Record<string, string> = {
     "Content-Type": contentType,
     "Cache-Control": "public, max-age=31536000, immutable",
@@ -401,15 +421,17 @@ export async function putPublicAsset(
   if (payload instanceof ArrayBuffer) {
     headers["Content-Length"] = String(payload.byteLength);
   }
-  const res = await client.fetch(url, {
-    method: "PUT",
-    body: payload,
-    headers,
-  });
-  if (!res.ok) {
+
+  let lastError = "R2 public asset upload failed";
+  for (const bucketName of candidatePublicBuckets(env)) {
+    const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
+    const res = await client.fetch(url, { method: "PUT", body: payload, headers });
+    if (res.ok) return;
     const detail = await res.text().catch(() => "");
-    throw new Error(`R2 public asset upload failed (${res.status}): ${detail.slice(0, 200)}`);
+    lastError = `R2 public asset upload failed (${res.status} ${bucketName}): ${detail.slice(0, 200)}`;
+    if (res.status !== 403 && res.status !== 404) break;
   }
+  throw new Error(lastError);
 }
 
 export async function deletePublicAsset(env: Env, key: string): Promise<void> {
@@ -441,20 +463,23 @@ export async function putSecureDocument(
 ): Promise<void> {
   const bucket = env.secureAssetsBucket || env.uploadsBucket;
   if (bucket) {
-    await bucket.put(key, body, {
-      httpMetadata: { contentType, cacheControl: "private, no-cache, no-store" },
-    });
-    return;
+    try {
+      await bucket.put(key, body, {
+        httpMetadata: { contentType, cacheControl: "private, no-cache, no-store" },
+      });
+      return;
+    } catch (err) {
+      if (!s3Configured(env)) throw err;
+      console.error("[storage] secure binding put failed, trying S3", err);
+    }
   }
 
-  const bucketName = secureS3BucketName(env);
   if (!s3Configured(env)) {
-    throw new Error(`Upload storage not configured for secure assets (${bucketName})`);
+    throw new Error(`Upload storage not configured for secure assets (${secureS3BucketName(env)})`);
   }
 
   const client = s3Client(env);
   const payload = asFetchBody(body);
-  const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
   const headers: Record<string, string> = {
     "Content-Type": contentType,
     "Cache-Control": "private, no-cache, no-store",
@@ -462,15 +487,17 @@ export async function putSecureDocument(
   if (payload instanceof ArrayBuffer) {
     headers["Content-Length"] = String(payload.byteLength);
   }
-  const res = await client.fetch(url, {
-    method: "PUT",
-    body: payload,
-    headers,
-  });
-  if (!res.ok) {
+
+  let lastError = "R2 secure upload failed";
+  for (const bucketName of candidateSecureBuckets(env)) {
+    const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
+    const res = await client.fetch(url, { method: "PUT", body: payload, headers });
+    if (res.ok) return;
     const detail = await res.text().catch(() => "");
-    throw new Error(`R2 secure upload failed (${res.status}): ${detail.slice(0, 200)}`);
+    lastError = `R2 secure upload failed (${res.status} ${bucketName}): ${detail.slice(0, 200)}`;
+    if (res.status !== 403 && res.status !== 404) break;
   }
+  throw new Error(lastError);
 }
 
 export async function deleteSecureDocument(env: Env, key: string): Promise<void> {
@@ -480,15 +507,16 @@ export async function deleteSecureDocument(env: Env, key: string): Promise<void>
     return;
   }
 
-  const bucketName = secureS3BucketName(env);
   if (!s3Configured(env)) return;
 
   const client = new AwsClient({
     accessKeyId: env.R2_ACCESS_KEY_ID!,
     secretAccessKey: env.R2_SECRET_ACCESS_KEY!,
   });
-  const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
-  await client.fetch(url, { method: "DELETE" }).catch(() => undefined);
+  for (const bucketName of candidateSecureBuckets(env)) {
+    const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
+    await client.fetch(url, { method: "DELETE" }).catch(() => undefined);
+  }
 }
 
 export async function getSecureDocument(
@@ -504,19 +532,22 @@ export async function getSecureDocument(
     return { body, contentType };
   }
 
-  const bucketName = secureS3BucketName(env);
   if (!s3Configured(env)) return null;
 
   const client = new AwsClient({
     accessKeyId: env.R2_ACCESS_KEY_ID!,
     secretAccessKey: env.R2_SECRET_ACCESS_KEY!,
   });
-  const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
-  const res = await client.fetch(url, { method: "GET" });
-  if (!res.ok) return null;
-  const body = await res.arrayBuffer();
-  const contentType = res.headers.get("Content-Type") || "application/octet-stream";
-  return { body, contentType };
+  for (const bucketName of candidateSecureBuckets(env)) {
+    const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
+    const res = await client.fetch(url, { method: "GET" });
+    if (res.ok) {
+      const body = await res.arrayBuffer();
+      const contentType = res.headers.get("Content-Type") || "application/octet-stream";
+      return { body, contentType };
+    }
+  }
+  return null;
 }
 
 /** Backward-compatible upload alias (routes to secure documents by default) */

@@ -191,7 +191,7 @@ describe("QA Auction & Procurement Tests: Dense Ranking, Anti-Collusion & Tie-Br
     }
   });
 
-  it("includes original quotation, target delta, and revisionCount on admin ranks", async () => {
+  it("excludes vendors with admin-attached quotations from live ranking", async () => {
     vi.mocked(prisma.requirement.findUnique).mockResolvedValue({
       ...mockRequirement,
       sellingPrice: "48000.00",
@@ -202,10 +202,19 @@ describe("QA Auction & Procurement Tests: Dense Ranking, Anti-Collusion & Tie-Br
     ] as any);
 
     const result = await getRequirementRankings("req-101");
+    expect(result.adminQuotes.find((q) => q.vendorId === "vendor-alpha")).toBeUndefined();
+    expect(result.adminQuotes.some((q) => q.vendorId === "vendor-beta")).toBe(true);
+  });
+
+  it("includes target delta and revisionCount on remaining admin ranks", async () => {
+    vi.mocked(prisma.requirement.findUnique).mockResolvedValue({
+      ...mockRequirement,
+      sellingPrice: "48000.00",
+      revealTargetPrice: true,
+    } as any);
+
+    const result = await getRequirementRankings("req-101");
     const quoteAlpha = result.adminQuotes.find((q) => q.vendorId === "vendor-alpha");
-    expect(quoteAlpha?.originalQuotation).toBe("55000.00");
-    // (55000 - 50000) / 55000 * 100 = 9.1
-    expect(quoteAlpha?.reductionFromOriginalPercent).toBe(9.1);
     expect(quoteAlpha?.revisionCount).toBe(1);
     expect(quoteAlpha?.differenceFromTarget).toBe(2000);
   });
