@@ -7,6 +7,10 @@ import { computeMoneyBreakdown, toSarAmount } from "../../sourcing/lib/money";
 import { isBiddingLive, isPastDeadline, negotiationPhase, VENDOR_VISIBLE_STATUSES } from "../../sourcing/lib/status-machine";
 import { attachmentDto } from "../../sourcing/services/sourcing-files.service";
 import {
+  OFFLINE_QUOTE_LIVE_BID_ERROR,
+  vendorHasOfflineQuotation,
+} from "../../sourcing/services/quotations.service";
+import {
   deleteUpload,
   extractStorageKeyFromUrl,
   keyFromStoredUrl,
@@ -36,6 +40,11 @@ export class VendorPortalService {
         quotes: {
           where: { vendorUserId },
           take: 1,
+        },
+        manualQuotations: {
+          where: { vendorUserId, deletedAt: null },
+          take: 1,
+          select: { id: true },
         },
       },
       orderBy: {
@@ -79,6 +88,7 @@ export class VendorPortalService {
         remarks: q?.remarks ?? null,
         quoteStatus: q?.status ?? null,
         submittedAt: q?.submittedAt ? q.submittedAt.toISOString() : null,
+        canLiveBid: r.manualQuotations.length === 0,
       };
     });
   }
@@ -246,6 +256,7 @@ export class VendorPortalService {
             })),
           }
         : null,
+      canLiveBid: !previous,
     };
   }
 
@@ -371,6 +382,9 @@ export class VendorPortalService {
 
     if (!requirement) {
       return { error: "This requirement is closed or not available to you.", status: 409 };
+    }
+    if (await vendorHasOfflineQuotation(requirementId, vendorId)) {
+      return { error: OFFLINE_QUOTE_LIVE_BID_ERROR, status: 409 };
     }
     if (!isBiddingLive(requirement.status, requirement.opensAt, requirement.closesAt)) {
       if (requirement.opensAt && Date.now() < requirement.opensAt.getTime()) {
@@ -547,6 +561,9 @@ export class VendorPortalService {
       select: { id: true, closesAt: true, opensAt: true, status: true },
     });
     if (!requirement) return { error: "Requirement not found.", status: 404 };
+    if (await vendorHasOfflineQuotation(requirementId, vendorId)) {
+      return { error: OFFLINE_QUOTE_LIVE_BID_ERROR, status: 409 };
+    }
     if (!isBiddingLive(requirement.status, requirement.opensAt, requirement.closesAt)) {
       return { error: "Bidding is not open for document uploads.", status: 409 };
     }

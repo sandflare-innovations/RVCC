@@ -330,6 +330,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
               const deadline = describeDeadline(row.closesAt);
               const isSubmitted = row.quoteStatus === "SUBMITTED";
               const isDraft = row.quoteStatus === "DRAFT";
+              const sealedOffline = row.canLiveBid === false;
 
               return (
                 <div
@@ -338,7 +339,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3 min-w-0">
-                      <LiveRankBadge requirementId={row.id} />
+                      {!sealedOffline && <LiveRankBadge requirementId={row.id} />}
                       <div className="min-w-0">
                         <span className="font-mono text-xs font-semibold text-zinc-500">
                           {row.referenceNumber ?? "RFQ-PENDING"}
@@ -348,6 +349,10 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                     </div>
                     {row.isEnded ? (
                       <EndedStatusBadge row={row} />
+                    ) : sealedOffline ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-700">
+                        <FileText className="h-3.5 w-3.5" /> Quote on file
+                      </span>
                     ) : isSubmitted ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-bold text-brand-blue">
                         <CheckCircle2 className="h-3.5 w-3.5" /> Submitted
@@ -392,7 +397,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                       href={`/requirements/${row.id}`}
                       className="bg-brand-blue hover:bg-brand-blue/90 flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-xs font-bold text-white shadow-[0_4px_16px_rgba(0,115,188,0.25)] transition-all"
                     >
-                      <span>{row.isEnded ? "View Outcome & Details" : isSubmitted ? "View / Revise Bid" : isDraft ? "Resume Quote" : "Enter Bid Workspace"}</span>
+                      <span>{row.isEnded ? "View Outcome & Details" : sealedOffline ? "View Requirement" : isSubmitted ? "View / Revise Bid" : isDraft ? "Resume Quote" : "Enter Bid Workspace"}</span>
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
@@ -424,6 +429,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                 const deadline = describeDeadline(row.closesAt);
                 const isSubmitted = row.quoteStatus === "SUBMITTED";
                 const isDraft = row.quoteStatus === "DRAFT";
+                const sealedOffline = row.canLiveBid === false;
 
                 return (
                   <div
@@ -432,11 +438,15 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                   >
                     {/* Col 1: Separate Rank Column (Col Span 1) */}
                     <div className="col-span-1 min-w-0 flex items-center justify-center">
+                      {sealedOffline ? (
+                        <span className="text-xs font-semibold text-zinc-400">—</span>
+                      ) : (
                       <LiveRankBadge
                         requirementId={row.id}
                         isEnded={row.isEnded}
                         isWon={row.isAwardedToMe || row.endedStatus === "WON"}
                       />
+                      )}
                     </div>
 
                     {/* Col 2: Tender Project & Scope (Col Span 4) */}
@@ -505,7 +515,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
                         href={`/requirements/${row.id}`}
                         className="bg-brand-blue hover:bg-brand-blue/90 inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold text-white shadow-xs transition-all whitespace-nowrap"
                       >
-                        <span>{row.isEnded ? "Details" : isSubmitted ? "Revise" : isDraft ? "Resume" : "Bid Now"}</span>
+                        <span>{row.isEnded ? "Details" : sealedOffline ? "View" : isSubmitted ? "Revise" : isDraft ? "Resume" : "Bid Now"}</span>
                         <ArrowRight className="h-3.5 w-3.5" />
                       </Link>
                     </div>

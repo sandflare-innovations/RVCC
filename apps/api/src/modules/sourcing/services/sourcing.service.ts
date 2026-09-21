@@ -5,6 +5,7 @@ import type { Env } from "../../../config/env";
 import { prisma } from "../../../lib/prisma";
 import { cuid } from "../../../lib/sql";
 import { sendRequirementMail } from "../../system/services/notification.service";
+import { offlineQuotedVendorIds } from "./quotations.service";
 import type { AwardableQuote } from "../types/sourcing.types";
 import { normaliseRequirementInput } from "../lib/requirement-input";
 import { serializeRequirement } from "../lib/serialize";
@@ -474,11 +475,13 @@ export class SourcingService {
       where: { invites: { some: { requirementId } } },
       select: { id: true, email: true },
     });
-    if (invited.length === 0) return;
+    const offlineIds = await offlineQuotedVendorIds(requirementId);
+    const recipients = invited.filter((vendor) => !offlineIds.has(vendor.id));
+    if (recipients.length === 0) return;
 
     const outcome = await sendRequirementMail(env, {
       kind: "POSTED",
-      recipients: invited.map((v) => v.email),
+      recipients: recipients.map((v) => v.email),
       project,
       scopeOfWork,
       referenceNumber: referenceNumber ?? "",
@@ -487,7 +490,7 @@ export class SourcingService {
     });
 
     if (!outcome.attempted) return;
-    for (const v of invited) {
+    for (const v of recipients) {
       const failure = outcome.failed.find((f) => f.to === v.email);
       await prisma.requirementInvite.updateMany({
         where: { requirementId, vendorUserId: v.id },

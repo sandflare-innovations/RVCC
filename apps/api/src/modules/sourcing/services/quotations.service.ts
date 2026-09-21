@@ -6,6 +6,28 @@ import { computeMoneyBreakdown, toSarAmount } from "../lib/money";
 import { isEditableByProcurement } from "../lib/status-machine";
 import { attachmentDto } from "./sourcing-files.service";
 
+export const OFFLINE_QUOTE_LIVE_BID_ERROR =
+  "A quotation was already recorded for your company. Live bidding is not available on this requirement.";
+
+export async function vendorHasOfflineQuotation(
+  requirementId: string,
+  vendorUserId: string
+): Promise<boolean> {
+  const row = await prisma.manualQuotation.findFirst({
+    where: { requirementId, vendorUserId, deletedAt: null },
+    select: { id: true },
+  });
+  return Boolean(row);
+}
+
+export async function offlineQuotedVendorIds(requirementId: string): Promise<Set<string>> {
+  const rows = await prisma.manualQuotation.findMany({
+    where: { requirementId, deletedAt: null, vendorUserId: { not: null } },
+    select: { vendorUserId: true },
+  });
+  return new Set(rows.map((row) => row.vendorUserId).filter((id): id is string => Boolean(id)));
+}
+
 async function exchangeRateFor(currency: string): Promise<number> {
   if (currency === "SAR") return 1;
   const fx = await prisma.exchangeRate.findUnique({ where: { currency: currency as Currency } });

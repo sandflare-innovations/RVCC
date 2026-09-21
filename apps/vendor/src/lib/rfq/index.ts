@@ -7,12 +7,13 @@ export type VendorRequirementRow = {
   status?: string;
   isEnded?: boolean;
   endedStatus?: "WON" | "LOST" | "UNDER_EVALUATION" | "CANCELLED" | "EXPIRED" | null;
-  isAwardedToMe?: boolean;
+    isAwardedToMe?: boolean;
   awardedAt?: string | null;
   currency?: string;
   newPrice?: string | null;
   quoteStatus: "DRAFT" | "SUBMITTED" | null;
   submittedAt?: string | null;
+  canLiveBid?: boolean;
 };
 
 export type VendorNextAction = {
@@ -53,7 +54,7 @@ export function summariseVendorDashboard(input: { requirements: VendorRequiremen
   };
 
   const nextActions: VendorNextAction[] = rows
-    .filter((r) => r.quoteStatus !== "SUBMITTED")
+    .filter((r) => r.quoteStatus !== "SUBMITTED" && r.canLiveBid !== false)
     .slice(0, 5)
     .map((r) => ({
       id: r.id,

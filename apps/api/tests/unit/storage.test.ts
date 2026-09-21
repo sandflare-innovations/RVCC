@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  candidatePublicBuckets,
+  candidateSecureBuckets,
   detectMagicMime,
   isUploadFile,
   validateUploadBytes,
@@ -111,6 +113,22 @@ describe("QA Security Tests: File Upload & Storage Key Sanitization", () => {
         type: "application/x-msdownload",
       } as File;
       expect(validateUploadFile(exe, { maxBytes: 1024 })).toMatch(/not allowed/i);
+    });
+  });
+
+  describe("R2 bucket fallback order", () => {
+    it("retries the writable uploads bucket after a scoped token misses secure/public names", () => {
+      expect(
+        candidateSecureBuckets({
+          R2_SECURE_BUCKET_NAME: "rvcc-secure-assets",
+          R2_BUCKET_NAME: "rvcc-public-assets",
+        } as any)
+      ).toEqual(["rvcc-secure-assets", "rvcc-public-assets", "rvcc-uploads"]);
+      expect(candidateSecureBuckets({ R2_BUCKET_NAME: "rvcc-uploads" } as any)).toEqual(["rvcc-uploads"]);
+      expect(candidatePublicBuckets({ R2_BUCKET_NAME: "rvcc-public-assets" } as any)).toEqual([
+        "rvcc-public-assets",
+        "rvcc-uploads",
+      ]);
     });
   });
 

@@ -5,7 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useVendorLiveBidding(
   requirementId: string,
-  initialData?: VendorLiveBidsPayload | null
+  initialData?: VendorLiveBidsPayload | null,
+  enabled = true
 ) {
   const [data, setData] = useState<VendorLiveBidsPayload | null>(initialData ?? null);
   const [status, setStatus] = useState<"connecting" | "live" | "offline">("connecting");
@@ -13,6 +14,7 @@ export function useVendorLiveBidding(
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const fetchSnapshot = useCallback(async () => {
+    if (!enabled) return;
     try {
       const res = await fetch(`/api/requirements/${encodeURIComponent(requirementId)}/live`, {
         headers: { Accept: "application/json" },
@@ -29,9 +31,13 @@ export function useVendorLiveBidding(
     } catch {
       // Ignored
     }
-  }, [requirementId]);
+  }, [requirementId, enabled]);
 
   useEffect(() => {
+    if (!enabled) {
+      setStatus("offline");
+      return;
+    }
     let unmounted = false;
     setStatus("connecting");
 
@@ -102,7 +108,7 @@ export function useVendorLiveBidding(
         eventSourceRef.current = null;
       }
     };
-  }, [requirementId, fetchSnapshot]);
+  }, [requirementId, fetchSnapshot, enabled]);
 
   return {
     data,

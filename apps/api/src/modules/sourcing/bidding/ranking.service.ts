@@ -108,17 +108,22 @@ export async function getRequirementRankings(requirementId: string): Promise<{
     };
   }
 
-  const validQuotes = req.quotes.filter((q) => bidAmount(q) > 0);
   const manuals = await prisma.manualQuotation.findMany({
     where: { requirementId, deletedAt: null },
     select: { vendorUserId: true, totalPrice: true, amountSar: true },
   });
   const originalByVendor = new Map<string, number>();
+  const offlineVendorIds = new Set<string>();
   for (const row of manuals) {
     if (!row.vendorUserId) continue;
+    offlineVendorIds.add(row.vendorUserId);
     const amount = Number(row.amountSar ?? row.totalPrice);
     if (amount > 0) originalByVendor.set(row.vendorUserId, amount);
   }
+  const validQuotes = req.quotes.filter((q) => {
+    if (!(bidAmount(q) > 0)) return false;
+    return !q.vendorUserId || !offlineVendorIds.has(q.vendorUserId);
+  });
   const target = req.sellingPrice != null ? Number(req.sellingPrice) : null;
   const strategy = req.rankingStrategy || "LOWEST_PRICE";
 
