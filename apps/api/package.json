@@ -4,7 +4,7 @@
   "private": true,
   "description": "RVCC unified API for admin, vendor, and supplier registration",
   "scripts": {
-    "dev": "concurrently -n \"api,studio\" -c \"blue,green\" \"tsx watch --env-file-if-exists=.env src/index.ts\" \"prisma studio --port 5555\"",
+    "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
     "db:studio": "prisma studio --port 5555",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",

@@ -2,19 +2,39 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
+import { withTransientRetry } from "./sql";
+
+function isPrismaPostgres(url: string): boolean {
+  return /db\.prisma\.io/i.test(url);
+}
+
+function poolMax(connectionString: string): number {
+  const fromEnv = Number(process.env.DB_POOL_MAX);
+  if (Number.isFinite(fromEnv) && fromEnv > 0) return fromEnv;
+  // Prisma Postgres proxies drop idle sockets; a large local pool causes ECONNRESET.
+  if (isPrismaPostgres(connectionString)) return 3;
+  return process.env.NODE_ENV === "production" ? 10 : 5;
+}
+
 function createBaseClient() {
   const connectionString =
     process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/rvcc";
-  
-  // Production-tuned pool sizing: 10 connections in node server, 1 in serverless edge isolates
-  const isProduction = process.env.NODE_ENV === "production";
+  const prismaHosted = isPrismaPostgres(connectionString);
+
   const pool = new Pool({
     connectionString,
-    max: isProduction ? (process.env.DB_POOL_MAX ? Number(process.env.DB_POOL_MAX) : 10) : 5,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
+    max: poolMax(connectionString),
+    idleTimeoutMillis: prismaHosted ? 10_000 : 30_000,
+    connectionTimeoutMillis: 8_000,
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 10_000,
+    allowExitOnIdle: true,
   });
-  
+
+  pool.on("error", (err) => {
+    console.error("[pg] idle client error", err.message);
+  });
+
   const adapter = new PrismaPg(pool);
 
   return new PrismaClient({
@@ -31,7 +51,7 @@ function hasDeletedAt(basePrisma: any, model: string): boolean {
 }
 
 function buildExtendedClient(basePrisma: ReturnType<typeof createBaseClient>) {
-  return basePrisma.$extends({
+  const withSoftDelete = basePrisma.$extends({
     name: "soft-delete-extension",
     query: {
       $allModels: {
@@ -185,6 +205,15 @@ function buildExtendedClient(basePrisma: ReturnType<typeof createBaseClient>) {
           }
           return query(args);
         },
+      },
+    },
+  });
+
+  return withSoftDelete.$extends({
+    name: "transient-retry",
+    query: {
+      async $allOperations({ args, query }: { args: unknown; query: (args: unknown) => Promise<unknown> }) {
+        return withTransientRetry(() => query(args));
       },
     },
   });
