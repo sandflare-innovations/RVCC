@@ -85,12 +85,32 @@ export function isTransientDbError(err: unknown): boolean {
     msg.includes("connection") ||
     msg.includes("timeout") ||
     msg.includes("econnreset") ||
+    msg.includes("enotfound") ||
+    msg.includes("eaddrnotavail") ||
     msg.includes("closed") ||
     msg.includes("terminated") ||
     msg.includes("socket") ||
     msg.includes("broken pipe") ||
     msg.includes("different request")
   );
+}
+
+/** Retry Prisma / pg operations that fail on dropped sockets (ECONNRESET, idle timeout). */
+export async function withTransientRetry<T>(
+  fn: () => Promise<T>,
+  attempts = 3
+): Promise<T> {
+  let last: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      last = err;
+      if (!isTransientDbError(err) || i === attempts - 1) throw err;
+      await new Promise((resolve) => setTimeout(resolve, 80 * 2 ** i));
+    }
+  }
+  throw last;
 }
 
 /** Retry once with a fresh client — each attempt releases its own connection on Workers. */

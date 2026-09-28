@@ -3,6 +3,7 @@
  * Local Node entry remains src/index.ts.
  */
 import { createApp } from "./app";
+import { decodeSmtpPass } from "./config/env";
 
 export type WorkerEnv = {
   DATABASE_URL: string;
@@ -14,6 +15,7 @@ export type WorkerEnv = {
   SMTP_SECURE?: string;
   SMTP_USER?: string;
   SMTP_PASS?: string;
+  SMTP_PASS_B64?: string;
   SMTP_FROM?: string;
   ENQUIRE_FROM_EMAIL?: string;
   R2_PUBLIC_URL?: string;
@@ -32,8 +34,8 @@ function toAppEnv(env: WorkerEnv): import("./config/env").Env {
     DATABASE_READ_URL: env.DATABASE_READ_URL?.trim() || undefined,
     ALLOWED_ORIGINS:
       env.ALLOWED_ORIGINS?.trim() ||
-      "https://rvcc-enquiry.vercel.app,https://rvcc-vendor.vercel.app,https://rvcc-admin.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:3002",
-    VENDOR_PORTAL_URL: (env.VENDOR_PORTAL_URL || "https://rvcc-vendor.vercel.app").replace(
+      "https://site.147-93-105-74.nip.io,https://vendor.147-93-105-74.nip.io,https://admin.147-93-105-74.nip.io,https://procurement.147-93-105-74.nip.io,http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003",
+    VENDOR_PORTAL_URL: (env.VENDOR_PORTAL_URL || "https://vendor.147-93-105-74.nip.io").replace(
       /\/$/,
       ""
     ),
@@ -41,7 +43,7 @@ function toAppEnv(env: WorkerEnv): import("./config/env").Env {
     SMTP_PORT: env.SMTP_PORT,
     SMTP_SECURE: env.SMTP_SECURE,
     SMTP_USER: env.SMTP_USER,
-    SMTP_PASS: env.SMTP_PASS,
+    SMTP_PASS: decodeSmtpPass(env.SMTP_PASS, env.SMTP_PASS_B64),
     SMTP_FROM: env.SMTP_FROM,
     ENQUIRE_FROM_EMAIL: env.ENQUIRE_FROM_EMAIL,
     R2_PUBLIC_URL: env.R2_PUBLIC_URL?.trim() || undefined,
