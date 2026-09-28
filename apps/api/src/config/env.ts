@@ -62,7 +62,7 @@ function required(name: string): string {
 }
 
 /** SMTP_PASS_B64 avoids # comment truncation in .env parsers. */
-function decodeSmtpPass(raw?: string, b64?: string): string | undefined {
+export function decodeSmtpPass(raw?: string, b64?: string): string | undefined {
   if (b64?.trim()) {
     try {
       return Buffer.from(b64.trim(), "base64").toString("utf8");
