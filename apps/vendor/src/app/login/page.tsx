@@ -1,14 +1,23 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { VENDOR_HOME_PATH } from "@/lib/constants";
-import { getVendorFromSession } from "@/lib/session";
+import {
+  VENDOR_COOKIE,
+  VENDOR_HOME_PATH,
+  VENDOR_LOGIN_EXPIRED_PATH,
+} from "@/lib/constants";
+import { resolveVendorIdentity } from "@/lib/session";
 import { VendorLoginForm } from "@/sections/auth/VendorLoginForm";
 
 export default async function VendorLoginPage() {
-  const vendor = await getVendorFromSession();
-  if (vendor) {
-    redirect(VENDOR_HOME_PATH);
+  const token = (await cookies()).get(VENDOR_COOKIE)?.value;
+  if (token) {
+    const vendor = await resolveVendorIdentity(token, { skipCache: true });
+    if (vendor) {
+      redirect(vendor.mustChangePassword ? "/password" : VENDOR_HOME_PATH);
+    }
+    redirect(VENDOR_LOGIN_EXPIRED_PATH);
   }
 
   return (

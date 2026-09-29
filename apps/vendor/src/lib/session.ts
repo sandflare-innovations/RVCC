@@ -2,7 +2,6 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
-import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { cache } from "react";
 
@@ -32,15 +31,20 @@ function sessionCacheKey(token: string) {
   return `rvcc:vendor:session:${tokenKey(token)}`;
 }
 
-async function fetchVendorIdentity(token: string): Promise<VendorIdentity | null> {
+async function fetchVendorIdentity(
+  token: string,
+  options: { skipCache?: boolean } = {}
+): Promise<VendorIdentity | null> {
   const key = tokenKey(token);
   const memHit = identityCache.get(key);
-  if (memHit && Date.now() - memHit.at < TTL_MS) return memHit.identity;
+  if (!options.skipCache && memHit && Date.now() - memHit.at < TTL_MS) return memHit.identity;
 
-  const redisHit = await cacheGet<VendorIdentity>(sessionCacheKey(token));
-  if (redisHit) {
-    identityCache.set(key, { at: Date.now(), identity: redisHit });
-    return redisHit;
+  if (!options.skipCache) {
+    const redisHit = await cacheGet<VendorIdentity>(sessionCacheKey(token));
+    if (redisHit) {
+      identityCache.set(key, { at: Date.now(), identity: redisHit });
+      return redisHit;
+    }
   }
 
   try {
@@ -48,9 +52,10 @@ async function fetchVendorIdentity(token: string): Promise<VendorIdentity | null
     if (!res.ok) {
       if (res.status === 401 || res.status === 403) {
         identityCache.delete(key);
+        await cacheDel(sessionCacheKey(token));
         return null;
       }
-      return memHit?.identity ?? null;
+      return options.skipCache ? null : (memHit?.identity ?? null);
     }
     const data = (await res.json()) as VendorIdentity;
     if (!data?.id) return null;
@@ -59,15 +64,8 @@ async function fetchVendorIdentity(token: string): Promise<VendorIdentity | null
     return data;
   } catch (err) {
     console.error("[vendor] /auth/me failed", err);
-    return memHit?.identity ?? null;
+    return options.skipCache ? null : (memHit?.identity ?? null);
   }
-}
-
-function getCachedVendorIdentity(token: string) {
-  const key = tokenKey(token);
-  return unstable_cache(() => fetchVendorIdentity(token), ["vendor-identity", key], {
-    revalidate: SESSION_REVALIDATE_SECONDS,
-  })();
 }
 
 export async function clearVendorSessionCache(token?: string) {
@@ -79,8 +77,11 @@ export async function clearVendorSessionCache(token?: string) {
   await cacheDel(sessionCacheKey(token));
 }
 
-export async function resolveVendorIdentity(token: string): Promise<VendorIdentity | null> {
-  return fetchVendorIdentity(token);
+export async function resolveVendorIdentity(
+  token: string,
+  options: { skipCache?: boolean } = {}
+): Promise<VendorIdentity | null> {
+  return fetchVendorIdentity(token, options);
 }
 
 export const getVendorFromSession = cache(async (): Promise<VendorIdentity | null> => {
@@ -88,9 +89,9 @@ export const getVendorFromSession = cache(async (): Promise<VendorIdentity | nul
   const token = jar.get(VENDOR_COOKIE)?.value;
   if (!token) return null;
   try {
-    return await getCachedVendorIdentity(token);
+    return await fetchVendorIdentity(token);
   } catch (err) {
-    console.error("[vendor] session cache miss failed", err);
+    console.error("[vendor] session lookup failed", err);
     return null;
   }
 });
