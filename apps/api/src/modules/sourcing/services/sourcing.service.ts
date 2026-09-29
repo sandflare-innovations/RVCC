@@ -4,7 +4,7 @@ import { canConfigureBidding } from "@rvcc/schemas";
 import type { Env } from "../../../config/env";
 import { prisma } from "../../../lib/prisma";
 import { cuid } from "../../../lib/sql";
-import { sendRequirementMail } from "../../system/services/notification.service";
+import { NotificationService, sendRequirementMail } from "../../system/services/notification.service";
 import { offlineQuotedVendorIds } from "./quotations.service";
 import type { AwardableQuote } from "../types/sourcing.types";
 import { normaliseRequirementInput } from "../lib/requirement-input";
@@ -318,6 +318,13 @@ export class SourcingService {
 
     if (openNow && input.vendorUserIds.length > 0) {
       await this.sendInviteEmails(env, id, input.project, input.scopeOfWork, referenceNumber, input.closesAt);
+      await NotificationService.notifyVendors({
+        vendorUserIds: input.vendorUserIds,
+        type: "REQUIREMENT_POSTED",
+        title: "New RFQ invitation",
+        body: `RVCC Procurement invited you to participate in ${input.project}.`,
+        linkPath: `/requirements/${id}`,
+      }).catch((err) => console.warn("[createRequirement] vendor notify failed", err));
     }
 
     return { id, referenceNumber, input, status };

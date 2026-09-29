@@ -29,12 +29,14 @@ export function serializeDocument(
     coverImage: doc.coverImage,
     sortOrder: doc.sortOrder,
     requiresAuth: doc.requiresAuth,
+    visibleToVendors: Boolean(doc.visibleToVendors),
     createdAt: doc.createdAt instanceof Date ? doc.createdAt.toISOString() : String(doc.createdAt),
     updatedAt: doc.updatedAt instanceof Date ? doc.updatedAt.toISOString() : String(doc.updatedAt),
   };
 
   if (options?.includePrivateFields) {
     result.isPublished = doc.isPublished;
+    result.visibleToVendors = Boolean(doc.visibleToVendors);
     result.pinCode = doc.pinCode;
   }
 
@@ -45,10 +47,16 @@ export class DocumentsService {
   /**
    * List all documents (admin can see all, public sees only published)
    */
-  static async listDocuments(options?: { publishedOnly?: boolean }): Promise<SerializedDocument[]> {
+  static async listDocuments(options?: {
+    publishedOnly?: boolean;
+    vendorPortalOnly?: boolean;
+  }): Promise<SerializedDocument[]> {
     const whereClause: any = { deletedAt: null };
     if (options?.publishedOnly) {
       whereClause.isPublished = true;
+    }
+    if (options?.vendorPortalOnly) {
+      whereClause.visibleToVendors = true;
     }
 
     const docs = await (prisma as any).companyDocument.findMany({
@@ -138,6 +146,7 @@ export class DocumentsService {
         coverImage: input.coverImage?.trim() ?? "",
         sortOrder,
         isPublished: input.isPublished ?? true,
+        visibleToVendors: Boolean(input.visibleToVendors),
         requiresAuth: Boolean(input.requiresAuth),
         pinCode: input.pinCode ? input.pinCode.trim() : null,
       },
@@ -181,6 +190,8 @@ export class DocumentsService {
     if (input.coverImage !== undefined) updateData.coverImage = input.coverImage.trim();
     if (typeof input.sortOrder === "number") updateData.sortOrder = input.sortOrder;
     if (typeof input.isPublished === "boolean") updateData.isPublished = input.isPublished;
+    if (typeof input.visibleToVendors === "boolean")
+      updateData.visibleToVendors = input.visibleToVendors;
     if (typeof input.requiresAuth === "boolean") updateData.requiresAuth = input.requiresAuth;
     if (input.pinCode !== undefined)
       updateData.pinCode = input.pinCode ? input.pinCode.trim() : null;

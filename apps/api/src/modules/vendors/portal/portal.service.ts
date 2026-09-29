@@ -21,6 +21,8 @@ import {
   storageKeyForQuote,
   uploadStorageConfigured,
 } from "../../../lib/storage";
+import { DocumentsService } from "../../documents/services/documents.service";
+import { NotificationService } from "../../system/services/notification.service";
 
 export class VendorPortalService {
   /**
@@ -194,8 +196,8 @@ export class VendorPortalService {
       requiredDocuments: requirement.requiredDocuments,
       allowBidRevisions: requirement.allowBidRevisions,
       revealCompetitorPrices: requirement.revealCompetitorPrices,
-      revealTargetPrice: Boolean(requirement.revealTargetPrice),
-      targetPrice: requirement.revealTargetPrice ? String(requirement.sellingPrice ?? "") : null,
+      revealTargetPrice: true,
+      targetPrice: requirement.sellingPrice != null ? String(requirement.sellingPrice) : null,
       currency: requirement.currency,
       opensAt: requirement.opensAt?.toISOString() ?? null,
       closesAt: requirement.closesAt ? requirement.closesAt.toISOString() : null,
@@ -282,8 +284,21 @@ export class VendorPortalService {
       console.error("[vendor/dashboard] requirements list error", err);
     }
 
+    const [documents, messages] = await Promise.all([
+      this.listVendorPortalDocuments().catch((err) => {
+        console.error("[vendor/dashboard] documents error", err);
+        return [] as Awaited<ReturnType<typeof VendorPortalService.listVendorPortalDocuments>>;
+      }),
+      NotificationService.listVendorNotifications(vendor.id)
+        .then((n) => n.items)
+        .catch((err) => {
+          console.error("[vendor/dashboard] messages error", err);
+          return [];
+        }),
+    ]);
+
     if (!vendor.registrationId) {
-      return { vendor: vendorPayload, registration: null, requirements };
+      return { vendor: vendorPayload, registration: null, requirements, documents, messages };
     }
 
     let registration: any = null;
@@ -346,7 +361,22 @@ export class VendorPortalService {
       vendor: vendorPayload,
       registration: registrationPayload,
       requirements,
+      documents,
+      messages,
     };
+  }
+
+  static async listVendorPortalDocuments() {
+    const docs = await DocumentsService.listDocuments({ vendorPortalOnly: true });
+    return docs.map((d) => ({
+      id: d.id,
+      title: d.title,
+      category: d.category,
+      description: d.description,
+      fileUrl: d.fileUrl,
+      fileSize: d.fileSize,
+      updatedAt: d.updatedAt,
+    }));
   }
 
   static async saveQuote(

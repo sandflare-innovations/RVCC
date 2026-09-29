@@ -8,6 +8,7 @@ import {
 } from "../modules/auth/controllers/vendor-auth.controller";
 import {
   handleDashboard,
+  handleDocumentsList,
   handleQuoteAttachmentDelete,
   handleQuoteAttachmentUpload,
   handleQuoteSave,
@@ -57,6 +58,10 @@ export async function handleVendorRequest(request: Request, env: Env): Promise<R
     }
     if (path === "/notifications" && request.method === "POST") {
       return await handleVendorNotificationsMarkRead(null, env, request);
+    }
+
+    if (path === "/documents" && request.method === "GET") {
+      return await handleDocumentsList(null, env, request);
     }
 
     if (path === "/requirements" && request.method === "GET") {

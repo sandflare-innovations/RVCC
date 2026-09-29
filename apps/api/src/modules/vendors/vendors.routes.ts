@@ -18,6 +18,7 @@ import {
 } from "./accounts/accounts.controller";
 import {
   handleDashboard,
+  handleDocumentsList,
   handleQuoteAttachmentDelete,
   handleQuoteAttachmentUpload,
   handleQuoteSave,
@@ -63,6 +64,7 @@ export function createVendorPortalRouter(env: Env) {
   const router = new Hono();
 
   router.get("/dashboard", (c) => handleDashboard(null, env, c.req.raw));
+  router.get("/documents", (c) => handleDocumentsList(null, env, c.req.raw));
   router.get("/notifications", (c) => handleVendorNotificationsGet(null, env, c.req.raw));
   router.post("/notifications", (c) => handleVendorNotificationsMarkRead(null, env, c.req.raw));
   router.get("/requirements", (c) => handleRequirementsList(null, env, c.req.raw));

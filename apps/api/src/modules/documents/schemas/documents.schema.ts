@@ -17,6 +17,7 @@ export const createDocumentSchema = z.object({
   coverImage: z.string().optional().default(""),
   sortOrder: z.number().int().optional(),
   isPublished: z.boolean().optional().default(true),
+  visibleToVendors: z.boolean().optional().default(false),
   requiresAuth: z.boolean().optional().default(false),
   pinCode: z.string().nullable().optional(),
 });

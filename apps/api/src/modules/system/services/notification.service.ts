@@ -1,5 +1,6 @@
 import type { Env } from "../../../config/env";
 import { prisma } from "../../../lib/prisma";
+import { cuid } from "../../../lib/sql";
 import {
   sendApprovedEmail,
   sendAwardEmail,
@@ -13,7 +14,106 @@ import type {
   RequirementMailOutcome,
 } from "../types/system.types";
 
+type VendorNotifyInput = {
+  vendorUserIds: string[];
+  type:
+    | "REQUIREMENT_POSTED"
+    | "REQUIREMENT_UPDATED"
+    | "QUOTE_SUBMITTED"
+    | "QUOTE_AWARDED"
+    | "VENDOR_MESSAGE";
+  title: string;
+  body: string;
+  linkPath: string;
+};
+
+function serializeNotification(n: {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  linkPath: string;
+  readAt: Date | null;
+  createdAt: Date;
+}): NotificationItem {
+  return {
+    id: n.id,
+    type: n.type,
+    title: n.title,
+    body: n.body,
+    linkPath: n.linkPath,
+    readAt: n.readAt ? n.readAt.toISOString() : null,
+    createdAt: n.createdAt.toISOString(),
+  };
+}
+
 export class NotificationService {
+  static async notifyVendors(input: VendorNotifyInput): Promise<void> {
+    const ids = [...new Set(input.vendorUserIds.filter(Boolean))];
+    if (ids.length === 0) return;
+
+    await prisma.notification.createMany({
+      data: ids.map((vendorUserId) => ({
+        id: cuid(),
+        vendorUserId,
+        type: input.type,
+        title: input.title,
+        body: input.body,
+        linkPath: input.linkPath,
+      })),
+    });
+  }
+
+  static async listVendorNotifications(vendorUserId: string): Promise<{
+    items: NotificationItem[];
+    unread: number;
+  }> {
+    const rawItems = await prisma.notification.findMany({
+      where: { vendorUserId },
+      orderBy: { createdAt: "desc" },
+      take: 40,
+    });
+
+    const items = rawItems.map(serializeNotification);
+    return {
+      items,
+      unread: items.filter((n) => n.readAt == null).length,
+    };
+  }
+
+  static async markVendorAllAsRead(vendorUserId: string): Promise<void> {
+    await prisma.notification.updateMany({
+      where: { vendorUserId, readAt: null },
+      data: { readAt: new Date() },
+    });
+  }
+
+  static async sendAdminVendorMessage(input: {
+    vendorUserId: string;
+    title: string;
+    body: string;
+    linkPath?: string;
+  }): Promise<NotificationItem | null> {
+    const vendor = await prisma.vendorUser.findFirst({
+      where: { id: input.vendorUserId },
+      select: { id: true },
+    });
+    if (!vendor) return null;
+
+    const row = await prisma.notification.create({
+      data: {
+        id: cuid(),
+        vendorUserId: vendor.id,
+        type: "VENDOR_MESSAGE",
+        title: input.title,
+        body: input.body,
+        linkPath: input.linkPath || "/",
+      },
+    });
+
+    return serializeNotification(row);
+  }
+
   /**
    * List notifications for an admin
    */
@@ -27,15 +127,7 @@ export class NotificationService {
       take: 20,
     });
 
-    const items = rawItems.map((n) => ({
-      id: n.id,
-      type: n.type,
-      title: n.title,
-      body: n.body,
-      linkPath: n.linkPath,
-      readAt: n.readAt ? n.readAt.toISOString() : null,
-      createdAt: n.createdAt.toISOString(),
-    }));
+    const items = rawItems.map(serializeNotification);
 
     return {
       items,

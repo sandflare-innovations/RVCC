@@ -37,6 +37,7 @@ import {
   handleAdminNotificationsMarkRead,
   handleAdminPushSubscribe,
   handleAdminPushUnsubscribe,
+  handleAdminSendVendorMessage,
 } from "../modules/system/controllers/notification.admin.controller";
 import {
   handleRegistrationsList,
@@ -359,6 +360,16 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
         env,
         request,
         decodeURIComponent(vendorReset[1]!)
+      );
+    }
+
+    const vendorMessage = path.match(/^\/vendors\/([^/]+)\/messages$/);
+    if (vendorMessage && request.method === "POST") {
+      return await handleAdminSendVendorMessage(
+        sql,
+        env,
+        request,
+        decodeURIComponent(vendorMessage[1]!)
       );
     }
 

@@ -6,6 +6,7 @@ import { generateTempPassword, hashPassword } from "../../../lib/password";
 import { prisma } from "../../../lib/prisma";
 import { cuid } from "../../../lib/sql";
 import { SourcingService } from "./sourcing.service";
+import { NotificationService } from "../../system/services/notification.service";
 import { assertTransition } from "../lib/status-machine";
 
 function asDate(value: unknown): Date | null {
@@ -113,6 +114,13 @@ export class BiddingService {
           inviteToken: randomBytes(24).toString("hex"),
         })),
       });
+      await NotificationService.notifyVendors({
+        vendorUserIds: toCreate,
+        type: "REQUIREMENT_POSTED",
+        title: "New RFQ invitation",
+        body: `RVCC Procurement invited you to participate in ${requirement.project}.`,
+        linkPath: `/requirements/${requirementId}`,
+      }).catch((err) => console.warn("[invite] vendor notify failed", err));
     }
 
     if (input.sendEmail !== false) {
@@ -159,13 +167,27 @@ export class BiddingService {
     if (requirement._count.invites < 1) throw new Error("Invite at least one supplier before opening bidding.");
 
     assertTransition(requirement.status, "OPEN");
-    return prisma.requirement.update({
+    const updated = await prisma.requirement.update({
       where: { id: requirementId },
       data: {
         status: "OPEN",
         opensAt: requirement.opensAt ?? new Date(),
       },
     });
+
+    const invited = await prisma.requirementInvite.findMany({
+      where: { requirementId },
+      select: { vendorUserId: true },
+    });
+    await NotificationService.notifyVendors({
+      vendorUserIds: invited.map((i) => i.vendorUserId),
+      type: "REQUIREMENT_UPDATED",
+      title: "Live bidding is open",
+      body: `Real-time bidding is active for ${requirement.project}. Monitor your ranking and revise quotes.`,
+      linkPath: `/requirements/${requirementId}`,
+    }).catch((err) => console.warn("[openBidding] vendor notify failed", err));
+
+    return updated;
   }
 
   static async closeBidding(requirementId: string) {

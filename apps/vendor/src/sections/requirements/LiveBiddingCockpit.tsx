@@ -121,7 +121,7 @@ export function LiveBiddingCockpit({
               <Target className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">Company target</p>
+              <p className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">Auction amount</p>
               <p className="text-lg font-black tabular-nums text-zinc-950">
                 {targetPrice.toLocaleString("en-US")} {currency}
               </p>

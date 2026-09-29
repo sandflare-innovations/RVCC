@@ -61,6 +61,23 @@ type DashboardPayload = {
     }>;
   } | null;
   requirements: VendorRequirementRow[];
+  documents?: Array<{
+    id: string;
+    title: string;
+    category: string;
+    description?: string;
+    fileUrl: string;
+    fileSize?: string;
+  }>;
+  messages?: Array<{
+    id: string;
+    type?: string;
+    title: string;
+    body: string;
+    linkPath: string;
+    readAt: string | null;
+    createdAt: string;
+  }>;
 };
 
 function KpiCard({
@@ -93,7 +110,7 @@ export default async function VendorDashboard() {
   if (vendor.mustChangePassword) redirect("/password");
 
   const token = (await cookies()).get(VENDOR_COOKIE)?.value;
-  let payload: DashboardPayload = { registration: null, requirements: [] };
+  let payload: DashboardPayload = { registration: null, requirements: [], documents: [], messages: [] };
   try {
     const res = await vendorApiFetch("/dashboard", { method: "GET", sessionToken: token });
     if (res.ok) {
@@ -101,6 +118,8 @@ export default async function VendorDashboard() {
       payload = {
         registration: data.registration ?? null,
         requirements: Array.isArray(data.requirements) ? data.requirements : [],
+        documents: Array.isArray(data.documents) ? data.documents : [],
+        messages: Array.isArray(data.messages) ? data.messages : [],
       };
     }
   } catch (err) {
@@ -128,7 +147,6 @@ export default async function VendorDashboard() {
   const submittedBids = rawReqs.filter((r) => r.quoteStatus === "SUBMITTED");
   const draftBids = rawReqs.filter((r) => r.quoteStatus === "DRAFT");
   const openInvites = rawReqs.filter((r) => (!r.quoteStatus || r.quoteStatus === null) && !r.isEnded && r.status === "OPEN");
-  const attachments = registration?.attachments || [];
 
   const kpis = [
     { label: "Open invitations", value: counts.open, icon: <Inbox className="h-4 w-4" /> },
@@ -137,67 +155,33 @@ export default async function VendorDashboard() {
     { label: "Drafts", value: counts.drafts, icon: <FileText className="h-4 w-4" /> },
   ];
 
-  // Documents list (mix of verified attachments & templates)
-  const docsList =
-    attachments.length > 0
-      ? attachments.slice(0, 4).map((att, idx) => ({
-        id: att.id,
-        name: att.fileName,
-        type: att.documentType,
-        color: [
-          "bg-brand-blue",
-          "bg-brand-blue/80",
-          "bg-brand-blue/60",
-          "bg-brand-blue/40",
-        ][idx % 4],
-        icon: <FileText className="h-4 w-4 text-white" />,
-      }))
-      : [
-        {
-          id: "d1",
-          name: "Supplier Code of Conduct.pdf",
-          type: "Policy",
-          color: "bg-brand-blue",
-          icon: <FileText className="h-4 w-4 text-white" />,
-        },
-        {
-          id: "d2",
-          name: "Standard Procurement Terms.pdf",
-          type: "Legal",
-          color: "bg-brand-blue/80",
-          icon: <FileText className="h-4 w-4 text-white" />,
-        },
-        {
-          id: "d3",
-          name: "NDA & Confidentiality.pdf",
-          type: "Agreement",
-          color: "bg-brand-blue/60",
-          icon: <FileText className="h-4 w-4 text-white" />,
-        },
-        {
-          id: "d4",
-          name: "E-Invoicing Guidelines.pdf",
-          type: "Finance",
-          color: "bg-brand-blue/40",
-          icon: <FileText className="h-4 w-4 text-white" />,
-        },
-      ];
+  const portalDocs = payload.documents ?? [];
+  const docsList = portalDocs.slice(0, 4).map((doc, idx) => ({
+    id: doc.id,
+    name: doc.title,
+    type: doc.category,
+    href: doc.fileUrl,
+    color: ["bg-brand-blue", "bg-brand-blue/80", "bg-brand-blue/60", "bg-brand-blue/40"][idx % 4],
+    icon: <FileText className="h-4 w-4 text-white" />,
+  }));
 
-  // Messages / Bidding Notifications
-  const messages = [
-    {
-      id: "m1",
-      text: "RVCC Procurement invited you to participate in active RFQ bidding.",
-      initial: "R",
-      color: "bg-brand-blue/10 text-brand-blue",
-    },
-    {
-      id: "m2",
-      text: "Real-time blind bidding is active. Monitor your L1 ranking and revise quotes.",
-      initial: "B",
-      color: "bg-amber-500/10 text-amber-600",
-    },
-  ];
+  const messages = (payload.messages ?? []).slice(0, 4).map((msg) => {
+    const type = msg.type || "";
+    const style =
+      type === "QUOTE_AWARDED"
+        ? { initial: "A", color: "bg-emerald-500/10 text-emerald-700" }
+        : type === "REQUIREMENT_UPDATED"
+          ? { initial: "B", color: "bg-amber-500/10 text-amber-600" }
+          : type === "VENDOR_MESSAGE"
+            ? { initial: "M", color: "bg-brand-blue/10 text-brand-blue" }
+            : { initial: "R", color: "bg-brand-blue/10 text-brand-blue" };
+    return {
+      id: msg.id,
+      text: msg.body || msg.title,
+      href: msg.linkPath || "/",
+      ...style,
+    };
+  });
 
   return (
     <div className="animate-in fade-in relative z-10 -mt-8 space-y-12 pt-0 duration-500">
@@ -253,26 +237,35 @@ export default async function VendorDashboard() {
           <section className="rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-sm sm:p-8">
             <h2 className="mb-6 text-lg font-bold tracking-tight text-zinc-900">Latest docs</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {docsList.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="hover:border-brand-blue/30 group flex cursor-pointer items-center gap-4 rounded-2xl border border-zinc-100 p-3 transition-colors"
-                >
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl shadow-sm ${doc.color} transition-transform group-hover:scale-105`}
+              {docsList.length === 0 ? (
+                <p className="text-sm text-zinc-500 sm:col-span-2">
+                  No documents have been published for vendors yet.
+                </p>
+              ) : (
+                docsList.map((doc) => (
+                  <a
+                    key={doc.id}
+                    href={doc.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:border-brand-blue/30 group flex cursor-pointer items-center gap-4 rounded-2xl border border-zinc-100 p-3 transition-colors"
                   >
-                    {doc.icon}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-zinc-700">{doc.name}</p>
-                    <p className="text-[10px] text-zinc-400 uppercase font-semibold">{doc.type}</p>
-                  </div>
-                </div>
-              ))}
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl shadow-sm ${doc.color} transition-transform group-hover:scale-105`}
+                    >
+                      {doc.icon}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-zinc-700">{doc.name}</p>
+                      <p className="text-[10px] text-zinc-400 uppercase font-semibold">{doc.type}</p>
+                    </div>
+                  </a>
+                ))
+              )}
             </div>
             <div className="mt-6">
               <Link
-                href="/requirements"
+                href="/documents"
                 className="text-brand-blue hover:text-brand-blue/80 text-sm font-bold transition-colors"
               >
                 View all
@@ -288,25 +281,29 @@ export default async function VendorDashboard() {
                 Latest messages
               </h2>
               <div className="flex-1 space-y-4">
-                {messages.map((msg) => (
-                  <div key={msg.id} className="flex items-start gap-3">
-                    <div className="mt-0.5">
-                      <div className="border-brand-blue/30 h-4 w-4 rounded-full border-2"></div>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm leading-snug text-zinc-600">{msg.text}</p>
-                    </div>
-                    <div
-                      className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${msg.color}`}
-                    >
-                      {msg.initial}
-                    </div>
-                  </div>
-                ))}
+                {messages.length === 0 ? (
+                  <p className="text-sm text-zinc-500">No messages yet.</p>
+                ) : (
+                  messages.map((msg) => (
+                    <Link key={msg.id} href={msg.href} className="flex items-start gap-3">
+                      <div className="mt-0.5">
+                        <div className="border-brand-blue/30 h-4 w-4 rounded-full border-2"></div>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm leading-snug text-zinc-600">{msg.text}</p>
+                      </div>
+                      <div
+                        className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${msg.color}`}
+                      >
+                        {msg.initial}
+                      </div>
+                    </Link>
+                  ))
+                )}
               </div>
               <div className="mt-6">
                 <Link
-                  href="/requirements"
+                  href="/messages"
                   className="text-brand-blue hover:text-brand-blue/80 text-sm font-bold transition-colors"
                 >
                   View all

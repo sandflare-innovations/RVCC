@@ -216,6 +216,7 @@ export const companyDocumentSchema = z.object({
   coverImage: z.string(),
   sortOrder: z.number().int(),
   isPublished: z.boolean(),
+  visibleToVendors: z.boolean().optional().default(false),
   requiresAuth: z.boolean(),
   pinCode: z.string().nullable().optional(),
   createdAt: z.string(),
@@ -237,6 +238,7 @@ export const companyDocumentInputSchema = z.object({
   coverImage: z.string(),
   sortOrder: z.number().int().optional(),
   isPublished: z.boolean().optional(),
+  visibleToVendors: z.boolean().optional(),
   requiresAuth: z.boolean().optional(),
   pinCode: z.string().nullable().optional(),
 });

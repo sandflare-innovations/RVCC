@@ -331,7 +331,7 @@ export async function buildVendorLiveBidsPayload(
     currency: data.requirement.currency,
     status: data.requirement.status,
     phase: negotiationPhase(data.requirement.status, data.requirement.opensAt, data.requirement.closesAt),
-    targetPrice: data.requirement.revealTargetPrice && data.requirement.sellingPrice
+    targetPrice: data.requirement.sellingPrice != null
       ? String(data.requirement.sellingPrice)
       : null,
     opensAt: data.requirement.opensAt ? data.requirement.opensAt.toISOString() : null,

@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Check, Copy, KeyRound, Lock, Trash2, Unlock } from "lucide-react";
+import { AlertCircle, Check, Copy, KeyRound, Lock, MessageSquare, Trash2, Unlock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -25,6 +25,10 @@ export function VendorProfileActions({
   const [showAccess, setShowAccess] = useState(false);
   const [showReset, setShowReset] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
+  const [messageTitle, setMessageTitle] = useState("");
+  const [messageBody, setMessageBody] = useState("");
+  const [messageSent, setMessageSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -101,6 +105,28 @@ export function VendorProfileActions({
     }
   };
 
+  const sendMessage = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/vendors/${vendor.id}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title: messageTitle, body: messageBody }),
+      });
+      if (!res.ok) {
+        setError(await readApiError(res, "Could not send the message."));
+        return;
+      }
+      setMessageSent(true);
+    } catch {
+      setError("Network error — please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const deleteVendor = async () => {
     setBusy(true);
     setDeleteError(null);
@@ -157,6 +183,21 @@ export function VendorProfileActions({
         >
           {isBlocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
           {isBlocked ? "Unblock Vendor" : "Block Vendor"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setError(null);
+            setMessageSent(false);
+            setMessageTitle("");
+            setMessageBody("");
+            setShowMessage(true);
+          }}
+          className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 shadow-sm ring-1 ring-zinc-200/80 transition-all hover:bg-zinc-50 hover:text-zinc-950 active:scale-[0.98]"
+        >
+          <MessageSquare className="h-4 w-4 text-zinc-500" />
+          Send message
         </button>
 
         <button
@@ -432,6 +473,87 @@ export function VendorProfileActions({
             preserved for audit history.
           </div>
         </div>
+      </Modal>
+
+      <Modal
+        open={showMessage}
+        onClose={() => {
+          setShowMessage(false);
+          setMessageSent(false);
+          setError(null);
+        }}
+        title="Send message"
+        description={`This appears in ${vendor.email}'s vendor portal under Latest messages.`}
+        footer={
+          messageSent ? (
+            <button
+              type="button"
+              onClick={() => {
+                setShowMessage(false);
+                setMessageSent(false);
+              }}
+              className="bg-brand-blue hover:bg-brand-blue/90 h-10 rounded-md px-4 text-sm font-semibold text-white transition-colors"
+            >
+              Done
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowMessage(false)}
+                disabled={busy}
+                className="h-10 rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 disabled:opacity-55"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void sendMessage()}
+                disabled={busy || !messageTitle.trim() || !messageBody.trim()}
+                className="bg-brand-blue hover:bg-brand-blue/90 inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-semibold text-white transition-colors disabled:opacity-55"
+              >
+                <MessageSquare className="h-4 w-4" />
+                {busy ? "Sending…" : "Send to vendor"}
+              </button>
+            </>
+          )
+        }
+      >
+        {error && (
+          <div
+            role="alert"
+            className="mb-4 flex items-start gap-2.5 border-l-4 border-red-500 bg-red-50 px-3.5 py-3 text-sm font-medium text-red-900"
+          >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-hidden="true" />
+            <span>{error}</span>
+          </div>
+        )}
+        {messageSent ? (
+          <p className="text-sm text-zinc-700">Message delivered to the vendor portal.</p>
+        ) : (
+          <div className="space-y-3">
+            <label className="block">
+              <span className="mb-1 block text-xs font-semibold text-zinc-600">Title</span>
+              <input
+                type="text"
+                value={messageTitle}
+                onChange={(e) => setMessageTitle(e.target.value)}
+                placeholder="e.g. Updated NDA"
+                className="h-10 w-full rounded-md border border-zinc-300 px-3 text-sm outline-none focus:border-zinc-500"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-xs font-semibold text-zinc-600">Message</span>
+              <textarea
+                value={messageBody}
+                onChange={(e) => setMessageBody(e.target.value)}
+                rows={4}
+                placeholder="Write the note vendors should see…"
+                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500"
+              />
+            </label>
+          </div>
+        )}
       </Modal>
     </>
   );
