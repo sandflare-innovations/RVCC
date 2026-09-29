@@ -2,6 +2,7 @@ import type { Env } from "../../../config/env";
 import { json } from "../../../lib/http";
 import { hashPassword, verifyPassword } from "../../../lib/password";
 import { prisma } from "../../../lib/prisma";
+import { hashSha256 } from "../../../lib/sql";
 import {
   attemptVendorLogin,
   createVendorSession,
@@ -155,7 +156,7 @@ export class VendorAuthController {
       await prisma.vendorSession.updateMany({
         where: {
           vendorId: vendor.id,
-          tokenHash: { not: currentToken },
+          tokenHash: { not: await hashSha256(currentToken) },
           revokedAt: null,
         },
         data: { revokedAt: new Date() },

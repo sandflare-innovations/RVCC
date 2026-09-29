@@ -47,6 +47,8 @@ export type AppEnv = {
   R2_BUCKET_NAME?: string;
   /** Private RFQ/KYC bucket. Falls back to R2_BUCKET_NAME when unset. */
   R2_SECURE_BUCKET_NAME?: string;
+  /** S3-compatible endpoint override (e.g. MinIO on the VPS). Defaults to Cloudflare R2. */
+  R2_S3_ENDPOINT?: string;
   /** Cloudflare Worker R2 binding — set in worker.ts, not process.env. */
   uploadsBucket?: R2Bucket;
   publicAssetsBucket?: R2Bucket;
@@ -101,6 +103,7 @@ export function loadEnv(): AppEnv {
     R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY?.trim() || undefined,
     R2_BUCKET_NAME: process.env.R2_BUCKET_NAME?.trim() || undefined,
     R2_SECURE_BUCKET_NAME: process.env.R2_SECURE_BUCKET_NAME?.trim() || undefined,
+    R2_S3_ENDPOINT: process.env.R2_S3_ENDPOINT?.trim().replace(/\/$/, "") || undefined,
     PORT: Number(process.env.PORT || 4000),
     NODE_ENV: process.env.NODE_ENV || "development",
   };

@@ -331,8 +331,13 @@ export function extractStorageKeyFromUrl(env: Env, fileUrl: string): string | nu
 
 function s3Configured(env: Env): boolean {
   return Boolean(
-    env.R2_ACCOUNT_ID && env.R2_ACCESS_KEY_ID && env.R2_SECRET_ACCESS_KEY
+    (env.R2_ACCOUNT_ID || env.R2_S3_ENDPOINT) && env.R2_ACCESS_KEY_ID && env.R2_SECRET_ACCESS_KEY
   );
+}
+
+function s3ObjectUrl(env: Env, bucketName: string, key: string): string {
+  const base = env.R2_S3_ENDPOINT || `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
+  return `${base}/${bucketName}/${key}`;
 }
 
 /** Worker binds rvcc-secure-assets. Local R2 tokens are often scoped to R2_BUCKET_NAME only. */
@@ -424,7 +429,7 @@ export async function putPublicAsset(
 
   let lastError = "R2 public asset upload failed";
   for (const bucketName of candidatePublicBuckets(env)) {
-    const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
+    const url = s3ObjectUrl(env, bucketName, key);
     const res = await client.fetch(url, { method: "PUT", body: payload, headers });
     if (res.ok) return;
     const detail = await res.text().catch(() => "");
@@ -447,7 +452,7 @@ export async function deletePublicAsset(env: Env, key: string): Promise<void> {
     accessKeyId: env.R2_ACCESS_KEY_ID!,
     secretAccessKey: env.R2_SECRET_ACCESS_KEY!,
   });
-  const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
+  const url = s3ObjectUrl(env, bucketName, key);
   await client.fetch(url, { method: "DELETE" }).catch(() => undefined);
 }
 
@@ -490,7 +495,7 @@ export async function putSecureDocument(
 
   let lastError = "R2 secure upload failed";
   for (const bucketName of candidateSecureBuckets(env)) {
-    const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
+    const url = s3ObjectUrl(env, bucketName, key);
     const res = await client.fetch(url, { method: "PUT", body: payload, headers });
     if (res.ok) return;
     const detail = await res.text().catch(() => "");
@@ -514,7 +519,7 @@ export async function deleteSecureDocument(env: Env, key: string): Promise<void>
     secretAccessKey: env.R2_SECRET_ACCESS_KEY!,
   });
   for (const bucketName of candidateSecureBuckets(env)) {
-    const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
+    const url = s3ObjectUrl(env, bucketName, key);
     await client.fetch(url, { method: "DELETE" }).catch(() => undefined);
   }
 }
@@ -539,7 +544,7 @@ export async function getSecureDocument(
     secretAccessKey: env.R2_SECRET_ACCESS_KEY!,
   });
   for (const bucketName of candidateSecureBuckets(env)) {
-    const url = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`;
+    const url = s3ObjectUrl(env, bucketName, key);
     const res = await client.fetch(url, { method: "GET" });
     if (res.ok) {
       const body = await res.arrayBuffer();
