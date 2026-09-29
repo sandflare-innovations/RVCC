@@ -74,6 +74,7 @@ export async function handleVendorCreate(
       {
         ok: true,
         vendor: { id: result.vendorId, email: result.email, name: result.name },
+        tempPassword: result.tempPassword,
       },
       201
     );
@@ -154,7 +155,7 @@ export async function handleVendorResetPassword(
     metadata: { email: result.email },
   });
 
-  return json(env, request, { ok: true, email: result.email });
+  return json(env, request, { ok: true, email: result.email, tempPassword: result.tempPassword });
 }
 
 export async function handleVendorDelete(

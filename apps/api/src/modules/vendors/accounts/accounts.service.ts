@@ -401,6 +401,7 @@ export class VendorAccountsService {
       vendorId,
       email: normalised.email,
       name: normalised.name,
+      tempPassword,
     };
   }
 
@@ -474,17 +475,15 @@ export class VendorAccountsService {
       }),
     ]);
 
-    try {
-      await sendAccessReleasedEmail(env, vendor.email, {
-        legalName: vendor.name,
-        portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/login`,
-        loginEmail: vendor.email,
-        tempPassword,
-      });
-    } catch (err) {
+    void sendAccessReleasedEmail(env, vendor.email, {
+      legalName: vendor.name,
+      portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/login`,
+      loginEmail: vendor.email,
+      tempPassword,
+    }).catch((err) => {
       console.warn("Failed to send vendor password reset email:", err);
-    }
+    });
 
-    return { ok: true, email: vendor.email };
+    return { ok: true, email: vendor.email, tempPassword };
   }
 }

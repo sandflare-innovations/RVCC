@@ -238,6 +238,9 @@ async function sendMail(
     port,
     secure: implicitTls,
     requireTLS: !implicitTls,
+    connectionTimeout: 12_000,
+    greetingTimeout: 12_000,
+    socketTimeout: 20_000,
     auth: {
       user: env.SMTP_USER,
       pass: env.SMTP_PASS,
