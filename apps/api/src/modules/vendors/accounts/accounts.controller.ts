@@ -97,6 +97,7 @@ export async function handleVendorPatch(
     portalAccess?: unknown;
     name?: unknown;
     industryIds?: unknown;
+    notifyEmail?: unknown;
   } | null;
 
   if (!body) return json(env, request, { error: "Invalid JSON body" }, 400);
@@ -106,7 +107,7 @@ export async function handleVendorPatch(
     portalAccess: typeof body.portalAccess === "string" ? body.portalAccess : undefined,
     name: typeof body.name === "string" ? body.name : undefined,
     industryIds: Array.isArray(body.industryIds) ? body.industryIds.map(String) : undefined,
-  });
+  }, body.notifyEmail === false ? undefined : env);
 
   if (!updated) return json(env, request, { error: "Vendor not found." }, 404);
 
@@ -131,6 +132,7 @@ export async function handleVendorPatch(
       name: updated.name,
       updatedAt: updated.updatedAt.toISOString(),
     },
+    tempPassword: updated.tempPassword,
   });
 }
 

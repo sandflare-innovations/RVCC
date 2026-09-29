@@ -4,9 +4,11 @@ import { cuid } from "../../../lib/sql";
 import {
   sendApprovedEmail,
   sendAwardEmail,
+  sendNoticeEmail,
   sendRejectedEmail,
   sendRequirementPostedEmail,
 } from "../../mail/mail";
+import { mailInBackground, vendorPortalUrl } from "../../mail/events";
 import type {
   DecisionRecipient,
   NotificationItem,
@@ -88,17 +90,31 @@ export class NotificationService {
     });
   }
 
-  static async sendAdminVendorMessage(input: {
-    vendorUserId: string;
-    title: string;
-    body: string;
-    linkPath?: string;
-  }): Promise<NotificationItem | null> {
+  static async sendAdminVendorMessage(
+    env: Env,
+    input: {
+      vendorUserId: string;
+      title: string;
+      body: string;
+      linkPath?: string;
+    }
+  ): Promise<NotificationItem | null> {
     const vendor = await prisma.vendorUser.findFirst({
       where: { id: input.vendorUserId },
-      select: { id: true },
+      select: { id: true, email: true },
     });
     if (!vendor) return null;
+
+    mailInBackground("vendor-message", () =>
+      sendNoticeEmail(env, vendor.email, {
+        subject: `RVCC — ${input.title}`,
+        title: "Message from RVCC",
+        paragraphs: ["RVCC Procurement sent you a message:"],
+        highlight: { label: "Subject", value: input.title },
+        quote: input.body,
+        cta: { label: "Open your vendor portal", url: vendorPortalUrl(env, "/messages") },
+      })
+    );
 
     const row = await prisma.notification.create({
       data: {

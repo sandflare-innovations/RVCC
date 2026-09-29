@@ -7,6 +7,14 @@ import { prisma } from "../../../lib/prisma";
 import { cuid } from "../../../lib/sql";
 import { SourcingService } from "./sourcing.service";
 import { NotificationService } from "../../system/services/notification.service";
+import { sendAccessReleasedEmail } from "../../mail/mail";
+import {
+  mailInBackground,
+  notifyBiddingClosed,
+  notifyBiddingOpened,
+  notifyBiddingScheduled,
+  vendorPortalUrl,
+} from "../../mail/events";
 import { assertTransition } from "../lib/status-machine";
 
 function asDate(value: unknown): Date | null {
@@ -73,6 +81,7 @@ export class BiddingService {
 
     const input = inviteSuppliersSchema.parse(raw);
     const vendorIds = [...input.vendorUserIds];
+    const newAccounts: { email: string; name: string; tempPassword: string }[] = [];
 
     for (const newbie of input.newSuppliers) {
       const existing = await prisma.vendorUser.findUnique({ where: { email: newbie.email } });
@@ -94,6 +103,18 @@ export class BiddingService {
         },
       });
       vendorIds.push(vendorId);
+      newAccounts.push({ email: newbie.email, name: newbie.name, tempPassword });
+    }
+
+    for (const account of newAccounts) {
+      mailInBackground("invite-new-supplier", () =>
+        sendAccessReleasedEmail(env, account.email, {
+          legalName: account.name,
+          portalUrl: vendorPortalUrl(env, "/login"),
+          loginEmail: account.email,
+          tempPassword: account.tempPassword,
+        })
+      );
     }
 
     const uniqueIds = [...new Set(vendorIds)];
@@ -155,7 +176,7 @@ export class BiddingService {
     };
   }
 
-  static async openBidding(requirementId: string) {
+  static async openBidding(requirementId: string, env: Env) {
     const requirement = await prisma.requirement.findFirst({
       where: { id: requirementId, deletedAt: null },
       include: { _count: { select: { invites: true } } },
@@ -167,39 +188,55 @@ export class BiddingService {
     if (requirement._count.invites < 1) throw new Error("Invite at least one supplier before opening bidding.");
 
     assertTransition(requirement.status, "OPEN");
+    const now = new Date();
+    const opensAt = requirement.opensAt ?? now;
+    const scheduled = opensAt.getTime() > now.getTime();
     const updated = await prisma.requirement.update({
       where: { id: requirementId },
       data: {
         status: "OPEN",
-        opensAt: requirement.opensAt ?? new Date(),
+        opensAt,
+        // Scheduled openings are announced by the background worker when they start.
+        openNoticeSentAt: scheduled ? null : now,
+        closingReminderSentAt: null,
+        closedNoticeSentAt: null,
       },
     });
 
-    const invited = await prisma.requirementInvite.findMany({
-      where: { requirementId },
-      select: { vendorUserId: true },
-    });
-    await NotificationService.notifyVendors({
-      vendorUserIds: invited.map((i) => i.vendorUserId),
-      type: "REQUIREMENT_UPDATED",
-      title: "Live bidding is open",
-      body: `Real-time bidding is active for ${requirement.project}. Monitor your ranking and revise quotes.`,
-      linkPath: `/requirements/${requirementId}`,
-    }).catch((err) => console.warn("[openBidding] vendor notify failed", err));
+    const summary = {
+      id: updated.id,
+      project: updated.project,
+      referenceNumber: updated.referenceNumber,
+      opensAt: updated.opensAt,
+      closesAt: updated.closesAt,
+    };
+    mailInBackground(scheduled ? "bidding-scheduled" : "bidding-opened", () =>
+      scheduled ? notifyBiddingScheduled(env, summary) : notifyBiddingOpened(env, summary)
+    );
 
     return updated;
   }
 
-  static async closeBidding(requirementId: string) {
+  static async closeBidding(requirementId: string, env: Env) {
     const requirement = await prisma.requirement.findFirst({
       where: { id: requirementId, deletedAt: null },
     });
     if (!requirement) return null;
     assertTransition(requirement.status, "BIDDING_CLOSED");
-    return prisma.requirement.update({
+    const updated = await prisma.requirement.update({
       where: { id: requirementId },
-      data: { status: "BIDDING_CLOSED" },
+      data: { status: "BIDDING_CLOSED", closedNoticeSentAt: new Date() },
     });
+    mailInBackground("bidding-closed", () =>
+      notifyBiddingClosed(env, {
+        id: updated.id,
+        project: updated.project,
+        referenceNumber: updated.referenceNumber,
+        opensAt: updated.opensAt,
+        closesAt: updated.closesAt,
+      })
+    );
+    return updated;
   }
 
   static async startEvaluation(requirementId: string) {

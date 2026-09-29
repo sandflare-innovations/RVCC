@@ -3,6 +3,7 @@ import type { Env } from "../../config/env";
 import { json } from "../../lib/http";
 import { hashPassword } from "../../lib/password";
 import { sendOtpEmail, sendSubmittedEmail, smtpConfigured } from "../mail/mail";
+import { adminPortalUrl, alertAdmins, mailInBackground, VENDOR_ADMIN_ALERT_ROLES } from "../mail/events";
 import { createVendorSession } from "../auth/services/vendor-auth.service";
 import {
   cuid,
@@ -685,6 +686,30 @@ export async function handleSubmit(_sql: unknown, env: Env, request: Request): P
   } catch (err) {
     console.error("[enquire] submit confirmation email failed", err);
   }
+
+  const registrationLink = `/registrations/${id}`;
+  mailInBackground("registration-submitted", () =>
+    alertAdmins(env, {
+      type: "REQUIREMENT_UPDATED",
+      title: `New supplier registration: ${legalName || email}`,
+      body: `Registration ${referenceNumber} is waiting for review.`,
+      linkPath: registrationLink,
+      roles: VENDOR_ADMIN_ALERT_ROLES,
+      email: {
+        subject: `RVCC Admin — New supplier registration ${referenceNumber}`,
+        title: "New Supplier Registration",
+        paragraphs: [
+          "A new supplier registration was submitted and is waiting for review. Approve or reject it, then release portal access from User Management.",
+        ],
+        details: [
+          ["Reference", referenceNumber],
+          ["Company", legalName || "—"],
+          ["Email", email],
+        ],
+        cta: { label: "Review registration", url: adminPortalUrl(env, registrationLink) },
+      },
+    })
+  );
 
   return json(
     env,

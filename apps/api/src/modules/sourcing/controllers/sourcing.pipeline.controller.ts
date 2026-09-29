@@ -46,7 +46,7 @@ export async function handleSubmitToAdmin(sql: unknown, env: Env, request: Reque
   const { admin, deny } = await requireAdmin(sql, env, request, "PROCUREMENT_ADMIN");
   if (deny) return deny;
   try {
-    const updated = await SourcingService.submitToAdmin(id, admin.id);
+    const updated = await SourcingService.submitToAdmin(id, admin.id, env);
     if (!updated) return json(env, request, { error: "Requirement not found." }, 404);
     await writeAudit(sql, {
       adminId: admin.id,
@@ -190,7 +190,7 @@ export async function handleOpenBidding(sql: unknown, env: Env, request: Request
   const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
   if (deny) return deny;
   try {
-    const updated = await BiddingService.openBidding(id);
+    const updated = await BiddingService.openBidding(id, env);
     if (!updated) return json(env, request, { error: "Requirement not found." }, 404);
     await writeAudit(sql, {
       adminId: admin.id,
@@ -210,7 +210,7 @@ export async function handleCloseBidding(sql: unknown, env: Env, request: Reques
   const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
   if (deny) return deny;
   try {
-    const updated = await BiddingService.closeBidding(id);
+    const updated = await BiddingService.closeBidding(id, env);
     if (!updated) return json(env, request, { error: "Requirement not found." }, 404);
     await writeAudit(sql, {
       adminId: admin.id,

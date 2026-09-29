@@ -128,7 +128,7 @@ export async function handleAdminSendVendorMessage(
     return json(env, request, { error: "Title and message are required." }, 400);
   }
 
-  const item = await NotificationService.sendAdminVendorMessage({
+  const item = await NotificationService.sendAdminVendorMessage(env, {
     vendorUserId: vendorId,
     title,
     body: message,

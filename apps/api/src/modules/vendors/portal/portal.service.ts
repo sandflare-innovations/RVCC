@@ -23,6 +23,139 @@ import {
 } from "../../../lib/storage";
 import { DocumentsService } from "../../documents/services/documents.service";
 import { NotificationService } from "../../system/services/notification.service";
+import { getRequirementRankings } from "../../sourcing/bidding/ranking.service";
+import {
+  adminPortalUrl,
+  alertAdmins,
+  alertVendors,
+  formatMoney,
+  formatWhen,
+  mailInBackground,
+  vendorPortalUrl,
+} from "../../mail/events";
+
+async function currentLeaderVendorId(requirementId: string): Promise<string | null> {
+  const rankings = await getRequirementRankings(requirementId).catch(() => null);
+  return rankings?.adminQuotes.find((q) => q.rank === 1)?.vendorId ?? null;
+}
+
+async function notifyBidSubmitted(
+  env: Env,
+  input: {
+    requirement: {
+      id: string;
+      project: string;
+      referenceNumber: string | null;
+      closesAt: Date | null;
+      revealCompetitorPrices: boolean;
+    };
+    vendorId: string;
+    quoteId: string;
+    amount: number;
+    currency: string;
+    remarks: string;
+    isRevision: boolean;
+    leaderBefore: string | null;
+  }
+) {
+  const { requirement: r } = input;
+  const link = `/requirements/${r.id}`;
+  const [vendor, attachmentCount, rankings] = await Promise.all([
+    prisma.vendorUser.findUnique({
+      where: { id: input.vendorId },
+      select: {
+        email: true,
+        name: true,
+        registration: { select: { company: { select: { legalName: true } } } },
+      },
+    }),
+    prisma.quoteAttachment.count({ where: { quoteId: input.quoteId } }),
+    getRequirementRankings(r.id).catch(() => null),
+  ]);
+  const companyName = vendor?.registration?.company?.legalName || vendor?.name || vendor?.email || "Vendor";
+  const amountLabel = formatMoney(input.amount, input.currency);
+  const leader = rankings?.adminQuotes.find((q) => q.rank === 1) ?? null;
+  const myRank = rankings?.adminQuotes.find((q) => q.vendorId === input.vendorId)?.rank ?? null;
+
+  await alertVendors(env, {
+    vendorUserIds: [input.vendorId],
+    type: "QUOTE_SUBMITTED",
+    title: input.isRevision ? "Revised bid recorded" : "Bid submitted",
+    body: `Your bid of ${amountLabel} for ${r.project} was recorded.`,
+    linkPath: link,
+    email: {
+      subject: `RVCC — ${input.isRevision ? "Revised bid" : "Bid"} received: ${r.project}`,
+      title: input.isRevision ? "Revised Bid Received" : "Bid Received",
+      paragraphs: [
+        `Your ${input.isRevision ? "revised " : ""}bid has been recorded and entered into the ranking.`,
+        "You can revise your bid from the vendor portal until bidding closes, if revisions are allowed.",
+      ],
+      highlight: { label: "Your bid", value: amountLabel },
+      details: [
+        ["Reference", r.referenceNumber || "—"],
+        ["Project", r.project],
+        ["Documents attached", String(attachmentCount)],
+        ["Current rank", myRank ? `#${myRank}` : "—"],
+        ["Bidding closes", formatWhen(r.closesAt)],
+      ],
+      quote: input.remarks || undefined,
+      cta: { label: "View your bid", url: vendorPortalUrl(env, link) },
+    },
+  });
+
+  await alertAdmins(env, {
+    type: "QUOTE_SUBMITTED",
+    title: `${input.isRevision ? "Bid revised" : "New bid"}: ${r.project}`,
+    body: `${companyName} bid ${amountLabel}.`,
+    linkPath: link,
+    // Revisions during live bidding would flood admin inboxes; first bids are emailed.
+    email: input.isRevision
+      ? undefined
+      : {
+          subject: `RVCC Admin — New bid on ${r.project} from ${companyName}`,
+          title: "New Bid Received",
+          paragraphs: [`${companyName} submitted a bid.`],
+          highlight: { label: "Bid amount", value: amountLabel },
+          details: [
+            ["Reference", r.referenceNumber || "—"],
+            ["Project", r.project],
+            ["Vendor", companyName],
+            ["Documents attached", String(attachmentCount)],
+            ["Rank", myRank ? `#${myRank}` : "—"],
+          ],
+          quote: input.remarks || undefined,
+          cta: { label: "Open in admin", url: adminPortalUrl(env, link) },
+        },
+  });
+
+  const overtaken = input.leaderBefore;
+  if (overtaken && overtaken !== input.vendorId && leader?.vendorId === input.vendorId) {
+    await alertVendors(env, {
+      vendorUserIds: [overtaken],
+      type: "REQUIREMENT_UPDATED",
+      title: "You have been outbid",
+      body: `Another supplier took first place on ${r.project}. Revise your bid before ${formatWhen(r.closesAt)}.`,
+      linkPath: link,
+      email: {
+        subject: `RVCC — You have been outbid: ${r.project}`,
+        title: "You Have Been Outbid",
+        paragraphs: [
+          "Another supplier has taken first place on the requirement below. Review your bid and submit a revision before bidding closes.",
+        ],
+        highlight:
+          r.revealCompetitorPrices && leader?.newPrice
+            ? { label: "Current best bid", value: formatMoney(leader.newPrice, leader.currency || input.currency) }
+            : undefined,
+        details: [
+          ["Reference", r.referenceNumber || "—"],
+          ["Project", r.project],
+          ["Bidding closes", formatWhen(r.closesAt)],
+        ],
+        cta: { label: "Revise your bid", url: vendorPortalUrl(env, link) },
+      },
+    });
+  }
+}
 
 export class VendorPortalService {
   /**
@@ -427,6 +560,7 @@ export class VendorPortalService {
     if (existing?.status === "SUBMITTED" && requirement.allowBidRevisions === false) {
       return { error: "Bid revisions are not permitted on this requirement.", status: 409 };
     }
+    const leaderBefore = submit ? await currentLeaderVendorId(requirementId) : null;
 
     const quantity = Number(body.quantity ?? existing?.quantity ?? requirement.quantity ?? 1);
     const unitPriceRaw = body.unitPrice ?? body.newPrice ?? existing?.unitPrice ?? existing?.newPrice;
@@ -558,6 +692,21 @@ export class VendorPortalService {
       void broadcastBidUpdate(requirementId, env);
     } catch (err) {
       console.warn("[saveQuote] live broadcast failed", err);
+    }
+
+    if (submit) {
+      mailInBackground("bid-submitted", () =>
+        notifyBidSubmitted(env, {
+          requirement,
+          vendorId,
+          quoteId: saved.id,
+          amount: money.totalPrice,
+          currency: selectedCurrency,
+          remarks,
+          isRevision: existing?.status === "SUBMITTED",
+          leaderBefore,
+        })
+      );
     }
 
     return {

@@ -108,6 +108,11 @@ model Requirement {
 
   status           RequirementStatus @default(DRAFT)
 
+  // Email de-duplication for the background bidding scheduler.
+  openNoticeSentAt      DateTime?
+  closingReminderSentAt DateTime?
+  closedNoticeSentAt    DateTime?
+
   createdByAdminId String
   createdByAdmin   AdminUser         @relation("RequirementAuthor", fields: [createdByAdminId], references: [id], onDelete: Restrict)
 
