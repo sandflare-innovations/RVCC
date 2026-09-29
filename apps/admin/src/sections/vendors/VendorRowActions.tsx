@@ -127,8 +127,12 @@ export function VendorRowActions({
         return;
       }
       const data = await res.json().catch(() => ({}));
-      if (data.tempPassword) setAccessIssued(data.tempPassword);
       clearVendorCache();
+      if (typeof data.tempPassword === "string" && data.tempPassword) {
+        // Defer list refresh until Done — remounting this row hides the password.
+        setAccessIssued(data.tempPassword);
+        return;
+      }
       if (onUpdated) onUpdated();
       else router.refresh();
     } catch {
@@ -151,10 +155,14 @@ export function VendorRowActions({
         return;
       }
       const data = await res.json().catch(() => ({}));
-      setIssued(data.tempPassword);
+      const password = typeof data.tempPassword === "string" ? data.tempPassword : "";
+      if (!password) {
+        setError("Password was reset, but it was not returned. Try again.");
+        return;
+      }
+      setIssued(password);
       clearVendorCache();
-      if (onUpdated) onUpdated();
-      else router.refresh();
+      // Defer list refresh until Done — remounting this row hides the password.
     } catch {
       setError("Network error — please try again.");
     } finally {
@@ -410,6 +418,8 @@ export function VendorRowActions({
                 setShowReset(false);
                 setIssued(null);
                 setCopied(false);
+                if (onUpdated) onUpdated();
+                else router.refresh();
               }}
               className="bg-brand-blue hover:bg-brand-blue/90 h-10 rounded-md px-4 text-sm font-semibold text-white transition-colors"
             >
@@ -511,6 +521,8 @@ export function VendorRowActions({
                 setShowAccess(false);
                 setAccessIssued(null);
                 setAccessCopied(false);
+                if (onUpdated) onUpdated();
+                else router.refresh();
               }}
               className="bg-brand-blue hover:bg-brand-blue/90 h-10 rounded-md px-4 text-sm font-semibold text-white transition-colors"
             >

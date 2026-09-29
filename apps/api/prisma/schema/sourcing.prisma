@@ -97,7 +97,7 @@ model Requirement {
   rankingStrategy  RankingStrategy   @default(LOWEST_PRICE)
   allowBidRevisions Boolean          @default(true)
   revealCompetitorPrices Boolean     @default(false)
-  revealTargetPrice Boolean          @default(false)
+  revealTargetPrice Boolean          @default(true)
   priceWeight      Decimal           @default(50) @db.Decimal(5, 2)
   technicalWeight  Decimal           @default(25) @db.Decimal(5, 2)
   commercialWeight Decimal           @default(25) @db.Decimal(5, 2)
@@ -107,6 +107,11 @@ model Requirement {
   termsAndConditions String          @default("")
 
   status           RequirementStatus @default(DRAFT)
+
+  // Email de-duplication for the background bidding scheduler.
+  openNoticeSentAt      DateTime?
+  closingReminderSentAt DateTime?
+  closedNoticeSentAt    DateTime?
 
   createdByAdminId String
   createdByAdmin   AdminUser         @relation("RequirementAuthor", fields: [createdByAdminId], references: [id], onDelete: Restrict)

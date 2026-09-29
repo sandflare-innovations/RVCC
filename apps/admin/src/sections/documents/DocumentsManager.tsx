@@ -120,6 +120,25 @@ export function DocumentsManager({ initialDocuments, canDelete }: DocumentsManag
     }
   };
 
+  const handleToggleVendor = async (doc: CompanyDocumentDTO) => {
+    try {
+      const next = !doc.visibleToVendors;
+      const res = await fetch(`/api/documents/${doc.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visibleToVendors: next }),
+      });
+      if (res.ok) {
+        setDocuments((prev) =>
+          prev.map((d) => (d.id === doc.id ? { ...d, visibleToVendors: next } : d))
+        );
+        showToast(`"${doc.title}" ${next ? "shown in vendor portal" : "hidden from vendors"}`);
+      }
+    } catch {
+      showToast("Failed to update vendor visibility");
+    }
+  };
+
   // Delete
   const handleDelete = async () => {
     if (!deleteConfirmDoc) return;
@@ -184,7 +203,7 @@ export function DocumentsManager({ initialDocuments, canDelete }: DocumentsManag
                 Company Documents & Publications
               </h1>
               <p className="text-xs font-medium text-zinc-500">
-                Manage high-resolution company profiles, standards, brochures, and catalogs displayed on the web app.
+                Manage company publications for the website and vendor portal.
               </p>
             </div>
           </div>
@@ -353,7 +372,23 @@ export function DocumentsManager({ initialDocuments, canDelete }: DocumentsManag
                         }`}
                         title={doc.isPublished ? "Published (Click to hide)" : "Draft (Click to publish)"}
                       >
-                        {doc.isPublished ? "Live" : "Draft"}
+                        {doc.isPublished ? "Web" : "No web"}
+                      </button>
+
+                      <button
+                        onClick={() => handleToggleVendor(doc)}
+                        className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase transition-colors ${
+                          doc.visibleToVendors
+                            ? "bg-blue-50 text-[#0073bc] border border-blue-200"
+                            : "bg-zinc-100 text-zinc-500 border border-zinc-200"
+                        }`}
+                        title={
+                          doc.visibleToVendors
+                            ? "Visible in vendor portal (click to hide)"
+                            : "Hidden from vendors (click to show)"
+                        }
+                      >
+                        {doc.visibleToVendors ? "Vendor" : "No vendor"}
                       </button>
 
                       {doc.requiresAuth && (
@@ -519,6 +554,8 @@ function UploadDocumentModal({
   const [pageCount, setPageCount] = useState<number>(0);
   const [requiresAuth, setRequiresAuth] = useState(false);
   const [pinCode, setPinCode] = useState("");
+  const [isPublished, setIsPublished] = useState(true);
+  const [visibleToVendors, setVisibleToVendors] = useState(false);
 
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -640,7 +677,8 @@ function UploadDocumentModal({
           coverImage: coverImageUrl,
           requiresAuth,
           pinCode: requiresAuth ? pinCode : undefined,
-          isPublished: true,
+          isPublished,
+          visibleToVendors,
         }),
       });
 
@@ -845,6 +883,35 @@ function UploadDocumentModal({
             </div>
           </div>
 
+          <div className="rounded-2xl bg-zinc-50 p-4 border border-zinc-100 space-y-3">
+            <label className="flex items-center justify-between gap-3 cursor-pointer">
+              <div>
+                <h4 className="text-xs font-bold text-zinc-900">Published on website</h4>
+                <p className="text-[11px] text-zinc-400">Show this PDF on the public documents page.</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={isPublished}
+                onChange={(e) => setIsPublished(e.target.checked)}
+                className="h-4 w-4 rounded border-zinc-300 text-[#0073bc] focus:ring-[#0073bc]"
+              />
+            </label>
+            <label className="flex items-center justify-between gap-3 cursor-pointer pt-3 border-t border-zinc-200/60">
+              <div>
+                <h4 className="text-xs font-bold text-zinc-900">Show in vendor portal</h4>
+                <p className="text-[11px] text-zinc-400">
+                  Vendors see this under Latest docs. Use this for policies, NDAs, and terms.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={visibleToVendors}
+                onChange={(e) => setVisibleToVendors(e.target.checked)}
+                className="h-4 w-4 rounded border-zinc-300 text-[#0073bc] focus:ring-[#0073bc]"
+              />
+            </label>
+          </div>
+
           {/* Security & Access Protection */}
           <div className="rounded-2xl bg-zinc-50 p-4 border border-zinc-100">
             <div className="flex items-center justify-between">
@@ -929,6 +996,7 @@ function EditDocumentModal({
   const [description, setDescription] = useState(doc.description);
   const [pageCount, setPageCount] = useState<number>(doc.pageCount || 0);
   const [isPublished, setIsPublished] = useState(doc.isPublished);
+  const [visibleToVendors, setVisibleToVendors] = useState(Boolean(doc.visibleToVendors));
   const [requiresAuth, setRequiresAuth] = useState(doc.requiresAuth);
   const [pinCode, setPinCode] = useState(doc.pinCode || "");
 
@@ -953,6 +1021,7 @@ function EditDocumentModal({
           description,
           pageCount,
           isPublished,
+          visibleToVendors,
           requiresAuth,
           pinCode: requiresAuth ? pinCode : null,
         }),
@@ -1066,6 +1135,17 @@ function EditDocumentModal({
                   className="h-4 w-4 rounded border-zinc-300 text-[#0073bc]"
                 />
                 <span>Published on Web</span>
+              </label>
+            </div>
+            <div className="flex items-center gap-3 pt-6">
+              <label className="flex items-center gap-2 text-xs font-semibold text-zinc-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={visibleToVendors}
+                  onChange={(e) => setVisibleToVendors(e.target.checked)}
+                  className="h-4 w-4 rounded border-zinc-300 text-[#0073bc]"
+                />
+                <span>Vendor portal</span>
               </label>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import type { Env } from "../../../config/env";
 import { json } from "../../../lib/http";
+import { requireAdmin } from "../../auth";
 import { getAdminFromSession } from "../../auth/services/admin-auth.service";
 import { NotificationService } from "../services/notification.service";
 
@@ -104,3 +105,36 @@ export const handleAdminPushSubscribe =
   NotificationAdminController.handleAdminPushSubscribe;
 export const handleAdminPushUnsubscribe =
   NotificationAdminController.handleAdminPushUnsubscribe;
+
+export async function handleAdminSendVendorMessage(
+  sql: unknown,
+  env: Env,
+  request: Request,
+  vendorId: string
+): Promise<Response> {
+  const { deny } = await requireAdmin(sql, env, request, "VENDOR_ADMIN");
+  if (deny) return deny;
+
+  let body: { title?: string; body?: string; linkPath?: string } = {};
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return json(env, request, { error: "Invalid JSON body" }, 400);
+  }
+
+  const title = (body.title || "").trim();
+  const message = (body.body || "").trim();
+  if (!title || !message) {
+    return json(env, request, { error: "Title and message are required." }, 400);
+  }
+
+  const item = await NotificationService.sendAdminVendorMessage(env, {
+    vendorUserId: vendorId,
+    title,
+    body: message,
+    linkPath: body.linkPath,
+  });
+  if (!item) return json(env, request, { error: "Vendor not found." }, 404);
+
+  return json(env, request, { ok: true, item }, 201);
+}

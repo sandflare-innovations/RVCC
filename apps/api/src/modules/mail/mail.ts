@@ -3,7 +3,21 @@ import { isCloudflareWorkerRuntime } from "../../lib/runtime";
 
 const BRAND = "#0073bc";
 
-function shell(opts: { preheader: string; title: string; bodyHtml: string }): string {
+export function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function shell(opts: {
+  preheader: string;
+  title: string;
+  bodyHtml: string;
+  footerNote?: string;
+}): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,7 +46,7 @@ function shell(opts: { preheader: string; title: string; bodyHtml: string }): st
             <td style="padding:20px 32px 28px;border-top:1px solid #f4f4f5;background:#fafafa;">
               <p style="margin:0;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#a1a1aa;font-weight:700;">Riyadh Valley Contracting Company</p>
               <p style="margin:8px 0 0;font-size:12px;color:#71717a;line-height:1.5;">
-                This message was sent regarding supplier registration. If you did not request it, you can ignore this email.
+                ${opts.footerNote ?? "This message was sent regarding supplier registration. If you did not request it, you can ignore this email."}
               </p>
             </td>
           </tr>
@@ -238,6 +252,9 @@ async function sendMail(
     port,
     secure: implicitTls,
     requireTLS: !implicitTls,
+    connectionTimeout: 12_000,
+    greetingTimeout: 12_000,
+    socketTimeout: 20_000,
     auth: {
       user: env.SMTP_USER,
       pass: env.SMTP_PASS,
@@ -253,6 +270,72 @@ async function sendMail(
     html: opts.html,
     replyTo: env.SMTP_USER || undefined,
   });
+}
+
+export type NoticeEmail = {
+  subject: string;
+  title: string;
+  preheader?: string;
+  /** Plain-text paragraphs; escaped before rendering. */
+  paragraphs: string[];
+  details?: [label: string, value: string][];
+  highlight?: { label: string; value: string };
+  /** Free-form text such as an admin message; escaped and rendered with line breaks. */
+  quote?: string;
+  cta?: { label: string; url: string };
+  footerNote?: string;
+};
+
+function noticeEmailContent(n: NoticeEmail) {
+  const paragraphs = n.paragraphs
+    .map((p) => `<p style="margin:0 0 16px;">${escapeHtml(p)}</p>`)
+    .join("");
+  const details = n.details?.length
+    ? `<table style="width:100%;border-collapse:collapse;margin:20px 0;">${n.details
+        .map(
+          ([label, value]) =>
+            `<tr><td style="padding:6px 12px 6px 0;color:#71717a;font-size:13px;vertical-align:top;white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(value)}</td></tr>`
+        )
+        .join("")}</table>`
+    : "";
+  const highlight = n.highlight
+    ? `<div style="margin:24px 0;padding:20px;background:#f4f4f5;border-left:4px solid ${BRAND};">
+        <p style="margin:0 0 6px;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:#a1a1aa;font-weight:700;">${escapeHtml(n.highlight.label)}</p>
+        <p style="margin:0;font-size:20px;font-weight:800;color:${BRAND};">${escapeHtml(n.highlight.value)}</p>
+      </div>`
+    : "";
+  const quote = n.quote
+    ? `<div style="margin:20px 0;padding:16px 20px;background:#fafafa;border:1px solid #e4e4e7;white-space:pre-wrap;">${escapeHtml(n.quote)}</div>`
+    : "";
+  const cta = n.cta
+    ? `<p style="margin:24px 0 0;"><a href="${escapeHtml(n.cta.url)}" style="background:${BRAND};color:#fff;padding:12px 20px;text-decoration:none;font-weight:700;display:inline-block;">${escapeHtml(n.cta.label)}</a></p>`
+    : "";
+
+  const html = shell({
+    preheader: escapeHtml(n.preheader ?? n.subject),
+    title: escapeHtml(n.title),
+    bodyHtml: `${paragraphs}${highlight}${details}${quote}${cta}`,
+    footerNote: escapeHtml(n.footerNote ?? "Automated notification from the RVCC procurement portals."),
+  });
+
+  const text = [
+    n.title,
+    "",
+    ...n.paragraphs,
+    ...(n.highlight ? ["", `${n.highlight.label}: ${n.highlight.value}`] : []),
+    ...(n.details?.length ? ["", ...n.details.map(([l, v]) => `${l}: ${v}`)] : []),
+    ...(n.quote ? ["", n.quote] : []),
+    ...(n.cta ? ["", `${n.cta.label}: ${n.cta.url}`] : []),
+    "",
+    "— RVCC Procurement",
+  ].join("\n");
+
+  return { subject: n.subject, html, text };
+}
+
+export async function sendNoticeEmail(env: Env, to: string, notice: NoticeEmail): Promise<void> {
+  const { subject, html, text } = noticeEmailContent(notice);
+  await sendMail(env, { to, subject, html, text });
 }
 
 export async function sendOtpEmail(

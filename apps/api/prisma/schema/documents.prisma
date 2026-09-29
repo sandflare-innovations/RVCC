@@ -21,11 +21,12 @@ model CompanyDocument {
   fileUrl      String           // Cloudflare R2 Public CDN URL
   storageKey   String           // R2 key e.g. "documents/rvcc-general-profile.pdf"
   filePath     String?          // Fallback / legacy local path e.g. "/pdf/books/..."
-  coverImage   String           // Cloudflare R2 or webp image URL
-  sortOrder    Int              @default(0)
-  isPublished  Boolean          @default(true)
-  requiresAuth Boolean          @default(false)
-  pinCode      String?          // Optional custom 4-digit PIN for unlock download
+  coverImage         String           // Cloudflare R2 or webp image URL
+  sortOrder          Int              @default(0)
+  isPublished        Boolean          @default(true)
+  visibleToVendors   Boolean          @default(false)
+  requiresAuth       Boolean          @default(false)
+  pinCode            String?          // Optional custom 4-digit PIN for unlock download
 
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @default(now()) @updatedAt
@@ -33,5 +34,6 @@ model CompanyDocument {
 
   @@index([slug])
   @@index([isPublished, sortOrder])
+  @@index([visibleToVendors, sortOrder])
   @@index([deletedAt])
 }

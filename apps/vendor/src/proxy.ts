@@ -3,7 +3,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import {
   expiredCookieOptions,
   VENDOR_COOKIE,
-  VENDOR_HOME_PATH,
   VENDOR_LOGIN_PATH,
   VENDOR_PROFILE_COOKIE,
   VENDOR_SESSION_EXPIRED_PARAM,
@@ -32,15 +31,14 @@ export default function proxy(request: NextRequest) {
   }
 
   if (pathname === VENDOR_LOGIN_PATH) {
+    // Always allow /login to render. A leftover cookie must not bounce the
+    // browser back to "/" — that traps Chrome profiles that cannot sign out.
+    // The login page validates the session and redirects home only if it is live.
     if (request.nextUrl.searchParams.has(VENDOR_SESSION_EXPIRED_PARAM)) {
       const res = NextResponse.next();
       res.cookies.set(VENDOR_COOKIE, "", expiredCookieOptions());
       res.cookies.set(VENDOR_PROFILE_COOKIE, "", expiredCookieOptions());
       return res;
-    }
-    const token = request.cookies.get(VENDOR_COOKIE)?.value;
-    if (token) {
-      return NextResponse.redirect(new URL(VENDOR_HOME_PATH, request.url));
     }
     return NextResponse.next();
   }

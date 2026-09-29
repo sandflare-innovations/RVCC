@@ -4,8 +4,9 @@ import { canConfigureBidding } from "@rvcc/schemas";
 import type { Env } from "../../../config/env";
 import { prisma } from "../../../lib/prisma";
 import { cuid } from "../../../lib/sql";
-import { sendRequirementMail } from "../../system/services/notification.service";
+import { NotificationService, sendRequirementMail } from "../../system/services/notification.service";
 import { offlineQuotedVendorIds } from "./quotations.service";
+import { adminPortalUrl, alertAdmins, alertVendors, mailInBackground, vendorPortalUrl } from "../../mail/events";
 import type { AwardableQuote } from "../types/sourcing.types";
 import { normaliseRequirementInput } from "../lib/requirement-input";
 import { serializeRequirement } from "../lib/serialize";
@@ -134,7 +135,7 @@ export class SourcingService {
     });
   }
 
-  static async submitToAdmin(id: string, adminId: string) {
+  static async submitToAdmin(id: string, adminId: string, env: Env) {
     const requirement = await prisma.requirement.findFirst({
       where: { id, deletedAt: null },
       include: { _count: { select: { manualQuotations: { where: { deletedAt: null } } } } },
@@ -144,7 +145,7 @@ export class SourcingService {
       throw new Error("Add at least one supplier quotation before submitting to Admin.");
     }
     assertTransition(requirement.status, "SUBMITTED_TO_ADMIN");
-    return prisma.requirement.update({
+    const updated = await prisma.requirement.update({
       where: { id },
       data: {
         status: "SUBMITTED_TO_ADMIN",
@@ -152,6 +153,35 @@ export class SourcingService {
         submittedByAdminId: adminId,
       },
     });
+
+    const submitter = await prisma.adminUser.findUnique({
+      where: { id: adminId },
+      select: { name: true, email: true },
+    });
+    const link = `/requirements/${id}`;
+    mailInBackground("submitted-to-admin", () =>
+      alertAdmins(env, {
+        type: "REQUIREMENT_UPDATED",
+        title: `Ready for review: ${requirement.project}`,
+        body: `Procurement submitted this requirement with ${requirement._count.manualQuotations} quotation(s).`,
+        linkPath: link,
+        email: {
+          subject: `RVCC Admin — Requirement ready for review: ${requirement.project}`,
+          title: "Requirement Ready for Review",
+          paragraphs: [
+            `${submitter?.name || submitter?.email || "Procurement"} submitted this requirement for admin review. Set the target price and bidding window, invite suppliers, then open bidding.`,
+          ],
+          details: [
+            ["Reference", requirement.referenceNumber || "—"],
+            ["Project", requirement.project],
+            ["Quotations collected", String(requirement._count.manualQuotations)],
+          ],
+          cta: { label: "Review in admin", url: adminPortalUrl(env, link) },
+        },
+      })
+    );
+
+    return updated;
   }
 
   static async awardQuote(
@@ -251,6 +281,33 @@ export class SourcingService {
       portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/requirements/${id}`,
     });
 
+    const notSelected = requirement.quotes
+      .filter((q) => q.id !== quoteId)
+      .map((q) => q.vendorUser.id);
+    const link = `/requirements/${id}`;
+    mailInBackground("award-not-selected", () =>
+      alertVendors(env, {
+        vendorUserIds: notSelected,
+        type: "REQUIREMENT_UPDATED",
+        title: `Outcome: ${requirement.project}`,
+        body: "RVCC has awarded this requirement to another supplier. Thank you for your bid.",
+        linkPath: link,
+        email: {
+          subject: `RVCC — Outcome for ${requirement.project}`,
+          title: "Bid Outcome",
+          paragraphs: [
+            "Thank you for bidding on the requirement below. After evaluation, RVCC has awarded this work to another supplier.",
+            "We value your participation and look forward to your bids on future requirements.",
+          ],
+          details: [
+            ["Reference", requirement.referenceNumber || "—"],
+            ["Project", requirement.project],
+          ],
+          cta: { label: "View in your portal", url: vendorPortalUrl(env, link) },
+        },
+      })
+    );
+
     return {
       ok: true,
       described,
@@ -318,6 +375,13 @@ export class SourcingService {
 
     if (openNow && input.vendorUserIds.length > 0) {
       await this.sendInviteEmails(env, id, input.project, input.scopeOfWork, referenceNumber, input.closesAt);
+      await NotificationService.notifyVendors({
+        vendorUserIds: input.vendorUserIds,
+        type: "REQUIREMENT_POSTED",
+        title: "New RFQ invitation",
+        body: `RVCC Procurement invited you to participate in ${input.project}.`,
+        linkPath: `/requirements/${id}`,
+      }).catch((err) => console.warn("[createRequirement] vendor notify failed", err));
     }
 
     return { id, referenceNumber, input, status };
@@ -471,8 +535,9 @@ export class SourcingService {
     referenceNumber: string | null,
     closesAt: Date | null
   ) {
+    // Re-inviting must not re-send the RFQ to suppliers who already received it.
     const invited = await prisma.vendorUser.findMany({
-      where: { invites: { some: { requirementId } } },
+      where: { invites: { some: { requirementId, emailStatus: { not: "SENT" } } } },
       select: { id: true, email: true },
     });
     const offlineIds = await offlineQuotedVendorIds(requirementId);

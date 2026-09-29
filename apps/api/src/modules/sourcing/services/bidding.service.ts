@@ -6,7 +6,17 @@ import { generateTempPassword, hashPassword } from "../../../lib/password";
 import { prisma } from "../../../lib/prisma";
 import { cuid } from "../../../lib/sql";
 import { SourcingService } from "./sourcing.service";
+import { NotificationService } from "../../system/services/notification.service";
+import { sendAccessReleasedEmail } from "../../mail/mail";
+import {
+  mailInBackground,
+  notifyBiddingClosed,
+  notifyBiddingOpened,
+  notifyBiddingScheduled,
+  vendorPortalUrl,
+} from "../../mail/events";
 import { assertTransition } from "../lib/status-machine";
+import { broadcastBidUpdate } from "../bidding/live-bids.controller";
 
 function asDate(value: unknown): Date | null {
   if (!value) return null;
@@ -72,6 +82,7 @@ export class BiddingService {
 
     const input = inviteSuppliersSchema.parse(raw);
     const vendorIds = [...input.vendorUserIds];
+    const newAccounts: { email: string; name: string; tempPassword: string }[] = [];
 
     for (const newbie of input.newSuppliers) {
       const existing = await prisma.vendorUser.findUnique({ where: { email: newbie.email } });
@@ -93,6 +104,18 @@ export class BiddingService {
         },
       });
       vendorIds.push(vendorId);
+      newAccounts.push({ email: newbie.email, name: newbie.name, tempPassword });
+    }
+
+    for (const account of newAccounts) {
+      mailInBackground("invite-new-supplier", () =>
+        sendAccessReleasedEmail(env, account.email, {
+          legalName: account.name,
+          portalUrl: vendorPortalUrl(env, "/login"),
+          loginEmail: account.email,
+          tempPassword: account.tempPassword,
+        })
+      );
     }
 
     const uniqueIds = [...new Set(vendorIds)];
@@ -113,6 +136,13 @@ export class BiddingService {
           inviteToken: randomBytes(24).toString("hex"),
         })),
       });
+      await NotificationService.notifyVendors({
+        vendorUserIds: toCreate,
+        type: "REQUIREMENT_POSTED",
+        title: "New RFQ invitation",
+        body: `RVCC Procurement invited you to participate in ${requirement.project}.`,
+        linkPath: `/requirements/${requirementId}`,
+      }).catch((err) => console.warn("[invite] vendor notify failed", err));
     }
 
     if (input.sendEmail !== false) {
@@ -147,7 +177,7 @@ export class BiddingService {
     };
   }
 
-  static async openBidding(requirementId: string) {
+  static async openBidding(requirementId: string, env: Env) {
     const requirement = await prisma.requirement.findFirst({
       where: { id: requirementId, deletedAt: null },
       include: { _count: { select: { invites: true } } },
@@ -159,25 +189,69 @@ export class BiddingService {
     if (requirement._count.invites < 1) throw new Error("Invite at least one supplier before opening bidding.");
 
     assertTransition(requirement.status, "OPEN");
-    return prisma.requirement.update({
+    const now = new Date();
+    const opensAt = requirement.opensAt ?? now;
+    const scheduled = opensAt.getTime() > now.getTime();
+    const updated = await prisma.requirement.update({
       where: { id: requirementId },
       data: {
         status: "OPEN",
-        opensAt: requirement.opensAt ?? new Date(),
+        opensAt,
+        // Scheduled openings are announced by the background worker when they start.
+        openNoticeSentAt: scheduled ? null : now,
+        closingReminderSentAt: null,
+        closedNoticeSentAt: null,
       },
     });
+
+    const summary = {
+      id: updated.id,
+      project: updated.project,
+      referenceNumber: updated.referenceNumber,
+      opensAt: updated.opensAt,
+      closesAt: updated.closesAt,
+    };
+    mailInBackground(scheduled ? "bidding-scheduled" : "bidding-opened", () =>
+      scheduled ? notifyBiddingScheduled(env, summary) : notifyBiddingOpened(env, summary)
+    );
+
+    return updated;
   }
 
-  static async closeBidding(requirementId: string) {
+  static async setTargetVisibility(requirementId: string, revealTargetPrice: boolean, env: Env) {
+    const requirement = await prisma.requirement.findFirst({
+      where: { id: requirementId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!requirement) return null;
+    const updated = await prisma.requirement.update({
+      where: { id: requirementId },
+      data: { revealTargetPrice },
+    });
+    void broadcastBidUpdate(requirementId, env);
+    return updated;
+  }
+
+  static async closeBidding(requirementId: string, env: Env) {
     const requirement = await prisma.requirement.findFirst({
       where: { id: requirementId, deletedAt: null },
     });
     if (!requirement) return null;
     assertTransition(requirement.status, "BIDDING_CLOSED");
-    return prisma.requirement.update({
+    const updated = await prisma.requirement.update({
       where: { id: requirementId },
-      data: { status: "BIDDING_CLOSED" },
+      data: { status: "BIDDING_CLOSED", closedNoticeSentAt: new Date() },
     });
+    mailInBackground("bidding-closed", () =>
+      notifyBiddingClosed(env, {
+        id: updated.id,
+        project: updated.project,
+        referenceNumber: updated.referenceNumber,
+        opensAt: updated.opensAt,
+        closesAt: updated.closesAt,
+      })
+    );
+    return updated;
   }
 
   static async startEvaluation(requirementId: string) {

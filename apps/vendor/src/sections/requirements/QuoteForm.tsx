@@ -36,6 +36,7 @@ export type QuoteFormRequirement = {
   quoteStatus: "DRAFT" | "SUBMITTED" | null;
   attachments?: QuoteAttachmentItem[];
   allowBidRevisions?: boolean;
+  targetPrice?: string | null;
 };
 
 function formatBytes(bytes: number): string {
@@ -213,10 +214,22 @@ export function QuoteForm({
         </p>
       ) : null}
 
+      {requirement.targetPrice ? (
+        <div className="rounded-2xl border border-brand-blue/20 bg-brand-blue/5 px-4 py-3">
+          <p className="text-[11px] font-bold tracking-wider text-brand-blue uppercase">Auction amount</p>
+          <p className="mt-1 text-xl font-black tabular-nums text-zinc-950">
+            {Number(requirement.targetPrice).toLocaleString("en-US")} {requirement.currency}
+          </p>
+          <p className="mt-1 text-xs font-medium text-zinc-500">
+            Enter your bid against this amount, add remarks, and upload your quotation document.
+          </p>
+        </div>
+      ) : null}
+
       <label className="block space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">
-            {isRevising ? "Your Revised Bid Price" : "Your Commercial Price"}
+            {isRevising ? "Your revised bid" : "Your bid amount"}
           </span>
           {isSubmitted && !isRevising && (
             <span className="inline-flex items-center gap-1 rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-bold text-brand-blue">
@@ -259,7 +272,7 @@ export function QuoteForm({
       <div className="space-y-2.5">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase flex items-center gap-1.5">
-            <Paperclip className="h-3.5 w-3.5 text-zinc-400" /> Supporting Documents / Quotation PDF (Optional)
+            <Paperclip className="h-3.5 w-3.5 text-zinc-400" /> Bid document
           </span>
           <span className="text-[11px] text-zinc-400">PDF, Word, Excel, JPEG, PNG up to 25MB</span>
         </div>
@@ -342,7 +355,7 @@ export function QuoteForm({
               ) : (
                 <>
                   <UploadCloud className="h-4 w-4" />
-                  <span>Attach Quotation / Specification Document</span>
+                  <span>Upload bid document</span>
                 </>
               )}
             </label>
@@ -371,7 +384,7 @@ export function QuoteForm({
 
       <label className="block space-y-2">
         <span className="text-xs font-bold tracking-[0.14em] text-zinc-500 uppercase">
-          Remarks (optional)
+          Bid remarks
         </span>
         <textarea
           className={`min-h-[90px] w-full rounded-2xl border p-3.5 text-sm transition-all ${
@@ -385,7 +398,7 @@ export function QuoteForm({
             setRemarks(e.target.value);
           }}
           disabled={isFormLocked || busy}
-          placeholder="Add any delivery schedules, warranty terms, or remarks..."
+          placeholder="Add remarks for this bid..."
         />
       </label>
 

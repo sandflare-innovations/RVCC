@@ -74,6 +74,7 @@ export async function handleVendorCreate(
       {
         ok: true,
         vendor: { id: result.vendorId, email: result.email, name: result.name },
+        tempPassword: result.tempPassword,
       },
       201
     );
@@ -96,6 +97,7 @@ export async function handleVendorPatch(
     portalAccess?: unknown;
     name?: unknown;
     industryIds?: unknown;
+    notifyEmail?: unknown;
   } | null;
 
   if (!body) return json(env, request, { error: "Invalid JSON body" }, 400);
@@ -105,7 +107,7 @@ export async function handleVendorPatch(
     portalAccess: typeof body.portalAccess === "string" ? body.portalAccess : undefined,
     name: typeof body.name === "string" ? body.name : undefined,
     industryIds: Array.isArray(body.industryIds) ? body.industryIds.map(String) : undefined,
-  });
+  }, body.notifyEmail === false ? undefined : env);
 
   if (!updated) return json(env, request, { error: "Vendor not found." }, 404);
 
@@ -130,6 +132,7 @@ export async function handleVendorPatch(
       name: updated.name,
       updatedAt: updated.updatedAt.toISOString(),
     },
+    tempPassword: updated.tempPassword,
   });
 }
 
@@ -154,7 +157,7 @@ export async function handleVendorResetPassword(
     metadata: { email: result.email },
   });
 
-  return json(env, request, { ok: true, email: result.email });
+  return json(env, request, { ok: true, email: result.email, tempPassword: result.tempPassword });
 }
 
 export async function handleVendorDelete(

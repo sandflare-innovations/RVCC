@@ -401,6 +401,7 @@ export class VendorAccountsService {
       vendorId,
       email: normalised.email,
       name: normalised.name,
+      tempPassword,
     };
   }
 
@@ -409,7 +410,9 @@ export class VendorAccountsService {
    */
   static async patchVendor(
     id: string,
-    body: { isActive?: boolean; portalAccess?: string; name?: string; industryIds?: string[] }
+    body: { isActive?: boolean; portalAccess?: string; name?: string; industryIds?: string[] },
+    /** Omit to release without emailing the vendor. */
+    env?: Env
   ) {
     const existing = await prisma.vendorUser.findUnique({ where: { id } });
     if (!existing) return null;
@@ -418,6 +421,18 @@ export class VendorAccountsService {
     if (typeof body.isActive === "boolean") data.isActive = body.isActive;
     if (body.portalAccess && (body.portalAccess === "HELD" || body.portalAccess === "RELEASED")) {
       data.portalAccess = body.portalAccess as PortalAccess;
+    }
+
+    // Registration creates held accounts with an unusable password, so releasing
+    // them must issue real credentials or the vendor can never sign in.
+    const releasing = existing.portalAccess === "HELD" && body.portalAccess === "RELEASED";
+    let releaseTempPassword: string | undefined;
+    if (releasing && existing.mustChangePassword) {
+      releaseTempPassword = generateTempPassword();
+      data.passwordHash = await hashPassword(releaseTempPassword);
+      data.mustChangePassword = true;
+      data.failedAttempts = 0;
+      data.lockedUntil = null;
     }
     if (typeof body.name === "string" && body.name.trim()) {
       data.name = body.name.trim();
@@ -440,7 +455,26 @@ export class VendorAccountsService {
       });
     }
 
-    return updated;
+    if (releasing && env) {
+      const registration = existing.registrationId
+        ? await prisma.supplierRegistration.findUnique({
+            where: { id: existing.registrationId },
+            select: { company: { select: { legalName: true } } },
+          })
+        : null;
+      try {
+        await sendAccessReleasedEmail(env, updated.email, {
+          legalName: registration?.company?.legalName || updated.name,
+          portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/login`,
+          loginEmail: updated.email,
+          tempPassword: releaseTempPassword,
+        });
+      } catch (err) {
+        console.warn("Failed to send vendor access released email:", err);
+      }
+    }
+
+    return Object.assign(updated, { tempPassword: releaseTempPassword });
   }
 
   /**
@@ -474,17 +508,15 @@ export class VendorAccountsService {
       }),
     ]);
 
-    try {
-      await sendAccessReleasedEmail(env, vendor.email, {
-        legalName: vendor.name,
-        portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/login`,
-        loginEmail: vendor.email,
-        tempPassword,
-      });
-    } catch (err) {
+    void sendAccessReleasedEmail(env, vendor.email, {
+      legalName: vendor.name,
+      portalUrl: `${(env.VENDOR_PORTAL_URL || "").replace(/\/$/, "")}/login`,
+      loginEmail: vendor.email,
+      tempPassword,
+    }).catch((err) => {
       console.warn("Failed to send vendor password reset email:", err);
-    }
+    });
 
-    return { ok: true, email: vendor.email };
+    return { ok: true, email: vendor.email, tempPassword };
   }
 }

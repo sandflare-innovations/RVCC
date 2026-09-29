@@ -16,6 +16,14 @@ export class VendorPortalController {
     return json(env, request, payload);
   }
 
+  static async handleDocumentsList(sql: unknown, env: Env, request: Request): Promise<Response> {
+    const vendor = await getVendorFromSession(sql, vendorSessionFrom(request));
+    if (!vendor) return json(env, request, { error: "Not signed in." }, 401);
+
+    const documents = await VendorPortalService.listVendorPortalDocuments();
+    return json(env, request, { documents });
+  }
+
   static async handleRequirementsList(
     sql: unknown,
     env: Env,
@@ -148,6 +156,7 @@ export class VendorPortalController {
 }
 
 export const handleDashboard = VendorPortalController.handleDashboard;
+export const handleDocumentsList = VendorPortalController.handleDocumentsList;
 export const handleRequirementsList = VendorPortalController.handleRequirementsList;
 export const handleRequirementGet = VendorPortalController.handleRequirementGet;
 export const handleQuoteSave = VendorPortalController.handleQuoteSave;

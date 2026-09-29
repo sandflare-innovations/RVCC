@@ -8,6 +8,7 @@ import {
   Copy,
   FileText,
   Medal,
+  Target,
   Trophy,
 } from "lucide-react";
 import { useState } from "react";
@@ -64,6 +65,7 @@ export function VendorRequirementInteractive({
   const myRank = status === "live" && data ? data.myRank : null;
   const myPrice = data?.myPrice ?? requirement.newPrice ?? null;
   const isLeading = status === "live" && data ? data.isLeading : false;
+  const auctionAmount = data?.targetPrice || requirement.targetPrice || null;
 
   const handleCopyScope = () => {
     if (requirement.scopeOfWork) {
@@ -170,34 +172,33 @@ export function VendorRequirementInteractive({
           </div>
         </div>
 
-        {/* Metric 4: Quote Status */}
+        {/* Metric 4: Auction amount */}
         <div className="group relative flex flex-col justify-between overflow-hidden rounded-3xl bg-white p-6 shadow-[0_2px_12px_rgba(15,23,42,0.04),0_12px_32px_-8px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(0,115,188,0.12)]">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
-              Quote Status
+              Auction Amount
             </span>
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue">
-              <CheckCircle2 className="h-4 w-4" />
+              <Target className="h-4 w-4" />
             </div>
           </div>
           <div className="mt-4">
-            <p className="text-2xl font-black tracking-tight text-zinc-950">
-              {sealedOffline
-                ? "Recorded"
-                : requirement.quoteStatus === "SUBMITTED"
-                ? "Submitted"
-                : requirement.quoteStatus === "DRAFT"
-                  ? "Draft Saved"
-                  : "Unquoted"}
+            <p className="text-2xl font-black tracking-tight text-zinc-950 tabular-nums">
+              {auctionAmount ? (
+                <>
+                  {Number(auctionAmount).toLocaleString("en-US")}{" "}
+                  <span className="text-xs font-bold text-brand-blue">{requirement.currency}</span>
+                </>
+              ) : (
+                <span className="text-lg font-medium text-zinc-400">
+                  {requirement.revealTargetPrice === false ? "Not disclosed" : "Not set"}
+                </span>
+              )}
             </p>
             <p className="mt-1 text-xs font-medium text-zinc-400">
-              {sealedOffline
-                ? "Offline quotation already on file"
-                : requirement.quoteStatus === "SUBMITTED"
-                ? "Active in competition"
-                : requirement.quoteStatus === "DRAFT"
-                  ? "Ready to submit"
-                  : "Pending submission"}
+              {auctionAmount
+                ? "Bid against this amount with remarks and a document"
+                : "Submit your best bid with remarks and a document"}
             </p>
           </div>
         </div>
@@ -378,7 +379,7 @@ export function VendorRequirementInteractive({
                   ? "Live bidding is closed for your company because RVCC already recorded your quotation"
                   : closed
                     ? "Sourcing has concluded for this requirement"
-                    : "Enter your price and attach technical proposals"}
+                    : "Bid against the auction amount with remarks and an uploaded document"}
               </p>
             </div>
 

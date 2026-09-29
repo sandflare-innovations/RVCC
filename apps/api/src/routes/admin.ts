@@ -37,6 +37,7 @@ import {
   handleAdminNotificationsMarkRead,
   handleAdminPushSubscribe,
   handleAdminPushUnsubscribe,
+  handleAdminSendVendorMessage,
 } from "../modules/system/controllers/notification.admin.controller";
 import {
   handleRegistrationsList,
@@ -67,6 +68,7 @@ import {
   handleActivity,
   handleBidConfig,
   handleCloseBidding,
+  handleTargetVisibility,
   handleCollectQuotations,
   handleComparison,
   handleInviteSuppliers,
@@ -288,6 +290,10 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
     if (reqBidConfig && request.method === "POST") {
       return await handleBidConfig(sql, env, request, decodeURIComponent(reqBidConfig[1]!));
     }
+    const reqTargetVisibility = path.match(/^\/requirements\/([^/]+)\/target-visibility$/);
+    if (reqTargetVisibility && request.method === "POST") {
+      return await handleTargetVisibility(sql, env, request, decodeURIComponent(reqTargetVisibility[1]!));
+    }
     const reqInvites = path.match(/^\/requirements\/([^/]+)\/invites$/);
     if (reqInvites && request.method === "POST") {
       return await handleInviteSuppliers(sql, env, request, decodeURIComponent(reqInvites[1]!));
@@ -359,6 +365,16 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
         env,
         request,
         decodeURIComponent(vendorReset[1]!)
+      );
+    }
+
+    const vendorMessage = path.match(/^\/vendors\/([^/]+)\/messages$/);
+    if (vendorMessage && request.method === "POST") {
+      return await handleAdminSendVendorMessage(
+        sql,
+        env,
+        request,
+        decodeURIComponent(vendorMessage[1]!)
       );
     }
 
