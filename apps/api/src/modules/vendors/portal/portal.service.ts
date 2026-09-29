@@ -329,8 +329,11 @@ export class VendorPortalService {
       requiredDocuments: requirement.requiredDocuments,
       allowBidRevisions: requirement.allowBidRevisions,
       revealCompetitorPrices: requirement.revealCompetitorPrices,
-      revealTargetPrice: true,
-      targetPrice: requirement.sellingPrice != null ? String(requirement.sellingPrice) : null,
+      revealTargetPrice: Boolean(requirement.revealTargetPrice),
+      targetPrice:
+        requirement.revealTargetPrice && requirement.sellingPrice != null
+          ? String(requirement.sellingPrice)
+          : null,
       currency: requirement.currency,
       opensAt: requirement.opensAt?.toISOString() ?? null,
       closesAt: requirement.closesAt ? requirement.closesAt.toISOString() : null,

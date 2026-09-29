@@ -16,6 +16,7 @@ import {
   vendorPortalUrl,
 } from "../../mail/events";
 import { assertTransition } from "../lib/status-machine";
+import { broadcastBidUpdate } from "../bidding/live-bids.controller";
 
 function asDate(value: unknown): Date | null {
   if (!value) return null;
@@ -214,6 +215,20 @@ export class BiddingService {
       scheduled ? notifyBiddingScheduled(env, summary) : notifyBiddingOpened(env, summary)
     );
 
+    return updated;
+  }
+
+  static async setTargetVisibility(requirementId: string, revealTargetPrice: boolean, env: Env) {
+    const requirement = await prisma.requirement.findFirst({
+      where: { id: requirementId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!requirement) return null;
+    const updated = await prisma.requirement.update({
+      where: { id: requirementId },
+      data: { revealTargetPrice },
+    });
+    void broadcastBidUpdate(requirementId, env);
     return updated;
   }
 

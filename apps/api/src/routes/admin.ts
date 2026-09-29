@@ -68,6 +68,7 @@ import {
   handleActivity,
   handleBidConfig,
   handleCloseBidding,
+  handleTargetVisibility,
   handleCollectQuotations,
   handleComparison,
   handleInviteSuppliers,
@@ -288,6 +289,10 @@ export async function handleAdminRequest(request: Request, env: Env): Promise<Re
     const reqBidConfig = path.match(/^\/requirements\/([^/]+)\/bid-config$/);
     if (reqBidConfig && request.method === "POST") {
       return await handleBidConfig(sql, env, request, decodeURIComponent(reqBidConfig[1]!));
+    }
+    const reqTargetVisibility = path.match(/^\/requirements\/([^/]+)\/target-visibility$/);
+    if (reqTargetVisibility && request.method === "POST") {
+      return await handleTargetVisibility(sql, env, request, decodeURIComponent(reqTargetVisibility[1]!));
     }
     const reqInvites = path.match(/^\/requirements\/([^/]+)\/invites$/);
     if (reqInvites && request.method === "POST") {

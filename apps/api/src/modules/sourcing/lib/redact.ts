@@ -3,16 +3,17 @@ import { canSeeConfidentialTarget } from "@rvcc/schemas";
 
 /**
  * Strip confidential target pricing unless the caller is allowed to see it.
- * Invited vendors always see the auction / target amount so they can bid against it.
+ * Invited vendors see the auction amount unless Admin hid it on this RFQ.
  */
 export function redactTargetPrice<T extends Record<string, unknown>>(
   payload: T,
   role: AdminRoleName | "VENDOR" | null,
   status: string,
-  _revealTargetPrice = false
+  revealTargetPrice = true
 ): T {
   if (role === "VENDOR") {
-    return payload;
+    if (revealTargetPrice) return payload;
+    return { ...payload, targetPrice: null, sellingPrice: null };
   }
   if (role && canSeeConfidentialTarget(role, status)) return payload;
   return { ...payload, targetPrice: null, sellingPrice: null };

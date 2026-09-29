@@ -13,6 +13,7 @@ import {
   handleActivity,
   handleBidConfig,
   handleCloseBidding,
+  handleTargetVisibility,
   handleCollectQuotations,
   handleComparison,
   handleInviteSuppliers,
@@ -54,6 +55,9 @@ export function createSourcingAdminRouter(env: Env) {
   router.post("/requirements/:id/invites", (c) => handleInviteSuppliers(null, env, c.req.raw, c.req.param("id")));
   router.post("/requirements/:id/open", (c) => handleOpenBidding(null, env, c.req.raw, c.req.param("id")));
   router.post("/requirements/:id/close", (c) => handleCloseBidding(null, env, c.req.raw, c.req.param("id")));
+  router.post("/requirements/:id/target-visibility", (c) =>
+    handleTargetVisibility(null, env, c.req.raw, c.req.param("id"))
+  );
   router.post("/requirements/:id/evaluate", (c) => handleStartEvaluation(null, env, c.req.raw, c.req.param("id")));
   router.post("/requirements/:id/quotes/:quoteId/action", (c) =>
     handleQuoteAction(null, env, c.req.raw, c.req.param("id"), c.req.param("quoteId"))

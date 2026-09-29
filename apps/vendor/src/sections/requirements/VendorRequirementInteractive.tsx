@@ -190,11 +190,15 @@ export function VendorRequirementInteractive({
                   <span className="text-xs font-bold text-brand-blue">{requirement.currency}</span>
                 </>
               ) : (
-                <span className="text-lg font-medium text-zinc-400">Not set</span>
+                <span className="text-lg font-medium text-zinc-400">
+                  {requirement.revealTargetPrice === false ? "Not disclosed" : "Not set"}
+                </span>
               )}
             </p>
             <p className="mt-1 text-xs font-medium text-zinc-400">
-              Bid against this amount with remarks and a document
+              {auctionAmount
+                ? "Bid against this amount with remarks and a document"
+                : "Submit your best bid with remarks and a document"}
             </p>
           </div>
         </div>

@@ -206,6 +206,28 @@ export async function handleOpenBidding(sql: unknown, env: Env, request: Request
   }
 }
 
+export async function handleTargetVisibility(sql: unknown, env: Env, request: Request, id: string) {
+  const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
+  if (deny) return deny;
+  try {
+    const body = (await readJson(request)) as { revealTargetPrice?: unknown } | null;
+    if (typeof body?.revealTargetPrice !== "boolean") {
+      return json(env, request, { error: "revealTargetPrice must be true or false." }, 400);
+    }
+    const updated = await BiddingService.setTargetVisibility(id, body.revealTargetPrice, env);
+    if (!updated) return json(env, request, { error: "Requirement not found." }, 404);
+    await writeAudit(sql, {
+      adminId: admin.id,
+      action: body.revealTargetPrice ? "requirement.target_shown" : "requirement.target_hidden",
+      entityType: "Requirement",
+      entityId: id,
+    });
+    return json(env, request, { ok: true, revealTargetPrice: updated.revealTargetPrice });
+  } catch (err: any) {
+    return json(env, request, { error: err.message }, 400);
+  }
+}
+
 export async function handleCloseBidding(sql: unknown, env: Env, request: Request, id: string) {
   const { admin, deny } = await requireAdmin(sql, env, request, "ADMIN");
   if (deny) return deny;

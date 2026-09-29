@@ -244,9 +244,35 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
                 </p>
                 <p className="mt-1 text-xs text-zinc-500">
                   {req.revealTargetPrice
-                    ? "Shown to invited vendors during this negotiation."
-                    : "Hidden from vendors until you enable reveal on the Bidding tab."}
+                    ? "Shown to invited vendors as the auction amount."
+                    : "Hidden from vendors. They bid without seeing the auction amount."}
                 </p>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={Boolean(req.revealTargetPrice)}
+                  disabled={!!busy}
+                  onClick={async () => {
+                    const next = !req.revealTargetPrice;
+                    if (await post("target-visibility", { revealTargetPrice: next })) {
+                      setRevealTargetPrice(next);
+                    }
+                  }}
+                  className="mt-3 flex w-full items-center justify-between gap-3 rounded-xl border border-zinc-200 px-3 py-2 text-left transition-colors hover:border-zinc-300 disabled:opacity-55"
+                >
+                  <span className="text-sm font-medium text-zinc-800">Show auction amount to vendors</span>
+                  <span
+                    className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors ${
+                      req.revealTargetPrice ? "bg-brand-blue" : "bg-zinc-300"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                        req.revealTargetPrice ? "translate-x-4" : "translate-x-0.5"
+                      }`}
+                    />
+                  </span>
+                </button>
               </Card>
               <Card title="Quotation snapshot">
                 <Row label="Count" value={String(data.quotationStats?.count ?? 0)} />
@@ -427,7 +453,7 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
                       checked={revealTargetPrice}
                       onChange={(e) => setRevealTargetPrice(e.target.checked)}
                     />
-                    <span className="text-sm text-zinc-700">Show target price to invited vendors</span>
+                    <span className="text-sm text-zinc-700">Show auction amount to invited vendors</span>
                   </label>
                   <label className="space-y-1">
                     <span className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">Opens date (Riyadh)</span>
@@ -677,7 +703,7 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
             <li>Opens: {openDate} {openTime} (Riyadh)</li>
             <li>Closes: {closeDate} {closeTime} (Riyadh)</li>
             <li>Duration: {riyadhWindowDuration(openDate, openTime, closeDate, closeTime) || "not set"}</li>
-            <li>Target visible to vendors: {revealTargetPrice ? "Yes" : "No"}</li>
+            <li>Auction amount visible to vendors: {revealTargetPrice ? "Yes" : "No"}</li>
           </ul>
           <div className="mt-5 flex justify-end gap-2">
             <button className={btnClass} onClick={() => setOpenConfirm(false)} disabled={!!busy}>Cancel</button>
