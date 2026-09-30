@@ -133,28 +133,6 @@ export function VendorProfileActions({
     }
   };
 
-  const sendMessage = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/vendors/${vendor.id}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ title: messageTitle, body: messageBody }),
-      });
-      if (!res.ok) {
-        setError(await readApiError(res, "Could not send the message."));
-        return;
-      }
-      setMessageSent(true);
-    } catch {
-      setError("Network error — please try again.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const deleteVendor = async () => {
     setBusy(true);
     setDeleteError(null);
