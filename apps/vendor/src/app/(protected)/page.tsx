@@ -11,8 +11,8 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { VENDOR_COOKIE } from "@/lib/constants";
-import { describeDeadline, summariseVendorDashboard, type VendorRequirementRow } from "@/lib/rfq";
+import { VENDOR_COOKIE, VENDOR_LOGIN_EXPIRED_PATH } from "@/lib/constants";
+import { summariseVendorDashboard, vendorWindowLabel, type VendorRequirementRow } from "@/lib/rfq";
 import { getVendorFromSession } from "@/lib/session";
 import { vendorApiFetch } from "@/lib/vendor-api";
 import { OverviewNextActions } from "@/sections/dashboard/OverviewNextActions";
@@ -106,13 +106,17 @@ function KpiCard({
 
 export default async function VendorDashboard() {
   const vendor = await getVendorFromSession();
-  if (!vendor) return null;
+  if (!vendor) redirect(VENDOR_LOGIN_EXPIRED_PATH);
   if (vendor.mustChangePassword) redirect("/password");
 
   const token = (await cookies()).get(VENDOR_COOKIE)?.value;
   let payload: DashboardPayload = { registration: null, requirements: [], documents: [], messages: [] };
   try {
-    const res = await vendorApiFetch("/dashboard", { method: "GET", sessionToken: token });
+    const res = await vendorApiFetch("/dashboard", {
+      method: "GET",
+      sessionToken: token,
+      signal: AbortSignal.timeout(8_000),
+    });
     if (res.ok) {
       const data = await res.json();
       payload = {
@@ -348,7 +352,7 @@ export default async function VendorDashboard() {
                     month: "short",
                     day: "numeric",
                   });
-                  const deadline = describeDeadline(bid.closesAt);
+                  const deadline = vendorWindowLabel(bid.opensAt, bid.closesAt);
                   const bgOptions = ["bg-[#3C99DC]", "bg-[#2565AE]", "bg-[#0F5298]"];
                   const bg = bgOptions[index % bgOptions.length];
 
@@ -420,7 +424,7 @@ export default async function VendorDashboard() {
               <p className="text-xs text-zinc-500 py-6 text-center">No open unquoted invitations.</p>
             ) : (
               openInvites.slice(0, 3).map((item) => {
-                const deadline = describeDeadline(item.closesAt);
+                const deadline = vendorWindowLabel(item.opensAt, item.closesAt);
                 return (
                   <Link
                     key={item.id}

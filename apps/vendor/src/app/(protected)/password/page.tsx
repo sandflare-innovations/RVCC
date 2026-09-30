@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { VENDOR_LOGIN_EXPIRED_PATH } from "@/lib/constants";
 import { getVendorFromSession } from "@/lib/session";
 import { VendorPasswordForm } from "@/sections/auth/VendorPasswordForm";
 
@@ -7,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function VendorPasswordPage() {
   const vendor = await getVendorFromSession();
-  if (!vendor) redirect("/login");
+  if (!vendor) redirect(VENDOR_LOGIN_EXPIRED_PATH);
   // Layout already redirects when mustChangePassword and path !== /password.
 
   return (

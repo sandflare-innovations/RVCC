@@ -95,9 +95,15 @@ export function VendorProfileActions({
         return;
       }
       const data = await res.json().catch(() => ({}));
-      setIssued(data.tempPassword);
+      const password = typeof data.tempPassword === "string" ? data.tempPassword : "";
+      if (!password) {
+        setError("Password was reset, but it was not returned. Try again.");
+        return;
+      }
+      setIssued(password);
       clearVendorCache();
-      router.refresh();
+      // Do not router.refresh() here: this page is behind Suspense, so a
+      // refresh remounts the modal and wipes the password from the screen.
     } catch {
       setError("Network error — please try again.");
     } finally {
@@ -231,6 +237,7 @@ export function VendorProfileActions({
                 setShowReset(false);
                 setIssued(null);
                 setCopied(false);
+                router.refresh();
               }}
               className="bg-brand-blue hover:bg-brand-blue/90 h-10 rounded-md px-4 text-sm font-semibold text-white transition-colors"
             >

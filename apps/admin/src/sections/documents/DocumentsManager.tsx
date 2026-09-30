@@ -370,7 +370,7 @@ export function DocumentsManager({ initialDocuments, canDelete }: DocumentsManag
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                             : "bg-zinc-100 text-zinc-500 border border-zinc-200"
                         }`}
-                        title={doc.isPublished ? "Published (Click to hide)" : "Draft (Click to publish)"}
+                        title={doc.isPublished ? "Published on website (click to hide)" : "Draft on website (click to publish)"}
                       >
                         {doc.isPublished ? "Web" : "No web"}
                       </button>
@@ -883,6 +883,36 @@ function UploadDocumentModal({
             </div>
           </div>
 
+          <div className="rounded-2xl bg-zinc-50 p-4 border border-zinc-100 space-y-3">
+            <label className="flex items-center justify-between gap-3 cursor-pointer">
+              <div>
+                <h4 className="text-xs font-bold text-zinc-900">Published on website</h4>
+                <p className="text-[11px] text-zinc-400">Show this PDF on the public documents page.</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={isPublished}
+                onChange={(e) => setIsPublished(e.target.checked)}
+                className="h-4 w-4 rounded border-zinc-300 text-[#0073bc] focus:ring-[#0073bc]"
+              />
+            </label>
+            <label className="flex items-center justify-between gap-3 cursor-pointer pt-3 border-t border-zinc-200/60">
+              <div>
+                <h4 className="text-xs font-bold text-zinc-900">Show in vendor portal</h4>
+                <p className="text-[11px] text-zinc-400">
+                  Vendors see this under Latest docs. Use this for policies, NDAs, and terms.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={visibleToVendors}
+                onChange={(e) => setVisibleToVendors(e.target.checked)}
+                className="h-4 w-4 rounded border-zinc-300 text-[#0073bc] focus:ring-[#0073bc]"
+              />
+            </label>
+          </div>
+
+          {/* Security & Access Protection */}
           <div className="rounded-2xl bg-zinc-50 p-4 border border-zinc-100 space-y-3">
             <label className="flex items-center justify-between gap-3 cursor-pointer">
               <div>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { StatusBadge } from "@/components/ui";
-import { VENDOR_COOKIE } from "@/lib/constants";
+import { VENDOR_COOKIE, VENDOR_LOGIN_EXPIRED_PATH } from "@/lib/constants";
 import { getVendorFromSession } from "@/lib/session";
 import { vendorApiFetch } from "@/lib/vendor-api";
 
@@ -43,7 +43,7 @@ function Row({ label, value }: { label: string; value: string | null }) {
 
 export default async function ProfilePage() {
   const vendor = await getVendorFromSession();
-  if (!vendor) redirect("/login");
+  if (!vendor) redirect(VENDOR_LOGIN_EXPIRED_PATH);
 
   const token = (await cookies()).get(VENDOR_COOKIE)?.value;
   let payload: DashboardPayload = { registration: null };
