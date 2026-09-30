@@ -475,6 +475,9 @@ export function RequirementPipelineView({ data }: { data: PipelinePayload }) {
                 <p className="mt-2 text-xs font-medium text-zinc-500">
                   Window length: {riyadhWindowDuration(openDate, openTime, closeDate, closeTime) || "set both start and end"}
                 </p>
+                <p className="mt-1 text-xs text-zinc-500">
+                  Quotations already received stay the supplier ceiling. During this window they submit a negotiated bid toward the RVCC target.
+                </p>
                 <button
                   className={`${primaryBtn} mt-3`}
                   disabled={!!busy}

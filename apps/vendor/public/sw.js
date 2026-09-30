@@ -9,7 +9,7 @@
  * - Push notifications + Background sync support
  */
 
-const CACHE_VERSION = 'v8';
+const CACHE_VERSION = 'v9';
 const SHELL_CACHE = `rvcc-vendor-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `rvcc-vendor-runtime-${CACHE_VERSION}`;
 const FONT_CACHE = `rvcc-vendor-fonts-${CACHE_VERSION}`;
@@ -70,6 +70,16 @@ self.addEventListener('fetch', (event) => {
 
   // Skip non-GET requests (let them pass through)
   if (request.method !== 'GET') return;
+
+  // Next.js assets and RSC requests must not be intercepted or cached.
+  if (
+    url.pathname.startsWith('/_next/') ||
+    url.searchParams.has('_rsc') ||
+    request.headers.get('RSC') === '1' ||
+    (request.headers.get('Accept') || '').includes('text/x-component')
+  ) {
+    return;
+  }
 
   // Skip cross-origin requests except Google Fonts
   if (url.origin !== self.location.origin && !url.hostname.includes('fonts.googleapis.com') && !url.hostname.includes('fonts.gstatic.com')) {
@@ -279,7 +289,7 @@ async function networkFirstWithOfflineFallback(event) {
   try {
     // Use navigation preload response if available
     const preloadResponse = event.preloadResponse && await event.preloadResponse;
-    if (preloadResponse) return preloadResponse;
+    if (preloadResponse && preloadResponse.ok) return preloadResponse;
 
     return await fetch(event.request);
   } catch {

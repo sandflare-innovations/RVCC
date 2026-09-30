@@ -19,7 +19,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { describeDeadline, type VendorRequirementRow } from "@/lib/rfq";
+import { vendorWindowLabel, type VendorRequirementRow } from "@/lib/rfq";
 import { cn } from "@/lib/utils";
 import { LiveRankBadge } from "@/sections/requirements/LiveRankBadge";
 
@@ -327,7 +327,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
           {/* Mobile Card List (hidden on lg) */}
           <div className="space-y-4 lg:hidden">
             {displayedRows.map((row) => {
-              const deadline = describeDeadline(row.closesAt);
+              const deadline = vendorWindowLabel(row.opensAt, row.closesAt);
               const isSubmitted = row.quoteStatus === "SUBMITTED";
               const isDraft = row.quoteStatus === "DRAFT";
               const sealedOffline = row.canLiveBid === false;
@@ -426,7 +426,7 @@ export function VendorRequirementsWorkbench({ initialRows }: { initialRows: Requ
               className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 max-h-[calc(100vh-420px)] [scrollbar-width:thin] [-ms-overflow-style:none]"
             >
               {displayedRows.map((row) => {
-                const deadline = describeDeadline(row.closesAt);
+                const deadline = vendorWindowLabel(row.opensAt, row.closesAt);
                 const isSubmitted = row.quoteStatus === "SUBMITTED";
                 const isDraft = row.quoteStatus === "DRAFT";
                 const sealedOffline = row.canLiveBid === false;

@@ -6,6 +6,7 @@ import { broadcastBidUpdate } from "../../sourcing/bidding/live-bids.controller"
 import { computeMoneyBreakdown, toSarAmount } from "../../sourcing/lib/money";
 import { isBiddingLive, isPastDeadline, negotiationPhase, VENDOR_VISIBLE_STATUSES } from "../../sourcing/lib/status-machine";
 import { attachmentDto } from "../../sourcing/services/sourcing-files.service";
+
 import {
   OFFLINE_QUOTE_LIVE_BID_ERROR,
   vendorHasOfflineQuotation,
@@ -212,6 +213,7 @@ export class VendorPortalService {
         scopeOfWork: r.scopeOfWork,
         project: r.project,
         currency: r.currency,
+        opensAt: r.opensAt ? r.opensAt.toISOString() : null,
         closesAt: r.closesAt ? r.closesAt.toISOString() : null,
         status: r.status,
         isEnded,
@@ -289,6 +291,8 @@ export class VendorPortalService {
       }
     }
 
+    const phase = negotiationPhase(requirement.status, requirement.opensAt, requirement.closesAt);
+
     const quoteAttachments = q
       ? q.attachments.map((a) =>
           attachmentDto({
@@ -338,7 +342,7 @@ export class VendorPortalService {
       opensAt: requirement.opensAt?.toISOString() ?? null,
       closesAt: requirement.closesAt ? requirement.closesAt.toISOString() : null,
       status: requirement.status,
-      phase: negotiationPhase(requirement.status, requirement.opensAt, requirement.closesAt),
+      phase,
       serverTime: new Date().toISOString(),
       isEnded,
       endedStatus,
@@ -592,6 +596,21 @@ export class VendorPortalService {
       exchangeRate = Number(fx.rateToSar);
     }
     const amountSar = toSarAmount(money.totalPrice, exchangeRate);
+
+    if (submit) {
+      const received = await prisma.manualQuotation.findFirst({
+        where: { requirementId, vendorUserId: vendorId, deletedAt: null },
+        select: { amountSar: true, totalPrice: true },
+        orderBy: { createdAt: "asc" },
+      });
+      const ceiling = received ? Number(received.amountSar ?? received.totalPrice) : NaN;
+      if (Number.isFinite(ceiling) && ceiling > 0 && amountSar > ceiling) {
+        return {
+          error: "Your negotiated bid cannot be higher than the quotation already received from your company.",
+          status: 400,
+        };
+      }
+    }
 
     if (requirement.minAcceptablePrice && amountSar < Number(requirement.minAcceptablePrice)) {
       return { error: "This bid is below the minimum acceptable price.", status: 400 };
